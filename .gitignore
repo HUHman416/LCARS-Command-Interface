@@ -1,0 +1,11 @@
+node_modules/
+dist/
+desktop-dist/
+release-desktop/
+.next/
+.wrangler/
+.sites-runtime/
+__pycache__/
+*.py[cod]
+*.log
+.DS_Store

@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+installer_dir="$(cd "$(dirname "$0")" && pwd)"
+cd "$installer_dir"
+echo "============================================================"
+echo "          LCARS UNIVERSAL LINUX DESKTOP INSTALLER"
+echo "============================================================"
+echo
+chmod +x install.sh start-local.sh install-autostart.sh local/lcars-recovery.sh Start-LCARS-Linux.desktop
+./install.sh
+echo
+echo "Installation complete. Starting LCARS..."
+exec ./start-local.sh

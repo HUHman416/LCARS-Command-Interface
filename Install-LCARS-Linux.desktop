@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Install LCARS Command Interface
+Comment=Install the standalone LCARS desktop application for Linux
+Icon=system-software-install
+Terminal=true
+Exec=bash -c 'launcher="${1#file://}"; cd "$(dirname "$launcher")" && chmod +x install.sh start-local.sh install-autostart.sh Install-LCARS-Linux.run && ./install.sh; status=$?; echo; if [ $status -eq 0 ]; then echo "Installation complete. Starting LCARS..."; ./start-local.sh; else echo "Installation failed with status $status."; read -r -p "Press Enter to close..."; fi' launcher %k
+Categories=System;Settings;
+StartupNotify=true

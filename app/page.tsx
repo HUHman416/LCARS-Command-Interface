@@ -1,0 +1,3882 @@
+"use client";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+type App = { id: string; name: string; comment: string; icon?: string };
+type Player = {
+  id: string;
+  name: string;
+  status: string;
+  artist: string;
+  title: string;
+  album: string;
+  volume: number;
+  artUrl?: string;
+  position?: number;
+  length?: number;
+};
+type Stream = {
+  id: string;
+  name: string;
+  volume: number;
+  group?: string;
+  advanced?: boolean;
+};
+type AudioDevice = {
+  id: string;
+  name: string;
+  default: boolean;
+  kind: "output" | "input";
+};
+type FileEntry = {
+  name: string;
+  path: string;
+  directory: boolean;
+  size: number;
+  modified: number;
+  hidden: boolean;
+};
+type Notice = {
+  id: number;
+  text: string;
+  kind: "info" | "error";
+  time: string;
+};
+type WindowTask = {
+  id: string;
+  name: string;
+  app: string;
+  monitor: string;
+  active: boolean;
+  minimized: boolean;
+  attention?: boolean;
+  icon?: string;
+};
+type Display = {
+  id: string;
+  name: string;
+  enabled: boolean;
+  primary: boolean;
+  geometry: string;
+  source?: string;
+};
+type Health = Record<string, { available: boolean; detail: string }>;
+type Compatibility = {
+  distro: string;
+  desktop: string;
+  session: string;
+  capabilities: Record<string, boolean>;
+  restrictions: { feature: string; reason: string; remedy: string }[];
+};
+type ShellPrefs = {
+  taskHover: boolean;
+  hoverDelay: number;
+  taskAutoHide: boolean;
+  taskPinned: boolean;
+  groupByMonitor: boolean;
+  terminalShell: string;
+  terminalDirectory: string;
+  terminalFontSize: number;
+  terminalCursor: string;
+  terminalScrollback: number;
+  confirmTerminalClose: boolean;
+  terminalHistory: boolean;
+  terminalTarget: string;
+  notificationSeconds: number;
+};
+type WorkspaceProfile = {
+  id: string;
+  name: string;
+  theme: string;
+  widgets: WidgetId[];
+  widgetSizes: Record<string, string>;
+  favoriteIds: string[];
+};
+type AccessibilityPrefs = {
+  fontScale: number;
+  highContrast: boolean;
+  reducedMotion: boolean;
+  colorSafe: boolean;
+  soundVolume: number;
+};
+type BuiltinWidgetId =
+  | "system"
+  | "favorites"
+  | "operations"
+  | "media"
+  | "terminal"
+  | "network"
+  | "updates";
+type WidgetId = BuiltinWidgetId | `ext:${string}`;
+type ExtensionManifest = {
+  schema: number;
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  module: {
+    type: "checklist";
+    defaultSize?: "compact" | "standard" | "wide";
+    defaultItems?: string[];
+  };
+};
+const widgetInfo: Record<BuiltinWidgetId, { name: string; description: string }> = {
+  system: {
+    name: "System Information",
+    description: "CPU, GPU, memory and storage",
+  },
+  favorites: {
+    name: "Favorite Applications",
+    description: "Your selected application launchers",
+  },
+  operations: {
+    name: "Operations",
+    description: "Quick system status and settings",
+  },
+  media: {
+    name: "Now Playing",
+    description: "Active media sources and playback",
+  },
+  terminal: { name: "Terminal", description: "Quick LCARS Terminal access" },
+  network: { name: "Network", description: "Connection status and controls" },
+  updates: { name: "Updates", description: "Software update status" },
+};
+const defaultWidgets: WidgetId[] = ["system", "favorites", "operations"];
+const themes = [
+  ["classic", "Classic", "1701-D"],
+  ["voyager", "Voyager", "74656"],
+  ["nemesis", "Nemesis Blue", "2379"],
+  ["picard", "Picard", "2401"],
+  ["lower-decks", "Lower Decks", "75567"],
+  ["padd", "PADD", "MOBILE"],
+];
+const fallback: App[] = [
+  { id: "steam.desktop", name: "Steam", comment: "Gaming Library" },
+  { id: "net.lutris.Lutris.desktop", name: "Lutris", comment: "Game Launcher" },
+  {
+    id: "com.heroicgameslauncher.hgl.desktop",
+    name: "Heroic",
+    comment: "Epic · GOG",
+  },
+  { id: "org.kde.dolphin.desktop", name: "Files", comment: "Home Directory" },
+  { id: "org.kde.konsole.desktop", name: "Terminal", comment: "Konsole" },
+  { id: "org.kde.discover.desktop", name: "Discover", comment: "Applications" },
+];
+const baseMeters = [
+  ["CPU", 18, "SYSTEM PROCESSOR"],
+  ["GPU", 31, "NVIDIA RTX 3060"],
+  ["MEM", 42, "6.7 / 16.0 GB"],
+  ["DISK", 68, "327 GB AVAILABLE"],
+];
+const nav = [
+  ["overview", "01", "STATUS"],
+  ["terminal", "02", "TERMINAL"],
+  ["files", "03", "FILES"],
+  ["system", "04", "SYSTEMS"],
+  ["media", "05", "MEDIA"],
+  ["network", "06", "NETWORK"],
+  ["updates", "07", "UPDATES"],
+  ["settings", "08", "SETTINGS"],
+];
+const defaultPrefs: ShellPrefs = {
+  taskHover: true,
+  hoverDelay: 300,
+  taskAutoHide: true,
+  taskPinned: false,
+  groupByMonitor: true,
+  terminalShell: "/bin/bash",
+  terminalDirectory: "~",
+  terminalFontSize: 14,
+  terminalCursor: "block",
+  terminalScrollback: 10000,
+  confirmTerminalClose: true,
+  terminalHistory: false,
+  terminalTarget: "current",
+  notificationSeconds: 4,
+};
+const defaultAccess: AccessibilityPrefs = {
+  fontScale: 100,
+  highContrast: false,
+  reducedMotion: false,
+  colorSafe: false,
+  soundVolume: 40,
+};
+
+export default function Home() {
+  const [theme, setTheme] = useState("classic"),
+    [section, setSection] = useState("overview"),
+    [sound, setSound] = useState(true);
+  const [volume, setVolume] = useState(64),
+    [allOpen, setAllOpen] = useState(false),
+    [editOpen, setEditOpen] = useState(false);
+  const [bayApp, setBayApp] = useState<App | null>(null),
+    [bayFullscreen, setBayFullscreen] = useState(false);
+  const [overviewEdit, setOverviewEdit] = useState(false),
+    [widgets, setWidgets] = useState<WidgetId[]>(defaultWidgets);
+  const [widgetSizes, setWidgetSizes] = useState<Record<string, string>>({
+      system: "wide",
+      favorites: "wide",
+      media: "wide",
+    }),
+    [dragged, setDragged] = useState<WidgetId | null>(null);
+  const [players, setPlayers] = useState<Player[]>([]),
+    [streams, setStreams] = useState<Stream[]>([]),
+    [audioDevices, setAudioDevices] = useState<AudioDevice[]>([]);
+  const [pinnedPlayers, setPinnedPlayers] = useState<string[]>([]),
+    [notices, setNotices] = useState<Notice[]>([]),
+    [historyOpen, setHistoryOpen] = useState(false);
+  const [prefs, setPrefs] = useState<ShellPrefs>(defaultPrefs),
+    [configSaved, setConfigSaved] = useState(false),
+    [taskRail, setTaskRail] = useState(false),
+    [taskLocked, setTaskLocked] = useState(false),
+    [displayMenu, setDisplayMenu] = useState(false);
+  const [tasks, setTasks] = useState<WindowTask[]>([]),
+    [displays, setDisplays] = useState<Display[]>([
+      {
+        id: "1",
+        name: "DISPLAY 1",
+        enabled: true,
+        primary: true,
+        geometry: "1920×1080",
+      },
+    ]);
+  const [health, setHealth] = useState<Health>({});
+  const [extensions, setExtensions] = useState<ExtensionManifest[]>([]);
+  const [firstRun, setFirstRun] = useState(false),
+    [setupStep, setSetupStep] = useState(0),
+    hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [apps, setApps] = useState<App[]>(fallback),
+    [favoriteIds, setFavoriteIds] = useState<string[]>(
+      fallback.map((a) => a.id),
+    ),
+    [query, setQuery] = useState("");
+  const [meters, setMeters] = useState(baseMeters),
+    [clock, setClock] = useState<Date | null>(null),
+    [bridge, setBridge] = useState(false);
+  const [platform, setPlatform] = useState("NOBARA LINUX");
+  const [compat, setCompat] = useState<Compatibility | null>(null),
+    [compatOpen, setCompatOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false),
+    [paletteQuery, setPaletteQuery] = useState("");
+  const [profiles, setProfiles] = useState<WorkspaceProfile[]>([]),
+    [activeProfile, setActiveProfile] = useState("");
+  const [access, setAccess] = useState<AccessibilityPrefs>(defaultAccess),
+    [doNotDisturb, setDoNotDisturb] = useState(false);
+  const [locked, setLocked] = useState(false),
+    [userName, setUserName] = useState("LCARS OPERATOR"),
+    [sessionRestore, setSessionRestore] = useState(true),
+    [powerOpen, setPowerOpen] = useState(false);
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get(
+      "section",
+    );
+    const restore = localStorage.getItem("lcars-session-restore") !== "false";
+    setSessionRestore(restore);
+    if (requested && nav.some((n) => n[0] === requested)) setSection(requested);
+    else if (restore && localStorage.getItem("lcars-last-section"))
+      setSection(localStorage.getItem("lcars-last-section") || "overview");
+    const t = localStorage.getItem("lcars-theme"),
+      f = localStorage.getItem("lcars-favorites"),
+      w = localStorage.getItem("lcars-overview-widgets"),
+      z = localStorage.getItem("lcars-widget-sizes"),
+      p = localStorage.getItem("lcars-pinned-players"),
+      s = localStorage.getItem("lcars-shell-prefs"),
+      a = localStorage.getItem("lcars-accessibility"),
+      pr = localStorage.getItem("lcars-workspaces"),
+      u = localStorage.getItem("lcars-user-name");
+    if (t) setTheme(t);
+    if (f)
+      try {
+        setFavoriteIds(JSON.parse(f));
+      } catch {}
+    if (w)
+      try {
+        setWidgets(JSON.parse(w));
+      } catch {}
+    if (z)
+      try {
+        setWidgetSizes(JSON.parse(z));
+      } catch {}
+    if (p)
+      try {
+        setPinnedPlayers(JSON.parse(p));
+      } catch {}
+    if (s)
+      try {
+        setPrefs({ ...defaultPrefs, ...JSON.parse(s) });
+      } catch {}
+    if (a)
+      try {
+        setAccess({ ...defaultAccess, ...JSON.parse(a) });
+      } catch {}
+    if (pr)
+      try {
+        setProfiles(JSON.parse(pr));
+      } catch {}
+    if (u) setUserName(u);
+    if (
+      !localStorage.getItem("lcars-setup-complete") &&
+      !sessionStorage.getItem("lcars-setup-dismissed")
+    )
+      setFirstRun(true);
+    setClock(new Date());
+    fetch("http://127.0.0.1:8765/api/apps")
+      .then((r) => r.json())
+      .then((d) => {
+        if (Array.isArray(d.apps)) {
+          setApps(d.apps);
+          setBridge(true);
+        }
+      })
+      .catch(() => {});
+    fetch("http://127.0.0.1:8765/api/system")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.meters) setMeters(d.meters);
+        if (d.platform) {
+          setPlatform(d.platform);
+          if (String(d.platform).includes("WINDOWS"))
+            setPrefs((old) =>
+              old.terminalShell === "/bin/bash"
+                ? {
+                    ...old,
+                    terminalShell: "powershell.exe",
+                    terminalDirectory: "~",
+                  }
+                : old,
+            );
+        }
+        setBridge(true);
+      })
+      .catch(() => {});
+    fetch("http://127.0.0.1:8765/api/compat")
+      .then((r) => r.json())
+      .then((d) => setCompat(d))
+      .catch(() => {});
+    fetch("http://127.0.0.1:8765/api/audio")
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d.volume === "number") setVolume(d.volume);
+      })
+      .catch(() => {});
+    fetch("http://127.0.0.1:8765/api/config")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.shell_prefs) setPrefs({ ...defaultPrefs, ...d.shell_prefs });
+      })
+      .catch(() => {});
+    const getExtensions = () =>
+      fetch("http://127.0.0.1:8765/api/extensions")
+        .then((r) => r.json())
+        .then((d) => setExtensions(Array.isArray(d.extensions) ? d.extensions : []))
+        .catch(() => {});
+    getExtensions();
+    const getMedia = () => {
+      fetch("http://127.0.0.1:8765/api/media")
+        .then((r) => r.json())
+        .then((d) => {
+          setPlayers(d.players || []);
+          setStreams(d.streams || []);
+        })
+        .catch(() => {});
+      fetch("http://127.0.0.1:8765/api/audio-devices")
+        .then((r) => r.json())
+        .then((d) => setAudioDevices(d.devices || []))
+        .catch(() => {});
+    };
+    getMedia();
+    const getDesktop = () => {
+      fetch("http://127.0.0.1:8765/api/windows")
+        .then((r) => r.json())
+        .then((d) => setTasks(d.windows || []))
+        .catch(() =>
+          setTasks([
+            {
+              id: "lcars",
+              name: "LCARS Command Interface",
+              app: "LCARS",
+              monitor: "DISPLAY 1",
+              active: true,
+              minimized: false,
+            },
+            {
+              id: "dolphin",
+              name: "Home — Dolphin",
+              app: "Dolphin",
+              monitor: "DISPLAY 1",
+              active: false,
+              minimized: false,
+            },
+            {
+              id: "steam",
+              name: "Steam",
+              app: "Steam",
+              monitor: "DISPLAY 2",
+              active: false,
+              minimized: true,
+              attention: true,
+            },
+          ]),
+        );
+      fetch("http://127.0.0.1:8765/api/displays")
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.displays?.length) setDisplays(d.displays);
+        })
+        .catch(() => {});
+      fetch("http://127.0.0.1:8765/api/health-check")
+        .then((r) => r.json())
+        .then((d) => setHealth(d.health || {}))
+        .catch(() => {});
+    };
+    getDesktop();
+    let powered = false;
+    const power = () => {
+      if (sound && !powered) {
+        const a = new Audio("/assets/sounds/power-up.mp3");
+        a.volume = 0.42;
+        a.play()
+          .then(() => {
+            powered = true;
+          })
+          .catch(() => {});
+      }
+    };
+    power();
+    window.addEventListener("pointerdown", power, { once: true });
+    const timer = setInterval(() => setClock(new Date()), 1000),
+      mediaTimer = setInterval(getMedia, 3000),
+      desktopTimer = setInterval(getDesktop, 1800),
+      extensionTimer = setInterval(getExtensions, 5000);
+    return () => {
+      clearInterval(timer);
+      clearInterval(mediaTimer);
+      clearInterval(desktopTimer);
+      clearInterval(extensionTimer);
+      window.removeEventListener("pointerdown", power);
+    };
+  }, []);
+  const favorites = useMemo(
+    () =>
+      favoriteIds
+        .map((id) => apps.find((a) => a.id === id))
+        .filter(Boolean) as App[],
+    [favoriteIds, apps],
+  );
+  useEffect(() => {
+    if (sessionRestore) localStorage.setItem("lcars-last-section", section);
+  }, [section, sessionRestore]);
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+      if (e.key === "Escape") setPaletteOpen(false);
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.shiftKey &&
+        e.key.toLowerCase() === "l"
+      ) {
+        e.preventDefault();
+        setLocked(true);
+      }
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, []);
+  const filtered = useMemo(
+    () =>
+      apps
+        .filter((a) =>
+          (a.name + " " + a.comment)
+            .toLowerCase()
+            .includes(query.toLowerCase()),
+        )
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [apps, query],
+  );
+  const beep = (ok = false) => {
+    if (!sound) return;
+    const a = new Audio(ok ? "/assets/beep2.mp3" : "/assets/beep1.mp3");
+    a.volume = access.soundVolume / 100;
+    a.play().catch(() => {});
+  };
+  const cue = (
+    name: "error" | "processing" | "transfer-complete" | "transfer-failed",
+  ) => {
+    if (!sound) return;
+    const a = new Audio(`/assets/sounds/${name}.mp3`);
+    a.volume = access.soundVolume / 100;
+    a.play().catch(() => {});
+  };
+  const choose = (id: string) => {
+    beep(true);
+    setTheme(id);
+    localStorage.setItem("lcars-theme", id);
+  };
+  const launch = (app: App) => {
+    beep(true);
+    setBayApp(app);
+    setSection("bay");
+    setAllOpen(false);
+    if (bridge)
+      fetch("http://127.0.0.1:8765/api/launch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: app.id, mode: "bay" }),
+      })
+        .then(() => notify(app.name + " opened"))
+        .catch(() => notify("Unable to launch " + app.name, "error"));
+  };
+  const toggleFavorite = (id: string) =>
+    setFavoriteIds((old) => {
+      const next = old.includes(id)
+        ? old.filter((x) => x !== id)
+        : old.length < 8
+          ? [...old, id]
+          : old;
+      localStorage.setItem("lcars-favorites", JSON.stringify(next));
+      return next;
+    });
+  const setSystemVolume = () => {
+    if (bridge)
+      fetch("http://127.0.0.1:8765/api/audio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ volume }),
+      }).catch(() => {});
+  };
+  const notify = (
+    text: string,
+    kind: "info" | "error" = "info",
+    playError = true,
+  ) => {
+    if (kind === "error" && playError) cue("error");
+    const notice = {
+      id: doNotDisturb ? -Date.now() : Date.now() + Math.random(),
+      text,
+      kind,
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+    setNotices((old) => [notice, ...old].slice(0, 50));
+    if (!doNotDisturb)
+      setTimeout(
+        () =>
+          setNotices((old) =>
+            old.map((x) =>
+              x.id === notice.id ? { ...x, id: -Math.abs(x.id) } : x,
+            ),
+          ),
+        Math.max(1, prefs.notificationSeconds) * 1000,
+      );
+  };
+  const dismissNotice = (id: number) =>
+    setNotices((old) =>
+      old.map((x) =>
+        Math.abs(x.id) === Math.abs(id) ? { ...x, id: -Math.abs(x.id) } : x,
+      ),
+    );
+  const coreAction = (action: string) => {
+    beep(true);
+    if (bridge)
+      fetch("http://127.0.0.1:8765/api/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      })
+        .then((r) => r.json())
+        .then((d) => {
+          notify(
+            d.message || action.toUpperCase(),
+            String(d.message || "").includes("not installed")
+              ? "error"
+              : "info",
+          );
+          if (action === "extension-scan")
+            fetch("http://127.0.0.1:8765/api/extensions")
+              .then((r) => r.json())
+              .then((result) => setExtensions(result.extensions || []))
+              .catch(() => {});
+        })
+        .catch(() => notify("LOCAL CORE UNAVAILABLE", "error"));
+    else notify(action.toUpperCase());
+  };
+  const powerAction = (action: "exit" | "poweroff" | "reboot") => {
+    if (action === "exit") {
+      setPowerOpen(false);
+      window.close();
+      return;
+    }
+    setPowerOpen(false);
+    coreAction(action);
+  };
+  const saveWidgets = (next: WidgetId[]) => {
+    setWidgets(next);
+    localStorage.setItem("lcars-overview-widgets", JSON.stringify(next));
+  };
+  const moveWidget = (id: WidgetId, direction: number) => {
+    const index = widgets.indexOf(id);
+    if (index < 0) return;
+    const target = index + direction;
+    if (target < 0 || target >= widgets.length) return;
+    const next = [...widgets];
+    [next[index], next[target]] = [next[target], next[index]];
+    saveWidgets(next);
+  };
+  const dropWidget = (target: WidgetId) => {
+    if (!dragged || dragged === target) return;
+    const next = widgets.filter((x) => x !== dragged);
+    next.splice(next.indexOf(target), 0, dragged);
+    saveWidgets(next);
+    setDragged(null);
+  };
+  const cycleSize = (id: WidgetId) => {
+    const values = ["compact", "standard", "wide"],
+      current = widgetSizes[id] || "standard",
+      next = values[(values.indexOf(current) + 1) % values.length];
+    const sizes = { ...widgetSizes, [id]: next };
+    setWidgetSizes(sizes);
+    localStorage.setItem("lcars-widget-sizes", JSON.stringify(sizes));
+  };
+  const mediaControl = (player: string, command: string) =>
+    fetch("http://127.0.0.1:8765/api/media-control", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ player, command }),
+    }).catch(() => {});
+  const streamVolume = (id: string, value: number) => {
+    setStreams((old) =>
+      old.map((s) => (s.id === id ? { ...s, volume: value } : s)),
+    );
+    fetch("http://127.0.0.1:8765/api/stream-volume", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, volume: value }),
+    }).catch(() => {});
+  };
+  const chooseAudioDevice = (id: string) =>
+    fetch("http://127.0.0.1:8765/api/audio-device", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        setAudioDevices((old) =>
+          old.map((x) => ({ ...x, default: x.id === id })),
+        );
+        notify(d.message || "Audio output changed");
+      })
+      .catch(() => notify("Unable to change audio output", "error"));
+  const savePrefs = (next = prefs) => {
+    setPrefs(next);
+    localStorage.setItem("lcars-shell-prefs", JSON.stringify(next));
+    fetch("http://127.0.0.1:8765/api/config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ shell_prefs: next }),
+    }).catch(() => {});
+    setConfigSaved(true);
+    notify("Interface settings saved");
+    setTimeout(() => setConfigSaved(false), 1800);
+  };
+  const windowAction = (id: string, action: string, display = "") =>
+    fetch("http://127.0.0.1:8765/api/window-action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action, display }),
+    })
+      .then((r) => r.json())
+      .then((d) => notify(d.message || "Window command sent"))
+      .catch(() =>
+        notify("Window control requires the local KWin link", "error"),
+      );
+  const displayAction = (action: string, display: Display) =>
+    fetch("http://127.0.0.1:8765/api/display-action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, display: display.name }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        notify(d.message || "Display command sent");
+        setDisplayMenu(false);
+      })
+      .catch(() => notify("Display control requires the local core", "error"));
+  const refreshDisplays = () =>
+    fetch("http://127.0.0.1:8765/api/displays")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.displays?.length) setDisplays(d.displays);
+        notify(`${d.displays?.length || 0} display outputs detected`);
+      })
+      .catch(() => notify("Unable to refresh display outputs", "error"));
+  const finishSetup = () => {
+    localStorage.setItem("lcars-setup-complete", "1");
+    setFirstRun(false);
+    savePrefs(prefs);
+  };
+  const taskEnter = () => {
+    if (!prefs.taskHover || prefs.taskPinned || taskLocked) return;
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    hoverTimer.current = setTimeout(() => setTaskRail(true), prefs.hoverDelay);
+  };
+  const taskLeave = () => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    if (prefs.taskAutoHide && !prefs.taskPinned && !taskLocked)
+      setTaskRail(false);
+  };
+  const toggleTaskLock = () => {
+    setTaskLocked((old) => {
+      const next = !old;
+      if (next) setTaskRail(true);
+      else setTaskRail(false);
+      return next;
+    });
+  };
+  const togglePinned = (id: string) => {
+    const next = pinnedPlayers.includes(id)
+      ? pinnedPlayers.filter((x) => x !== id)
+      : [...pinnedPlayers, id];
+    setPinnedPlayers(next);
+    localStorage.setItem("lcars-pinned-players", JSON.stringify(next));
+  };
+  const sortedPlayers = [...players].sort(
+    (a, b) =>
+      Number(pinnedPlayers.includes(b.id)) -
+      Number(pinnedPlayers.includes(a.id)),
+  );
+  const saveProfiles = (next: WorkspaceProfile[]) => {
+    setProfiles(next);
+    localStorage.setItem("lcars-workspaces", JSON.stringify(next));
+  };
+  const createProfile = () => {
+    const name = prompt("Workspace profile name")?.trim();
+    if (!name) return;
+    const profile = {
+      id: Date.now().toString(),
+      name,
+      theme,
+      widgets: [...widgets],
+      widgetSizes: { ...widgetSizes },
+      favoriteIds: [...favoriteIds],
+    };
+    saveProfiles([...profiles, profile]);
+    setActiveProfile(profile.id);
+    notify(name + " workspace saved");
+  };
+  const applyProfile = (profile: WorkspaceProfile) => {
+    setTheme(profile.theme);
+    setWidgets(profile.widgets);
+    setWidgetSizes(profile.widgetSizes);
+    setFavoriteIds(profile.favoriteIds);
+    setActiveProfile(profile.id);
+    localStorage.setItem("lcars-theme", profile.theme);
+    localStorage.setItem(
+      "lcars-overview-widgets",
+      JSON.stringify(profile.widgets),
+    );
+    localStorage.setItem(
+      "lcars-widget-sizes",
+      JSON.stringify(profile.widgetSizes),
+    );
+    localStorage.setItem(
+      "lcars-favorites",
+      JSON.stringify(profile.favoriteIds),
+    );
+    notify(profile.name + " workspace activated");
+  };
+  const deleteProfile = (id: string) => {
+    saveProfiles(profiles.filter((p) => p.id !== id));
+    if (activeProfile === id) setActiveProfile("");
+  };
+  const saveAccess = (next: AccessibilityPrefs) => {
+    setAccess(next);
+    localStorage.setItem("lcars-accessibility", JSON.stringify(next));
+  };
+  const exportConfig = () => {
+    const data = {
+      version: 12,
+      theme,
+      favoriteIds,
+      widgets,
+      widgetSizes,
+      pinnedPlayers,
+      prefs,
+      access,
+      profiles,
+      userName,
+      sessionRestore,
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      }),
+      url = URL.createObjectURL(blob),
+      a = document.createElement("a");
+    a.href = url;
+    a.download = "lcars-interface-backup.json";
+    a.click();
+    URL.revokeObjectURL(url);
+    notify("Configuration backup created");
+  };
+  const importConfig = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const d = JSON.parse(String(reader.result));
+        if (d.theme) choose(d.theme);
+        if (Array.isArray(d.favoriteIds)) {
+          setFavoriteIds(d.favoriteIds);
+          localStorage.setItem(
+            "lcars-favorites",
+            JSON.stringify(d.favoriteIds),
+          );
+        }
+        if (Array.isArray(d.widgets)) saveWidgets(d.widgets);
+        if (d.widgetSizes) {
+          setWidgetSizes(d.widgetSizes);
+          localStorage.setItem(
+            "lcars-widget-sizes",
+            JSON.stringify(d.widgetSizes),
+          );
+        }
+        if (d.prefs) {
+          setPrefs({ ...defaultPrefs, ...d.prefs });
+          localStorage.setItem("lcars-shell-prefs", JSON.stringify(d.prefs));
+        }
+        if (d.access) saveAccess({ ...defaultAccess, ...d.access });
+        if (Array.isArray(d.profiles)) saveProfiles(d.profiles);
+        if (d.userName) {
+          setUserName(d.userName);
+          localStorage.setItem("lcars-user-name", d.userName);
+        }
+        notify("Configuration restored");
+      } catch {
+        notify("Configuration file could not be read", "error");
+      }
+    };
+    reader.readAsText(file);
+  };
+  const paletteCommands = useMemo(
+    () => [
+      ...nav.map((n) => ({
+        id: "page-" + n[0],
+        label: "Open " + n[2],
+        detail: "LCARS PAGE",
+        run: () => {
+          setSection(n[0]);
+          setPaletteOpen(false);
+        },
+      })),
+      ...apps.map((a) => ({
+        id: "app-" + a.id,
+        label: "Launch " + a.name,
+        detail: a.comment || "APPLICATION",
+        run: () => {
+          launch(a);
+          setPaletteOpen(false);
+        },
+      })),
+      {
+        id: "lock",
+        label: "Lock LCARS",
+        detail: "SECURITY",
+        run: () => {
+          setLocked(true);
+          setPaletteOpen(false);
+        },
+      },
+      {
+        id: "tasks",
+        label: "Open Task Rail",
+        detail: "WINDOWS",
+        run: () => {
+          setTaskRail(true);
+          setTaskLocked(true);
+          setPaletteOpen(false);
+        },
+      },
+      {
+        id: "updates",
+        label: "Check for updates",
+        detail: "SYSTEM",
+        run: () => {
+          coreAction("check-updates");
+          setPaletteOpen(false);
+        },
+      },
+      {
+        id: "display",
+        label: "Identify displays",
+        detail: "DISPLAY MATRIX",
+        run: () => {
+          coreAction("identify-displays");
+          setPaletteOpen(false);
+        },
+      },
+    ],
+    [apps],
+  );
+  const filteredCommands = paletteCommands
+    .filter((c) =>
+      (c.label + " " + c.detail)
+        .toLowerCase()
+        .includes(paletteQuery.toLowerCase()),
+    )
+    .slice(0, 14);
+  const restrictionForSection = compat?.restrictions.filter(
+    (r) =>
+      (section === "media" &&
+        ["Audio routing", "Media controls"].includes(r.feature)) ||
+      (section === "settings" && r.feature === "LCARS Shell Mode") ||
+      (["overview", "system"].includes(section) && false) ||
+      (section === "terminal" && false),
+  );
+  const extensionFor = (id: WidgetId) =>
+    id.startsWith("ext:")
+      ? extensions.find((extension) => `ext:${extension.id}` === id)
+      : undefined;
+  const widgetMeta = (id: WidgetId) => {
+    const extension = extensionFor(id);
+    if (extension)
+      return { name: extension.name, description: extension.description };
+    if (id.startsWith("ext:"))
+      return { name: "Extension unavailable", description: "Rescan extensions or reinstall this module" };
+    return widgetInfo[id as BuiltinWidgetId];
+  };
+  const renderWidget = (id: WidgetId) => {
+    if (id.startsWith("ext:")) {
+      const extension = extensionFor(id);
+      return extension ? (
+        <ChecklistExtension extension={extension} />
+      ) : (
+        <section className="overview-widget extension-widget">
+          <h3>EXTENSION OFFLINE <small>MODULE API</small></h3>
+          <p className="extension-empty">The module manifest is missing. Rescan Extensions from Updates or remove this module while editing.</p>
+        </section>
+      );
+    }
+    if (id === "system")
+      return (
+        <section className="overview-widget wide-widget">
+          <h3>
+            SYSTEM INFORMATION <small>SYS-01</small>
+          </h3>
+          <div className="meters">
+            {meters.map((m, i) => (
+              <article key={String(m[0])}>
+                <header>
+                  <span>
+                    0{i + 1} / {m[0]}
+                  </span>
+                  <strong>{m[1]}%</strong>
+                </header>
+                <div>
+                  <i style={{ width: m[1] + "%" }} />
+                </div>
+                <small>{m[2]}</small>
+              </article>
+            ))}
+          </div>
+        </section>
+      );
+    if (id === "favorites")
+      return (
+        <section className="overview-widget wide-widget">
+          <h3>
+            FAVORITE APPLICATIONS <small>APP-02</small>
+          </h3>
+          <div className="apps">
+            {favorites.slice(0, 5).map((a, i) => (
+              <button key={a.id} onClick={() => launch(a)}>
+                <i className={"c" + i}>{a.name.slice(0, 2).toUpperCase()}</i>
+                <span>
+                  <b>{a.name}</b>
+                  <small>{a.comment || "APPLICATION"}</small>
+                </span>
+              </button>
+            ))}
+            <button className="all-apps" onClick={() => setAllOpen(true)}>
+              <i>•••</i>
+              <span>
+                <b>All Applications</b>
+                <small>SEARCH INSTALLED SOFTWARE</small>
+              </span>
+            </button>
+          </div>
+        </section>
+      );
+    if (id === "operations")
+      return (
+        <section className="overview-widget">
+          <h3>
+            OPERATIONS <small>OPS-03</small>
+          </h3>
+          <div className="mini-status">
+            <p>
+              <span>● Network</span>
+              <b>CONNECTED</b>
+            </p>
+            <p>
+              <span>● Audio</span>
+              <b>{volume}%</b>
+            </p>
+            <p>
+              <span>● Updates</span>
+              <b>READY</b>
+            </p>
+          </div>
+        </section>
+      );
+    if (id === "media")
+      return (
+        <section className="overview-widget wide-widget">
+          <h3>
+            NOW PLAYING <small>MPRIS</small>
+          </h3>
+          {compat?.capabilities?.media === false ? (
+            <div className="module-restriction">
+              <b>MEDIA LINK RESTRICTED</b>
+              <small>
+                playerctl is missing. Install it with your distribution package
+                manager to enable playback sources.
+              </small>
+            </div>
+          ) : (
+            <MediaSources
+              players={sortedPlayers}
+              pinned={pinnedPlayers}
+              togglePinned={togglePinned}
+              compact
+              control={mediaControl}
+            />
+          )}
+        </section>
+      );
+    if (id === "terminal")
+      return (
+        <section className="overview-widget">
+          <h3>
+            TERMINAL <small>PTY-04</small>
+          </h3>
+          <button
+            className="widget-launch"
+            onClick={() => setSection("terminal")}
+          >
+            OPEN EMBEDDED TERMINAL <b>›</b>
+          </button>
+        </section>
+      );
+    if (id === "network")
+      return (
+        <section className="overview-widget">
+          <h3>
+            NETWORK <small>NET-05</small>
+          </h3>
+          <div className="mini-status">
+            <p>
+              <span>● Ethernet</span>
+              <b>CONNECTED</b>
+            </p>
+            <p>
+              <span>● Bluetooth</span>
+              <b>ACTIVE</b>
+            </p>
+          </div>
+          <button
+            className="widget-launch"
+            onClick={() => setSection("network")}
+          >
+            OPEN CONTROLS
+          </button>
+        </section>
+      );
+    return (
+      <section className="overview-widget">
+        <h3>
+          UPDATES <small>DNF-06</small>
+        </h3>
+        <div className="mini-status">
+          <p>
+            <span>● Package system</span>
+            <b>SCAN READY</b>
+          </p>
+        </div>
+        <button className="widget-launch" onClick={() => setSection("updates")}>
+          CHECK SOFTWARE
+        </button>
+      </section>
+    );
+  };
+  return (
+    <main
+      style={{ fontSize: access.fontScale + "%" }}
+      className={
+        "lcars theme-" +
+        theme +
+        (overviewEdit && section === "overview" ? " overview-editing" : "") +
+        (access.highContrast ? " accessibility-contrast" : "") +
+        (access.reducedMotion ? " reduced-motion" : "") +
+        (access.colorSafe ? " color-safe" : "")
+      }
+    >
+      <header className="top">
+        <button className="brand" onClick={() => setSection("overview")}>
+          <span>LCARS</span>
+          <small>26</small>
+        </button>
+        <div className="title">
+          <small>FEDERATION OPERATING ENVIRONMENT</small>
+          <h1>
+            {platform.includes("WINDOWS") ? "WINDOWS" : "LINUX"} COMMAND
+            INTERFACE
+          </h1>
+        </div>
+        <div className="clock">
+          <b>
+            {clock
+              ? clock.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "--:--"}
+          </b>
+          <small>{bridge ? "LOCAL CORE ONLINE" : "DEMO CORE"}</small>
+        </div>
+        <button className="command-button" onClick={() => setPaletteOpen(true)}>
+          COMMAND ⌘K
+        </button>
+        <button
+          className="audio notice-button"
+          onClick={() => setHistoryOpen(!historyOpen)}
+        >
+          {notices.length
+            ? "NOTICES " + notices.length
+            : sound
+              ? "AUDIO 04"
+              : "MUTED"}
+        </button>
+      </header>
+      <div className="shell">
+        <aside>
+          <div className="elbow">
+            <span>SYS</span>
+            <small>47</small>
+          </div>
+          <div className="nav-gap" />
+          {nav.map((n, i) => (
+            <button
+              key={n[0]}
+              className={"nav n" + i + (section === n[0] ? " active" : "")}
+              onClick={() => {
+                beep();
+                setSection(n[0]);
+              }}
+            >
+              <i>{n[1]}</i>
+              <span>{n[2]}</span>
+            </button>
+          ))}
+          <div
+            className={
+              "task-zone " +
+              (taskRail || taskLocked || prefs.taskPinned ? "rail-open " : "") +
+              (taskLocked || prefs.taskPinned ? "rail-locked" : "")
+            }
+            onMouseEnter={taskEnter}
+            onMouseLeave={taskLeave}
+          >
+            <button className="task-trigger" onClick={toggleTaskLock}>
+              <i>
+                {compat?.capabilities?.windowControl === false
+                  ? "!"
+                  : taskLocked || prefs.taskPinned
+                    ? "◆"
+                    : "09"}
+              </i>
+              <span>
+                {compat?.capabilities?.windowControl === false
+                  ? "TASKS LIMITED"
+                  : taskLocked || prefs.taskPinned
+                    ? "TASKS LOCKED"
+                    : taskRail
+                      ? "LOCK TASKS"
+                      : "OPEN TASKS"}
+              </span>
+            </button>
+            {(taskRail || taskLocked || prefs.taskPinned) && (
+              <TaskRail
+                tasks={tasks}
+                displays={displays}
+                group={prefs.groupByMonitor}
+                restricted={compat?.capabilities?.windowControl === false}
+                action={windowAction}
+                choose={() => {
+                  if (prefs.taskAutoHide && !prefs.taskPinned && !taskLocked)
+                    setTaskRail(false);
+                }}
+              />
+            )}
+            <div className="filler-codes">
+              <i>47-219</i>
+              <i>85-302</i>
+              <i>19-775</i>
+            </div>
+          </div>
+          <button
+            className="nav power"
+            onClick={() => {
+              beep();
+              setPowerOpen(true);
+            }}
+          >
+            <i>10</i>
+            <span>POWER</span>
+          </button>
+          <div className="foot-elbow" />
+        </aside>
+        <section className={"content page-" + section}>
+          <div className="heading">
+            <div>
+              <small>LCARS / {themes.find((t) => t[0] === theme)?.[2]}</small>
+              <h2>
+                {section === "overview"
+                  ? "SYSTEM OVERVIEW"
+                  : section === "bay"
+                    ? "APPLICATION BAY"
+                    : section.toUpperCase()}
+              </h2>
+            </div>
+            <div className="heading-actions">
+              <span>
+                ●{" "}
+                {bridge ? "LOCAL SYSTEM CONNECTED" : "INTERFACE DEMONSTRATION"}
+              </span>
+              {compat && (
+                <button
+                  className={compat.restrictions.length ? "compat-warning" : ""}
+                  onClick={() => setCompatOpen(true)}
+                >
+                  COMPATIBILITY <b>{compat.restrictions.length}</b>
+                </button>
+              )}
+              <button
+                disabled={compat?.capabilities?.displayControl === false}
+                title={
+                  compat?.capabilities?.displayControl === false
+                    ? "Display routing is restricted on this desktop session"
+                    : "Open display routing"
+                }
+                onClick={() => setDisplayMenu(!displayMenu)}
+              >
+                DISPLAYS <b>{displays.length}</b>
+              </button>
+              <button
+                onClick={() =>
+                  displayAction(
+                    "terminal",
+                    displays.find((d) => !d.primary) || displays[0],
+                  )
+                }
+              >
+                REMOTE TERMINAL
+              </button>
+            </div>
+            {displayMenu && (
+              <DisplayMenu
+                displays={displays}
+                move={(d) => displayAction("move-lcars", d)}
+                terminal={(d) => displayAction("terminal", d)}
+                identify={() => coreAction("identify-displays")}
+                configure={() => coreAction("display-settings")}
+                refresh={refreshDisplays}
+              />
+            )}
+          </div>
+          {!!restrictionForSection?.length && (
+            <CompatibilityBanner
+              items={restrictionForSection}
+              open={() => setCompatOpen(true)}
+            />
+          )}
+          {section === "overview" && (
+            <>
+              <div className="ticker">
+                <b>● {platform}</b>
+                <b>LOCAL-FIRST INTERFACE</b>
+                <b>SESSION SECURE</b>
+                <b>{bridge ? "CORE LINK ACTIVE" : "CORE LINK STANDBY"}</b>
+              </div>
+              <div className="overview-toolbar">
+                <span>{widgets.length} MODULES ACTIVE</span>
+                <button
+                  className={overviewEdit ? "editing" : ""}
+                  onClick={() => setOverviewEdit(!overviewEdit)}
+                >
+                  {overviewEdit ? "FINISH EDITING" : "CONFIGURE OVERVIEW"}
+                </button>
+              </div>
+              {overviewEdit && (
+                <OverviewEditor
+                  active={widgets}
+                  save={saveWidgets}
+                  move={moveWidget}
+                  extensions={extensions}
+                />
+              )}
+              <div className="overview-modules">
+                {widgets.map((id) => (
+                  <div
+                    draggable={overviewEdit}
+                    onDragStart={() => setDragged(id)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => dropWidget(id)}
+                    className={
+                      "widget-wrap size-" + (widgetSizes[id] || "standard")
+                    }
+                    key={id}
+                  >
+                    {overviewEdit && (
+                      <div className="widget-controls">
+                        <span>⠿ {widgetMeta(id).name}</span>
+                        <button onClick={() => moveWidget(id, -1)}>▲</button>
+                        <button onClick={() => moveWidget(id, 1)}>▼</button>
+                        <button onClick={() => cycleSize(id)}>
+                          {(widgetSizes[id] || "standard").toUpperCase()}
+                        </button>
+                        <button
+                          onClick={() =>
+                            saveWidgets(widgets.filter((x) => x !== id))
+                          }
+                        >
+                          REMOVE
+                        </button>
+                      </div>
+                    )}
+                    {renderWidget(id)}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {section === "terminal" && (
+            <Terminal bridge={bridge} notify={notify} prefs={prefs} />
+          )}
+          {section === "files" && (
+            <FileExplorer bridge={bridge} notify={notify} cue={cue} />
+          )}
+          {section === "bay" && bayApp && (
+            <ApplicationBay
+              app={bayApp}
+              platform={platform}
+              fullscreen={bayFullscreen}
+              setFullscreen={setBayFullscreen}
+              close={() => {
+                coreAction("close-bay-app");
+                setBayApp(null);
+                setSection("overview");
+              }}
+              minimize={() => {
+                coreAction("minimize-bay-app");
+                setSection("overview");
+              }}
+              switchApp={() => setAllOpen(true)}
+            />
+          )}
+          {section === "system" && (
+            <section className="detail-view">
+              <h3>SYSTEMS DIAGNOSTIC</h3>
+              <div className="meters">
+                {meters.map((m, i) => (
+                  <article key={String(m[0])}>
+                    <header>
+                      <span>
+                        0{i + 1} / {m[0]}
+                      </span>
+                      <strong>{m[1]}%</strong>
+                    </header>
+                    <div>
+                      <i style={{ width: m[1] + "%" }} />
+                    </div>
+                    <small>{m[2]}</small>
+                  </article>
+                ))}
+              </div>
+              <div className="action-grid">
+                <button onClick={() => coreAction("system-monitor")}>
+                  OPEN SYSTEM MONITOR
+                </button>
+                <button onClick={() => coreAction("storage")}>
+                  STORAGE ANALYSIS
+                </button>
+                <button onClick={() => coreAction("processes")}>
+                  PROCESS CONTROL
+                </button>
+                <button onClick={() => coreAction("refresh-system")}>
+                  REFRESH TELEMETRY
+                </button>
+              </div>
+            </section>
+          )}
+          {section === "media" && (
+            <section className="detail-view media-view scroll-page">
+              <h3>MEDIA & AUDIO CONTROL</h3>
+              <MediaSources
+                players={sortedPlayers}
+                pinned={pinnedPlayers}
+                togglePinned={togglePinned}
+                control={mediaControl}
+              />
+              <div className="volume-console">
+                <span>MASTER AUDIO OUTPUT</span>
+                <strong>{volume}%</strong>
+                <input
+                  aria-label="Master audio"
+                  type="range"
+                  value={volume}
+                  onChange={(e) => setVolume(+e.target.value)}
+                  onPointerUp={setSystemVolume}
+                />
+                <div className="audio-routing">
+                  {(["output", "input"] as const).map((kind) => {
+                    const devices = audioDevices.filter((d) => d.kind === kind);
+                    return (
+                      <label className="audio-device-select" key={kind}>
+                        <span>
+                          {kind === "output"
+                            ? "OUTPUT DEVICE"
+                            : "INPUT / MICROPHONE"}
+                        </span>
+                        <select
+                          aria-label={
+                            kind === "output"
+                              ? "Audio output device"
+                              : "Audio input device"
+                          }
+                          value={devices.find((d) => d.default)?.id || ""}
+                          onChange={(e) => chooseAudioDevice(e.target.value)}
+                        >
+                          <option value="" disabled>
+                            {devices.length
+                              ? "SELECT DEVICE"
+                              : "NO PIPEWIRE DEVICES DETECTED"}
+                          </option>
+                          {devices.map((d) => (
+                            <option value={d.id} key={d.id}>
+                              {d.default ? "● " : ""}
+                              {d.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    );
+                  })}
+                </div>
+                <div>
+                  <button
+                    onClick={() => {
+                      setVolume(0);
+                      if (bridge)
+                        fetch("http://127.0.0.1:8765/api/audio", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ volume: 0 }),
+                        });
+                    }}
+                  >
+                    MUTE
+                  </button>
+                  <button onClick={() => coreAction("media-player")}>
+                    OPEN MEDIA PLAYER
+                  </button>
+                  <button onClick={() => coreAction("audio-settings")}>
+                    AUDIO DEVICES
+                  </button>
+                </div>
+              </div>
+              <StreamVolumes streams={streams} setVolume={streamVolume} />
+            </section>
+          )}
+          {section === "network" && (
+            <section className="detail-view">
+              <h3>NETWORK OPERATIONS</h3>
+              <div className="status-cards">
+                <article>
+                  <small>PRIMARY LINK</small>
+                  <b>ETHERNET</b>
+                  <span>CONNECTED</span>
+                </article>
+                <article>
+                  <small>WIRELESS</small>
+                  <b>NETWORKMANAGER</b>
+                  <span>READY</span>
+                </article>
+                <article>
+                  <small>BLUETOOTH</small>
+                  <b>BLUEZ</b>
+                  <span>ACTIVE</span>
+                </article>
+              </div>
+              <div className="action-grid">
+                <button onClick={() => coreAction("network-settings")}>
+                  NETWORK SETTINGS
+                </button>
+                <button onClick={() => coreAction("wifi")}>
+                  WI-FI CONTROL
+                </button>
+                <button onClick={() => coreAction("bluetooth")}>
+                  BLUETOOTH CONTROL
+                </button>
+                <button onClick={() => coreAction("network-refresh")}>
+                  REFRESH LINKS
+                </button>
+              </div>
+            </section>
+          )}
+          {section === "updates" && (
+            <UpdateCenter platform={platform} action={coreAction} />
+          )}
+          {section === "settings" && (
+            <section className="detail-view settings-view">
+              <h3>INTERFACE CONFIGURATION</h3>
+              <div className="setting-block">
+                <header>
+                  <span>DISPLAY MATRIX</span>
+                  <small>SELECT VISUAL THEME</small>
+                </header>
+                <div className="settings-themes">
+                  {themes.map((t, i) => (
+                    <button
+                      className={theme === t[0] ? "selected" : ""}
+                      key={t[0]}
+                      onClick={() => choose(t[0])}
+                    >
+                      <i>0{i + 1}</i>
+                      <b>{t[1]}</b>
+                      <small>{t[2]}</small>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <DesktopExperience
+                profiles={profiles}
+                activeProfile={activeProfile}
+                createProfile={createProfile}
+                applyProfile={applyProfile}
+                deleteProfile={deleteProfile}
+                access={access}
+                saveAccess={saveAccess}
+                doNotDisturb={doNotDisturb}
+                setDoNotDisturb={setDoNotDisturb}
+                sessionRestore={sessionRestore}
+                setSessionRestore={(v) => {
+                  setSessionRestore(v);
+                  localStorage.setItem("lcars-session-restore", String(v));
+                }}
+                userName={userName}
+                setUserName={(v) => {
+                  setUserName(v);
+                  localStorage.setItem("lcars-user-name", v);
+                }}
+                exportConfig={exportConfig}
+                importConfig={importConfig}
+                lock={() => setLocked(true)}
+                command={() => setPaletteOpen(true)}
+                action={coreAction}
+              />
+              <ShellSettings
+                platform={platform}
+                prefs={prefs}
+                setPrefs={setPrefs}
+                save={() => savePrefs()}
+                saved={configSaved}
+                health={health}
+                recheck={() => coreAction("integration-recheck")}
+              />
+              <div className="settings-grid">
+                <button onClick={() => setEditOpen(true)}>
+                  <b>FAVORITE APPLICATIONS</b>
+                  <small>CHOOSE UP TO 8 LAUNCHERS</small>
+                </button>
+                <button onClick={() => setAllOpen(true)}>
+                  <b>APPLICATION LIBRARY</b>
+                  <small>SEARCH INSTALLED SOFTWARE</small>
+                </button>
+                <button
+                  onClick={() => {
+                    setOverviewEdit(true);
+                    setSection("overview");
+                  }}
+                >
+                  <b>OVERVIEW MODULES</b>
+                  <small>ADD, REMOVE AND POSITION WIDGETS</small>
+                </button>
+                <button onClick={() => setSound(!sound)}>
+                  <b>LCARS AUDIO</b>
+                  <small>{sound ? "ENABLED" : "DISABLED"}</small>
+                </button>
+                <button onClick={() => setFirstRun(true)}>
+                  <b>RUN GUIDED TOUR</b>
+                  <small>LEARN THE LCARS DESKTOP CONTROLS</small>
+                </button>
+                <button onClick={() => coreAction("shell-mode-off")}>
+                  <b>RECOVERY CONTROL</b>
+                  <small>
+                    {platform.includes("WINDOWS")
+                      ? "RESTORE WINDOWS EXPLORER"
+                      : "RESTORE PLASMA PANELS"}
+                  </small>
+                </button>
+              </div>
+            </section>
+          )}
+        </section>
+      </div>
+      {allOpen && (
+        <AppDrawer
+          title="ALL APPLICATIONS"
+          apps={filtered}
+          query={query}
+          setQuery={setQuery}
+          close={() => setAllOpen(false)}
+          action={launch}
+        />
+      )}
+      {editOpen && (
+        <AppDrawer
+          title={"FAVORITES " + favoriteIds.length + "/8"}
+          apps={filtered}
+          query={query}
+          setQuery={setQuery}
+          close={() => setEditOpen(false)}
+          action={(a) => toggleFavorite(a.id)}
+          selected={favoriteIds}
+        />
+      )}
+      <SystemTray
+        players={players.length}
+        notices={notices.length}
+        displays={displays.length}
+        bridge={bridge}
+        openNotices={() => setHistoryOpen(true)}
+        openMedia={() => setSection("media")}
+        openNetwork={() => setSection("network")}
+      />
+      {firstRun && (
+        <FirstRun
+          step={setupStep}
+          setStep={setSetupStep}
+          displays={displays}
+          bridge={bridge}
+          finish={finishSetup}
+          close={() => {
+            sessionStorage.setItem("lcars-setup-dismissed", "1");
+            setFirstRun(false);
+          }}
+        />
+      )}
+      {paletteOpen && (
+        <CommandPalette
+          query={paletteQuery}
+          setQuery={setPaletteQuery}
+          commands={filteredCommands}
+          close={() => setPaletteOpen(false)}
+        />
+      )}
+      {locked && (
+        <LockScreen userName={userName} unlock={() => setLocked(false)} />
+      )}
+      {compatOpen && compat && (
+        <CompatibilityCenter
+          compat={compat}
+          close={() => setCompatOpen(false)}
+        />
+      )}
+      {powerOpen && (
+        <PowerDialog close={() => setPowerOpen(false)} action={powerAction} />
+      )}
+      <NotificationCenter
+        notices={notices}
+        historyOpen={historyOpen}
+        close={() => setHistoryOpen(false)}
+        dismiss={dismissNotice}
+        clear={() => setNotices([])}
+        doNotDisturb={doNotDisturb}
+        toggleDnd={() => setDoNotDisturb((v) => !v)}
+      />
+    </main>
+  );
+}
+
+function FileExplorer({
+  bridge,
+  notify,
+  cue,
+}: {
+  bridge: boolean;
+  notify: (text: string, kind?: "info" | "error", playError?: boolean) => void;
+  cue: (
+    name: "error" | "processing" | "transfer-complete" | "transfer-failed",
+  ) => void;
+}) {
+  const [path, setPath] = useState("~"),
+    [parent, setParent] = useState(""),
+    [files, setFiles] = useState<FileEntry[]>([]),
+    [selected, setSelected] = useState<FileEntry | null>(null),
+    [pending, setPending] = useState<{ file: FileEntry; move: boolean } | null>(
+      null,
+    ),
+    [showHidden, setShowHidden] = useState(false),
+    [query, setQuery] = useState(""),
+    [loading, setLoading] = useState(false);
+  const load = (next = path) => {
+    setLoading(true);
+    cue("processing");
+    fetch("http://127.0.0.1:8765/api/files?path=" + encodeURIComponent(next))
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.error) throw Error(d.error);
+        setPath(d.path);
+        setParent(d.parent || "");
+        setFiles(d.items || []);
+        setSelected(null);
+      })
+      .catch((e) => notify(e.message || "Unable to read this folder", "error"))
+      .finally(() => setLoading(false));
+  };
+  useEffect(() => {
+    if (bridge) load("~");
+  }, [bridge]);
+  const visible = files.filter(
+    (f) =>
+      (showHidden || !f.hidden) &&
+      f.name.toLowerCase().includes(query.toLowerCase()),
+  );
+  const act = (
+    route: string,
+    data: Record<string, unknown>,
+    success: string,
+    transfer = false,
+  ) => {
+    cue("processing");
+    fetch("http://127.0.0.1:8765" + route, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+      .then(async (r) => {
+        const d = await r.json();
+        if (!r.ok || d.error) throw Error(d.error || d.message);
+        if (transfer) cue("transfer-complete");
+        notify(success);
+        setPending(null);
+        load(path);
+      })
+      .catch((e) => {
+        if (transfer) cue("transfer-failed");
+        notify(e.message || "File operation failed", "error", !transfer);
+      });
+  };
+  const newFolder = () => {
+    const name = prompt("New folder name")?.trim();
+    if (name) act("/api/file-folder", { path, name }, "Folder created");
+  };
+  const size = (n: number) =>
+    n < 1024
+      ? n + " B"
+      : n < 1048576
+        ? (n / 1024).toFixed(1) + " KB"
+        : n < 1073741824
+          ? (n / 1048576).toFixed(1) + " MB"
+          : (n / 1073741824).toFixed(1) + " GB";
+  return (
+    <section className="file-explorer">
+      <header>
+        <div>
+          <small>LOCAL HOME DIRECTORY</small>
+          <b>{path}</b>
+        </div>
+        <span>{loading ? "PROCESSING…" : visible.length + " ITEMS"}</span>
+      </header>
+      <nav>
+        <button disabled={!parent} onClick={() => parent && load(parent)}>
+          ‹ UP
+        </button>
+        <button onClick={() => load(path)}>REFRESH</button>
+        <button onClick={newFolder}>NEW FOLDER</button>
+        <label>
+          <input
+            type="checkbox"
+            checked={showHidden}
+            onChange={(e) => setShowHidden(e.target.checked)}
+          />{" "}
+          HIDDEN
+        </label>
+        <input
+          aria-label="Search files"
+          placeholder="SEARCH FILES…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      </nav>
+      {pending && (
+        <div className="transfer-strip">
+          <span>
+            {pending.move ? "MOVE" : "COPY"} <b>{pending.file.name}</b>
+          </span>
+          <small>Navigate to the destination folder.</small>
+          <button
+            onClick={() =>
+              act(
+                "/api/file-transfer",
+                {
+                  source: pending.file.path,
+                  destination: path,
+                  move: pending.move,
+                },
+                "Transfer complete",
+                true,
+              )
+            }
+          >
+            TRANSFER HERE
+          </button>
+          <button onClick={() => setPending(null)}>CANCEL</button>
+        </div>
+      )}
+      <div className="file-browser-body">
+        <div className="file-grid">
+          {visible.map((file) => (
+            <button
+              className={selected?.path === file.path ? "selected" : ""}
+              key={file.path}
+              onClick={() => setSelected(file)}
+              onDoubleClick={() =>
+                file.directory
+                  ? load(file.path)
+                  : act("/api/file-open", { path: file.path }, "File opened")
+              }
+            >
+              <i>{file.directory ? "▰" : "▤"}</i>
+              <span>
+                <b>{file.name}</b>
+                <small>
+                  {file.directory ? "DIRECTORY" : size(file.size)} ·{" "}
+                  {new Date(file.modified * 1000).toLocaleDateString()}
+                </small>
+              </span>
+            </button>
+          ))}
+        </div>
+        <aside className="file-inspector">
+          {selected ? (
+            <>
+              <i>{selected.directory ? "▰" : "▤"}</i>
+              <h3>{selected.name}</h3>
+              <small>
+                {selected.directory ? "DIRECTORY" : size(selected.size)}
+              </small>
+              <button
+                onClick={() =>
+                  selected.directory
+                    ? load(selected.path)
+                    : act(
+                        "/api/file-open",
+                        { path: selected.path },
+                        "File opened",
+                      )
+                }
+              >
+                {selected.directory ? "OPEN FOLDER" : "OPEN FILE"}
+              </button>
+              <button
+                onClick={() => setPending({ file: selected, move: false })}
+              >
+                COPY TO…
+              </button>
+              <button
+                onClick={() => setPending({ file: selected, move: true })}
+              >
+                MOVE TO…
+              </button>
+            </>
+          ) : (
+            <p>SELECT A FILE OR FOLDER FOR DETAILS</p>
+          )}
+        </aside>
+      </div>
+    </section>
+  );
+}
+
+function TaskRail({
+  tasks,
+  displays,
+  group,
+  restricted,
+  action,
+  choose,
+}: {
+  tasks: WindowTask[];
+  displays: Display[];
+  group: boolean;
+  restricted: boolean;
+  action: (id: string, action: string, display?: string) => void;
+  choose: () => void;
+}) {
+  const [query, setQuery] = useState(""),
+    [menu, setMenu] = useState<string | null>(null);
+  const filtered = tasks.filter((t) =>
+    (t.app + " " + t.name).toLowerCase().includes(query.toLowerCase()),
+  );
+  const monitorNames = Array.from(
+    new Set([
+      ...displays.map((d) => d.name),
+      ...filtered.map((t) => t.monitor),
+    ]),
+  );
+  const groups = group
+    ? monitorNames.map(
+        (name) => [name, filtered.filter((t) => t.monitor === name)] as const,
+      )
+    : [["OPEN APPLICATIONS", filtered] as const];
+  return (
+    <section className="task-rail">
+      <header>
+        <b>ACTIVE TASKS</b>
+        <small>{tasks.length} WINDOWS</small>
+      </header>
+      {restricted && (
+        <div className="rail-restriction">
+          <b>WINDOW CONTROL RESTRICTED</b>
+          <small>
+            This desktop session prevents LCARS from controlling other
+            application windows. Launching still works.
+          </small>
+        </div>
+      )}
+      {tasks.length >= 5 && (
+        <input
+          aria-label="Search open tasks"
+          placeholder="SEARCH TASKS…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+      )}{" "}
+      {groups.map(([name, items]) => (
+        <div className="task-group" key={name}>
+          <small>{name}</small>
+          {items.length ? (
+            items.map((t) => (
+              <article
+                className={
+                  (t.active ? "active " : "") + (t.attention ? "attention" : "")
+                }
+                key={t.id}
+                onContextMenu={(e) => {
+                  if (!restricted) {
+                    e.preventDefault();
+                    setMenu(menu === t.id ? null : t.id);
+                  }
+                }}
+              >
+                <button
+                  disabled={restricted}
+                  onClick={() => {
+                    action(t.id, "activate");
+                    choose();
+                  }}
+                >
+                  <i>{t.app.slice(0, 2).toUpperCase()}</i>
+                  <span>
+                    <b>{t.app}</b>
+                    <small>{t.minimized ? "MINIMIZED" : t.name}</small>
+                  </span>
+                </button>
+                <nav>
+                  <button
+                    disabled={restricted}
+                    aria-label={"Minimize " + t.app}
+                    onClick={() => action(t.id, "minimize")}
+                  >
+                    —
+                  </button>
+                  <button
+                    disabled={restricted}
+                    aria-label={"Close " + t.app}
+                    onClick={() => action(t.id, "close")}
+                  >
+                    ×
+                  </button>
+                </nav>
+                {menu === t.id && !restricted && (
+                  <div className="task-context">
+                    <button onClick={() => action(t.id, "activate")}>
+                      FOCUS
+                    </button>
+                    <button onClick={() => action(t.id, "minimize")}>
+                      MINIMIZE
+                    </button>
+                    {displays.map((d) => (
+                      <button
+                        key={d.id}
+                        onClick={() => action(t.id, "move", d.name)}
+                      >
+                        MOVE TO {d.name}
+                      </button>
+                    ))}
+                    <button onClick={() => action(t.id, "close")}>CLOSE</button>
+                  </div>
+                )}
+              </article>
+            ))
+          ) : (
+            <em>NO WINDOWS</em>
+          )}
+        </div>
+      ))}
+    </section>
+  );
+}
+
+function UpdateCenter({
+  platform,
+  action,
+}: {
+  platform: string;
+  action: (value: string) => void;
+}) {
+  const windows = platform.includes("WINDOWS");
+  return (
+    <section className="detail-view update-center">
+      <h3>SOFTWARE UPDATE CONTROL</h3>
+      <header className="update-summary">
+        <div>
+          <small>UPDATE MATRIX</small>
+          <strong>ALL UPDATE CHANNELS</strong>
+          <p>
+            System, LCARS, extensions, and local integrations are managed from
+            this console.
+          </p>
+        </div>
+        <i>04</i>
+      </header>
+      <div className="update-grid">
+        <UpdatePanel
+          number="01"
+          eyebrow={
+            windows ? "WINDOWS UPDATE / WINGET" : "DISTRIBUTION PACKAGE CONTROL"
+          }
+          title="OPERATING SYSTEM"
+          status="SCAN READY"
+          description={
+            windows
+              ? "Check Windows Update and installed application packages without leaving LCARS."
+              : "Open your distribution updater and check packages through the detected Linux package manager."
+          }
+          primary="SCAN FOR SYSTEM UPDATES"
+          secondary="OPEN SOFTWARE CENTER"
+          primaryAction={() => action("check-updates")}
+          secondaryAction={() => action("software-center")}
+        />
+        <UpdatePanel
+          number="02"
+          eyebrow="LCARS RELEASE CHANNEL"
+          title="LCARS INTERFACE"
+          status="V22.2"
+          description="Check for a newer LCARS desktop package or return to an archived previous release. Version 22.2 stabilizes accessibility controls and the pinned Task Rail."
+          primary="CHECK FOR LCARS UPDATE"
+          secondary="ROLL BACK RELEASE"
+          primaryAction={() => action("lcars-update-check")}
+          secondaryAction={() => action("lcars-rollback")}
+          stamp="INSTALLED RELEASE · VERSION 22.2"
+        />
+        <UpdatePanel
+          number="03"
+          eyebrow="LOCAL MODULE API"
+          title="EXTENSIONS"
+          status="V1"
+          description="Rescan locally installed LCARS modules and review their folder for manual updates."
+          primary="SCAN EXTENSIONS"
+          secondary="OPEN MODULE FOLDER"
+          primaryAction={() => action("extension-scan")}
+          secondaryAction={() => action("extension-folder")}
+        />
+        <UpdatePanel
+          number="04"
+          eyebrow="DESKTOP ADAPTERS"
+          title="INTEGRATION COMPONENTS"
+          status="LOCAL"
+          description="Recheck display, audio, media, terminal, and window-control dependencies after system changes."
+          primary="RECHECK INTEGRATIONS"
+          secondary="DISPLAY COMPONENTS"
+          primaryAction={() => action("integration-recheck")}
+          secondaryAction={() => action("display-settings")}
+        />
+      </div>
+    </section>
+  );
+}
+
+function UpdatePanel({
+  number,
+  eyebrow,
+  title,
+  status,
+  description,
+  primary,
+  secondary,
+  primaryAction,
+  secondaryAction,
+  stamp,
+}: {
+  number: string;
+  eyebrow: string;
+  title: string;
+  status: string;
+  description: string;
+  primary: string;
+  secondary: string;
+  primaryAction: () => void;
+  secondaryAction: () => void;
+  stamp?: string;
+}) {
+  return (
+    <article className="update-panel">
+      <header>
+        <i>{number}</i>
+        <span>
+          <small>{eyebrow}</small>
+          <h4>{title}</h4>
+        </span>
+        <b>{status}</b>
+      </header>
+      <p>{description}</p>
+      {stamp && (
+        <div className="version-stamp">
+          <small>{stamp.split(" · ")[0]}</small>
+          <b>{stamp.split(" · ")[1]}</b>
+        </div>
+      )}
+      <div className="update-actions">
+        <button onClick={primaryAction}>{primary}</button>
+        <button onClick={secondaryAction}>{secondary}</button>
+      </div>
+    </article>
+  );
+}
+
+function PowerDialog({
+  close,
+  action,
+}: {
+  close: () => void;
+  action: (value: "exit" | "poweroff" | "reboot") => void;
+}) {
+  const [confirmPower, setConfirmPower] = useState<
+    "poweroff" | "reboot" | null
+  >(null);
+  if (confirmPower)
+    return (
+      <div
+        className="backdrop power-backdrop"
+        onMouseDown={(e) => {
+          if (e.target === e.currentTarget) setConfirmPower(null);
+        }}
+      >
+        <section
+          className="power-dialog confirm"
+          role="alertdialog"
+          aria-modal="true"
+        >
+          <header>
+            <small>SYSTEM POWER CONFIRMATION</small>
+            <h2>
+              CONFIRM {confirmPower === "poweroff" ? "SHUTDOWN" : "RESTART"}
+            </h2>
+          </header>
+          <p>
+            {confirmPower === "poweroff"
+              ? "The computer will turn off and all running applications will close."
+              : "The computer will restart and all running applications will close."}
+          </p>
+          <div className="power-confirm-actions">
+            <button autoFocus onClick={() => action(confirmPower)}>
+              {confirmPower === "poweroff"
+                ? "SHUT DOWN COMPUTER"
+                : "RESTART COMPUTER"}
+            </button>
+            <button onClick={() => setConfirmPower(null)}>GO BACK</button>
+          </div>
+        </section>
+      </div>
+    );
+  return (
+    <div
+      className="backdrop power-backdrop"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
+      <section className="power-dialog" role="dialog" aria-modal="true">
+        <header>
+          <small>LCARS POWER CONTROL</small>
+          <h2>SELECT SHUTDOWN MODE</h2>
+          <p>
+            Choose whether to close only LCARS or control the entire computer.
+          </p>
+        </header>
+        <div className="power-options">
+          <button autoFocus onClick={() => action("exit")}>
+            <i>01</i>
+            <span>
+              <b>EXIT LCARS</b>
+              <small>Close the interface; leave the computer running</small>
+            </span>
+          </button>
+          <button onClick={() => setConfirmPower("poweroff")}>
+            <i>02</i>
+            <span>
+              <b>SHUT DOWN COMPUTER</b>
+              <small>Close applications and turn off the PC</small>
+            </span>
+          </button>
+          <button onClick={() => setConfirmPower("reboot")}>
+            <i>03</i>
+            <span>
+              <b>RESTART COMPUTER</b>
+              <small>Close applications and reboot the PC</small>
+            </span>
+          </button>
+          <button className="power-cancel" onClick={close}>
+            <i>04</i>
+            <span>
+              <b>CANCEL</b>
+              <small>Return to the LCARS interface</small>
+            </span>
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function DisplayMenu({
+  displays,
+  move,
+  terminal,
+  identify,
+  configure,
+  refresh,
+}: {
+  displays: Display[];
+  move: (d: Display) => void;
+  terminal: (d: Display) => void;
+  identify: () => void;
+  configure: () => void;
+  refresh: () => void;
+}) {
+  const [diagnostics, setDiagnostics] = useState(false);
+  const report = displays
+    .map(
+      (d, i) =>
+        `${i + 1}. ${d.name} | ${d.enabled ? "enabled" : "disabled"} | ${d.primary ? "primary" : "secondary"} | ${d.geometry} | ${d.source || "KScreen"}`,
+    )
+    .join("\n");
+  const copy = () =>
+    navigator.clipboard
+      ?.writeText("LCARS DISPLAY DIAGNOSTICS\n" + report)
+      .catch(() => {});
+  return (
+    <section className="display-menu">
+      <header>
+        <b>DISPLAY ROUTING</b>
+        <small>KSCREEN / KDE OUTPUTS</small>
+      </header>
+      <div className="monitor-map">
+        {displays.map((d, i) => (
+          <button
+            className={d.primary ? "current" : ""}
+            key={d.id}
+            onClick={() => move(d)}
+          >
+            <i>{i + 1}</i>
+            <b>{d.name}</b>
+            <small>{d.enabled ? "CONNECTED" : "DISABLED"}</small>
+          </button>
+        ))}
+      </div>
+      {displays.map((d, i) => (
+        <article key={d.id}>
+          <i>{i + 1}</i>
+          <span>
+            <b>{d.name}</b>
+            <small>
+              {d.geometry}
+              {d.primary ? " · PRIMARY" : ""}
+            </small>
+          </span>
+          <nav>
+            <button disabled={!d.enabled} onClick={() => move(d)}>
+              MOVE LCARS HERE
+            </button>
+            <button disabled={!d.enabled} onClick={() => terminal(d)}>
+              OPEN TERMINAL
+            </button>
+          </nav>
+        </article>
+      ))}
+      <button
+        className="diagnostic-toggle"
+        onClick={() => setDiagnostics(!diagnostics)}
+      >
+        {diagnostics ? "HIDE" : "SHOW"} DISPLAY DIAGNOSTICS
+      </button>
+      {diagnostics && (
+        <div className="display-diagnostics">
+          {displays.map((d) => (
+            <p key={d.id}>
+              <b>{d.name}</b>
+              <span>
+                {d.enabled ? "ENABLED" : "CONNECTED / DISABLED"} ·{" "}
+                {d.primary ? "PRIMARY" : "SECONDARY"}
+              </span>
+              <small>
+                {d.geometry} · SOURCE: {d.source || "KSCREEN"}
+              </small>
+            </p>
+          ))}
+          <button onClick={copy}>COPY DIAGNOSTIC REPORT</button>
+        </div>
+      )}
+      <footer>
+        <button onClick={refresh}>REFRESH DISPLAYS</button>
+        <button onClick={identify}>IDENTIFY</button>
+        <button onClick={configure}>CONFIGURE</button>
+      </footer>
+    </section>
+  );
+}
+
+function CompatibilityBanner({
+  items,
+  open,
+}: {
+  items: { feature: string; reason: string; remedy: string }[];
+  open: () => void;
+}) {
+  return (
+    <section className="compat-banner">
+      <i>!</i>
+      <span>
+        <b>{items.map((x) => x.feature).join(" + ")} RESTRICTED</b>
+        <small>{items[0].reason}</small>
+      </span>
+      <button onClick={open}>DETAILS</button>
+    </section>
+  );
+}
+
+function CompatibilityCenter({
+  compat,
+  close,
+}: {
+  compat: Compatibility;
+  close: () => void;
+}) {
+  return (
+    <div className="backdrop">
+      <section className="compat-center">
+        <header>
+          <div>
+            <small>UNIVERSAL LINUX ADAPTER</small>
+            <h2>COMPATIBILITY REPORT</h2>
+          </div>
+          <button onClick={close}>CLOSE ×</button>
+        </header>
+        <div className="compat-environment">
+          <p>
+            <small>DISTRIBUTION</small>
+            <b>{compat.distro}</b>
+          </p>
+          <p>
+            <small>DESKTOP</small>
+            <b>{compat.desktop}</b>
+          </p>
+          <p>
+            <small>SESSION</small>
+            <b>{compat.session.toUpperCase()}</b>
+          </p>
+        </div>
+        <div className="capability-grid">
+          {Object.entries(compat.capabilities).map(([name, ready]) => (
+            <p className={ready ? "ready" : "limited"} key={name}>
+              <i>{ready ? "✓" : "!"}</i>
+              <span>
+                <b>{name.replace(/([A-Z])/g, " $1").toUpperCase()}</b>
+                <small>{ready ? "SUPPORTED" : "RESTRICTED"}</small>
+              </span>
+            </p>
+          ))}
+        </div>
+        {compat.restrictions.length ? (
+          <div className="restriction-list">
+            {compat.restrictions.map((item) => (
+              <article key={item.feature}>
+                <i>!</i>
+                <span>
+                  <b>{item.feature}</b>
+                  <p>{item.reason}</p>
+                  <small>{item.remedy}</small>
+                </span>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="compat-complete">
+            <b>ALL CORE INTEGRATIONS AVAILABLE</b>
+            <small>No desktop-specific restrictions were detected.</small>
+          </div>
+        )}
+        <footer>
+          <span>
+            Restrictions disable only affected controls. LCARS themes,
+            applications, terminal, files, profiles, backups, and modules remain
+            available.
+          </span>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function DesktopExperience({
+  profiles,
+  activeProfile,
+  createProfile,
+  applyProfile,
+  deleteProfile,
+  access,
+  saveAccess,
+  doNotDisturb,
+  setDoNotDisturb,
+  sessionRestore,
+  setSessionRestore,
+  userName,
+  setUserName,
+  exportConfig,
+  importConfig,
+  lock,
+  command,
+  action,
+}: {
+  profiles: WorkspaceProfile[];
+  activeProfile: string;
+  createProfile: () => void;
+  applyProfile: (p: WorkspaceProfile) => void;
+  deleteProfile: (id: string) => void;
+  access: AccessibilityPrefs;
+  saveAccess: (a: AccessibilityPrefs) => void;
+  doNotDisturb: boolean;
+  setDoNotDisturb: (v: boolean) => void;
+  sessionRestore: boolean;
+  setSessionRestore: (v: boolean) => void;
+  userName: string;
+  setUserName: (v: string) => void;
+  exportConfig: () => void;
+  importConfig: (f: File) => void;
+  lock: () => void;
+  command: () => void;
+  action: (a: string) => void;
+}) {
+  const set = <K extends keyof AccessibilityPrefs>(
+    key: K,
+    value: AccessibilityPrefs[K],
+  ) => saveAccess({ ...access, [key]: value });
+  return (
+    <section className="experience-settings">
+      <header>
+        <b>LCARS DESKTOP EXPERIENCE</b>
+        <small>PROFILES · ACCESSIBILITY · CONTINUITY · SECURITY</small>
+      </header>
+      <div className="experience-grid">
+        <article>
+          <h4>WORKSPACE PROFILES</h4>
+          <p>
+            Save complete layouts for gaming, work, media, or any other
+            activity.
+          </p>
+          <div className="profile-list">
+            {profiles.map((p) => (
+              <div
+                className={activeProfile === p.id ? "active" : ""}
+                key={p.id}
+              >
+                <button onClick={() => applyProfile(p)}>
+                  <b>{p.name}</b>
+                  <small>
+                    {p.widgets.length} MODULES · {p.theme.toUpperCase()}
+                  </small>
+                </button>
+                <button
+                  aria-label={"Delete " + p.name}
+                  onClick={() => deleteProfile(p.id)}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+          <button className="lcars-action" onClick={createProfile}>
+            SAVE CURRENT WORKSPACE
+          </button>
+        </article>
+        <article>
+          <h4>ACCESSIBILITY</h4>
+          <label>
+            INTERFACE SCALE <b>{access.fontScale}%</b>
+            <small>
+              Enlarges LCARS text while preserving the console layout.
+            </small>
+            <input
+              type="range"
+              min="85"
+              max="140"
+              step="5"
+              value={access.fontScale}
+              onChange={(e) => set("fontScale", +e.target.value)}
+            />
+          </label>
+          <label>
+            INTERFACE SOUND <b>{access.soundVolume}%</b>
+            <small>Controls LCARS cues separately from system audio.</small>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={access.soundVolume}
+              onChange={(e) => set("soundVolume", +e.target.value)}
+            />
+          </label>
+          <Toggle
+            label="High contrast"
+            description="Strengthens borders, labels, and focus indicators."
+            checked={access.highContrast}
+            change={(v) => set("highContrast", v)}
+          />
+          <Toggle
+            label="Reduced motion"
+            description="Disables animated transitions and pulsing alerts."
+            checked={access.reducedMotion}
+            change={(v) => set("reducedMotion", v)}
+          />
+          <Toggle
+            label="Color-safe indicators"
+            description="Adds shapes and stronger contrast so status never relies on color alone."
+            checked={access.colorSafe}
+            change={(v) => set("colorSafe", v)}
+          />
+        </article>
+        <article>
+          <h4>SESSION & NOTIFICATIONS</h4>
+          <Toggle
+            label="Restore previous session"
+            description="Returns to your last LCARS page and preserves saved workspace state."
+            checked={sessionRestore}
+            change={setSessionRestore}
+          />
+          <Toggle
+            label="Do Not Disturb"
+            description="Stores notices in history without showing temporary pop-ups."
+            checked={doNotDisturb}
+            change={setDoNotDisturb}
+          />
+          <button className="lcars-action" onClick={command}>
+            OPEN COMMAND PALETTE
+          </button>
+          <small>Keyboard shortcut: Ctrl + K</small>
+        </article>
+        <article>
+          <h4>OPERATOR & SECURITY</h4>
+          <label>
+            OPERATOR NAME
+            <small>Displayed on the local LCARS lock screen.</small>
+            <input
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+            />
+          </label>
+          <button className="lcars-action" onClick={lock}>
+            LOCK LCARS
+          </button>
+          <small>Keyboard shortcut: Ctrl + Shift + L</small>
+          <p>
+            The lock screen protects the LCARS interface. Use your Linux login
+            screen for full account security.
+          </p>
+        </article>
+        <article>
+          <h4>BACKUP & TRANSFER</h4>
+          <p>
+            Move themes, layouts, favorites, profiles, and interface settings
+            between installations.
+          </p>
+          <button className="lcars-action" onClick={exportConfig}>
+            EXPORT CONFIGURATION
+          </button>
+          <label className="import-config">
+            IMPORT CONFIGURATION
+            <input
+              type="file"
+              accept="application/json,.json"
+              onChange={(e) =>
+                e.target.files?.[0] && importConfig(e.target.files[0])
+              }
+            />
+          </label>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function CommandPalette({
+  query,
+  setQuery,
+  commands,
+  close,
+}: {
+  query: string;
+  setQuery: (v: string) => void;
+  commands: { id: string; label: string; detail: string; run: () => void }[];
+  close: () => void;
+}) {
+  const [index, setIndex] = useState(0);
+  useEffect(() => setIndex(0), [query]);
+  return (
+    <div
+      className="backdrop command-backdrop"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) close();
+      }}
+    >
+      <section
+        className="command-palette"
+        role="dialog"
+        aria-label="LCARS command palette"
+      >
+        <header>
+          <small>UNIVERSAL COMPUTER ACCESS</small>
+          <b>COMMAND PALETTE</b>
+          <button onClick={close}>ESC</button>
+        </header>
+        <input
+          autoFocus
+          placeholder="TYPE A PAGE, APPLICATION, FILE OR COMMAND…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setIndex((i) => Math.min(commands.length - 1, i + 1));
+            }
+            if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setIndex((i) => Math.max(0, i - 1));
+            }
+            if (e.key === "Enter") commands[index]?.run();
+          }}
+        />
+        <div>
+          {commands.map((c, i) => (
+            <button
+              className={i === index ? "selected" : ""}
+              key={c.id}
+              onMouseEnter={() => setIndex(i)}
+              onClick={c.run}
+            >
+              <span>
+                <b>{c.label}</b>
+                <small>{c.detail}</small>
+              </span>
+              <i>›</i>
+            </button>
+          ))}
+          {!commands.length && <p>NO MATCHING COMMANDS</p>}
+        </div>
+        <footer>
+          <span>↑↓ SELECT</span>
+          <span>ENTER EXECUTE</span>
+          <span>ESC CLOSE</span>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function LockScreen({
+  userName,
+  unlock,
+}: {
+  userName: string;
+  unlock: () => void;
+}) {
+  const [ready, setReady] = useState(false);
+  return (
+    <div className="lock-screen">
+      <div className="lock-elbow">
+        <b>LCARS</b>
+        <small>SECURE ACCESS</small>
+      </div>
+      <section>
+        <small>FEDERATION OPERATING ENVIRONMENT</small>
+        <h1>INTERFACE LOCKED</h1>
+        <div className="operator-mark">◎</div>
+        <h2>{userName || "LCARS OPERATOR"}</h2>
+        <p>Local command access is suspended.</p>
+        {!ready ? (
+          <button onClick={() => setReady(true)}>BEGIN UNLOCK</button>
+        ) : (
+          <button autoFocus onClick={unlock}>
+            CONFIRM OPERATOR ACCESS
+          </button>
+        )}
+        <small>
+          For full system security, lock the Linux session from the power
+          controls.
+        </small>
+      </section>
+    </div>
+  );
+}
+
+function ShellSettings({
+  platform,
+  prefs,
+  setPrefs,
+  save,
+  saved,
+  health,
+  recheck,
+}: {
+  platform: string;
+  prefs: ShellPrefs;
+  setPrefs: (p: ShellPrefs) => void;
+  save: () => void;
+  saved: boolean;
+  health: Health;
+  recheck: () => void;
+}) {
+  const set = <K extends keyof ShellPrefs>(key: K, value: ShellPrefs[K]) =>
+    setPrefs({ ...prefs, [key]: value });
+  return (
+    <div className="shell-settings">
+      <header>
+        <b>DESKTOP SHELL CONTROL</b>
+        <small>TASK RAIL · TERMINAL · RECOVERY</small>
+      </header>
+      <div className="settings-columns">
+        <section>
+          <h4>TASK RAIL & NOTICES</h4>
+          <Toggle
+            label="Reveal task rail on hover"
+            description="Temporarily opens the task list when your pointer enters its area."
+            checked={prefs.taskHover}
+            change={(v) => set("taskHover", v)}
+          />
+          <Toggle
+            label="Hide after selecting a window"
+            description="Closes an unlocked task list after switching applications."
+            checked={prefs.taskAutoHide}
+            change={(v) => set("taskAutoHide", v)}
+          />
+          <Toggle
+            label="Keep task rail pinned open"
+            description="Keeps tasks visible at all times, overriding hover behavior."
+            checked={prefs.taskPinned}
+            change={(v) => set("taskPinned", v)}
+          />
+          <Toggle
+            label="Group windows by monitor"
+            description="Organizes open applications beneath the display they occupy."
+            checked={prefs.groupByMonitor}
+            change={(v) => set("groupByMonitor", v)}
+          />
+          <label>
+            HOVER DELAY <b>{prefs.hoverDelay} MS</b>
+            <small>
+              How long the pointer must rest over the rail before it opens.
+            </small>
+            <input
+              type="range"
+              min="100"
+              max="1000"
+              step="50"
+              value={prefs.hoverDelay}
+              onChange={(e) => set("hoverDelay", +e.target.value)}
+            />
+          </label>
+          <label>
+            NOTIFICATION DURATION <b>{prefs.notificationSeconds} SEC</b>
+            <small>How long notices stay visible unless closed early.</small>
+            <input
+              type="range"
+              min="1"
+              max="30"
+              value={prefs.notificationSeconds}
+              onChange={(e) => set("notificationSeconds", +e.target.value)}
+            />
+          </label>
+        </section>
+        <section>
+          <h4>EMBEDDED TERMINAL</h4>
+          <label>
+            DEFAULT SHELL
+            <small>
+              The command interpreter used for every new terminal tab.
+            </small>
+            <input
+              value={prefs.terminalShell}
+              onChange={(e) => set("terminalShell", e.target.value)}
+            />
+          </label>
+          <label>
+            STARTING DIRECTORY
+            <small>
+              The folder new terminal sessions open inside; ~ means your home
+              folder.
+            </small>
+            <input
+              value={prefs.terminalDirectory}
+              onChange={(e) => set("terminalDirectory", e.target.value)}
+            />
+          </label>
+          <label>
+            FONT SIZE <b>{prefs.terminalFontSize} PX</b>
+            <small>
+              Changes the terminal text size without affecting the rest of
+              LCARS.
+            </small>
+            <input
+              type="range"
+              min="10"
+              max="24"
+              value={prefs.terminalFontSize}
+              onChange={(e) => set("terminalFontSize", +e.target.value)}
+            />
+          </label>
+          <label>
+            CURSOR STYLE
+            <small>
+              Selects the shape of the blinking terminal input cursor.
+            </small>
+            <select
+              value={prefs.terminalCursor}
+              onChange={(e) => set("terminalCursor", e.target.value)}
+            >
+              <option value="block">BLOCK</option>
+              <option value="bar">BAR</option>
+              <option value="underline">UNDERLINE</option>
+            </select>
+          </label>
+          <label>
+            NEW TERMINAL TARGET
+            <small>
+              Chooses whether New Session stays here or opens on the other
+              monitor.
+            </small>
+            <select
+              value={prefs.terminalTarget}
+              onChange={(e) => set("terminalTarget", e.target.value)}
+            >
+              <option value="current">CURRENT DISPLAY</option>
+              <option value="other">OTHER DISPLAY</option>
+            </select>
+          </label>
+          <Toggle
+            label="Confirm before ending a session"
+            description="Asks before closing a tab so running commands are not stopped accidentally."
+            checked={prefs.confirmTerminalClose}
+            change={(v) => set("confirmTerminalClose", v)}
+          />
+          <Toggle
+            label="Persist command history"
+            description="Allows shell command history to remain available between sessions."
+            checked={prefs.terminalHistory}
+            change={(v) => set("terminalHistory", v)}
+          />
+        </section>
+        <section>
+          <h4>SHELL & RECOVERY</h4>
+          <p>
+            LCARS uses safe full-screen application mode. Separate Shell Mode
+            and startup diagnostic-console toggles were removed because the
+            standalone desktop application no longer requires them.
+          </p>
+          <p>
+            {platform.includes("WINDOWS") ? (
+              <>
+                Use <b>Recovery Control</b> to restore Windows Explorer at any
+                time.
+              </>
+            ) : (
+              <>
+                Press <b>Meta + Shift + Escape</b> to restore Plasma at any
+                time.
+              </>
+            )}
+          </p>
+          <div className="recovery-code">
+            <small>RECOVERY LINK</small>
+            <b>ARMED</b>
+          </div>
+          <h4>INTEGRATION HEALTH</h4>
+          <p>Shows whether each local service needed by LCARS is available.</p>
+          <div className="health-grid">
+            {Object.entries(health).map(([name, item]) => (
+              <p key={name}>
+                <i className={item.available ? "ok" : "bad"} />
+                <span>
+                  <b>{name.toUpperCase()}</b>
+                  <small>{item.detail}</small>
+                </span>
+              </p>
+            ))}
+          </div>
+          <button className="recheck" onClick={recheck}>
+            RECHECK / REPAIR
+          </button>
+        </section>
+      </div>
+      <button className="settings-save" onClick={save}>
+        {saved ? "SETTINGS SAVED ✓" : "SAVE INTERFACE SETTINGS"}
+      </button>
+    </div>
+  );
+}
+
+function Toggle({
+  label,
+  description,
+  checked,
+  change,
+}: {
+  label: string;
+  description?: string;
+  checked: boolean;
+  change: (v: boolean) => void;
+}) {
+  return (
+    <label className="lcars-toggle">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => change(e.target.checked)}
+      />
+      <i />
+      <span>
+        <b>{label}</b>
+        {description && <small>{description}</small>}
+      </span>
+    </label>
+  );
+}
+
+function SystemTray({
+  players,
+  notices,
+  displays,
+  bridge,
+  openNotices,
+  openMedia,
+  openNetwork,
+}: {
+  players: number;
+  notices: number;
+  displays: number;
+  bridge: boolean;
+  openNotices: () => void;
+  openMedia: () => void;
+  openNetwork: () => void;
+}) {
+  return (
+    <nav className="system-tray" aria-label="LCARS system tray">
+      <button onClick={openNetwork}>
+        <i className={bridge ? "online" : ""} />
+        NET
+      </button>
+      <button onClick={openMedia}>♫ {players}</button>
+      <button onClick={openNotices}>◈ {notices}</button>
+      <span>{displays} DISP</span>
+    </nav>
+  );
+}
+
+function FirstRun({
+  step,
+  setStep,
+  displays,
+  bridge,
+  finish,
+  close,
+}: {
+  step: number;
+  setStep: (v: number) => void;
+  displays: Display[];
+  bridge: boolean;
+  finish: () => void;
+  close: () => void;
+}) {
+  const cards = [
+    {
+      code: "01",
+      title: "LOCAL CORE",
+      text: bridge
+        ? "Local system bridge detected and responding."
+        : "Start LCARS locally to enable desktop integration.",
+      ok: bridge,
+    },
+    {
+      code: "02",
+      title: "DISPLAY MATRIX",
+      text: `${displays.length} connected display${displays.length === 1 ? "" : "s"} detected.`,
+      ok: displays.length > 0,
+    },
+    {
+      code: "03",
+      title: "TASK RAIL",
+      text: "Open, focus, move, minimize, and close desktop windows without using the Plasma taskbar.",
+      ok: true,
+    },
+    {
+      code: "04",
+      title: "COMMAND PALETTE",
+      text: "Press Ctrl + K anywhere to find pages, launch applications, and run system commands.",
+      ok: true,
+    },
+    {
+      code: "05",
+      title: "MODULAR OVERVIEW",
+      text: "Use Configure Overview to add, remove, resize, and reorder your command modules.",
+      ok: true,
+    },
+    {
+      code: "06",
+      title: "WORKSPACE PROFILES",
+      text: "Save separate LCARS layouts and favorites for gaming, work, media, or other activities.",
+      ok: true,
+    },
+    {
+      code: "07",
+      title: "RECOVERY CONTROL",
+      text: "Ctrl + Shift + L locks LCARS. Meta + Shift + Escape restores Plasma panels from shell mode.",
+      ok: true,
+    },
+    {
+      code: "08",
+      title: "AUDIO & MEDIA",
+      text: "PipeWire devices, application volumes, and MPRIS playback are linked through the local core.",
+      ok: bridge,
+    },
+  ];
+  const item = cards[step];
+  return (
+    <div className="backdrop setup-backdrop">
+      <section className="first-run">
+        <header>
+          <div>
+            <small>FIRST-RUN SYSTEM ALIGNMENT</small>
+            <h2>LCARS SHELL SETUP</h2>
+          </div>
+          <button onClick={close}>LATER</button>
+        </header>
+        <div className="setup-progress">
+          {cards.map((c, i) => (
+            <i className={i <= step ? "active" : ""} key={c.code}>
+              {c.code}
+            </i>
+          ))}
+        </div>
+        <article>
+          <span>{item.code}</span>
+          <div>
+            <small>SYSTEM CHECK</small>
+            <h3>{item.title}</h3>
+            <p>{item.text}</p>
+            <b className={item.ok ? "check-ok" : "check-wait"}>
+              {item.ok ? "● READY" : "○ LOCAL CHECK PENDING"}
+            </b>
+          </div>
+        </article>
+        <footer>
+          {step > 0 && <button onClick={() => setStep(step - 1)}>BACK</button>}
+          <button
+            onClick={() =>
+              step < cards.length - 1 ? setStep(step + 1) : finish()
+            }
+          >
+            {step < cards.length - 1 ? "CONTINUE" : "ENTER LCARS"}
+          </button>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
+function OverviewEditor({
+  active,
+  save,
+  move,
+  extensions,
+}: {
+  active: WidgetId[];
+  save: (x: WidgetId[]) => void;
+  move: (id: WidgetId, direction: number) => void;
+  extensions: ExtensionManifest[];
+}) {
+  const allModules: WidgetId[] = [
+    ...(Object.keys(widgetInfo) as BuiltinWidgetId[]),
+    ...extensions.map((extension) => `ext:${extension.id}` as WidgetId),
+  ];
+  const metadata = (id: WidgetId) => {
+    if (!id.startsWith("ext:")) return widgetInfo[id as BuiltinWidgetId];
+    const extension = extensions.find((item) => `ext:${item.id}` === id);
+    return extension
+      ? { name: extension.name, description: `${extension.description} · Extension ${extension.version}` }
+      : { name: "Extension unavailable", description: "Manifest not found" };
+  };
+  const inactive = allModules.filter(
+      (id) => !active.includes(id),
+    ),
+    ordered = [...active, ...inactive.filter((id) => !active.includes(id))];
+  return (
+    <section className="overview-editor">
+      <header>
+        <div>
+          <b>OVERVIEW CONFIGURATION</b>
+          <small>
+            Active modules follow the exact order shown on your Overview
+          </small>
+        </div>
+        <button onClick={() => save(defaultWidgets)}>RESTORE DEFAULT</button>
+      </header>
+      <div>
+        {ordered.map((id, index) => {
+          const enabled = active.includes(id);
+          return (
+            <article className={enabled ? "enabled" : ""} key={id}>
+              <button
+                className="module-toggle"
+                onClick={() =>
+                  save(
+                    enabled ? active.filter((x) => x !== id) : [...active, id],
+                  )
+                }
+              >
+                {enabled ? "✓" : "+"}
+              </button>
+              <span>
+                <b>
+                  {enabled ? String(index + 1).padStart(2, "0") + " · " : ""}
+                  {metadata(id).name}
+                </b>
+                <small>{metadata(id).description}</small>
+              </span>
+              <nav>
+                <button
+                  disabled={!enabled || active.indexOf(id) === 0}
+                  onClick={() => move(id, -1)}
+                >
+                  ▲
+                </button>
+                <button
+                  disabled={
+                    !enabled || active.indexOf(id) === active.length - 1
+                  }
+                  onClick={() => move(id, 1)}
+                >
+                  ▼
+                </button>
+              </nav>
+            </article>
+          );
+        })}
+      </div>
+      {inactive.length > 0 && (
+        <small className="available-label">
+          AVAILABLE MODULES APPEAR AFTER ACTIVE MODULES
+        </small>
+      )}
+    </section>
+  );
+}
+
+type ChecklistItem = { id: string; text: string; done: boolean };
+function ChecklistExtension({ extension }: { extension: ExtensionManifest }) {
+  const storageKey = `lcars-extension-state:${extension.id}`;
+  const defaults = (extension.module.defaultItems || []).map((text, index) => ({
+    id: `default-${index}`,
+    text,
+    done: false,
+  }));
+  const [items, setItems] = useState<ChecklistItem[]>(() => {
+    if (typeof window === "undefined") return defaults;
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) || "null");
+      return Array.isArray(saved) ? saved : defaults;
+    } catch {
+      return defaults;
+    }
+  });
+  const [draft, setDraft] = useState("");
+  const save = (next: ChecklistItem[]) => {
+    setItems(next);
+    localStorage.setItem(storageKey, JSON.stringify(next));
+  };
+  const add = () => {
+    const text = draft.trim();
+    if (!text) return;
+    save([...items, { id: `${Date.now()}-${items.length}`, text: text.slice(0, 100), done: false }]);
+    setDraft("");
+  };
+  const complete = items.filter((item) => item.done).length;
+  const percent = items.length ? Math.round((complete / items.length) * 100) : 0;
+  return (
+    <section className="overview-widget extension-widget checklist-extension">
+      <h3>{extension.name.toUpperCase()} <small>EXT · {extension.version}</small></h3>
+      <div className="checklist-progress">
+        <span><b>{complete}</b> / {items.length} COMPLETE</span><strong>{percent}%</strong>
+        <i><em style={{ width: `${percent}%` }} /></i>
+      </div>
+      <div className="checklist-items">
+        {items.length ? items.map((item) => (
+          <label key={item.id} className={item.done ? "done" : ""}>
+            <input type="checkbox" checked={item.done} onChange={() => save(items.map((entry) => entry.id === item.id ? { ...entry, done: !entry.done } : entry))} />
+            <span>{item.text}</span>
+            <button aria-label={`Remove ${item.text}`} onClick={(event) => { event.preventDefault(); save(items.filter((entry) => entry.id !== item.id)); }}>×</button>
+          </label>
+        )) : <p className="extension-empty">NO CHECKLIST ITEMS · ADD A MISSION STEP BELOW</p>}
+      </div>
+      <div className="checklist-add">
+        <input value={draft} maxLength={100} placeholder="ADD MISSION STEP" onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") add(); }} />
+        <button onClick={add}>ADD</button>
+        <button disabled={!complete} onClick={() => save(items.filter((item) => !item.done))}>CLEAR DONE</button>
+      </div>
+    </section>
+  );
+}
+function MediaSources({
+  players,
+  control,
+  pinned,
+  togglePinned,
+  compact = false,
+}: {
+  players: Player[];
+  control: (player: string, command: string) => void;
+  pinned: string[];
+  togglePinned: (id: string) => void;
+  compact?: boolean;
+}) {
+  return (
+    <div className={"media-sources " + (compact ? "compact" : "")}>
+      {players.length ? (
+        players.map((player) => (
+          <article key={player.id}>
+            <header>
+              <span>
+                <b>{player.name}</b>
+                <small>{player.status}</small>
+              </span>
+              <button
+                className={pinned.includes(player.id) ? "pinned" : ""}
+                onClick={() => togglePinned(player.id)}
+                aria-label={"Pin " + player.name}
+              >
+                {pinned.includes(player.id) ? "★" : "☆"}
+              </button>
+            </header>
+            <div className="track-info">
+              {player.artUrl && <img src={player.artUrl} alt="" />}
+              <span>
+                <b>{player.title}</b>
+                <small>
+                  {player.artist || "Unknown artist"}
+                  {player.album ? " · " + player.album : ""}
+                </small>
+              </span>
+            </div>
+            {player.length ? (
+              <div className="media-progress">
+                <i
+                  style={{
+                    width:
+                      Math.min(
+                        100,
+                        ((player.position || 0) / player.length) * 100,
+                      ) + "%",
+                  }}
+                />
+              </div>
+            ) : null}
+            <nav className="transport-controls">
+              <button
+                title="Previous"
+                aria-label={"Previous in " + player.name}
+                onClick={() => control(player.id, "previous")}
+              >
+                ◀◀
+              </button>
+              <button
+                className="primary"
+                title="Play or pause"
+                aria-label={"Play or pause " + player.name}
+                onClick={() => control(player.id, "play-pause")}
+              >
+                {player.status === "Playing" ? "Ⅱ" : "▶"}
+              </button>
+              <button
+                title="Next"
+                aria-label={"Next in " + player.name}
+                onClick={() => control(player.id, "next")}
+              >
+                ▶▶
+              </button>
+              <button
+                title="Shuffle"
+                aria-label={"Shuffle " + player.name}
+                onClick={() => control(player.id, "shuffle")}
+              >
+                ⤨
+              </button>
+              <button
+                title="Stop"
+                aria-label={"Stop " + player.name}
+                onClick={() => control(player.id, "stop")}
+              >
+                ■
+              </button>
+            </nav>
+          </article>
+        ))
+      ) : (
+        <div className="adaptive-empty">
+          <b>NO ACTIVE MEDIA SOURCES</b>
+          <small>
+            Start playback in an MPRIS-compatible application and it will appear
+            here automatically.
+          </small>
+        </div>
+      )}
+    </div>
+  );
+}
+function StreamVolumes({
+  streams,
+  setVolume,
+}: {
+  streams: Stream[];
+  setVolume: (id: string, value: number) => void;
+}) {
+  const [advanced, setAdvanced] = useState(false),
+    [expanded, setExpanded] = useState<string[]>([]);
+  const groups = Array.from(new Set(streams.map((s) => s.group || s.name))).map(
+    (name) => ({
+      name,
+      items: streams.filter((s) => (s.group || s.name) === name),
+    }),
+  );
+  const visible = advanced
+    ? groups
+    : groups.filter((g) => g.items.some((s) => !s.advanced));
+  const toggle = (name: string) =>
+    setExpanded((old) =>
+      old.includes(name) ? old.filter((x) => x !== name) : [...old, name],
+    );
+  return (
+    <section className="stream-volumes">
+      <h4>
+        <span>
+          APPLICATION AUDIO STREAMS <small>PIPEWIRE</small>
+        </span>
+        <button onClick={() => setAdvanced(!advanced)}>
+          {advanced ? "APPLICATIONS ONLY" : "SHOW ALL PIPEWIRE STREAMS"}
+        </button>
+      </h4>
+      {visible.length ? (
+        visible.map((group) => {
+          const main = group.items.find((s) => !s.advanced) || group.items[0],
+            open = expanded.includes(group.name);
+          return (
+            <article className="audio-group" key={group.name}>
+              <label>
+                <span>
+                  <b>{group.name}</b>
+                  <small>
+                    {main.volume}% · {group.items.length}{" "}
+                    {group.items.length === 1 ? "STREAM" : "STREAMS"}
+                  </small>
+                </span>
+                <input
+                  aria-label={group.name + " volume"}
+                  type="range"
+                  value={main.volume}
+                  onChange={(e) => setVolume(main.id, +e.target.value)}
+                />
+                <button
+                  aria-label={
+                    open ? "Collapse " + group.name : "Expand " + group.name
+                  }
+                  onClick={() => toggle(group.name)}
+                >
+                  {open ? "−" : "+"}
+                </button>
+              </label>
+              {open && (
+                <div>
+                  {group.items.map((stream) => (
+                    <label key={stream.id}>
+                      <span>
+                        <b>{stream.name}</b>
+                        <small>{stream.volume}%</small>
+                      </span>
+                      <input
+                        aria-label={stream.name + " volume"}
+                        type="range"
+                        value={stream.volume}
+                        onChange={(e) => setVolume(stream.id, +e.target.value)}
+                      />
+                    </label>
+                  ))}
+                </div>
+              )}
+            </article>
+          );
+        })
+      ) : (
+        <p>NO APPLICATION AUDIO STREAMS ARE CURRENTLY ACTIVE</p>
+      )}
+    </section>
+  );
+}
+function NotificationCenter({
+  notices,
+  historyOpen,
+  close,
+  dismiss,
+  clear,
+  doNotDisturb,
+  toggleDnd,
+}: {
+  notices: Notice[];
+  historyOpen: boolean;
+  close: () => void;
+  dismiss: (id: number) => void;
+  clear: () => void;
+  doNotDisturb: boolean;
+  toggleDnd: () => void;
+}) {
+  const [query, setQuery] = useState(""),
+    live = notices.filter((n) => n.id > 0).slice(0, 3),
+    visible = notices.filter((n) =>
+      n.text.toLowerCase().includes(query.toLowerCase()),
+    );
+  return (
+    <>
+      <div className="toast-stack">
+        {live.map((n) => (
+          <div className={"toast " + n.kind} key={n.id}>
+            <i>●</i>
+            <span>
+              <b>{n.text}</b>
+              <small>{n.time}</small>
+            </span>
+            <button
+              title="Close notification"
+              aria-label="Dismiss notification"
+              onClick={() => dismiss(n.id)}
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+      {historyOpen && (
+        <aside className="notice-history">
+          <header>
+            <div>
+              <small>LCARS EVENT LOG</small>
+              <h3>NOTIFICATIONS</h3>
+            </div>
+            <button onClick={close}>CLOSE ×</button>
+          </header>
+          <nav>
+            <button
+              className={doNotDisturb ? "active" : ""}
+              onClick={toggleDnd}
+            >
+              {doNotDisturb ? "DO NOT DISTURB ON" : "DO NOT DISTURB OFF"}
+            </button>
+            <button onClick={clear}>CLEAR HISTORY</button>
+          </nav>
+          <input
+            aria-label="Search notification history"
+            placeholder="SEARCH EVENT LOG…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          {visible.length ? (
+            visible.map((n) => (
+              <article key={Math.abs(n.id)}>
+                <i>●</i>
+                <span>
+                  <b>{n.text}</b>
+                  <small>{n.time}</small>
+                </span>
+              </article>
+            ))
+          ) : (
+            <p>NO MATCHING NOTIFICATIONS</p>
+          )}
+        </aside>
+      )}
+    </>
+  );
+}
+function AppDrawer({
+  title,
+  apps,
+  query,
+  setQuery,
+  close,
+  action,
+  selected = [],
+}: {
+  title: string;
+  apps: App[];
+  query: string;
+  setQuery: (x: string) => void;
+  close: () => void;
+  action: (a: App) => void;
+  selected?: string[];
+}) {
+  return (
+    <div className="backdrop">
+      <section className="drawer" role="dialog">
+        <header>
+          <div>
+            <small>COMPUTER LIBRARY ACCESS</small>
+            <h2>{title}</h2>
+          </div>
+          <button onClick={close}>CLOSE ×</button>
+        </header>
+        <input
+          autoFocus
+          aria-label="Search applications"
+          placeholder="SEARCH APPLICATIONS…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <div className="app-list">
+          {apps.map((a) => (
+            <button
+              key={a.id}
+              className={selected.includes(a.id) ? "chosen" : ""}
+              onClick={() => action(a)}
+            >
+              <i>{a.name.slice(0, 2).toUpperCase()}</i>
+              <span>
+                <b>{a.name}</b>
+                <small>{a.comment || a.id}</small>
+              </span>
+              <strong>
+                {selected.length
+                  ? selected.includes(a.id)
+                    ? "REMOVE"
+                    : "ADD"
+                  : "LAUNCH"}
+              </strong>
+            </button>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+function ApplicationBay({
+  app,
+  platform,
+  fullscreen,
+  setFullscreen,
+  close,
+  minimize,
+  switchApp,
+}: {
+  app: App;
+  platform: string;
+  fullscreen: boolean;
+  setFullscreen: (x: boolean) => void;
+  close: () => void;
+  minimize: () => void;
+  switchApp: () => void;
+}) {
+  const toggle = async () => {
+    if (!fullscreen) {
+      await document.documentElement.requestFullscreen?.().catch(() => {});
+      setFullscreen(true);
+    } else {
+      await document.exitFullscreen?.().catch(() => {});
+      setFullscreen(false);
+    }
+  };
+  return (
+    <section
+      className={"application-bay " + (fullscreen ? "bay-fullscreen" : "")}
+    >
+      <header>
+        <div>
+          <small>ACTIVE APPLICATION</small>
+          <h3>{app.name}</h3>
+        </div>
+        <span>
+          {platform.includes("WINDOWS")
+            ? "WIN32 WINDOW LINK"
+            : "WAYLAND WINDOW LINK"}
+        </span>
+      </header>
+      <div className="bay-viewport">
+        <div className="bay-grid" />
+        <div className="bay-status">
+          <i>{app.name.slice(0, 2).toUpperCase()}</i>
+          <b>{app.name} IS RUNNING</b>
+          <small>
+            {platform.includes("WINDOWS")
+              ? "The Windows local core can focus, minimize, close, and route this application between connected displays through the Task Rail."
+              : "The application window is aligned to this bay by the local KDE/KWin bridge. Native LCARS modules can render directly in this viewport."}
+          </small>
+        </div>
+      </div>
+      <footer>
+        <button onClick={switchApp}>SWITCH APP</button>
+        <button onClick={minimize}>MINIMIZE</button>
+        <button onClick={toggle}>
+          {fullscreen ? "RETURN TO BAY" : "FULL SCREEN"}
+        </button>
+        <button onClick={close}>CLOSE</button>
+      </footer>
+    </section>
+  );
+}
+function Terminal({
+  bridge,
+  notify,
+  prefs,
+}: {
+  bridge: boolean;
+  notify: (text: string, kind?: "info" | "error") => void;
+  prefs: ShellPrefs;
+}) {
+  const [tabs, setTabs] = useState<
+      { id: string; name: string; status?: string }[]
+    >([]),
+    [active, setActive] = useState(""),
+    [output, setOutput] = useState(""),
+    [input, setInput] = useState("");
+  const outputRef = useRef<HTMLPreElement>(null);
+  const create = async () => {
+    try {
+      const r = await fetch("http://127.0.0.1:8765/api/terminal-create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: "Terminal " + (tabs.length + 1),
+          shell: prefs.terminalShell,
+          directory: prefs.terminalDirectory,
+          scrollback: prefs.terminalScrollback,
+          history: prefs.terminalHistory,
+        }),
+      });
+      const s = await r.json();
+      setTabs((old) => [...old, s]);
+      setActive(s.id);
+      notify(s.name + " opened");
+    } catch {
+      notify("Unable to create terminal session", "error");
+    }
+  };
+  const newSession = () =>
+    prefs.terminalTarget === "other"
+      ? fetch("http://127.0.0.1:8765/api/display-action", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "terminal", display: "other" }),
+        })
+          .then(() => notify("Terminal routed to the other display"))
+          .catch(() => notify("Unable to route terminal", "error"))
+      : create();
+  useEffect(() => {
+    if (bridge && tabs.length === 0) void create();
+  }, [bridge]);
+  useEffect(() => {
+    if (!active) return;
+    const timer = setInterval(
+      () =>
+        fetch("http://127.0.0.1:8765/api/terminal-output/" + active)
+          .then((r) => r.json())
+          .then((d) => {
+            const next = stripAnsi(d.output || "");
+            setOutput((old) => {
+              if (next !== old)
+                setTabs((t) =>
+                  t.map((x) =>
+                    x.id === active
+                      ? { ...x, status: d.closed ? "error" : "output" }
+                      : x,
+                  ),
+                );
+              return next;
+            });
+          })
+          .catch(() => {}),
+      250,
+    );
+    return () => clearInterval(timer);
+  }, [active]);
+  useEffect(() => {
+    if (outputRef.current)
+      outputRef.current.scrollTop = outputRef.current.scrollHeight;
+  }, [output]);
+  const send = (value: string) =>
+    fetch("http://127.0.0.1:8765/api/terminal-input", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: active, input: value }),
+    }).catch(() => notify("Terminal input failed", "error"));
+  const submit = () => {
+    if (!active || !input) return;
+    void send(input + "\r");
+    setInput("");
+  };
+  const close = async (id: string) => {
+    if (
+      prefs.confirmTerminalClose &&
+      !confirm(
+        "End this terminal session? Running processes in it will be stopped.",
+      )
+    )
+      return;
+    await fetch("http://127.0.0.1:8765/api/terminal-close", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const next = tabs.filter((t) => t.id !== id);
+    setTabs(next);
+    setActive(next[0]?.id || "");
+    notify("Terminal session ended");
+  };
+  useEffect(() => {
+    const keys = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "t") {
+        e.preventDefault();
+        void newSession();
+      } else if (e.ctrlKey && e.key.toLowerCase() === "w" && active) {
+        e.preventDefault();
+        void close(active);
+      }
+    };
+    window.addEventListener("keydown", keys);
+    return () => window.removeEventListener("keydown", keys);
+  }, [active, tabs, prefs]);
+  const rename = (id: string, name: string) => {
+    const next = prompt("Rename terminal tab", name)?.trim();
+    if (next)
+      setTabs((old) =>
+        old.map((t) => (t.id === id ? { ...t, name: next } : t)),
+      );
+  };
+  return (
+    <section className="terminal-panel embedded-terminal">
+      <header>
+        <span>LCARS TERMINAL ACCESS</span>
+        <b>{bridge ? "LOCAL PTY CONNECTED" : "LOCAL CORE STANDBY"}</b>
+      </header>
+      <nav className="terminal-tabs">
+        {tabs.map((tab) => (
+          <button
+            className={
+              (active === tab.id ? "active " : "") +
+              "status-" +
+              (tab.status || "idle")
+            }
+            key={tab.id}
+            onClick={() => {
+              setActive(tab.id);
+              setTabs((old) =>
+                old.map((t) =>
+                  t.id === tab.id ? { ...t, status: "idle" } : t,
+                ),
+              );
+            }}
+            onDoubleClick={() => rename(tab.id, tab.name)}
+            onAuxClick={(e) => {
+              if (e.button === 1) {
+                e.preventDefault();
+                void close(tab.id);
+              }
+            }}
+          >
+            {tab.name}
+            <i
+              onClick={(e) => {
+                e.stopPropagation();
+                void close(tab.id);
+              }}
+            >
+              ×
+            </i>
+          </button>
+        ))}
+        <button className="new-tab" onClick={newSession}>
+          ＋
+        </button>
+      </nav>
+      <pre
+        ref={outputRef}
+        className={"terminal-output cursor-" + prefs.terminalCursor}
+        style={{ fontSize: prefs.terminalFontSize }}
+      >
+        {output || "LCARS COMMAND ENVIRONMENT\nWaiting for local PTY…"}
+        <span className="terminal-cursor">█</span>
+      </pre>
+      <div className="terminal-input">
+        <span>terminal@lcars:~$</span>
+        <input
+          autoFocus
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") submit();
+            if (e.ctrlKey && e.key.toLowerCase() === "c") void send("\u0003");
+          }}
+          placeholder="Type a command…"
+        />
+        <button onClick={submit}>ENTER</button>
+      </div>
+      <footer>
+        <button onClick={newSession}>NEW SESSION</button>
+        <button onClick={() => void send("\u0003")}>SEND CTRL+C</button>
+        <button onClick={() => active && void close(active)}>
+          END SESSION
+        </button>
+      </footer>
+    </section>
+  );
+}
+function stripAnsi(value: string) {
+  return value.replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "").replace(/\r/g, "");
+}

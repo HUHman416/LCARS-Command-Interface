@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Uninstall LCARS Command Interface
+Comment=Remove LCARS startup entries and optionally its user settings
+Icon=edit-delete
+Terminal=true
+Exec=bash -c 'launcher="${1#file://}"; cd "$(dirname "$launcher")" && chmod +x uninstall-linux.sh && ./uninstall-linux.sh; echo; read -r -p "Press Enter to close..."' launcher %k
+Categories=System;Settings;
+StartupNotify=true

@@ -1,0 +1,44 @@
+appId: com.lcars.commandinterface
+productName: LCARS Command Interface
+artifactName: LCARS-Command-Interface-${version}-${arch}.${ext}
+directories:
+  output: release-desktop
+files:
+  - desktop/main.cjs
+  - desktop-dist/**/*
+  - package.json
+  - '!node_modules/**/*'
+npmRebuild: false
+extraResources:
+  - from: local/lcars_bridge.py
+    to: bridge/lcars_bridge_linux.py
+  - from: windows/lcars_bridge_windows.py
+    to: bridge/lcars_bridge_windows.py
+  - from: local/lcars-recovery.sh
+    to: recovery/lcars-recovery.sh
+  - from: windows/install-runtime.ps1
+    to: windows/install-runtime.ps1
+  - from: desktop/icons/lcars-command-interface.ico
+    to: icons/lcars-command-interface.ico
+  - from: desktop/icons/512x512.png
+    to: icons/lcars-command-interface.png
+linux:
+  syncDesktopName: true
+  icon: desktop/icons/512x512.png
+  target: [AppImage]
+  category: System
+  executableName: lcars-command-interface
+win:
+  signAndEditExecutable: false
+  icon: desktop/icons/lcars-command-interface.ico
+  target: [nsis]
+  executableName: LCARS Command Interface
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: LCARS Command Interface
+  installerIcon: desktop/icons/lcars-command-interface.ico
+  uninstallerIcon: desktop/icons/lcars-command-interface.ico

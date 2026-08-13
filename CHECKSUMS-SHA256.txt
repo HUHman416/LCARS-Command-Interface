@@ -1,0 +1,3 @@
+cc36c24069e7e87e457df00f5ffc345f31045e06c7aa2364768a142d76cd00db  LCARS-Universal-Linux-Desktop-v22.2.zip
+675214bd78e0414a750658432f413fc10b9326a6219df41152017af953407b29  LCARS-Windows-Setup-v22.2.exe
+85b2fefb89e06356f78af4754c69457fb76e3a27bebb07a72ded18e5c1dca8df  LCARS-Command-Interface-v22.2-Source.zip

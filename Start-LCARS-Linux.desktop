@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Start LCARS Command Interface
+Comment=Launch the local LCARS interface
+Icon=utilities-terminal
+Terminal=false
+Exec=bash -c 'launcher="${1#file://}"; cd "$(dirname "$launcher")" && exec ./start-local.sh' launcher %k
+Categories=System;
+StartupNotify=true

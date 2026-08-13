@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "mission-checklist",
+  "name": "Mission Checklist",
+  "version": "1.0.0",
+  "description": "A persistent, reusable checklist for launch routines, work sessions, streams, travel, and maintenance.",
+  "author": "LCARS Command Interface Project",
+  "module": {
+    "type": "checklist",
+    "defaultSize": "standard",
+    "defaultItems": [
+      "Review mission priorities",
+      "Confirm communications and audio",
+      "Save critical work",
+      "Begin primary task"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+LCARS Universal Linux Desktop v22.2
+Application version: 1.2.3
+AppImage SHA-256: 76a0389c512af08cf1f0d99e9f8b3325cc24be7b69c7b23b5c3c926bd4856708
+
+The installer verifies this checksum before replacing the installed application.
+Shell Mode uses safe fullscreen immersion and never terminates Plasma.
