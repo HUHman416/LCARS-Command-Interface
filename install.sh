@@ -4,7 +4,7 @@ set -euo pipefail
 project_dir="$(cd "$(dirname "$0")" && pwd)"
 desktop="${XDG_CURRENT_DESKTOP:-${DESKTOP_SESSION:-unknown}}"
 session="${XDG_SESSION_TYPE:-unknown}"
-common=(python3 curl psmisc playerctl wireplumber wl-clipboard xdg-utils ffmpeg udisks2)
+common=(python3 curl psmisc playerctl wireplumber wl-clipboard xdg-utils udisks2)
 
 if command -v dnf >/dev/null 2>&1; then
   manager=dnf; packages=("${common[@]}" libnotify procps-ng fuse-libs)
@@ -18,7 +18,7 @@ elif command -v apt-get >/dev/null 2>&1; then
   [[ "${desktop,,}" == *gnome* ]] && packages+=(gnome-system-monitor baobab pavucontrol gnome-software gnome-bluetooth)
   sudo apt-get install -y "${packages[@]}"
 elif command -v pacman >/dev/null 2>&1; then
-  manager=pacman; packages=(python curl psmisc playerctl wireplumber wl-clipboard libnotify procps-ng xdg-utils fuse2 ffmpeg udisks2)
+  manager=pacman; packages=(python curl psmisc playerctl wireplumber wl-clipboard libnotify procps-ng xdg-utils fuse2 udisks2)
   [[ "${desktop,,}" == *kde* ]] && packages+=(plasma-systemmonitor filelight pavucontrol discover bluedevil libkscreen)
   [[ "${desktop,,}" == *gnome* ]] && packages+=(gnome-system-monitor baobab pavucontrol gnome-software gnome-bluetooth)
   sudo pacman -S --needed --noconfirm "${packages[@]}"
@@ -26,9 +26,9 @@ elif command -v zypper >/dev/null 2>&1; then
   manager=zypper; packages=("${common[@]}" libnotify-tools procps fuse)
   sudo zypper --non-interactive install "${packages[@]}"
 elif command -v apk >/dev/null 2>&1; then
-  manager=apk; sudo apk add python3 curl psmisc playerctl wireplumber wl-clipboard libnotify procps xdg-utils fuse ffmpeg udisks2
+  manager=apk; sudo apk add python3 curl psmisc playerctl wireplumber wl-clipboard libnotify procps xdg-utils fuse udisks2
 elif command -v xbps-install >/dev/null 2>&1; then
-  manager=xbps; sudo xbps-install -Sy python3 curl psmisc playerctl wireplumber wl-clipboard libnotify procps-ng xdg-utils fuse ffmpeg udisks2
+  manager=xbps; sudo xbps-install -Sy python3 curl psmisc playerctl wireplumber wl-clipboard libnotify procps-ng xdg-utils fuse udisks2
 else
   echo "No supported package manager was detected."
   echo "Install Python 3, playerctl, WirePlumber/wpctl, curl, and xdg-utils, then retry."
@@ -41,6 +41,25 @@ fi
 
 if [[ "${session,,}" == x11* ]] && ! command -v xdotool >/dev/null 2>&1; then
   case "$manager" in dnf) sudo dnf install -y xdotool;; apt) sudo apt-get install -y xdotool;; pacman) sudo pacman -S --needed --noconfirm xdotool;; zypper) sudo zypper --non-interactive install xdotool;; apk) sudo apk add xdotool;; xbps) sudo xbps-install -y xdotool;; esac
+fi
+
+# FFmpeg is used only for optional offline voice transcription. Nobara and
+# several Fedora-family systems provide the command through ffmpeg-free, which
+# conflicts with the full ffmpeg package. Never replace working multimedia
+# packages or abort the LCARS installation merely to enable this optional path.
+if ! command -v ffmpeg >/dev/null 2>&1; then
+  echo "FFmpeg was not detected. Attempting a non-destructive optional install…"
+  case "$manager" in
+    dnf) sudo dnf install -y ffmpeg-free || true;;
+    apt) sudo apt-get install -y ffmpeg || true;;
+    pacman) sudo pacman -S --needed --noconfirm ffmpeg || true;;
+    zypper) sudo zypper --non-interactive install ffmpeg || true;;
+    apk) sudo apk add ffmpeg || true;;
+    xbps) sudo xbps-install -y ffmpeg || true;;
+  esac
+  if ! command -v ffmpeg >/dev/null 2>&1; then
+    echo "Optional FFmpeg support remains unavailable. LCARS will install normally; offline voice transcription will explain the missing capability in Settings."
+  fi
 fi
 
 echo "Installing the LCARS universal Linux interface…"
