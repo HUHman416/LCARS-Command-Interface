@@ -483,6 +483,7 @@ export default function Home() {
       }
     };
     power();
+    window.addEventListener("lcars-startup-audio", power);
     window.addEventListener("pointerdown", power, { once: true });
     const timer = setInterval(() => setClock(new Date()), 1000),
       mediaTimer = setInterval(getMedia, 3000),
@@ -495,6 +496,7 @@ export default function Home() {
       clearInterval(desktopTimer);
       clearInterval(extensionTimer);
       clearTimeout(startupTimer);
+      window.removeEventListener("lcars-startup-audio", power);
       window.removeEventListener("pointerdown", power);
     };
   }, []);
