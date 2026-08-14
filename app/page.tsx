@@ -60,6 +60,9 @@ type Display = {
   source?: string;
 };
 type Health = Record<string, { available: boolean; detail: string }>;
+type Drive = { id: string; name: string; size: number; type: string; filesystem: string; mountpoints: string[]; mounted: boolean; removable: boolean; parent?: string };
+type TrayItem = { id: string; name: string; status: string; icon?: string };
+type SystemDetails = { cpu?: { logical: number; load: number[]; cores: { name: string; usage: number }[] }; storage?: Drive[]; kernel?: string };
 type Compatibility = {
   distro: string;
   desktop: string;
@@ -82,6 +85,12 @@ type ShellPrefs = {
   terminalHistory: boolean;
   terminalTarget: string;
   notificationSeconds: number;
+  voiceEnabled: boolean;
+  voiceWakePhrase: boolean;
+  voiceEngine: string;
+  voiceModel: string;
+  voiceDevice: string;
+  voiceSecurity: "navigation" | "applications" | "system";
 };
 type WorkspaceProfile = {
   id: string;
@@ -114,6 +123,7 @@ type ExtensionManifest = {
   version: string;
   description: string;
   author: string;
+  voiceCommands?: { phrase: string; page: string; response?: string }[];
   module: {
     type: "checklist";
     defaultSize?: "compact" | "standard" | "wide";
@@ -193,6 +203,12 @@ const defaultPrefs: ShellPrefs = {
   terminalHistory: false,
   terminalTarget: "current",
   notificationSeconds: 4,
+  voiceEnabled: false,
+  voiceWakePhrase: false,
+  voiceEngine: "",
+  voiceModel: "",
+  voiceDevice: "",
+  voiceSecurity: "navigation",
 };
 const defaultAccess: AccessibilityPrefs = {
   fontScale: 100,
@@ -241,6 +257,10 @@ export default function Home() {
       },
     ]);
   const [health, setHealth] = useState<Health>({});
+  const [trayItems, setTrayItems] = useState<TrayItem[]>([]),
+    [drives, setDrives] = useState<Drive[]>([]),
+    [systemDetails, setSystemDetails] = useState<SystemDetails>({}),
+    [detailOpen, setDetailOpen] = useState<string | null>(null);
   const [extensions, setExtensions] = useState<ExtensionManifest[]>([]);
   const [firstRun, setFirstRun] = useState(false),
     [setupStep, setSetupStep] = useState(0),
@@ -257,7 +277,8 @@ export default function Home() {
   const [compat, setCompat] = useState<Compatibility | null>(null),
     [compatOpen, setCompatOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false),
-    [paletteQuery, setPaletteQuery] = useState("");
+    [paletteQuery, setPaletteQuery] = useState(""),
+    [findMode, setFindMode] = useState(false);
   const [profiles, setProfiles] = useState<WorkspaceProfile[]>([]),
     [activeProfile, setActiveProfile] = useState("");
   const [access, setAccess] = useState<AccessibilityPrefs>(defaultAccess),
@@ -428,6 +449,9 @@ export default function Home() {
         .then((r) => r.json())
         .then((d) => setHealth(d.health || {}))
         .catch(() => {});
+      fetch("http://127.0.0.1:8765/api/tray").then((r) => r.json()).then((d) => setTrayItems(d.items || [])).catch(() => {});
+      fetch("http://127.0.0.1:8765/api/storage").then((r) => r.json()).then((d) => setDrives(d.drives || [])).catch(() => {});
+      fetch("http://127.0.0.1:8765/api/system-details").then((r) => r.json()).then(setSystemDetails).catch(() => {});
     };
     getDesktop();
     let powered = false;
@@ -468,9 +492,19 @@ export default function Home() {
   }, [section, sessionRestore]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
+      const target=e.target as HTMLElement | null;
+      const editing=!!target && (target.tagName==="INPUT" || target.tagName==="TEXTAREA" || target.tagName==="SELECT" || target.isContentEditable);
+      const digit=e.code.match(/^(?:Digit|Numpad)([1-8])$/)?.[1];
+      if (digit && !editing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();setSection(nav[Number(digit)-1][0]);setPaletteOpen(false);return;
+      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
+        setFindMode(false);
         setPaletteOpen((v) => !v);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
+        e.preventDefault();setFindMode(true);setPaletteQuery("");setPaletteOpen(true);
       }
       if (e.key === "Escape") setPaletteOpen(false);
       if (
@@ -533,7 +567,7 @@ export default function Home() {
     setFavoriteIds((old) => {
       const next = old.includes(id)
         ? old.filter((x) => x !== id)
-        : old.length < 8
+        : old.length < 20
           ? [...old, id]
           : old;
       localStorage.setItem("lcars-favorites", JSON.stringify(next));
@@ -881,6 +915,18 @@ export default function Home() {
           setPaletteOpen(false);
         },
       })),
+      ...[
+        ["Task Rail settings","hover pinned windows monitor grouping search","settings"],
+        ["Voice Control settings","microphone whisper wake phrase command authority","settings"],
+        ["Terminal settings","shell directory font cursor history tabs","settings"],
+        ["Display Matrix settings","monitor screen display routing","settings"],
+        ["Media and audio settings","player volume input microphone output device","media"],
+        ["Overview modules","widgets modular resize reorder compact wide","overview"],
+        ["Workspace profiles","layout profile favorites theme","settings"],
+        ["Accessibility settings","contrast motion color scale sound","settings"],
+        ["Storage and drives","disk usb mount unmount removable","system"],
+        ["Extensions","module api plugins manifests","updates"],
+      ].map(([label,keywords,page]) => ({ id:"find-"+label, label, detail:"FIND · "+keywords, run:()=>{setSection(page);setPaletteOpen(false);} })),
       {
         id: "lock",
         label: "Lock LCARS",
@@ -968,7 +1014,7 @@ export default function Home() {
           </h3>
           <div className="meters">
             {meters.map((m, i) => (
-              <article key={String(m[0])}>
+              <article key={String(m[0])} role="button" tabIndex={0} onClick={() => setDetailOpen(String(m[0]))} onKeyDown={(e) => e.key === "Enter" && setDetailOpen(String(m[0]))}>
                 <header>
                   <span>
                     0{i + 1} / {m[0]}
@@ -991,9 +1037,9 @@ export default function Home() {
             FAVORITE APPLICATIONS <small>APP-02</small>
           </h3>
           <div className="apps">
-            {favorites.slice(0, 5).map((a, i) => (
+            {favorites.slice(0, 20).map((a, i) => (
               <button key={a.id} onClick={() => launch(a)}>
-                <i className={"c" + i}>{a.name.slice(0, 2).toUpperCase()}</i>
+                <i className={"c" + i}>{a.icon ? <img src={a.icon} alt="" /> : a.name.slice(0, 2).toUpperCase()}</i>
                 <span>
                   <b>{a.name}</b>
                   <small>{a.comment || "APPLICATION"}</small>
@@ -1211,6 +1257,8 @@ export default function Home() {
             {(taskRail || taskLocked || prefs.taskPinned) && (
               <TaskRail
                 tasks={tasks}
+                apps={apps}
+                trayItems={trayItems}
                 displays={displays}
                 group={prefs.groupByMonitor}
                 restricted={compat?.capabilities?.windowControl === false}
@@ -1392,7 +1440,7 @@ export default function Home() {
               <h3>SYSTEMS DIAGNOSTIC</h3>
               <div className="meters">
                 {meters.map((m, i) => (
-                  <article key={String(m[0])}>
+                  <article key={String(m[0])} role="button" tabIndex={0} onClick={() => setDetailOpen(String(m[0]))} onKeyDown={(e) => e.key === "Enter" && setDetailOpen(String(m[0]))}>
                     <header>
                       <span>
                         0{i + 1} / {m[0]}
@@ -1420,6 +1468,7 @@ export default function Home() {
                   REFRESH TELEMETRY
                 </button>
               </div>
+              <StorageMatrix drives={drives} notify={notify} refresh={() => fetch("http://127.0.0.1:8765/api/storage").then((r) => r.json()).then((d) => setDrives(d.drives || []))} />
             </section>
           )}
           {section === "media" && (
@@ -1600,7 +1649,7 @@ export default function Home() {
               <div className="settings-grid">
                 <button onClick={() => setEditOpen(true)}>
                   <b>FAVORITE APPLICATIONS</b>
-                  <small>CHOOSE UP TO 8 LAUNCHERS</small>
+                  <small>CHOOSE UP TO 20 RESPONSIVE LAUNCHERS</small>
                 </button>
                 <button onClick={() => setAllOpen(true)}>
                   <b>APPLICATION LIBRARY</b>
@@ -1648,7 +1697,7 @@ export default function Home() {
       )}
       {editOpen && (
         <AppDrawer
-          title={"FAVORITES " + favoriteIds.length + "/8"}
+          title={"FAVORITES " + favoriteIds.length + "/20"}
           apps={filtered}
           query={query}
           setQuery={setQuery}
@@ -1666,6 +1715,8 @@ export default function Home() {
         openMedia={() => setSection("media")}
         openNetwork={() => setSection("network")}
       />
+      <VoiceControl prefs={prefs} apps={apps} extensions={extensions} navigate={setSection} launch={launch} action={coreAction} notify={notify} />
+      {detailOpen && <SystemDetail kind={detailOpen} details={systemDetails} close={() => setDetailOpen(null)} />}
       {firstRun && (
         <FirstRun
           step={setupStep}
@@ -1684,6 +1735,7 @@ export default function Home() {
           query={paletteQuery}
           setQuery={setPaletteQuery}
           commands={filteredCommands}
+          findMode={findMode}
           close={() => setPaletteOpen(false)}
         />
       )}
@@ -1913,8 +1965,24 @@ function FileExplorer({
   );
 }
 
+function StorageMatrix({ drives, notify, refresh }: { drives: Drive[]; notify: (text: string, kind?: "info" | "error") => void; refresh: () => void }) {
+  const operate = async (drive: Drive) => {
+    try {
+      const response = await fetch("http://127.0.0.1:8765/api/storage-action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: drive.id, action: drive.mounted ? "unmount" : "mount" }) });
+      const result = await response.json();notify(result.message, result.ok ? "info" : "error");refresh();
+    } catch { notify("Storage controller did not respond", "error"); }
+  };
+  return <section className="storage-matrix"><header><div><small>PHYSICAL STORAGE MATRIX</small><h4>DRIVES & REMOVABLE MEDIA</h4></div><button onClick={refresh}>RESCAN</button></header><div>{drives.map((drive) => <article key={drive.id}><i>{drive.removable ? "REM" : "DRV"}</i><span><b>{drive.name}</b><small>{(drive.size / 1073741824).toFixed(1)} GB · {drive.filesystem || drive.type.toUpperCase()} · {drive.mounted ? drive.mountpoints.join(", ") : "NOT MOUNTED"}</small></span>{drive.removable && drive.type !== "disk" && <button onClick={() => operate(drive)}>{drive.mounted ? "UNMOUNT" : "MOUNT"}</button>}</article>)}</div></section>;
+}
+
+function SystemDetail({ kind, details, close }: { kind: string; details: SystemDetails; close: () => void }) {
+  return <div className="backdrop"><section className="system-detail" role="dialog" aria-modal="true"><header><div><small>EXPANDED TELEMETRY</small><h2>{kind} DIAGNOSTIC</h2></div><button onClick={close}>CLOSE ×</button></header>{kind === "CPU" && <><p>{details.cpu?.logical || 0} LOGICAL PROCESSORS · LOAD {details.cpu?.load?.join(" / ") || "UNKNOWN"}</p><div className="core-grid">{details.cpu?.cores?.map((core) => <article key={core.name}><span><b>{core.name}</b><strong>{core.usage}%</strong></span><i><em style={{ width: core.usage + "%" }} /></i></article>)}</div></>}{kind === "DISK" && <div className="detail-drives">{details.storage?.map((drive) => <p key={drive.id}><b>{drive.name}</b><small>{(drive.size / 1073741824).toFixed(1)} GB · {drive.mounted ? drive.mountpoints.join(", ") : "NOT MOUNTED"}</small></p>)}</div>}{kind !== "CPU" && kind !== "DISK" && <p>LIVE {kind} telemetry is displayed on the primary meter. Additional hardware sensors will appear here when the platform adapter reports them.</p>}<footer>KERNEL {details.kernel || "PLATFORM MANAGED"}</footer></section></div>;
+}
+
 function TaskRail({
   tasks,
+  apps,
+  trayItems,
   displays,
   group,
   restricted,
@@ -1922,6 +1990,8 @@ function TaskRail({
   choose,
 }: {
   tasks: WindowTask[];
+  apps: App[];
+  trayItems: TrayItem[];
   displays: Display[];
   group: boolean;
   restricted: boolean;
@@ -1944,6 +2014,7 @@ function TaskRail({
         (name) => [name, filtered.filter((t) => t.monitor === name)] as const,
       )
     : [["OPEN APPLICATIONS", filtered] as const];
+  const iconFor = (task: WindowTask) => task.icon || apps.find((app) => (app.name + " " + app.id).toLowerCase().includes(task.app.toLowerCase()) || task.app.toLowerCase().includes(app.name.toLowerCase()))?.icon;
   return (
     <section className="task-rail">
       <header>
@@ -1991,7 +2062,7 @@ function TaskRail({
                     choose();
                   }}
                 >
-                  <i>{t.app.slice(0, 2).toUpperCase()}</i>
+                  <i>{iconFor(t) ? <img src={iconFor(t)} alt="" /> : t.app.slice(0, 2).toUpperCase()}</i>
                   <span>
                     <b>{t.app}</b>
                     <small>{t.minimized ? "MINIMIZED" : t.name}</small>
@@ -2039,6 +2110,10 @@ function TaskRail({
           )}
         </div>
       ))}
+      <aside className="rail-system-tray">
+        <header><b>SYSTEM TRAY</b><small>{trayItems.length} SERVICES</small></header>
+        {trayItems.length ? trayItems.map((item) => <button key={item.id} title={"Activate "+item.name} onClick={() => fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:item.id})}).catch(()=>{})}>{item.icon ? <img src={item.icon} alt="" /> : <i>●</i>}<span>{item.name}</span></button>) : <p>NO EXTERNAL TRAY SERVICES REPORTED</p>}
+      </aside>
     </section>
   );
 }
@@ -2087,13 +2162,13 @@ function UpdateCenter({
           number="02"
           eyebrow="LCARS RELEASE CHANNEL"
           title="LCARS INTERFACE"
-          status="V22.2"
-          description="Check for a newer LCARS desktop package or return to an archived previous release. Version 22.2 stabilizes accessibility controls and the pinned Task Rail."
+          status="V23.0"
+          description="Version 23 adds offline voice command infrastructure, responsive 20-app favorites, system-tray inventory, storage control, and expanded hardware telemetry."
           primary="CHECK FOR LCARS UPDATE"
           secondary="ROLL BACK RELEASE"
           primaryAction={() => action("lcars-update-check")}
           secondaryAction={() => action("lcars-rollback")}
-          stamp="INSTALLED RELEASE · VERSION 22.2"
+          stamp="LOCAL DEVELOPMENT RELEASE · VERSION 23.0"
         />
         <UpdatePanel
           number="03"
@@ -2649,11 +2724,13 @@ function CommandPalette({
   setQuery,
   commands,
   close,
+  findMode,
 }: {
   query: string;
   setQuery: (v: string) => void;
   commands: { id: string; label: string; detail: string; run: () => void }[];
   close: () => void;
+  findMode: boolean;
 }) {
   const [index, setIndex] = useState(0);
   useEffect(() => setIndex(0), [query]);
@@ -2671,12 +2748,12 @@ function CommandPalette({
       >
         <header>
           <small>UNIVERSAL COMPUTER ACCESS</small>
-          <b>COMMAND PALETTE</b>
+          <b>{findMode ? "FIND IN LCARS" : "COMMAND PALETTE"}</b>
           <button onClick={close}>ESC</button>
         </header>
         <input
           autoFocus
-          placeholder="TYPE A PAGE, APPLICATION, FILE OR COMMAND…"
+          placeholder={findMode ? "FIND A SETTING, MODULE, APPLICATION OR PAGE…" : "TYPE A PAGE, APPLICATION, FILE OR COMMAND…"}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -2833,6 +2910,16 @@ function ShellSettings({
           </label>
         </section>
         <section>
+          <h4>OFFLINE VOICE CONTROL</h4>
+          <Toggle label="Enable push-to-talk" description="Shows a local microphone control. Audio is sent only to the loopback bridge and processed by whisper.cpp on this PC." checked={prefs.voiceEnabled} change={(v) => set("voiceEnabled", v)} />
+          <Toggle label="Require 'Computer' wake phrase" description="Ignores recognized commands that do not begin with Computer." checked={prefs.voiceWakePhrase} change={(v) => set("voiceWakePhrase", v)} />
+          <label>WHISPER.CPP EXECUTABLE<small>Full local path to whisper-cli (or compatible whisper.cpp CLI).</small><input value={prefs.voiceEngine} placeholder="/usr/bin/whisper-cli" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
+          <label>LOCAL MODEL FILE<small>Full path to a downloaded whisper.cpp GGML model. Models are not uploaded.</small><input value={prefs.voiceModel} placeholder="~/Models/ggml-base.en.bin" onChange={(e) => set("voiceModel", e.target.value)} /></label>
+          <VoiceDeviceSelect value={prefs.voiceDevice} change={(value) => set("voiceDevice", value)} />
+          <label>VOICE AUTHORITY<small>Higher levels permit more command categories; power and unmount commands always require confirmation.</small><select value={prefs.voiceSecurity} onChange={(e) => set("voiceSecurity", e.target.value as ShellPrefs["voiceSecurity"])}><option value="navigation">NAVIGATION ONLY</option><option value="applications">NAVIGATION + APPLICATIONS</option><option value="system">SYSTEM CONTROL</option></select></label>
+          <div className="voice-training"><small>COMMAND TRAINING</small><p>“Computer, open Media” · “Show Systems” · “Launch Spotify” · “Check updates”</p><p>Use the exact visible application name for launching. Protected power and removable-storage commands always continue in a confirmation panel.</p></div>
+        </section>
+        <section>
           <h4>EMBEDDED TERMINAL</h4>
           <label>
             DEFAULT SHELL
@@ -2984,6 +3071,37 @@ function Toggle({
       </span>
     </label>
   );
+}
+
+function VoiceDeviceSelect({value,change}:{value:string;change:(value:string)=>void}) { const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);useEffect(()=>{navigator.mediaDevices?.enumerateDevices().then((items)=>setDevices(items.filter((item)=>item.kind==="audioinput"))).catch(()=>{});},[]);return <label>VOICE MICROPHONE<small>Select the input used by push-to-talk. Grant microphone permission once to reveal device names.</small><select value={value} onChange={(event)=>change(event.target.value)}><option value="">SYSTEM DEFAULT</option>{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`MICROPHONE ${index+1}`}</option>)}</select></label>; }
+
+function VoiceControl({ prefs, apps, extensions, navigate, launch, action, notify }: { prefs: ShellPrefs; apps: App[]; extensions: ExtensionManifest[]; navigate: (page: string) => void; launch: (app: App) => void; action: (value: string) => void; notify: (text: string, kind?: "info" | "error") => void }) {
+  const [listening, setListening] = useState(false), [busy, setBusy] = useState(false), [history, setHistory] = useState<string[]>([]);
+  const recorder = useRef<MediaRecorder | null>(null), chunks = useRef<Blob[]>([]);
+  if (!prefs.voiceEnabled) return null;
+  const execute = (raw: string) => {
+    let text = raw.trim().toLowerCase().replace(/[.,!?]/g, "");setHistory((old) => [raw, ...old].slice(0, 8));
+    if (prefs.voiceWakePhrase) { if (!text.startsWith("computer")) return notify("Voice phrase ignored — say Computer first", "error"); text=text.replace(/^computer\s*/, ""); }
+    const pages: Record<string,string> = { overview:"overview", status:"overview", terminal:"terminal", files:"files", file:"files", systems:"system", system:"system", media:"media", network:"network", updates:"updates", settings:"settings" };
+    const page=Object.keys(pages).find((name) => text.includes("open "+name) || text.includes("show "+name) || text===name);
+    if (page) { navigate(pages[page]);return notify("Voice command: "+page.toUpperCase()); }
+    const extensionCommand=extensions.flatMap((extension)=>extension.voiceCommands||[]).find((command)=>text.includes(command.phrase.toLowerCase()));
+    if (extensionCommand && nav.some((item)=>item[0]===extensionCommand.page)) { navigate(extensionCommand.page);return notify(extensionCommand.response||"Extension voice command accepted"); }
+    if (prefs.voiceSecurity !== "navigation") {
+      const app=apps.find((candidate) => text.includes("open "+candidate.name.toLowerCase()) || text.includes("launch "+candidate.name.toLowerCase()));
+      if (app) { launch(app);return; }
+    }
+    if (prefs.voiceSecurity === "system") {
+      if (text.includes("open tasks") || text.includes("task rail")) { action("refresh-system");return notify("Task Rail ready — use the rail control to pin it"); }
+      if (text.includes("check updates")) { navigate("updates");action("check-updates");return; }
+      if (/shut ?down|restart|reboot|unmount/.test(text)) return notify("Protected voice command requires manual confirmation in its LCARS panel", "error");
+    }
+    notify("Voice command not recognized: "+raw, "error");
+  };
+  const start = async () => {
+    try { const stream=await navigator.mediaDevices.getUserMedia({audio:prefs.voiceDevice?{deviceId:{exact:prefs.voiceDevice}}:true});const media=new MediaRecorder(stream);chunks.current=[];media.ondataavailable=(event) => event.data.size && chunks.current.push(event.data);media.onstop=async()=>{setListening(false);setBusy(true);stream.getTracks().forEach((track)=>track.stop());try{const blob=new Blob(chunks.current,{type:media.mimeType});const reader=new FileReader();reader.onload=async()=>{try{const response=await fetch("http://127.0.0.1:8765/api/voice-transcribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({audio:String(reader.result)})});const result=await response.json();result.ok&&result.text?execute(result.text):notify(result.message||"Voice recognition failed","error");}catch{notify("Local voice core did not respond","error");}finally{setBusy(false);}};reader.readAsDataURL(blob);}catch{setBusy(false);notify("Microphone sample could not be processed","error");}};recorder.current=media;media.start();setListening(true);setTimeout(()=>media.state==="recording"&&media.stop(),15000);} catch { notify("Microphone access was denied", "error"); }
+  };
+  return <aside className={(listening ? "listening " : "")+"voice-control"}><button aria-label={listening?"Stop listening":"Push to talk"} onClick={() => listening ? recorder.current?.stop() : start()} disabled={busy}><i>●</i>{busy?"PROCESSING":listening?"LISTENING — STOP":"VOICE"}</button>{history.length>0&&<small title={history.join("\n")}>LAST: {history[0]}</small>}</aside>;
 }
 
 function SystemTray({
@@ -3588,7 +3706,7 @@ function AppDrawer({
               className={selected.includes(a.id) ? "chosen" : ""}
               onClick={() => action(a)}
             >
-              <i>{a.name.slice(0, 2).toUpperCase()}</i>
+              <i>{a.icon ? <img src={a.icon} alt="" /> : a.name.slice(0, 2).toUpperCase()}</i>
               <span>
                 <b>{a.name}</b>
                 <small>{a.comment || a.id}</small>

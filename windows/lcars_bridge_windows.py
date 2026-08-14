@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Loopback-only Windows 10/11 system bridge for the LCARS interface."""
-import ctypes, json, os, queue, re, shutil, subprocess, threading, time, uuid
+import ctypes, json, os, queue, re, shutil, subprocess, threading, time, uuid, base64, tempfile
 from ctypes import wintypes
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -14,6 +14,7 @@ EXTENSION_DIR=Path(os.environ.get("LCARS_EXTENSION_DIR",Path(os.environ.get("LOC
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
 APP_CACHE={}
+WINDOWS_ICON_CACHE={}
 
 def extension_manifests():
     """Load the non-executable Module API v1 manifest format."""
@@ -29,7 +30,11 @@ def extension_manifests():
             items=module.get("defaultItems",[])
             if not isinstance(items,list): raise ValueError("defaultItems must be a list")
             clean_items=[str(item).strip()[:100] for item in items[:24] if str(item).strip()]
-            modules.append({"schema":1,"id":ident,"name":str(data.get("name",ident))[:48],"version":str(data.get("version","1.0.0"))[:20],"description":str(data.get("description","Local LCARS extension"))[:180],"author":str(data.get("author","Unknown"))[:64],"module":{"type":"checklist","defaultSize":module.get("defaultSize","standard") if module.get("defaultSize") in ("compact","standard","wide") else "standard","defaultItems":clean_items}});seen.add(ident)
+            allowed_pages={"overview","terminal","files","system","media","network","updates","settings"};voice=[]
+            for command in data.get("voiceCommands",[])[:12]:
+                phrase=str(command.get("phrase","")).strip()[:80];page=str(command.get("page","")).strip()
+                if phrase and page in allowed_pages:voice.append({"phrase":phrase,"page":page,"response":str(command.get("response",""))[:120]})
+            modules.append({"schema":1,"id":ident,"name":str(data.get("name",ident))[:48],"version":str(data.get("version","1.0.0"))[:20],"description":str(data.get("description","Local LCARS extension"))[:180],"author":str(data.get("author","Unknown"))[:64],"voiceCommands":voice,"module":{"type":"checklist","defaultSize":module.get("defaultSize","standard") if module.get("defaultSize") in ("compact","standard","wide") else "standard","defaultItems":clean_items}});seen.add(ident)
         except Exception as exc: errors.append({"file":path.name,"error":str(exc)})
     return {"extensions":modules,"errors":errors,"directory":str(EXTENSION_DIR)}
 
@@ -54,11 +59,30 @@ def applications():
             if any(part.lower() in ("startup","administrative tools") for part in item.parts): continue
             ident="win-"+uuid.uuid5(uuid.NAMESPACE_URL,str(item).lower()).hex[:20]
             APP_CACHE[ident]=str(item)
-            found.append({"id":ident,"name":item.stem,"comment":item.parent.name if item.parent!=root else "Windows Application"})
+            found.append({"id":ident,"name":item.stem,"comment":item.parent.name if item.parent!=root else "Windows Application","shortcut":str(item)})
+    application_icons([app["shortcut"] for app in found])
+    for app in found:app["icon"]=WINDOWS_ICON_CACHE.get(app.pop("shortcut"),"")
     # Keep one item for duplicate application names, preferring the per-user shortcut.
     unique={}
     for app in found: unique[app["name"].lower()]=app
     return sorted(unique.values(),key=lambda a:a["name"].lower())
+
+def application_icons(shortcuts):
+    missing=[path for path in shortcuts if path not in WINDOWS_ICON_CACHE][:300]
+    if not missing:return
+    list_file=None
+    try:
+        with tempfile.NamedTemporaryFile("w",suffix=".json",delete=False,encoding="utf-8") as handle:json.dump(missing,handle);list_file=handle.name
+        escaped=list_file.replace("'","''")
+        script=f'''Add-Type -AssemblyName System.Drawing;$ws=New-Object -ComObject WScript.Shell;$result=@{{}};Get-Content -LiteralPath '{escaped}' -Raw|ConvertFrom-Json|ForEach-Object {{$shortcut=$_;try{{$target=$ws.CreateShortcut($shortcut).TargetPath;if(Test-Path -LiteralPath $target){{$icon=[System.Drawing.Icon]::ExtractAssociatedIcon($target);$stream=New-Object IO.MemoryStream;$icon.ToBitmap().Save($stream,[Drawing.Imaging.ImageFormat]::Png);$result[$shortcut]=[Convert]::ToBase64String($stream.ToArray());$stream.Dispose();$icon.Dispose()}}}}catch{{$result[$shortcut]=''}}}};$result|ConvertTo-Json -Compress'''
+        raw=run_ps(script,45);values=json.loads(raw) if raw else {}
+        for path in missing:WINDOWS_ICON_CACHE[path]="data:image/png;base64,"+values[path] if values.get(path) else ""
+    except Exception:
+        for path in missing:WINDOWS_ICON_CACHE[path]=""
+    finally:
+        if list_file:
+            try:Path(list_file).unlink()
+            except Exception:pass
 
 def system_data():
     cpu=round(psutil.cpu_percent(.12)) if psutil else 0
@@ -75,6 +99,47 @@ def system_data():
     mem_text=f"{memory.used/1073741824:.1f} / {memory.total/1073741824:.1f} GB" if memory else "WINDOWS MEMORY"
     disk_text=f"{disk.free/1073741824:.0f} GB AVAILABLE" if disk else "SYSTEM DRIVE"
     return {"platform":"WINDOWS 11" if sys_version()>=11 else "WINDOWS 10","meters":[["CPU",cpu,"SYSTEM PROCESSOR"],["GPU",gpu,gpu_name],["MEM",mem_pct,mem_text],["DISK",disk_pct,disk_text]]}
+
+def storage_data():
+    if not psutil:return []
+    items=[]
+    for part in psutil.disk_partitions(all=True):
+        try:
+            usage=psutil.disk_usage(part.mountpoint);drive=part.device.rstrip("\\")
+            dtype=run_ps(f"(Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='{drive}'\").DriveType")
+            removable=dtype in ("2","5")
+            items.append({"id":drive,"name":drive or part.mountpoint,"size":usage.total,"type":"volume","filesystem":part.fstype,"mountpoints":[part.mountpoint],"mounted":True,"removable":removable})
+        except Exception:pass
+    return items
+
+def system_details():
+    cpu=psutil.cpu_percent(.15,percpu=True) if psutil else []
+    return {"cpu":{"logical":len(cpu),"load":[],"cores":[{"name":f"CORE {i}","usage":round(value)} for i,value in enumerate(cpu)]},"storage":storage_data(),"kernel":"WINDOWS NT"}
+
+def storage_action(ident,action):
+    allowed={x["id"] for x in storage_data() if x["removable"]}
+    if ident not in allowed:return {"ok":False,"message":"Only detected removable volumes can be controlled from LCARS"}
+    if action=="unmount":
+        result=run_ps(f"$v=Get-Volume -DriveLetter '{ident[0]}';$v|Get-Partition|Remove-PartitionAccessPath -AccessPath '{ident}\\' -ErrorAction Stop;'Volume safely unmounted'")
+        return {"ok":bool(result),"message":result or "Windows could not safely unmount the volume"}
+    return {"ok":False,"message":"Windows remount requires Disk Management; reconnect the device or use the Storage panel"}
+
+def voice_status():
+    engine=shutil.which("whisper-cli.exe") or shutil.which("whisper-cli");ffmpeg=shutil.which("ffmpeg.exe") or shutil.which("ffmpeg")
+    return {"available":bool(engine and ffmpeg),"engine":engine or "","ffmpeg":ffmpeg or "","reason":"Install whisper.cpp and FFmpeg, then select a local model in Voice Control settings" if not engine or not ffmpeg else ""}
+
+def voice_transcribe(data):
+    try:config=json.loads(CONFIG_FILE.read_text())
+    except:config={}
+    prefs=config.get("shell_prefs",{});status=voice_status();engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or "")).expanduser();encoded=str(data.get("audio","")).split(",")[-1]
+    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"Configure a whisper.cpp executable and model in Settings"}
+    try:
+        with tempfile.TemporaryDirectory(prefix="lcars-voice-") as folder:
+            source=Path(folder)/"sample.webm";wav=Path(folder)/"sample.wav";source.write_bytes(base64.b64decode(encoded,validate=True))
+            if subprocess.run([status["ffmpeg"],"-loglevel","error","-y","-i",str(source),"-ar","16000","-ac","1",str(wav)],creationflags=0x08000000).returncode:return {"ok":False,"message":"FFmpeg could not decode the microphone sample"}
+            result=subprocess.run([engine,"-m",str(model),"-f",str(wav),"-nt","-np"],capture_output=True,text=True,timeout=90,creationflags=0x08000000);text=result.stdout.strip()
+            return {"ok":result.returncode==0 and bool(text),"text":text,"message":result.stderr.strip()[-300:] or "Voice command was not recognized"}
+    except Exception as exc:return {"ok":False,"message":str(exc)}
 
 def sys_version():
     try:return int(run_ps("[System.Environment]::OSVersion.Version.Build") or 0)>=22000 and 11 or 10
@@ -135,7 +200,10 @@ def display_rects():
 
 def display_action(action,display):
     if action=="terminal":
-        subprocess.Popen(["powershell.exe"],creationflags=0x00000010);return f"PowerShell opened for {display}"
+        executable=os.environ.get("LCARS_EXECUTABLE","")
+        if not executable or not Path(executable).is_file():return "Remote Terminal requires the installed native LCARS desktop application"
+        target=next((item for item in display_rects() if item["name"]==display),None);position=f'{target["left"]},{target["top"]}' if target else ""
+        subprocess.Popen([executable,"--lcars-terminal",f"--display={display}",f"--position={position}"],creationflags=0x08000000);return f"Native LCARS Terminal requested for {display}"
     if action=="move-lcars":return "Use the Task Rail to move the LCARS browser window to the selected display"
     return "Display command sent"
 
@@ -233,7 +301,7 @@ def protected_action(action):
     if action=="shell-mode-off":subprocess.Popen(["explorer.exe"]);return "Windows Explorer restored"
     if action in ("startup-console-on","startup-console-off"):return "Windows launches LCARS without a separate console"
     if action=="integration-recheck":return "Windows integration check complete"
-    if action=="lcars-update-check":return "LCARS Windows Version 22.2 is current"
+    if action=="lcars-update-check":return "LCARS Windows Version 23.0 local build — public update channel remains unchanged"
     if action=="lcars-rollback":return "No previous Windows release has been archived yet"
     if action=="extension-scan":EXTENSION_DIR.mkdir(parents=True,exist_ok=True);return f"Extension scan complete — {len(list(EXTENSION_DIR.glob('**/lcars-module.json')))} manifest(s) found"
     if action=="extension-folder":EXTENSION_DIR.mkdir(parents=True,exist_ok=True);os.startfile(EXTENSION_DIR);return "Extensions folder opened"
@@ -249,12 +317,16 @@ class Handler(BaseHTTPRequestHandler):
         parsed=urlparse(self.path);route=parsed.path
         if route=="/api/apps":return self.send_json({"apps":applications()})
         if route=="/api/system":return self.send_json(system_data())
+        if route=="/api/system-details":return self.send_json(system_details())
+        if route=="/api/storage":return self.send_json({"drives":storage_data()})
+        if route=="/api/tray":return self.send_json({"items":[],"supported":False,"reason":"Windows does not expose a supported API for re-hosting every third-party notification icon; LCARS quick controls remain available"})
+        if route=="/api/voice-status":return self.send_json(voice_status())
         if route=="/api/audio":return self.send_json(audio_data())
         if route=="/api/audio-devices":return self.send_json({"devices":audio_devices()})
         if route=="/api/media":return self.send_json(media_data())
         if route=="/api/windows":return self.send_json({"windows":window_list(),"kwin":True})
         if route=="/api/displays":return self.send_json({"displays":displays_data()})
-        if route=="/api/health-check":return self.send_json({"health":{"windows":{"available":True,"detail":"Win32 bridge ready"},"displays":{"available":True,"detail":f"{len(displays_data())} display(s)"},"audio":{"available":bool(audio_devices()),"detail":"Windows Core Audio"},"media":{"available":True,"detail":"Windows media keys ready"},"terminal":{"available":True,"detail":"PowerShell"}}})
+        if route=="/api/health-check":return self.send_json({"health":{"windows":{"available":True,"detail":"Win32 bridge ready"},"displays":{"available":True,"detail":f"{len(displays_data())} display(s)"},"audio":{"available":bool(audio_devices()),"detail":"Windows Core Audio"},"media":{"available":True,"detail":"Windows media keys ready"},"terminal":{"available":True,"detail":"PowerShell"},"storage":{"available":bool(psutil),"detail":f"{len(storage_data())} volume(s)"},"voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Offline whisper.cpp and FFmpeg ready"},"tray":{"available":False,"detail":"Windows does not support re-hosting all third-party notification icons"}}})
         if route=="/api/extensions":return self.send_json(extension_manifests())
         if route=="/api/config":
             try:return self.send_json(json.loads(CONFIG_FILE.read_text()))
@@ -270,6 +342,8 @@ class Handler(BaseHTTPRequestHandler):
             ident=str(data.get("id",""));path=APP_CACHE.get(ident)
             if not path:return self.send_json({"error":"Application is not in the Windows launcher inventory"},403)
             os.startfile(path);return self.send_json({"ok":True})
+        if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action",""))))
+        if route=="/api/voice-transcribe":return self.send_json(voice_transcribe(data))
         if route=="/api/action":return self.send_json({"message":protected_action(str(data.get("action","")))})
         if route=="/api/window-action":return self.send_json({"message":window_action(str(data.get("id","")),str(data.get("action","")),str(data.get("display","")))})
         if route=="/api/display-action":return self.send_json({"message":display_action(str(data.get("action","")),str(data.get("display","")))})
