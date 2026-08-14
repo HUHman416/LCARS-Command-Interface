@@ -6,12 +6,23 @@ const page = fs.readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8"
 const css = fs.readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 const linux = fs.readFileSync(new URL("../local/lcars_bridge.py", import.meta.url), "utf8");
 const windows = fs.readFileSync(new URL("../windows/lcars_bridge_windows.py", import.meta.url), "utf8");
+const currentCss = fs.readFileSync(new URL("../app/v23-1.css", import.meta.url), "utf8");
 
 test("23.1 includes nonblocking startup, tray drawer, and density controls", () => {
   assert.match(page, /StartupTelemetry/);
   assert.match(css, /pointer-events:none;position:fixed/);
   assert.match(page, /tray-strip-trigger/);
   assert.match(page, /interfaceDensity/);
+});
+
+test("themed lock screen supports local password hashes and workstations", () => {
+  assert.match(page, /PBKDF2/);
+  assert.match(page, /lcars-lock-credential/);
+  assert.match(page, /AVAILABLE WORKSTATIONS/);
+  assert.match(page, /lcars-default-workstation/);
+  assert.match(page, /quickBootWithoutPassword/);
+  assert.match(currentCss, /\.lock-workstations/);
+  assert.match(currentCss, /var\(--orange\)/);
 });
 
 test("23.1 includes network telemetry and safe file preview endpoints", () => {

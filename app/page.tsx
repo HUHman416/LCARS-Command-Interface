@@ -96,6 +96,8 @@ type ShellPrefs = {
   interfaceDensity: "comfortable" | "compact" | "console";
   startupSound: boolean;
   startupSequence: boolean;
+  lockOnLaunch: boolean;
+  quickBootWithoutPassword: boolean;
 };
 type WorkspaceProfile = {
   id: string;
@@ -105,6 +107,7 @@ type WorkspaceProfile = {
   widgetSizes: Record<string, string>;
   favoriteIds: string[];
 };
+type LockCredential = { salt: string; hash: string; iterations: number };
 type AccessibilityPrefs = {
   fontScale: number;
   highContrast: boolean;
@@ -217,6 +220,8 @@ const defaultPrefs: ShellPrefs = {
   interfaceDensity: "comfortable",
   startupSound: true,
   startupSequence: true,
+  lockOnLaunch: true,
+  quickBootWithoutPassword: false,
 };
 const defaultAccess: AccessibilityPrefs = {
   fontScale: 100,
@@ -224,6 +229,20 @@ const defaultAccess: AccessibilityPrefs = {
   reducedMotion: false,
   colorSafe: false,
   soundVolume: 40,
+};
+const lcarsEmblem = new URL("../desktop/icons/512x512.png", import.meta.url).href;
+const encodeBytes = (value: ArrayBuffer) => btoa(String.fromCharCode(...new Uint8Array(value)));
+const deriveLockHash = async (password: string, salt: Uint8Array, iterations = 210000) => {
+  const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  return encodeBytes(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: salt as BufferSource, iterations }, material, 256));
+};
+const createLockCredential = async (password: string): Promise<LockCredential> => {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iterations = 210000;
+  return { salt: encodeBytes(salt.buffer), hash: await deriveLockHash(password, salt, iterations), iterations };
+};
+const verifyLockCredential = async (password: string, credential: LockCredential) => {
+  const salt = Uint8Array.from(atob(credential.salt), (value) => value.charCodeAt(0));
+  return (await deriveLockHash(password, salt, credential.iterations)) === credential.hash;
 };
 
 export default function Home() {
@@ -298,6 +317,8 @@ export default function Home() {
     [userName, setUserName] = useState("LCARS OPERATOR"),
     [sessionRestore, setSessionRestore] = useState(true),
     [powerOpen, setPowerOpen] = useState(false);
+  const [lockCredential, setLockCredential] = useState<LockCredential | null>(null),
+    [defaultWorkstation, setDefaultWorkstation] = useState("");
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get(
       "section",
@@ -315,7 +336,9 @@ export default function Home() {
       s = localStorage.getItem("lcars-shell-prefs"),
       a = localStorage.getItem("lcars-accessibility"),
       pr = localStorage.getItem("lcars-workspaces"),
-      u = localStorage.getItem("lcars-user-name");
+      u = localStorage.getItem("lcars-user-name"),
+      lockData = localStorage.getItem("lcars-lock-credential"),
+      defaultStation = localStorage.getItem("lcars-default-workstation") || "";
     if (t) setTheme(t);
     if (f)
       try {
@@ -333,19 +356,26 @@ export default function Home() {
       try {
         setPinnedPlayers(JSON.parse(p));
       } catch {}
-    if (s)
-      try {
-        setPrefs({ ...defaultPrefs, ...JSON.parse(s) });
-      } catch {}
+    let restoredPrefs = defaultPrefs;
+    if (s) try { restoredPrefs = { ...defaultPrefs, ...JSON.parse(s) }; setPrefs(restoredPrefs); } catch {}
     if (a)
       try {
         setAccess({ ...defaultAccess, ...JSON.parse(a) });
       } catch {}
     if (pr)
       try {
-        setProfiles(JSON.parse(pr));
+        const storedProfiles: WorkspaceProfile[] = JSON.parse(pr);
+        setProfiles(storedProfiles);
+        const preferred = storedProfiles.find((profile) => profile.id === defaultStation);
+        if (preferred) {
+          setTheme(preferred.theme);setWidgets(preferred.widgets);setWidgetSizes(preferred.widgetSizes);setFavoriteIds(preferred.favoriteIds);setActiveProfile(preferred.id);
+        }
       } catch {}
     if (u) setUserName(u);
+    if (lockData) try { setLockCredential(JSON.parse(lockData)); } catch {}
+    setDefaultWorkstation(defaultStation);
+    const remoteTerminal = requested === "terminal";
+    if (!remoteTerminal && localStorage.getItem("lcars-setup-complete") && restoredPrefs.lockOnLaunch && !(restoredPrefs.quickBootWithoutPassword && !lockData)) setLocked(true);
     if (
       !localStorage.getItem("lcars-setup-complete") &&
       !sessionStorage.getItem("lcars-setup-dismissed")
@@ -769,7 +799,17 @@ export default function Home() {
         notify(`${d.displays?.length || 0} display outputs detected`);
       })
       .catch(() => notify("Unable to refresh display outputs", "error"));
-  const finishSetup = () => {
+  const saveLockPassword = async (password: string) => {
+    const credential = await createLockCredential(password);
+    setLockCredential(credential);
+    localStorage.setItem("lcars-lock-credential", JSON.stringify(credential));
+  };
+  const removeLockPassword = () => {
+    setLockCredential(null);
+    localStorage.removeItem("lcars-lock-credential");
+  };
+  const finishSetup = async (password = "") => {
+    if (password) await saveLockPassword(password);
     localStorage.setItem("lcars-setup-complete", "1");
     setFirstRun(false);
     savePrefs(prefs);
@@ -807,6 +847,12 @@ export default function Home() {
   const saveProfiles = (next: WorkspaceProfile[]) => {
     setProfiles(next);
     localStorage.setItem("lcars-workspaces", JSON.stringify(next));
+  };
+  const chooseDefaultWorkstation = (id: string) => {
+    setDefaultWorkstation(id);
+    if (id) localStorage.setItem("lcars-default-workstation", id);
+    else localStorage.removeItem("lcars-default-workstation");
+    notify(id ? "Default workstation assigned" : "Default workstation cleared");
   };
   const createProfile = () => {
     const name = prompt("Workspace profile name")?.trim();
@@ -847,6 +893,7 @@ export default function Home() {
   const deleteProfile = (id: string) => {
     saveProfiles(profiles.filter((p) => p.id !== id));
     if (activeProfile === id) setActiveProfile("");
+    if (defaultWorkstation === id) chooseDefaultWorkstation("");
   };
   const saveAccess = (next: AccessibilityPrefs) => {
     setAccess(next);
@@ -1604,6 +1651,8 @@ export default function Home() {
                 createProfile={createProfile}
                 applyProfile={applyProfile}
                 deleteProfile={deleteProfile}
+                defaultWorkstation={defaultWorkstation}
+                setDefaultWorkstation={chooseDefaultWorkstation}
                 access={access}
                 saveAccess={saveAccess}
                 doNotDisturb={doNotDisturb}
@@ -1621,6 +1670,9 @@ export default function Home() {
                 exportConfig={exportConfig}
                 importConfig={importConfig}
                 lock={() => setLocked(true)}
+                lockCredential={lockCredential}
+                saveLockPassword={saveLockPassword}
+                removeLockPassword={removeLockPassword}
                 command={() => setPaletteOpen(true)}
                 action={coreAction}
               />
@@ -1729,7 +1781,7 @@ export default function Home() {
         />
       )}
       {locked && (
-        <LockScreen userName={userName} unlock={() => setLocked(false)} />
+        <LockScreen userName={userName} credential={lockCredential} profiles={profiles} activeProfile={activeProfile} defaultWorkstation={defaultWorkstation} chooseProfile={applyProfile} setDefaultWorkstation={chooseDefaultWorkstation} power={() => setPowerOpen(true)} unlock={() => setLocked(false)} />
       )}
       {compatOpen && compat && (
         <CompatibilityCenter
@@ -2552,6 +2604,8 @@ function DesktopExperience({
   createProfile,
   applyProfile,
   deleteProfile,
+  defaultWorkstation,
+  setDefaultWorkstation,
   access,
   saveAccess,
   doNotDisturb,
@@ -2563,6 +2617,9 @@ function DesktopExperience({
   exportConfig,
   importConfig,
   lock,
+  lockCredential,
+  saveLockPassword,
+  removeLockPassword,
   command,
   action,
 }: {
@@ -2571,6 +2628,8 @@ function DesktopExperience({
   createProfile: () => void;
   applyProfile: (p: WorkspaceProfile) => void;
   deleteProfile: (id: string) => void;
+  defaultWorkstation: string;
+  setDefaultWorkstation: (id: string) => void;
   access: AccessibilityPrefs;
   saveAccess: (a: AccessibilityPrefs) => void;
   doNotDisturb: boolean;
@@ -2582,6 +2641,9 @@ function DesktopExperience({
   exportConfig: () => void;
   importConfig: (f: File) => void;
   lock: () => void;
+  lockCredential: LockCredential | null;
+  saveLockPassword: (password: string) => Promise<void>;
+  removeLockPassword: () => void;
   command: () => void;
   action: (a: string) => void;
 }) {
@@ -2613,6 +2675,13 @@ function DesktopExperience({
                   <small>
                     {p.widgets.length} MODULES · {p.theme.toUpperCase()}
                   </small>
+                </button>
+                <button
+                  className={defaultWorkstation === p.id ? "workstation-default" : ""}
+                  aria-label={defaultWorkstation === p.id ? "Clear default workstation" : "Set default workstation to " + p.name}
+                  onClick={() => setDefaultWorkstation(defaultWorkstation === p.id ? "" : p.id)}
+                >
+                  {defaultWorkstation === p.id ? "★" : "☆"}
                 </button>
                 <button
                   aria-label={"Delete " + p.name}
@@ -2706,9 +2775,9 @@ function DesktopExperience({
             LOCK LCARS
           </button>
           <small>Keyboard shortcut: Ctrl + Shift + L</small>
+          <LockPasswordControl credential={lockCredential} save={saveLockPassword} remove={removeLockPassword} />
           <p>
-            The lock screen protects the LCARS interface. Use your Linux login
-            screen for full account security.
+            The optional password protects LCARS locally. Use your operating-system lock screen for full account security.
           </p>
         </article>
         <article>
@@ -2812,40 +2881,27 @@ function CommandPalette({
   );
 }
 
-function LockScreen({
-  userName,
-  unlock,
-}: {
-  userName: string;
-  unlock: () => void;
-}) {
-  const [ready, setReady] = useState(false);
-  return (
-    <div className="lock-screen">
-      <div className="lock-elbow">
-        <b>LCARS</b>
-        <small>SECURE ACCESS</small>
-      </div>
-      <section>
-        <small>FEDERATION OPERATING ENVIRONMENT</small>
-        <h1>INTERFACE LOCKED</h1>
-        <div className="operator-mark">◎</div>
-        <h2>{userName || "LCARS OPERATOR"}</h2>
-        <p>Local command access is suspended.</p>
-        {!ready ? (
-          <button onClick={() => setReady(true)}>BEGIN UNLOCK</button>
-        ) : (
-          <button autoFocus onClick={unlock}>
-            CONFIRM OPERATOR ACCESS
-          </button>
-        )}
-        <small>
-          For full system security, lock the Linux session from the power
-          controls.
-        </small>
-      </section>
-    </div>
-  );
+function LockPasswordControl({credential,save,remove}:{credential:LockCredential|null;save:(password:string)=>Promise<void>;remove:()=>void}) {
+  const [password,setPassword]=useState(""),[confirm,setConfirm]=useState(""),[status,setStatus]=useState("");
+  const submit=async()=>{if(password.length<4)return setStatus("USE AT LEAST 4 CHARACTERS");if(password!==confirm)return setStatus("PASSWORDS DO NOT MATCH");await save(password);setPassword("");setConfirm("");setStatus("LOCAL PASSWORD SAVED");};
+  return <div className="lock-password-control"><small>{credential?"PASSWORD PROTECTION ACTIVE":"PASSWORD PROTECTION OPTIONAL"}</small><input type="password" autoComplete="new-password" placeholder={credential?"NEW PASSWORD":"CREATE PASSWORD"} value={password} onChange={(e)=>setPassword(e.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={confirm} onChange={(e)=>setConfirm(e.target.value)}/><nav><button onClick={submit}>{credential?"CHANGE PASSWORD":"ENABLE PASSWORD"}</button>{credential&&<button onClick={()=>{remove();setStatus("PASSWORD REMOVED");}}>REMOVE</button>}</nav>{status&&<em>{status}</em>}</div>;
+}
+
+function LockScreen({userName,credential,profiles,activeProfile,defaultWorkstation,chooseProfile,setDefaultWorkstation,power,unlock}:{userName:string;credential:LockCredential|null;profiles:WorkspaceProfile[];activeProfile:string;defaultWorkstation:string;chooseProfile:(profile:WorkspaceProfile)=>void;setDefaultWorkstation:(id:string)=>void;power:()=>void;unlock:()=>void}) {
+  const [password,setPassword]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);
+  const authorize=async()=>{if(!credential)return unlock();setBusy(true);const valid=await verifyLockCredential(password,credential).catch(()=>false);setBusy(false);if(valid)unlock();else{setError("AUTHORIZATION DENIED");setPassword("");}};
+  return <div className="lock-screen">
+    <header><i/><div/><span>{userName||"LCARS OPERATOR"}</span><b/></header>
+    <main>
+      <img src={lcarsEmblem} alt="Federation emblem"/>
+      <h1>LCARS COMPUTER NETWORK</h1><h2>AUTHORIZED ACCESS ONLY</h2>
+      <form onSubmit={(event)=>{event.preventDefault();authorize();}}>
+        <div className="lock-operator-code">47</div><label><b>{userName||"LCARS OPERATOR"}</b><small>{credential?"ENTER LOCAL AUTHORIZATION CODE":"PASSWORD PROTECTION IS NOT ENABLED"}</small><input autoFocus type="password" disabled={!credential||busy} autoComplete="current-password" value={password} onChange={(event)=>setPassword(event.target.value)} placeholder={credential?"PASSWORD":"DIRECT ACCESS"}/></label><button type="submit">{busy?"VERIFYING":"ENTER"}</button>
+      </form>{error&&<p className="lock-error">{error}</p>}
+    </main>
+    <section className="lock-workstations"><header><span>AVAILABLE WORKSTATIONS</span><small>SELECT PROFILE · ★ DEFAULT</small></header><div>{profiles.length?profiles.map((profile,index)=><article className={activeProfile===profile.id?"active":""} key={profile.id}><button onClick={()=>chooseProfile(profile)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{profile.name}</b><small>{profile.theme.toUpperCase()} · {profile.widgets.length} MODULES</small></span></button><button className={defaultWorkstation===profile.id?"default":""} aria-label={"Set "+profile.name+" as default"} onClick={()=>setDefaultWorkstation(profile.id)}>{defaultWorkstation===profile.id?"★":"☆"}</button></article>):<p>NO SAVED WORKSTATIONS · CREATE ONE IN SETTINGS</p>}</div></section>
+    <footer><i/><button onClick={power}>POWER / EXIT OPTIONS</button><div/><span>{credential?"AUTHORIZATION REQUIRED":"DIRECT LOCAL ACCESS"}</span><b/></footer>
+  </div>;
 }
 
 function ShellSettings({
@@ -2887,6 +2943,8 @@ function ShellSettings({
           </label>
           <Toggle label="Play startup power sequence" description="Plays the bundled LCARS power-up sound when the desktop app opens. It never delays the interface." checked={prefs.startupSound} change={(v) => set("startupSound", v)} />
           <Toggle label="Show background startup telemetry" description="Shows a small nonblocking system-check strip while LCARS connects to local services." checked={prefs.startupSequence} change={(v) => set("startupSequence", v)} />
+          <Toggle label="Show lock screen on startup" description="Opens normal LCARS windows at the themed authorization screen. Remote Terminal windows always bypass it." checked={prefs.lockOnLaunch} change={(v) => set("lockOnLaunch", v)} />
+          {prefs.lockOnLaunch && <div className="subordinate-setting"><Toggle label="Quick boot when no password is set" description="Enters LCARS directly only when no local lock password exists." checked={prefs.quickBootWithoutPassword} change={(v) => set("quickBootWithoutPassword", v)} /></div>}
           <Toggle
             label="Reveal task rail on hover"
             description="Temporarily opens the task list when your pointer enters its area."
@@ -3175,9 +3233,10 @@ function FirstRun({
   setStep: (v: number) => void;
   displays: Display[];
   bridge: boolean;
-  finish: () => void;
+  finish: (password?: string) => void | Promise<void>;
   close: () => void;
 }) {
+  const [setupPassword,setSetupPassword]=useState(""),[setupConfirm,setSetupConfirm]=useState(""),[setupError,setSetupError]=useState("");
   const cards = [
     {
       code: "01",
@@ -3229,6 +3288,7 @@ function FirstRun({
       text: "PipeWire devices, application volumes, and MPRIS playback are linked through the local core.",
       ok: bridge,
     },
+    { code:"09", title:"LOCAL AUTHORIZATION", text:"Optionally protect the LCARS lock screen with a local password. Only a salted PBKDF2 hash is stored on this PC.", ok:true },
   ];
   const item = cards[step];
   return (
@@ -3254,6 +3314,7 @@ function FirstRun({
             <small>SYSTEM CHECK</small>
             <h3>{item.title}</h3>
             <p>{item.text}</p>
+            {item.code === "09" && <div className="setup-password"><input type="password" autoComplete="new-password" placeholder="OPTIONAL PASSWORD" value={setupPassword} onChange={(event)=>setSetupPassword(event.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={setupConfirm} onChange={(event)=>setSetupConfirm(event.target.value)}/><small>Leave both fields blank to use direct local access. You can enable this later in Settings.</small>{setupError&&<em>{setupError}</em>}</div>}
             <b className={item.ok ? "check-ok" : "check-wait"}>
               {item.ok ? "● READY" : "○ LOCAL CHECK PENDING"}
             </b>
@@ -3263,7 +3324,7 @@ function FirstRun({
           {step > 0 && <button onClick={() => setStep(step - 1)}>BACK</button>}
           <button
             onClick={() =>
-              step < cards.length - 1 ? setStep(step + 1) : finish()
+              step < cards.length - 1 ? setStep(step + 1) : setupPassword !== setupConfirm ? setSetupError("PASSWORDS DO NOT MATCH") : setupPassword && setupPassword.length < 4 ? setSetupError("USE AT LEAST 4 CHARACTERS") : finish(setupPassword)
             }
           >
             {step < cards.length - 1 ? "CONTINUE" : "ENTER LCARS"}
