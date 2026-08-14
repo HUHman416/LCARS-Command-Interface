@@ -2,17 +2,17 @@
 
 An LCARS-inspired standalone desktop environment for Linux and Windows. It is designed as a local-first interface for launching applications, monitoring the system, controlling media and audio, managing windows and displays, browsing files, and using an embedded terminal.
 
-![Version](https://img.shields.io/badge/version-23-ff9866)
+![Version](https://img.shields.io/badge/version-23.1-ff9866)
 ![Linux](https://img.shields.io/badge/Linux-Nobara%20%7C%20Fedora%20%7C%20Universal-f2c84b)
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-829af1)
 
-## Download Version 23
+## Download Version 23.1
 
-Open the repository's **Releases** page and select **Version 23**.
+Open the repository's **Releases** page and select **Version 23.1**.
 
-- `LCARS-Universal-Linux-Desktop-v23.zip` — universal Linux installer package
-- `LCARS-Windows-Setup-v23.exe` — standalone Windows setup program
-- `LCARS-Command-Interface-v23-Source.zip` — archived source snapshot
+- `LCARS-Universal-Linux-Desktop-v23.1.zip` — universal Linux installer package
+- `LCARS-Windows-Setup-v23.1.exe` — standalone Windows setup program
+- `LCARS-Command-Interface-v23.1-Source.zip` — archived source snapshot
 
 Always compare a downloaded file against the `SHA256SUMS.txt` attached to that release. The release checksum file is generated from the exact public downloads.
 
@@ -36,7 +36,7 @@ Always compare a downloaded file against the `SHA256SUMS.txt` attached to that r
 
 ### 📥 Install
 
-1. Download `LCARS-Universal-Linux-Desktop-v23.zip` from **Releases**.
+1. Download `LCARS-Universal-Linux-Desktop-v23.1.zip` from **Releases**.
 2. Extract the ZIP to a normal folder.
 3. Double-click `Install-LCARS-Linux.desktop` and choose **Execute**.
 4. If your file manager will not execute it, open the extracted folder in Terminal and run: `chmod +x Install-LCARS-Linux.run && ./Install-LCARS-Linux.run`
@@ -56,7 +56,7 @@ LCARS itself installs and runs without voice control. To enable it, install a `w
 
 ### 📥 Install
 
-1. Download `LCARS-Windows-Setup-v23.exe` from **Releases**.
+1. Download `LCARS-Windows-Setup-v23.1.exe` from **Releases**.
 2. Double-click the setup file.
 3. Follow the installer and choose the installation folder and shortcuts.
 4. Launch **LCARS Command Interface** from the Start menu or desktop shortcut.
@@ -77,12 +77,12 @@ Download `SHA256SUMS.txt` from the same release, then compare the appropriate fi
 
 ```bash
 # Linux
-sha256sum LCARS-Universal-Linux-Desktop-v23.zip
+sha256sum LCARS-Universal-Linux-Desktop-v23.1.zip
 ```
 
 ```powershell
 # Windows PowerShell
-Get-FileHash .\LCARS-Windows-Setup-v23.exe -Algorithm SHA256
+Get-FileHash .\LCARS-Windows-Setup-v23.1.exe -Algorithm SHA256
 ```
 
 The displayed hash must exactly match the corresponding line in `SHA256SUMS.txt`.
@@ -105,7 +105,17 @@ npm run desktop:package:windows
 
 Cross-platform packaging may require the relevant host OS or additional packaging tools.
 
-## Version 23 notes
+## Version 23.1 notes
+
+- Added unified LCARS framing for Overview, Network, Media, and File Browser panels.
+- Added live cached network telemetry, safe local file previews, and the narrow System Tray drawer.
+- Added interface-density and nonblocking startup-sequence controls.
+- Added voice-command acknowledgement audio and an Optional Components bay.
+- Added a theme-aware Workstation lock screen with optional salted PBKDF2 password protection.
+- Added default Workstations, startup locking, and passwordless quick-boot controls.
+- Corrected favorite icon clipping and ensured current-version CSS loads after historical compatibility rules.
+
+### Version 23 foundation
 
 - Added local whisper.cpp push-to-talk infrastructure, microphone selection, wake phrase support, command authority levels, and declarative extension voice commands.
 - Restored Task Rail scrolling, added five-window search, KDE tray-service access, display grouping, and native application icons where supported.
