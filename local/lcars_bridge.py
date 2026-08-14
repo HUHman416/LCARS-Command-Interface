@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Local-only, allowlisted universal Linux system bridge for LCARS."""
-import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re
+import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re, base64, mimetypes, tempfile
 from configparser import ConfigParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -13,6 +13,8 @@ CONFIG_FILE=CONFIG_DIR/"settings.json"
 EXTENSION_DIR=Path(os.environ.get("LCARS_EXTENSION_DIR",Path.home()/".local/share/lcars-command-interface/extensions"))
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
+ICON_CACHE={}
+ICON_INDEX=None
 
 def extension_manifests():
     """Load the non-executable Module API v1 manifest format."""
@@ -31,7 +33,11 @@ def extension_manifests():
             items=module.get("defaultItems",[])
             if not isinstance(items,list): raise ValueError("defaultItems must be a list")
             clean_items=[str(item).strip()[:100] for item in items[:24] if str(item).strip()]
-            clean={"schema":1,"id":ident,"name":str(data.get("name",ident))[:48],"version":str(data.get("version","1.0.0"))[:20],"description":str(data.get("description","Local LCARS extension"))[:180],"author":str(data.get("author","Unknown"))[:64],"module":{"type":"checklist","defaultSize":module.get("defaultSize","standard") if module.get("defaultSize") in ("compact","standard","wide") else "standard","defaultItems":clean_items}}
+            allowed_pages={"overview","terminal","files","system","media","network","updates","settings"};voice=[]
+            for command in data.get("voiceCommands",[])[:12]:
+                phrase=str(command.get("phrase","")).strip()[:80];page=str(command.get("page","")).strip()
+                if phrase and page in allowed_pages:voice.append({"phrase":phrase,"page":page,"response":str(command.get("response",""))[:120]})
+            clean={"schema":1,"id":ident,"name":str(data.get("name",ident))[:48],"version":str(data.get("version","1.0.0"))[:20],"description":str(data.get("description","Local LCARS extension"))[:180],"author":str(data.get("author","Unknown"))[:64],"voiceCommands":voice,"module":{"type":"checklist","defaultSize":module.get("defaultSize","standard") if module.get("defaultSize") in ("compact","standard","wide") else "standard","defaultItems":clean_items}}
             modules.append(clean);seen.add(ident)
         except Exception as exc: errors.append({"file":path.name,"error":str(exc)})
     return {"extensions":modules,"errors":errors,"directory":str(EXTENSION_DIR)}
@@ -256,10 +262,13 @@ def display_action(action,display):
         result=kdotool("getactivewindow","windowstate","--remove","fullscreen","windowmove",x,y,"windowstate","--add","fullscreen")
         return "LCARS moved to "+target["name"] if result.returncode==0 else "Monitor routing unavailable — review Integration Health in Settings"
     if action=="terminal":
-        geom=re.search(r"(-?\d+),(-?\d+)",target["geometry"]); x,y=geom.groups() if geom else ("0","0")
-        url="http://127.0.0.1:8764/?section=terminal"
-        candidates=[["chromium","--new-window","--app="+url,"--window-position="+x+","+y,"--start-fullscreen"],["google-chrome","--new-window","--app="+url,"--window-position="+x+","+y,"--start-fullscreen"],["firefox","--new-window",url]]
-        return "Terminal opened on "+target["name"] if start_first(candidates) else "A supported browser is not installed"
+        executable=os.environ.get("LCARS_EXECUTABLE","")
+        if not executable or not Path(executable).is_file():return "Remote Terminal requires the installed native LCARS desktop application"
+        try:
+            geom=re.search(r"(-?\d+),(-?\d+)",target["geometry"]);position=",".join(geom.groups()) if geom else ""
+            subprocess.Popen([executable,"--lcars-terminal","--display="+target["name"],"--position="+position],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+            return "Native LCARS Terminal requested on "+target["name"]
+        except Exception:return "Unable to open a second native LCARS window"
     return "Unknown display command"
 
 def applications():
@@ -272,9 +281,100 @@ def applications():
                 d=c["Desktop Entry"]
                 if d.get("Type")!="Application" or d.get("NoDisplay","false").lower()=="true" or d.get("Hidden","false").lower()=="true": continue
                 name=d.get("Name","").strip()
-                if name: found[path.name]={"id":path.name,"name":name,"comment":d.get("Comment","Application"),"icon":d.get("Icon","")}
+                if name: found[path.name]={"id":path.name,"name":name,"comment":d.get("Comment","Application"),"icon":icon_data(d.get("Icon",""))}
             except Exception: pass
     return sorted(found.values(),key=lambda x:x["name"].lower())
+
+def icon_data(value):
+    """Resolve a freedesktop icon to a local data URL usable by the renderer."""
+    global ICON_INDEX
+    if not value:return ""
+    if value in ICON_CACHE:return ICON_CACHE[value]
+    direct=Path(value).expanduser();candidates=[direct] if direct.is_file() else []
+    if ICON_INDEX is None:
+        ICON_INDEX={}
+        for root in (Path.home()/".local/share/icons",Path.home()/".icons",Path("/usr/share/icons/hicolor"),Path("/usr/share/pixmaps")):
+            if not root.exists():continue
+            for path in root.glob("**/*"):
+                if path.is_file() and path.suffix.lower() in (".png",".svg",".xpm") and path.stem not in ICON_INDEX:ICON_INDEX[path.stem]=path
+    if not candidates and ICON_INDEX.get(Path(value).stem):candidates.append(ICON_INDEX[Path(value).stem])
+    if not candidates:ICON_CACHE[value]="";return ""
+    try:
+        path=candidates[0]
+        if path.stat().st_size>524_288:return ""
+        mime=mimetypes.guess_type(path.name)[0] or "image/png"
+        result="data:"+mime+";base64,"+base64.b64encode(path.read_bytes()).decode();ICON_CACHE[value]=result;return result
+    except Exception:ICON_CACHE[value]="";return ""
+
+def storage_data():
+    if not shutil.which("lsblk"):return []
+    try:
+        raw=subprocess.run(["lsblk","-J","-b","-o","NAME,PATH,LABEL,SIZE,TYPE,FSTYPE,MOUNTPOINTS,RM,HOTPLUG,MODEL"],capture_output=True,text=True,timeout=4)
+        nodes=json.loads(raw.stdout).get("blockdevices",[]);result=[]
+        def walk(node,parent=""):
+            kind=node.get("type","");mounts=[x for x in (node.get("mountpoints") or []) if x]
+            if kind in ("disk","part","rom"):result.append({"id":node.get("path",node.get("name","")),"name":node.get("label") or node.get("model") or node.get("name","DRIVE"),"size":int(node.get("size") or 0),"type":kind,"filesystem":node.get("fstype") or "","mountpoints":mounts,"mounted":bool(mounts),"removable":bool(node.get("rm") or node.get("hotplug")),"parent":parent})
+            for child in node.get("children") or []:walk(child,node.get("path",parent))
+        for node in nodes:walk(node)
+        return result
+    except Exception:return []
+
+def system_details():
+    cores=[]
+    try:
+        for row in Path("/proc/stat").read_text().splitlines():
+            match=re.match(r"cpu(\d+)\s+(.+)",row)
+            if not match:continue
+            values=[int(x) for x in match.group(2).split()];total=sum(values);idle=values[3]+(values[4] if len(values)>4 else 0)
+            cores.append({"name":"CORE "+match.group(1),"usage":round(100*(total-idle)/total) if total else 0})
+    except Exception:pass
+    return {"cpu":{"logical":os.cpu_count() or 1,"load":[round(x,2) for x in os.getloadavg()],"cores":cores},"storage":storage_data(),"kernel":os.uname().release}
+
+def storage_action(ident,action):
+    allowed={x["id"]:x for x in storage_data() if x["removable"] and x["type"] in ("part","rom")}
+    if ident not in allowed:return {"ok":False,"message":"Only detected removable volumes can be mounted from LCARS"}
+    if not shutil.which("udisksctl"):return {"ok":False,"message":"UDisks2/udisksctl is not installed"}
+    command="unmount" if action=="unmount" else "mount" if action=="mount" else ""
+    if not command:return {"ok":False,"message":"Unknown storage command"}
+    result=subprocess.run(["udisksctl",command,"-b",ident],capture_output=True,text=True,timeout=30)
+    return {"ok":result.returncode==0,"message":(result.stdout or result.stderr).strip() or command.title()+" complete"}
+
+def tray_data():
+    if not shutil.which("gdbus"):return {"items":[],"supported":False,"reason":"GDBus is unavailable"}
+    try:
+        raw=subprocess.run(["gdbus","call","--session","--dest","org.kde.StatusNotifierWatcher","--object-path","/StatusNotifierWatcher","--method","org.freedesktop.DBus.Properties.Get","org.kde.StatusNotifierWatcher","RegisteredStatusNotifierItems"],capture_output=True,text=True,timeout=3)
+        values=list(dict.fromkeys(re.findall(r"'([^']+)'",raw.stdout)));items=[]
+        for value in values:
+            service,path=(value.split("/",1)+[""])[:2] if "/" in value else (value,"")
+            path="/"+path if path else "/StatusNotifierItem";name=service.split(".")[-1] or "Tray Service"
+            items.append({"id":service+"|"+path,"name":name,"status":"ACTIVE"})
+        return {"items":items,"supported":raw.returncode==0,"reason":"" if raw.returncode==0 else "StatusNotifierWatcher did not respond"}
+    except Exception:return {"items":[],"supported":False,"reason":"System tray inventory unavailable"}
+
+def voice_status():
+    engine=command_path("whisper-cli") or command_path("whisper-cpp")
+    return {"available":bool(engine and shutil.which("ffmpeg")),"engine":engine or "","ffmpeg":shutil.which("ffmpeg") or "","reason":"" if engine and shutil.which("ffmpeg") else "Install whisper.cpp and FFmpeg, then select a local model in Voice Control settings"}
+
+def tray_action(ident):
+    allowed={item["id"] for item in tray_data()["items"]}
+    if ident not in allowed or "|" not in ident:return {"ok":False,"message":"Tray service is no longer registered"}
+    service,path=ident.split("|",1)
+    result=subprocess.run(["gdbus","call","--session","--dest",service,"--object-path",path,"--method","org.kde.StatusNotifierItem.Activate","0","0"],capture_output=True,text=True,timeout=4)
+    return {"ok":result.returncode==0,"message":"Tray service activated" if result.returncode==0 else "This tray service did not accept activation"}
+
+def voice_transcribe(data):
+    status=voice_status();prefs=load_config().get("shell_prefs",{});engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or "")).expanduser()
+    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"Configure a whisper.cpp executable and model in Settings"}
+    encoded=str(data.get("audio","")).split(",")[-1]
+    if len(encoded)>28_000_000:return {"ok":False,"message":"Voice sample is too large"}
+    try:
+        with tempfile.TemporaryDirectory(prefix="lcars-voice-") as folder:
+            source=Path(folder)/"sample.webm";wav=Path(folder)/"sample.wav";source.write_bytes(base64.b64decode(encoded,validate=True))
+            convert=subprocess.run(["ffmpeg","-loglevel","error","-y","-i",str(source),"-ar","16000","-ac","1",str(wav)],capture_output=True,text=True,timeout=30)
+            if convert.returncode:return {"ok":False,"message":"FFmpeg could not decode the microphone sample"}
+            result=subprocess.run([engine,"-m",str(model),"-f",str(wav),"-nt","-np"],capture_output=True,text=True,timeout=90);text=(result.stdout or "").strip()
+            return {"ok":result.returncode==0 and bool(text),"text":text,"message":(result.stderr or "Voice command was not recognized").strip()[-300:]}
+    except Exception as exc:return {"ok":False,"message":str(exc)}
 
 def system_data():
     try:
@@ -381,6 +481,9 @@ def integration_health():
         "audio":{"available":bool(shutil.which("wpctl")),"detail":"PipeWire controls ready" if shutil.which("wpctl") else "wpctl missing; install wireplumber"},
         "media":{"available":bool(shutil.which("playerctl")),"detail":"MPRIS controls ready" if shutil.which("playerctl") else "playerctl missing"},
         "terminal":{"available":Path(os.environ.get("SHELL","/bin/bash")).is_file(),"detail":os.environ.get("SHELL","/bin/bash")},
+        "storage":{"available":bool(shutil.which("udisksctl")),"detail":f'{len(storage_data())} block device(s); UDisks2 '+("ready" if shutil.which("udisksctl") else "missing")},
+        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Offline whisper.cpp and FFmpeg ready"},
+        "tray":{"available":tray_data()["supported"],"detail":tray_data()["reason"] or f'{len(tray_data()["items"])} StatusNotifier service(s)'},
     }
 
 def protected_action(action):
@@ -420,7 +523,7 @@ def protected_action(action):
         health=integration_health(); ready=sum(1 for item in health.values() if item["available"])
         return f"Integration check complete — {ready}/{len(health)} systems ready"
     if action=="lcars-update-check":
-        return "LCARS Version 22.2 is current — automatic release channel is ready for future packages"
+        return "LCARS Version 23.0 local build — public update channel remains on the approved release"
     if action=="lcars-rollback":
         previous=CONFIG_DIR/"previous-release"
         return "Previous release is ready for restoration" if previous.exists() else "No previous LCARS release has been archived yet"
@@ -454,6 +557,10 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         if route=="/api/apps": self.send_json({"apps":applications()})
         elif route=="/api/system": self.send_json(system_data())
+        elif route=="/api/system-details": self.send_json(system_details())
+        elif route=="/api/storage": self.send_json({"drives":storage_data()})
+        elif route=="/api/tray": self.send_json(tray_data())
+        elif route=="/api/voice-status": self.send_json(voice_status())
         elif route=="/api/compat": self.send_json(linux_environment())
         elif route=="/api/audio": self.send_json(audio_data())
         elif route=="/api/audio-devices": self.send_json({"devices":audio_devices_data()})
@@ -482,6 +589,9 @@ class Handler(BaseHTTPRequestHandler):
                 if not shutil.which("wpctl"): return self.send_json({"error":"wpctl unavailable"},503)
                 subprocess.run(["wpctl","set-volume","@DEFAULT_AUDIO_SINK@",f"{volume}%"],timeout=3)
                 return self.send_json({"volume":volume})
+            if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action",""))))
+            if route=="/api/tray-action":return self.send_json(tray_action(str(data.get("id",""))))
+            if route=="/api/voice-transcribe":return self.send_json(voice_transcribe(data))
             if route=="/api/audio-device":
                 ident=str(data.get("id",""))
                 allowed={device["id"] for device in audio_devices_data()}
