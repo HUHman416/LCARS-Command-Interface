@@ -19,7 +19,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run desktop:package:linux
+      - run: npm run desktop:package:linux -- --publish never
       - name: Assemble universal Linux package
         shell: bash
         run: |
@@ -51,7 +51,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run desktop:package:windows
+      - run: npm run desktop:package:windows -- --publish never
       - name: Prepare Windows installer
         shell: pwsh
         run: |
