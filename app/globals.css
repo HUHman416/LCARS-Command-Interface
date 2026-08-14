@@ -3011,6 +3011,9 @@ body {
   scrollbar-color: var(--blue) #3d335f;
   scrollbar-width: auto;
 }
+.task-zone.rail-open > .filler-codes { display:none !important; }
+.task-zone { background-image:none !important; background:#050505 !important; border-right:22px solid var(--violet) !important; padding-right:0 !important; }
+.task-zone.rail-open { border-right-color:var(--blue) !important; }
 .task-zone .task-rail::-webkit-scrollbar {
   width: 22px;
 }
@@ -3273,6 +3276,55 @@ body {
 .page-footer {
   display: none !important;
 }
+
+/* v23: one scroll owner, application artwork, tray and hardware matrices */
+.task-zone.rail-open {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  overflow: hidden !important;
+}
+.task-zone .task-rail {
+  position: static !important;
+  inset: auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.task-group article > button i img,
+.app-list button > i img,
+.apps button > i img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.rail-system-tray { border-top: 7px solid var(--orange); margin-top: 10px; padding: 8px 3px 20px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; }
+.rail-system-tray header { grid-column: 1/-1; display: flex; justify-content: space-between; color: var(--peach); }
+.rail-system-tray button { border: 0; border-radius: 18px; background: var(--violet); color: #080808; min-width: 0; padding: 7px 4px; overflow: hidden; }
+.rail-system-tray button span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 9px; }
+.rail-system-tray p { grid-column: 1/-1; color: #77717d; font-size: 10px; }
+.storage-matrix { margin-top: 18px; border-top: 8px solid var(--orange); }
+.storage-matrix > header { display:flex; justify-content:space-between; align-items:center; padding:10px; }
+.storage-matrix h4 { margin: 2px 0; }
+.storage-matrix header button,.storage-matrix article button { border:0; border-radius:999px; background:var(--gold); color:#080808; padding:9px 15px; }
+.storage-matrix article { display:grid; grid-template-columns:48px 1fr auto; align-items:center; gap:10px; padding:9px; border-top:1px solid #302b34; }
+.storage-matrix article > i { display:grid; place-items:center; height:36px; background:var(--blue); color:#080808; border-radius:18px 3px 18px 18px; font-style:normal; }
+.storage-matrix article span { display:flex; flex-direction:column; min-width:0; }.storage-matrix article small { color:#817a86; overflow:hidden; text-overflow:ellipsis; }
+.system-detail { width:min(900px,92vw); max-height:86vh; overflow:auto; background:#050505; border:2px solid var(--orange); border-radius:34px 3px 34px 34px; padding:22px; }
+.system-detail > header { display:flex; justify-content:space-between; border-bottom:8px solid var(--orange); }.system-detail h2{margin:4px 0}.system-detail header button{border:0;border-radius:999px;background:var(--pink);padding:8px 18px}.core-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.core-grid article{padding:10px;background:#17131a}.core-grid span{display:flex;justify-content:space-between}.core-grid article>i{display:block;height:7px;background:#302b34}.core-grid em{display:block;height:100%;background:var(--blue)}.detail-drives p{display:flex;justify-content:space-between;border-bottom:1px solid #302b34;padding:10px}.system-detail footer{margin-top:14px;color:#77717d}
+.meters article[role="button"] { cursor:pointer; }.meters article[role="button"]:hover { outline:1px solid var(--peach); }
+.apps { grid-template-columns: repeat(auto-fit,minmax(90px,1fr)) !important; }
+.apps button { display:flex !important; flex-direction:column; align-items:center; text-align:center !important; min-width:0; }
+.apps button > i { width:42px !important; height:42px !important; flex:0 0 42px; }
+.apps button span { min-width:0; width:100%; }.apps button span b,.apps button span small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.settings-themes button i { display:grid !important; place-content:center !important; align-self:center !important; justify-self:center !important; width:28px !important; height:28px !important; padding:0 !important; font:700 12px/1 Arial,sans-serif !important; text-align:center !important; }
+.media-sources .transport-controls button { display:inline-grid !important; place-content:center !important; padding:0 !important; font-family:Arial,sans-serif !important; font-size:14px !important; line-height:1 !important; text-align:center !important; }
+.media-sources .transport-controls button.primary { font-size:18px !important; }
+.voice-control { position:fixed; z-index:22; right:18px; bottom:42px; display:flex; align-items:flex-end; flex-direction:column; gap:4px; pointer-events:none; }
+.voice-control button { pointer-events:auto; border:0; border-radius:999px; background:var(--blue); color:#080808; padding:9px 16px; font-weight:700; }.voice-control button i{color:#111;margin-right:7px}.voice-control.listening button{background:#e98bb7;box-shadow:0 0 0 4px #e98bb744}.voice-control small{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--peach);background:#050505;padding:3px 8px}
+.voice-training { border-left:10px solid var(--blue); padding:8px 12px; background:#17131a; }.voice-training p{margin:5px 0;color:#aaa4b0;font:11px/1.4 Arial,sans-serif}
 .lcars-toggle {
   grid-template-columns: 35px 1fr !important;
   align-items: start !important;
