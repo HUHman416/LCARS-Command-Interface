@@ -15,6 +15,16 @@ TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
 APP_CACHE={}
 WINDOWS_ICON_CACHE={}
+NETWORK_CACHE={"at":0,"value":None}
+
+def network_details():
+    if NETWORK_CACHE["value"] and time.time()-NETWORK_CACHE["at"]<6:return NETWORK_CACHE["value"]
+    interfaces=[];script="Get-NetIPConfiguration | ForEach-Object { $a=Get-NetAdapter -InterfaceIndex $_.InterfaceIndex -ErrorAction SilentlyContinue; $s=Get-NetAdapterStatistics -InterfaceIndex $_.InterfaceIndex -ErrorAction SilentlyContinue; [pscustomobject]@{id=[string]$_.InterfaceIndex;name=$_.InterfaceAlias;kind=$a.MediaType;state=$a.Status;address=($_.IPv4Address.IPAddress -join ', ');gateway=($_.IPv4DefaultGateway.NextHop -join ', ');speed=[string]$a.LinkSpeed;received=[int64]$s.ReceivedBytes;sent=[int64]$s.SentBytes} } | ConvertTo-Json -Compress"
+    try:
+        result=subprocess.run(["powershell.exe","-NoProfile","-Command",script],capture_output=True,text=True,timeout=5);rows=json.loads(result.stdout or "[]");rows=[rows] if isinstance(rows,dict) else rows
+        for row in rows:interfaces.append({**row,"kind":"wireless" if "wireless" in str(row.get("kind","")).lower() or "wi-fi" in str(row.get("name","")).lower() else "ethernet","state":"connected" if str(row.get("state","")).lower()=="up" else str(row.get("state","unknown")).lower(),"dns":"SYSTEM RESOLVER"})
+    except Exception:pass
+    online=any(x.get("state")=="connected" for x in interfaces);value={"interfaces":interfaces,"diagnostics":{"gateway":any(bool(x.get("gateway")) for x in interfaces),"dns":online,"internet":online,"latency":None},"bluetooth":bool(shutil.which("fsquirt.exe"))};NETWORK_CACHE.update(at=time.time(),value=value);return value
 
 def extension_manifests():
     """Load the non-executable Module API v1 manifest format."""
@@ -301,7 +311,7 @@ def protected_action(action):
     if action=="shell-mode-off":subprocess.Popen(["explorer.exe"]);return "Windows Explorer restored"
     if action in ("startup-console-on","startup-console-off"):return "Windows launches LCARS without a separate console"
     if action=="integration-recheck":return "Windows integration check complete"
-    if action=="lcars-update-check":return "LCARS Windows Version 23.0 local build — public update channel remains unchanged"
+    if action=="lcars-update-check":return "LCARS Windows Version 23.1 test build — public update channel remains on Version 23"
     if action=="lcars-rollback":return "No previous Windows release has been archived yet"
     if action=="extension-scan":EXTENSION_DIR.mkdir(parents=True,exist_ok=True);return f"Extension scan complete — {len(list(EXTENSION_DIR.glob('**/lcars-module.json')))} manifest(s) found"
     if action=="extension-folder":EXTENSION_DIR.mkdir(parents=True,exist_ok=True);os.startfile(EXTENSION_DIR);return "Extensions folder opened"
@@ -319,6 +329,7 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/system":return self.send_json(system_data())
         if route=="/api/system-details":return self.send_json(system_details())
         if route=="/api/storage":return self.send_json({"drives":storage_data()})
+        if route=="/api/network-details":return self.send_json(network_details())
         if route=="/api/tray":return self.send_json({"items":[],"supported":False,"reason":"Windows does not expose a supported API for re-hosting every third-party notification icon; LCARS quick controls remain available"})
         if route=="/api/voice-status":return self.send_json(voice_status())
         if route=="/api/audio":return self.send_json(audio_data())
@@ -334,6 +345,14 @@ class Handler(BaseHTTPRequestHandler):
         if route.startswith("/api/terminal-output/"):
             ident=route.rsplit("/",1)[-1];term=TERMINALS.get(ident);return self.send_json({"output":term["output"] if term else "","closed":not term or term["process"].poll() is not None})
         if route=="/api/files":return self.send_json(files_data(parse_qs(parsed.query).get("path",["~"])[0]))
+        if route=="/api/file-preview":
+            try:
+                path=Path(os.path.expandvars(os.path.expanduser(parse_qs(parsed.query).get("path",[""])[0]))).resolve();mime=__import__('mimetypes').guess_type(path.name)[0] or ""
+                if not path.is_file() or path.stat().st_size>2097152:return self.send_json({"error":"preview unavailable"},400)
+                if mime.startswith("image/"):return self.send_json({"kind":"image","content":f"data:{mime};base64,"+base64.b64encode(path.read_bytes()).decode()})
+                if mime.startswith("text/") or path.suffix.lower() in (".md",".json",".log",".ini",".conf",".py",".js",".ts",".tsx",".css",".html",".ps1"):return self.send_json({"kind":"text","content":path.read_text(encoding="utf-8",errors="replace")[:32768]})
+                return self.send_json({"kind":"","content":""})
+            except Exception as exc:return self.send_json({"error":str(exc)},400)
         return self.send_json({"error":"not found"},404)
     def do_POST(self):
         length=int(self.headers.get("Content-Length","0"));data=json.loads(self.rfile.read(length) or b"{}")

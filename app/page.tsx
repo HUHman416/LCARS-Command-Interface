@@ -62,6 +62,8 @@ type Display = {
 type Health = Record<string, { available: boolean; detail: string }>;
 type Drive = { id: string; name: string; size: number; type: string; filesystem: string; mountpoints: string[]; mounted: boolean; removable: boolean; parent?: string };
 type TrayItem = { id: string; name: string; status: string; icon?: string };
+type NetworkInterface = { id: string; name: string; kind: string; state: string; address: string; gateway: string; dns: string[]; speed: string; signal?: number; received: number; sent: number };
+type NetworkInfo = { interfaces: NetworkInterface[]; diagnostics: { gateway: boolean; dns: boolean; internet: boolean; latency: number | null }; bluetooth: boolean };
 type SystemDetails = { cpu?: { logical: number; load: number[]; cores: { name: string; usage: number }[] }; storage?: Drive[]; kernel?: string };
 type Compatibility = {
   distro: string;
@@ -91,6 +93,11 @@ type ShellPrefs = {
   voiceModel: string;
   voiceDevice: string;
   voiceSecurity: "navigation" | "applications" | "system";
+  interfaceDensity: "comfortable" | "compact" | "console";
+  startupSound: boolean;
+  startupSequence: boolean;
+  lockOnLaunch: boolean;
+  quickBootWithoutPassword: boolean;
 };
 type WorkspaceProfile = {
   id: string;
@@ -100,6 +107,7 @@ type WorkspaceProfile = {
   widgetSizes: Record<string, string>;
   favoriteIds: string[];
 };
+type LockCredential = { salt: string; hash: string; iterations: number };
 type AccessibilityPrefs = {
   fontScale: number;
   highContrast: boolean;
@@ -209,6 +217,11 @@ const defaultPrefs: ShellPrefs = {
   voiceModel: "",
   voiceDevice: "",
   voiceSecurity: "navigation",
+  interfaceDensity: "comfortable",
+  startupSound: true,
+  startupSequence: true,
+  lockOnLaunch: true,
+  quickBootWithoutPassword: false,
 };
 const defaultAccess: AccessibilityPrefs = {
   fontScale: 100,
@@ -216,6 +229,20 @@ const defaultAccess: AccessibilityPrefs = {
   reducedMotion: false,
   colorSafe: false,
   soundVolume: 40,
+};
+const lcarsEmblem = new URL("../desktop/icons/512x512.png", import.meta.url).href;
+const encodeBytes = (value: ArrayBuffer) => btoa(String.fromCharCode(...new Uint8Array(value)));
+const deriveLockHash = async (password: string, salt: Uint8Array, iterations = 210000) => {
+  const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  return encodeBytes(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: salt as BufferSource, iterations }, material, 256));
+};
+const createLockCredential = async (password: string): Promise<LockCredential> => {
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iterations = 210000;
+  return { salt: encodeBytes(salt.buffer), hash: await deriveLockHash(password, salt, iterations), iterations };
+};
+const verifyLockCredential = async (password: string, credential: LockCredential) => {
+  const salt = Uint8Array.from(atob(credential.salt), (value) => value.charCodeAt(0));
+  return (await deriveLockHash(password, salt, credential.iterations)) === credential.hash;
 };
 
 export default function Home() {
@@ -258,9 +285,12 @@ export default function Home() {
     ]);
   const [health, setHealth] = useState<Health>({});
   const [trayItems, setTrayItems] = useState<TrayItem[]>([]),
+    [trayOpen, setTrayOpen] = useState(false),
     [drives, setDrives] = useState<Drive[]>([]),
     [systemDetails, setSystemDetails] = useState<SystemDetails>({}),
     [detailOpen, setDetailOpen] = useState<string | null>(null);
+  const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({ interfaces: [], diagnostics: { gateway: false, dns: false, internet: false, latency: null }, bluetooth: false }),
+    [startupVisible, setStartupVisible] = useState(true);
   const [extensions, setExtensions] = useState<ExtensionManifest[]>([]);
   const [firstRun, setFirstRun] = useState(false),
     [setupStep, setSetupStep] = useState(0),
@@ -287,6 +317,8 @@ export default function Home() {
     [userName, setUserName] = useState("LCARS OPERATOR"),
     [sessionRestore, setSessionRestore] = useState(true),
     [powerOpen, setPowerOpen] = useState(false);
+  const [lockCredential, setLockCredential] = useState<LockCredential | null>(null),
+    [defaultWorkstation, setDefaultWorkstation] = useState("");
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get(
       "section",
@@ -304,7 +336,9 @@ export default function Home() {
       s = localStorage.getItem("lcars-shell-prefs"),
       a = localStorage.getItem("lcars-accessibility"),
       pr = localStorage.getItem("lcars-workspaces"),
-      u = localStorage.getItem("lcars-user-name");
+      u = localStorage.getItem("lcars-user-name"),
+      lockData = localStorage.getItem("lcars-lock-credential"),
+      defaultStation = localStorage.getItem("lcars-default-workstation") || "";
     if (t) setTheme(t);
     if (f)
       try {
@@ -322,19 +356,26 @@ export default function Home() {
       try {
         setPinnedPlayers(JSON.parse(p));
       } catch {}
-    if (s)
-      try {
-        setPrefs({ ...defaultPrefs, ...JSON.parse(s) });
-      } catch {}
+    let restoredPrefs = defaultPrefs;
+    if (s) try { restoredPrefs = { ...defaultPrefs, ...JSON.parse(s) }; setPrefs(restoredPrefs); } catch {}
     if (a)
       try {
         setAccess({ ...defaultAccess, ...JSON.parse(a) });
       } catch {}
     if (pr)
       try {
-        setProfiles(JSON.parse(pr));
+        const storedProfiles: WorkspaceProfile[] = JSON.parse(pr);
+        setProfiles(storedProfiles);
+        const preferred = storedProfiles.find((profile) => profile.id === defaultStation);
+        if (preferred) {
+          setTheme(preferred.theme);setWidgets(preferred.widgets);setWidgetSizes(preferred.widgetSizes);setFavoriteIds(preferred.favoriteIds);setActiveProfile(preferred.id);
+        }
       } catch {}
     if (u) setUserName(u);
+    if (lockData) try { setLockCredential(JSON.parse(lockData)); } catch {}
+    setDefaultWorkstation(defaultStation);
+    const remoteTerminal = requested === "terminal";
+    if (!remoteTerminal && localStorage.getItem("lcars-setup-complete") && restoredPrefs.lockOnLaunch && !(restoredPrefs.quickBootWithoutPassword && !lockData)) setLocked(true);
     if (
       !localStorage.getItem("lcars-setup-complete") &&
       !sessionStorage.getItem("lcars-setup-dismissed")
@@ -452,8 +493,13 @@ export default function Home() {
       fetch("http://127.0.0.1:8765/api/tray").then((r) => r.json()).then((d) => setTrayItems(d.items || [])).catch(() => {});
       fetch("http://127.0.0.1:8765/api/storage").then((r) => r.json()).then((d) => setDrives(d.drives || [])).catch(() => {});
       fetch("http://127.0.0.1:8765/api/system-details").then((r) => r.json()).then(setSystemDetails).catch(() => {});
+      fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => {});
     };
     getDesktop();
+    let sound = true;
+    try {
+      sound = JSON.parse(localStorage.getItem("lcars-shell-prefs") || "{}").startupSound !== false;
+    } catch {}
     let powered = false;
     const power = () => {
       if (sound && !powered) {
@@ -467,16 +513,20 @@ export default function Home() {
       }
     };
     power();
+    window.addEventListener("lcars-startup-audio", power);
     window.addEventListener("pointerdown", power, { once: true });
     const timer = setInterval(() => setClock(new Date()), 1000),
       mediaTimer = setInterval(getMedia, 3000),
       desktopTimer = setInterval(getDesktop, 1800),
       extensionTimer = setInterval(getExtensions, 5000);
+    const startupTimer=setTimeout(()=>setStartupVisible(false),4200);
     return () => {
       clearInterval(timer);
       clearInterval(mediaTimer);
       clearInterval(desktopTimer);
       clearInterval(extensionTimer);
+      clearTimeout(startupTimer);
+      window.removeEventListener("lcars-startup-audio", power);
       window.removeEventListener("pointerdown", power);
     };
   }, []);
@@ -749,7 +799,17 @@ export default function Home() {
         notify(`${d.displays?.length || 0} display outputs detected`);
       })
       .catch(() => notify("Unable to refresh display outputs", "error"));
-  const finishSetup = () => {
+  const saveLockPassword = async (password: string) => {
+    const credential = await createLockCredential(password);
+    setLockCredential(credential);
+    localStorage.setItem("lcars-lock-credential", JSON.stringify(credential));
+  };
+  const removeLockPassword = () => {
+    setLockCredential(null);
+    localStorage.removeItem("lcars-lock-credential");
+  };
+  const finishSetup = async (password = "") => {
+    if (password) await saveLockPassword(password);
     localStorage.setItem("lcars-setup-complete", "1");
     setFirstRun(false);
     savePrefs(prefs);
@@ -787,6 +847,12 @@ export default function Home() {
   const saveProfiles = (next: WorkspaceProfile[]) => {
     setProfiles(next);
     localStorage.setItem("lcars-workspaces", JSON.stringify(next));
+  };
+  const chooseDefaultWorkstation = (id: string) => {
+    setDefaultWorkstation(id);
+    if (id) localStorage.setItem("lcars-default-workstation", id);
+    else localStorage.removeItem("lcars-default-workstation");
+    notify(id ? "Default workstation assigned" : "Default workstation cleared");
   };
   const createProfile = () => {
     const name = prompt("Workspace profile name")?.trim();
@@ -827,6 +893,7 @@ export default function Home() {
   const deleteProfile = (id: string) => {
     saveProfiles(profiles.filter((p) => p.id !== id));
     if (activeProfile === id) setActiveProfile("");
+    if (defaultWorkstation === id) chooseDefaultWorkstation("");
   };
   const saveAccess = (next: AccessibilityPrefs) => {
     setAccess(next);
@@ -1167,7 +1234,7 @@ export default function Home() {
         (overviewEdit && section === "overview" ? " overview-editing" : "") +
         (access.highContrast ? " accessibility-contrast" : "") +
         (access.reducedMotion ? " reduced-motion" : "") +
-        (access.colorSafe ? " color-safe" : "")
+        (access.colorSafe ? " color-safe" : "") + " density-" + prefs.interfaceDensity
       }
     >
       <header className="top">
@@ -1236,6 +1303,7 @@ export default function Home() {
             onMouseEnter={taskEnter}
             onMouseLeave={taskLeave}
           >
+            <button className="tray-strip-trigger" aria-label="Open system tray" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><i /><i /><i /><b>‹</b></button>
             <button className="task-trigger" onClick={toggleTaskLock}>
               <i>
                 {compat?.capabilities?.windowControl === false
@@ -1258,7 +1326,6 @@ export default function Home() {
               <TaskRail
                 tasks={tasks}
                 apps={apps}
-                trayItems={trayItems}
                 displays={displays}
                 group={prefs.groupByMonitor}
                 restricted={compat?.capabilities?.windowControl === false}
@@ -1551,43 +1618,10 @@ export default function Home() {
             </section>
           )}
           {section === "network" && (
-            <section className="detail-view">
-              <h3>NETWORK OPERATIONS</h3>
-              <div className="status-cards">
-                <article>
-                  <small>PRIMARY LINK</small>
-                  <b>ETHERNET</b>
-                  <span>CONNECTED</span>
-                </article>
-                <article>
-                  <small>WIRELESS</small>
-                  <b>NETWORKMANAGER</b>
-                  <span>READY</span>
-                </article>
-                <article>
-                  <small>BLUETOOTH</small>
-                  <b>BLUEZ</b>
-                  <span>ACTIVE</span>
-                </article>
-              </div>
-              <div className="action-grid">
-                <button onClick={() => coreAction("network-settings")}>
-                  NETWORK SETTINGS
-                </button>
-                <button onClick={() => coreAction("wifi")}>
-                  WI-FI CONTROL
-                </button>
-                <button onClick={() => coreAction("bluetooth")}>
-                  BLUETOOTH CONTROL
-                </button>
-                <button onClick={() => coreAction("network-refresh")}>
-                  REFRESH LINKS
-                </button>
-              </div>
-            </section>
+            <NetworkConsole info={networkInfo} action={coreAction} refresh={() => fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => notify("Network telemetry unavailable","error"))} />
           )}
           {section === "updates" && (
-            <UpdateCenter platform={platform} action={coreAction} />
+            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => setSection("settings")} />
           )}
           {section === "settings" && (
             <section className="detail-view settings-view">
@@ -1617,6 +1651,8 @@ export default function Home() {
                 createProfile={createProfile}
                 applyProfile={applyProfile}
                 deleteProfile={deleteProfile}
+                defaultWorkstation={defaultWorkstation}
+                setDefaultWorkstation={chooseDefaultWorkstation}
                 access={access}
                 saveAccess={saveAccess}
                 doNotDisturb={doNotDisturb}
@@ -1634,6 +1670,9 @@ export default function Home() {
                 exportConfig={exportConfig}
                 importConfig={importConfig}
                 lock={() => setLocked(true)}
+                lockCredential={lockCredential}
+                saveLockPassword={saveLockPassword}
+                removeLockPassword={removeLockPassword}
                 command={() => setPaletteOpen(true)}
                 action={coreAction}
               />
@@ -1715,6 +1754,8 @@ export default function Home() {
         openMedia={() => setSection("media")}
         openNetwork={() => setSection("network")}
       />
+      <TrayDrawer open={trayOpen} items={trayItems} close={() => setTrayOpen(false)} openNetwork={() => { setSection("network");setTrayOpen(false); }} openMedia={() => { setSection("media");setTrayOpen(false); }} />
+      {startupVisible && prefs.startupSequence && <StartupTelemetry bridge={bridge} reduced={access.reducedMotion} />}
       <VoiceControl prefs={prefs} apps={apps} extensions={extensions} navigate={setSection} launch={launch} action={coreAction} notify={notify} />
       {detailOpen && <SystemDetail kind={detailOpen} details={systemDetails} close={() => setDetailOpen(null)} />}
       {firstRun && (
@@ -1740,7 +1781,7 @@ export default function Home() {
         />
       )}
       {locked && (
-        <LockScreen userName={userName} unlock={() => setLocked(false)} />
+        <LockScreen userName={userName} credential={lockCredential} profiles={profiles} activeProfile={activeProfile} defaultWorkstation={defaultWorkstation} chooseProfile={applyProfile} setDefaultWorkstation={chooseDefaultWorkstation} power={() => setPowerOpen(true)} unlock={() => setLocked(false)} />
       )}
       {compatOpen && compat && (
         <CompatibilityCenter
@@ -1784,7 +1825,8 @@ function FileExplorer({
     ),
     [showHidden, setShowHidden] = useState(false),
     [query, setQuery] = useState(""),
-    [loading, setLoading] = useState(false);
+    [loading, setLoading] = useState(false),
+    [preview, setPreview] = useState<{kind:string;content:string}>({kind:"",content:""});
   const load = (next = path) => {
     setLoading(true);
     cue("processing");
@@ -1803,6 +1845,10 @@ function FileExplorer({
   useEffect(() => {
     if (bridge) load("~");
   }, [bridge]);
+  useEffect(() => {
+    if (!selected || selected.directory) return setPreview({kind:"",content:""});
+    fetch("http://127.0.0.1:8765/api/file-preview?path=" + encodeURIComponent(selected.path)).then((r)=>r.json()).then((data)=>setPreview(data.error?{kind:"",content:""}:data)).catch(()=>setPreview({kind:"",content:""}));
+  }, [selected]);
   const visible = files.filter(
     (f) =>
       (showHidden || !f.hidden) &&
@@ -1855,6 +1901,9 @@ function FileExplorer({
         <span>{loading ? "PROCESSING…" : visible.length + " ITEMS"}</span>
       </header>
       <nav>
+        <button onClick={() => load("~")}>HOME</button>
+        <button onClick={() => load("~/Documents")}>DOCUMENTS</button>
+        <button onClick={() => load("~/Downloads")}>DOWNLOADS</button>
         <button disabled={!parent} onClick={() => parent && load(parent)}>
           ‹ UP
         </button>
@@ -1932,6 +1981,8 @@ function FileExplorer({
               <small>
                 {selected.directory ? "DIRECTORY" : size(selected.size)}
               </small>
+              {preview.kind === "image" && <img className="file-preview-image" src={preview.content} alt="Selected file preview" />}
+              {preview.kind === "text" && <pre className="file-preview-text">{preview.content}</pre>}
               <button
                 onClick={() =>
                   selected.directory
@@ -1965,6 +2016,16 @@ function FileExplorer({
   );
 }
 
+function NetworkConsole({info,action,refresh}:{info:NetworkInfo;action:(value:string)=>void;refresh:()=>void}) {
+  const amount=(value:number)=>value>1073741824?(value/1073741824).toFixed(1)+" GB":value>1048576?(value/1048576).toFixed(1)+" MB":(value/1024).toFixed(0)+" KB";
+  const diagnostics=[['GATEWAY',info.diagnostics.gateway],['DNS',info.diagnostics.dns],['EXTERNAL LINK',info.diagnostics.internet]] as const;
+  return <section className="detail-view lcars-console network-console"><header className="console-cap"><div><small>NET / SUBSPACE OPERATIONS</small><h3>NETWORK OPERATIONS</h3></div><strong>{info.interfaces.length.toString().padStart(2,'0')}</strong></header><div className="network-grid">{info.interfaces.length?info.interfaces.map((link,index)=><article className="network-tile" key={link.id}><i>{String(index+1).padStart(2,'0')}</i><header><small>{link.kind.toUpperCase()} INTERFACE</small><b>{link.name}</b><em className={link.state==='connected'?'online':''}>{link.state.toUpperCase()}</em></header><div className="network-address"><span><small>ADDRESS</small><b>{link.address||'UNASSIGNED'}</b></span><span><small>GATEWAY</small><b>{link.gateway||'LOCAL ONLY'}</b></span></div><div className="network-flow"><span>RX {amount(link.received)}</span><i><em style={{width:Math.min(100,(link.received%100000000)/1000000)+'%'}} /></i><span>TX {amount(link.sent)}</span></div><footer><span>{link.speed||'LINK SPEED UNKNOWN'}</span>{typeof link.signal==='number'&&<b>SIGNAL {link.signal}%</b>}</footer></article>):<div className="adaptive-empty"><b>NO NETWORK INTERFACES REPORTED</b><small>The platform adapter did not return an active data link.</small></div>}</div><section className="network-diagnostics"><header><small>CONNECTION DIAGNOSTICS</small><b>{info.diagnostics.latency===null?'NO LATENCY':info.diagnostics.latency+' MS'}</b></header>{diagnostics.map(([name,ok],index)=><article key={name}><i>{String(index+1).padStart(2,'0')}</i><span>{name}</span><b className={ok?'ok':'bad'}>{ok?'ONLINE':'OFFLINE'}</b></article>)}<article><i>04</i><span>BLUETOOTH</span><b className={info.bluetooth?'ok':'bad'}>{info.bluetooth?'ACTIVE':'INACTIVE'}</b></article></section><nav className="network-actions"><button onClick={()=>action('network-settings')}>NETWORK SETTINGS</button><button onClick={()=>action('wifi')}>WI-FI CONTROL</button><button onClick={()=>action('bluetooth')}>BLUETOOTH CONTROL</button><button onClick={refresh}>REFRESH & TEST</button></nav></section>;
+}
+
+function TrayDrawer({open,items,close,openNetwork,openMedia}:{open:boolean;items:TrayItem[];close:()=>void;openNetwork:()=>void;openMedia:()=>void}) { if(!open)return null;const activate=(id:string)=>fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})}).catch(()=>{});return <aside className="tray-drawer"><header><div><small>LOCAL STATUSNOTIFIER MATRIX</small><h3>SYSTEM TRAY</h3></div><button onClick={close}>CLOSE ×</button></header><nav><button onClick={openNetwork}>NETWORK</button><button onClick={openMedia}>MEDIA & AUDIO</button></nav><div>{items.length?items.map((item,index)=><button key={item.id} onClick={()=>activate(item.id)}><i>{item.icon?<img src={item.icon} alt=""/>:String(index+1).padStart(2,'0')}</i><span><b>{item.name}</b><small>{item.status}</small></span><em>›</em></button>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</div></aside>; }
+
+function StartupTelemetry({bridge,reduced}:{bridge:boolean;reduced:boolean}) { return <aside className={'startup-telemetry '+(reduced?'instant':'')} aria-live="polite"><i /><span><small>LCARS INITIALIZATION</small><b>{bridge?'LOCAL CORE SYNCHRONIZED':'LOCAL CORE LINK PENDING'}</b></span><em>SYS 47 · DISPLAY MATRIX · AUDIO BUS</em></aside>; }
+
 function StorageMatrix({ drives, notify, refresh }: { drives: Drive[]; notify: (text: string, kind?: "info" | "error") => void; refresh: () => void }) {
   const operate = async (drive: Drive) => {
     try {
@@ -1982,7 +2043,6 @@ function SystemDetail({ kind, details, close }: { kind: string; details: SystemD
 function TaskRail({
   tasks,
   apps,
-  trayItems,
   displays,
   group,
   restricted,
@@ -1991,7 +2051,6 @@ function TaskRail({
 }: {
   tasks: WindowTask[];
   apps: App[];
-  trayItems: TrayItem[];
   displays: Display[];
   group: boolean;
   restricted: boolean;
@@ -2110,10 +2169,6 @@ function TaskRail({
           )}
         </div>
       ))}
-      <aside className="rail-system-tray">
-        <header><b>SYSTEM TRAY</b><small>{trayItems.length} SERVICES</small></header>
-        {trayItems.length ? trayItems.map((item) => <button key={item.id} title={"Activate "+item.name} onClick={() => fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:item.id})}).catch(()=>{})}>{item.icon ? <img src={item.icon} alt="" /> : <i>●</i>}<span>{item.name}</span></button>) : <p>NO EXTERNAL TRAY SERVICES REPORTED</p>}
-      </aside>
     </section>
   );
 }
@@ -2121,9 +2176,15 @@ function TaskRail({
 function UpdateCenter({
   platform,
   action,
+  health,
+  prefs,
+  configureVoice,
 }: {
   platform: string;
   action: (value: string) => void;
+  health: Health;
+  prefs: ShellPrefs;
+  configureVoice: () => void;
 }) {
   const windows = platform.includes("WINDOWS");
   return (
@@ -2162,13 +2223,13 @@ function UpdateCenter({
           number="02"
           eyebrow="LCARS RELEASE CHANNEL"
           title="LCARS INTERFACE"
-          status="V23.0"
-          description="Version 23 adds offline voice command infrastructure, responsive 20-app favorites, system-tray inventory, storage control, and expanded hardware telemetry."
+          status="V23.1 TEST"
+          description="Version 23.1 adds unified LCARS modules, live network telemetry, safe file previews, startup telemetry and sound controls, and the System Tray drawer."
           primary="CHECK FOR LCARS UPDATE"
           secondary="ROLL BACK RELEASE"
           primaryAction={() => action("lcars-update-check")}
           secondaryAction={() => action("lcars-rollback")}
-          stamp="LOCAL DEVELOPMENT RELEASE · VERSION 23.0"
+          stamp="UNPUBLISHED TEST BUILD · VERSION 23.1"
         />
         <UpdatePanel
           number="03"
@@ -2193,6 +2254,14 @@ function UpdateCenter({
           secondaryAction={() => action("display-settings")}
         />
       </div>
+      <aside className="optional-components">
+        <header><div><small>NONESSENTIAL SOFTWARE BAY</small><h4>OPTIONAL COMPONENTS</h4></div><em>SKIPPED ITEMS DO NOT AFFECT LCARS STATUS</em></header>
+        <div>
+          <article><i className={health.voice?.available ? "ready" : ""}>V</i><span><b>OFFLINE VOICE ENGINE</b><small>{health.voice?.available ? "WHISPER.CPP AND AUDIO CONVERTER READY" : "NOT INSTALLED · LCARS REMAINS FULLY USABLE"}</small></span><button onClick={configureVoice}>{health.voice?.available ? "CONFIGURE" : "SET UP"}</button></article>
+          <article><i className={prefs.voiceModel ? "ready" : ""}>M</i><span><b>LOCAL SPEECH MODEL</b><small>{prefs.voiceModel ? "MODEL PATH CONFIGURED" : "OPTIONAL GGML MODEL NOT SELECTED"}</small></span><button onClick={configureVoice}>{prefs.voiceModel ? "CHANGE" : "SELECT"}</button></article>
+          <article><i className="ready">E</i><span><b>LCARS EXTENSIONS</b><small>DECLARATIVE MODULE BAY · MANUALLY INSTALLED</small></span><button onClick={() => action("extension-folder")}>OPEN BAY</button></article>
+        </div>
+      </aside>
     </section>
   );
 }
@@ -2535,6 +2604,8 @@ function DesktopExperience({
   createProfile,
   applyProfile,
   deleteProfile,
+  defaultWorkstation,
+  setDefaultWorkstation,
   access,
   saveAccess,
   doNotDisturb,
@@ -2546,6 +2617,9 @@ function DesktopExperience({
   exportConfig,
   importConfig,
   lock,
+  lockCredential,
+  saveLockPassword,
+  removeLockPassword,
   command,
   action,
 }: {
@@ -2554,6 +2628,8 @@ function DesktopExperience({
   createProfile: () => void;
   applyProfile: (p: WorkspaceProfile) => void;
   deleteProfile: (id: string) => void;
+  defaultWorkstation: string;
+  setDefaultWorkstation: (id: string) => void;
   access: AccessibilityPrefs;
   saveAccess: (a: AccessibilityPrefs) => void;
   doNotDisturb: boolean;
@@ -2565,6 +2641,9 @@ function DesktopExperience({
   exportConfig: () => void;
   importConfig: (f: File) => void;
   lock: () => void;
+  lockCredential: LockCredential | null;
+  saveLockPassword: (password: string) => Promise<void>;
+  removeLockPassword: () => void;
   command: () => void;
   action: (a: string) => void;
 }) {
@@ -2596,6 +2675,13 @@ function DesktopExperience({
                   <small>
                     {p.widgets.length} MODULES · {p.theme.toUpperCase()}
                   </small>
+                </button>
+                <button
+                  className={defaultWorkstation === p.id ? "workstation-default" : ""}
+                  aria-label={defaultWorkstation === p.id ? "Clear default workstation" : "Set default workstation to " + p.name}
+                  onClick={() => setDefaultWorkstation(defaultWorkstation === p.id ? "" : p.id)}
+                >
+                  {defaultWorkstation === p.id ? "★" : "☆"}
                 </button>
                 <button
                   aria-label={"Delete " + p.name}
@@ -2689,9 +2775,9 @@ function DesktopExperience({
             LOCK LCARS
           </button>
           <small>Keyboard shortcut: Ctrl + Shift + L</small>
+          <LockPasswordControl credential={lockCredential} save={saveLockPassword} remove={removeLockPassword} />
           <p>
-            The lock screen protects the LCARS interface. Use your Linux login
-            screen for full account security.
+            The optional password protects LCARS locally. Use your operating-system lock screen for full account security.
           </p>
         </article>
         <article>
@@ -2795,40 +2881,27 @@ function CommandPalette({
   );
 }
 
-function LockScreen({
-  userName,
-  unlock,
-}: {
-  userName: string;
-  unlock: () => void;
-}) {
-  const [ready, setReady] = useState(false);
-  return (
-    <div className="lock-screen">
-      <div className="lock-elbow">
-        <b>LCARS</b>
-        <small>SECURE ACCESS</small>
-      </div>
-      <section>
-        <small>FEDERATION OPERATING ENVIRONMENT</small>
-        <h1>INTERFACE LOCKED</h1>
-        <div className="operator-mark">◎</div>
-        <h2>{userName || "LCARS OPERATOR"}</h2>
-        <p>Local command access is suspended.</p>
-        {!ready ? (
-          <button onClick={() => setReady(true)}>BEGIN UNLOCK</button>
-        ) : (
-          <button autoFocus onClick={unlock}>
-            CONFIRM OPERATOR ACCESS
-          </button>
-        )}
-        <small>
-          For full system security, lock the Linux session from the power
-          controls.
-        </small>
-      </section>
-    </div>
-  );
+function LockPasswordControl({credential,save,remove}:{credential:LockCredential|null;save:(password:string)=>Promise<void>;remove:()=>void}) {
+  const [password,setPassword]=useState(""),[confirm,setConfirm]=useState(""),[status,setStatus]=useState("");
+  const submit=async()=>{if(password.length<4)return setStatus("USE AT LEAST 4 CHARACTERS");if(password!==confirm)return setStatus("PASSWORDS DO NOT MATCH");await save(password);setPassword("");setConfirm("");setStatus("LOCAL PASSWORD SAVED");};
+  return <div className="lock-password-control"><small>{credential?"PASSWORD PROTECTION ACTIVE":"PASSWORD PROTECTION OPTIONAL"}</small><input type="password" autoComplete="new-password" placeholder={credential?"NEW PASSWORD":"CREATE PASSWORD"} value={password} onChange={(e)=>setPassword(e.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={confirm} onChange={(e)=>setConfirm(e.target.value)}/><nav><button onClick={submit}>{credential?"CHANGE PASSWORD":"ENABLE PASSWORD"}</button>{credential&&<button onClick={()=>{remove();setStatus("PASSWORD REMOVED");}}>REMOVE</button>}</nav>{status&&<em>{status}</em>}</div>;
+}
+
+function LockScreen({userName,credential,profiles,activeProfile,defaultWorkstation,chooseProfile,setDefaultWorkstation,power,unlock}:{userName:string;credential:LockCredential|null;profiles:WorkspaceProfile[];activeProfile:string;defaultWorkstation:string;chooseProfile:(profile:WorkspaceProfile)=>void;setDefaultWorkstation:(id:string)=>void;power:()=>void;unlock:()=>void}) {
+  const [password,setPassword]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);
+  const authorize=async()=>{if(!credential)return unlock();setBusy(true);const valid=await verifyLockCredential(password,credential).catch(()=>false);setBusy(false);if(valid)unlock();else{setError("AUTHORIZATION DENIED");setPassword("");}};
+  return <div className="lock-screen">
+    <header><i/><div/><span>{userName||"LCARS OPERATOR"}</span><b/></header>
+    <main>
+      <img src={lcarsEmblem} alt="Federation emblem"/>
+      <h1>LCARS COMPUTER NETWORK</h1><h2>AUTHORIZED ACCESS ONLY</h2>
+      <form onSubmit={(event)=>{event.preventDefault();authorize();}}>
+        <div className="lock-operator-code">47</div><label><b>{userName||"LCARS OPERATOR"}</b><small>{credential?"ENTER LOCAL AUTHORIZATION CODE":"PASSWORD PROTECTION IS NOT ENABLED"}</small><input autoFocus type="password" disabled={!credential||busy} autoComplete="current-password" value={password} onChange={(event)=>setPassword(event.target.value)} placeholder={credential?"PASSWORD":"DIRECT ACCESS"}/></label><button type="submit">{busy?"VERIFYING":"ENTER"}</button>
+      </form>{error&&<p className="lock-error">{error}</p>}
+    </main>
+    <section className="lock-workstations"><header><span>AVAILABLE WORKSTATIONS</span><small>SELECT PROFILE · ★ DEFAULT</small></header><div>{profiles.length?profiles.map((profile,index)=><article className={activeProfile===profile.id?"active":""} key={profile.id}><button onClick={()=>chooseProfile(profile)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{profile.name}</b><small>{profile.theme.toUpperCase()} · {profile.widgets.length} MODULES</small></span></button><button className={defaultWorkstation===profile.id?"default":""} aria-label={"Set "+profile.name+" as default"} onClick={()=>setDefaultWorkstation(profile.id)}>{defaultWorkstation===profile.id?"★":"☆"}</button></article>):<p>NO SAVED WORKSTATIONS · CREATE ONE IN SETTINGS</p>}</div></section>
+    <footer><i/><button onClick={power}>POWER / EXIT OPTIONS</button><div/><span>{credential?"AUTHORIZATION REQUIRED":"DIRECT LOCAL ACCESS"}</span><b/></footer>
+  </div>;
 }
 
 function ShellSettings({
@@ -2859,6 +2932,19 @@ function ShellSettings({
       <div className="settings-columns">
         <section>
           <h4>TASK RAIL & NOTICES</h4>
+          <label>
+            INTERFACE DENSITY
+            <small>Changes panel spacing and information density without changing the operating-system display scale.</small>
+            <select value={prefs.interfaceDensity} onChange={(e) => set("interfaceDensity", e.target.value as ShellPrefs["interfaceDensity"])}>
+              <option value="comfortable">COMFORTABLE</option>
+              <option value="compact">COMPACT</option>
+              <option value="console">CONSOLE DENSE</option>
+            </select>
+          </label>
+          <Toggle label="Play startup power sequence" description="Plays the bundled LCARS power-up sound when the desktop app opens. It never delays the interface." checked={prefs.startupSound} change={(v) => set("startupSound", v)} />
+          <Toggle label="Show background startup telemetry" description="Shows a small nonblocking system-check strip while LCARS connects to local services." checked={prefs.startupSequence} change={(v) => set("startupSequence", v)} />
+          <Toggle label="Show lock screen on startup" description="Opens normal LCARS windows at the themed authorization screen. Remote Terminal windows always bypass it." checked={prefs.lockOnLaunch} change={(v) => set("lockOnLaunch", v)} />
+          {prefs.lockOnLaunch && <div className="subordinate-setting"><Toggle label="Quick boot when no password is set" description="Enters LCARS directly only when no local lock password exists." checked={prefs.quickBootWithoutPassword} change={(v) => set("quickBootWithoutPassword", v)} /></div>}
           <Toggle
             label="Reveal task rail on hover"
             description="Temporarily opens the task list when your pointer enters its area."
@@ -3079,21 +3165,22 @@ function VoiceControl({ prefs, apps, extensions, navigate, launch, action, notif
   const [listening, setListening] = useState(false), [busy, setBusy] = useState(false), [history, setHistory] = useState<string[]>([]);
   const recorder = useRef<MediaRecorder | null>(null), chunks = useRef<Blob[]>([]);
   if (!prefs.voiceEnabled) return null;
+  const affirmative = () => { const audio = new Audio("/assets/sounds/voice-affirmative.mp3"); audio.volume = 0.5; audio.play().catch(() => {}); };
   const execute = (raw: string) => {
     let text = raw.trim().toLowerCase().replace(/[.,!?]/g, "");setHistory((old) => [raw, ...old].slice(0, 8));
     if (prefs.voiceWakePhrase) { if (!text.startsWith("computer")) return notify("Voice phrase ignored — say Computer first", "error"); text=text.replace(/^computer\s*/, ""); }
     const pages: Record<string,string> = { overview:"overview", status:"overview", terminal:"terminal", files:"files", file:"files", systems:"system", system:"system", media:"media", network:"network", updates:"updates", settings:"settings" };
     const page=Object.keys(pages).find((name) => text.includes("open "+name) || text.includes("show "+name) || text===name);
-    if (page) { navigate(pages[page]);return notify("Voice command: "+page.toUpperCase()); }
+    if (page) { affirmative();navigate(pages[page]);return notify("Voice command: "+page.toUpperCase()); }
     const extensionCommand=extensions.flatMap((extension)=>extension.voiceCommands||[]).find((command)=>text.includes(command.phrase.toLowerCase()));
-    if (extensionCommand && nav.some((item)=>item[0]===extensionCommand.page)) { navigate(extensionCommand.page);return notify(extensionCommand.response||"Extension voice command accepted"); }
+    if (extensionCommand && nav.some((item)=>item[0]===extensionCommand.page)) { affirmative();navigate(extensionCommand.page);return notify(extensionCommand.response||"Extension voice command accepted"); }
     if (prefs.voiceSecurity !== "navigation") {
       const app=apps.find((candidate) => text.includes("open "+candidate.name.toLowerCase()) || text.includes("launch "+candidate.name.toLowerCase()));
-      if (app) { launch(app);return; }
+      if (app) { affirmative();launch(app);return; }
     }
     if (prefs.voiceSecurity === "system") {
-      if (text.includes("open tasks") || text.includes("task rail")) { action("refresh-system");return notify("Task Rail ready — use the rail control to pin it"); }
-      if (text.includes("check updates")) { navigate("updates");action("check-updates");return; }
+      if (text.includes("open tasks") || text.includes("task rail")) { affirmative();action("refresh-system");return notify("Task Rail ready — use the rail control to pin it"); }
+      if (text.includes("check updates")) { affirmative();navigate("updates");action("check-updates");return; }
       if (/shut ?down|restart|reboot|unmount/.test(text)) return notify("Protected voice command requires manual confirmation in its LCARS panel", "error");
     }
     notify("Voice command not recognized: "+raw, "error");
@@ -3146,9 +3233,10 @@ function FirstRun({
   setStep: (v: number) => void;
   displays: Display[];
   bridge: boolean;
-  finish: () => void;
+  finish: (password?: string) => void | Promise<void>;
   close: () => void;
 }) {
+  const [setupPassword,setSetupPassword]=useState(""),[setupConfirm,setSetupConfirm]=useState(""),[setupError,setSetupError]=useState("");
   const cards = [
     {
       code: "01",
@@ -3200,6 +3288,7 @@ function FirstRun({
       text: "PipeWire devices, application volumes, and MPRIS playback are linked through the local core.",
       ok: bridge,
     },
+    { code:"09", title:"LOCAL AUTHORIZATION", text:"Optionally protect the LCARS lock screen with a local password. Only a salted PBKDF2 hash is stored on this PC.", ok:true },
   ];
   const item = cards[step];
   return (
@@ -3225,6 +3314,7 @@ function FirstRun({
             <small>SYSTEM CHECK</small>
             <h3>{item.title}</h3>
             <p>{item.text}</p>
+            {item.code === "09" && <div className="setup-password"><input type="password" autoComplete="new-password" placeholder="OPTIONAL PASSWORD" value={setupPassword} onChange={(event)=>setSetupPassword(event.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={setupConfirm} onChange={(event)=>setSetupConfirm(event.target.value)}/><small>Leave both fields blank to use direct local access. You can enable this later in Settings.</small>{setupError&&<em>{setupError}</em>}</div>}
             <b className={item.ok ? "check-ok" : "check-wait"}>
               {item.ok ? "● READY" : "○ LOCAL CHECK PENDING"}
             </b>
@@ -3234,7 +3324,7 @@ function FirstRun({
           {step > 0 && <button onClick={() => setStep(step - 1)}>BACK</button>}
           <button
             onClick={() =>
-              step < cards.length - 1 ? setStep(step + 1) : finish()
+              step < cards.length - 1 ? setStep(step + 1) : setupPassword !== setupConfirm ? setSetupError("PASSWORDS DO NOT MATCH") : setupPassword && setupPassword.length < 4 ? setSetupError("USE AT LEAST 4 CHARACTERS") : finish(setupPassword)
             }
           >
             {step < cards.length - 1 ? "CONTINUE" : "ENTER LCARS"}

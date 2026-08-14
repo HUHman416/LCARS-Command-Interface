@@ -37,4 +37,7 @@ A normal Windows setup executable can be produced by running `windows\installer\
 The first Windows edition uses global Windows media controls because Windows does not expose every application's full media metadata consistently to ordinary desktop processes. Per-application volume discovery works through Windows Core Audio; changing individual application volumes is reserved for the dedicated Windows audio companion. The Application Bay manages native windows through the Task Rail rather than forcibly embedding every application, since modern Windows applications use several incompatible window technologies.
 
 LCARS immersive mode does not replace `explorer.exe` in this first release. That is intentional: Explorer remains available as a recovery shell while the Windows port is tested on more hardware.
+# Optional offline voice commands
+
+Voice control is not required for LCARS. Install a Windows whisper.cpp build and FFmpeg, download a GGML English model (for example `ggml-base.en.bin`), then set the full executable and model paths under **Settings → Offline Voice Control**. Select a microphone and enable push-to-talk. All recognition stays local; missing voice files do not affect the rest of the interface.
 
