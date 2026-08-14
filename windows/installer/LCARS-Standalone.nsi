@@ -9,7 +9,7 @@ Unicode True
   !error "PROJECT_DIR is required"
 !endif
 !ifndef OUTPUT_FILE
-  !define OUTPUT_FILE "LCARS-Windows-Setup-v22.2.exe"
+  !define OUTPUT_FILE "LCARS-Windows-Setup-v23.exe"
 !endif
 Name "LCARS Command Interface"
 OutFile "${OUTPUT_FILE}"
@@ -17,7 +17,7 @@ InstallDir "$LOCALAPPDATA\Programs\LCARS Command Interface"
 InstallDirRegKey HKCU "Software\LCARS Command Interface" "InstallDir"
 RequestExecutionLevel user
 SetCompressor /SOLID lzma
-BrandingText "LCARS Command Interface v22.2"
+BrandingText "LCARS Command Interface v23"
 Icon "${PROJECT_DIR}/desktop/icons/lcars-command-interface.ico"
 UninstallIcon "${PROJECT_DIR}/desktop/icons/lcars-command-interface.ico"
 Var ResetCheckbox
@@ -68,7 +68,7 @@ Section "Install"
   File /r "${APP_SOURCE}\*.*"
   WriteRegStr HKCU "Software\LCARS Command Interface" "InstallDir" "$INSTDIR"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LCARS Command Interface" "DisplayName" "LCARS Command Interface"
-  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LCARS Command Interface" "DisplayVersion" "1.2.3"
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LCARS Command Interface" "DisplayVersion" "23.0.0"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LCARS Command Interface" "DisplayIcon" "$INSTDIR\resources\icons\lcars-command-interface.ico"
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LCARS Command Interface" "UninstallString" '"$INSTDIR\Uninstall LCARS.exe"'
   WriteUninstaller "$INSTDIR\Uninstall LCARS.exe"
