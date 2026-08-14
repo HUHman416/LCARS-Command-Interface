@@ -4,7 +4,7 @@ set -euo pipefail
 project_dir="$(cd "$(dirname "$0")" && pwd)"
 desktop="${XDG_CURRENT_DESKTOP:-${DESKTOP_SESSION:-unknown}}"
 session="${XDG_SESSION_TYPE:-unknown}"
-common=(python3 curl psmisc playerctl wireplumber wl-clipboard xdg-utils)
+common=(python3 curl psmisc playerctl wireplumber wl-clipboard xdg-utils ffmpeg udisks2)
 
 if command -v dnf >/dev/null 2>&1; then
   manager=dnf; packages=("${common[@]}" libnotify procps-ng fuse-libs)
@@ -18,7 +18,7 @@ elif command -v apt-get >/dev/null 2>&1; then
   [[ "${desktop,,}" == *gnome* ]] && packages+=(gnome-system-monitor baobab pavucontrol gnome-software gnome-bluetooth)
   sudo apt-get install -y "${packages[@]}"
 elif command -v pacman >/dev/null 2>&1; then
-  manager=pacman; packages=(python curl psmisc playerctl wireplumber wl-clipboard libnotify procps-ng xdg-utils fuse2)
+  manager=pacman; packages=(python curl psmisc playerctl wireplumber wl-clipboard libnotify procps-ng xdg-utils fuse2 ffmpeg udisks2)
   [[ "${desktop,,}" == *kde* ]] && packages+=(plasma-systemmonitor filelight pavucontrol discover bluedevil libkscreen)
   [[ "${desktop,,}" == *gnome* ]] && packages+=(gnome-system-monitor baobab pavucontrol gnome-software gnome-bluetooth)
   sudo pacman -S --needed --noconfirm "${packages[@]}"
@@ -26,9 +26,9 @@ elif command -v zypper >/dev/null 2>&1; then
   manager=zypper; packages=("${common[@]}" libnotify-tools procps fuse)
   sudo zypper --non-interactive install "${packages[@]}"
 elif command -v apk >/dev/null 2>&1; then
-  manager=apk; sudo apk add python3 curl psmisc playerctl wireplumber wl-clipboard libnotify procps xdg-utils fuse
+  manager=apk; sudo apk add python3 curl psmisc playerctl wireplumber wl-clipboard libnotify procps xdg-utils fuse ffmpeg udisks2
 elif command -v xbps-install >/dev/null 2>&1; then
-  manager=xbps; sudo xbps-install -Sy python3 curl psmisc playerctl wireplumber wl-clipboard libnotify procps-ng xdg-utils fuse
+  manager=xbps; sudo xbps-install -Sy python3 curl psmisc playerctl wireplumber wl-clipboard libnotify procps-ng xdg-utils fuse ffmpeg udisks2
 else
   echo "No supported package manager was detected."
   echo "Install Python 3, playerctl, WirePlumber/wpctl, curl, and xdg-utils, then retry."
@@ -56,7 +56,7 @@ if [[ "$actual_appimage_sha256" != "$expected_appimage_sha256" ]]; then
   echo "This installer contains the wrong LCARS AppImage and will not continue."
   echo "Expected: $expected_appimage_sha256"
   echo "Received: $actual_appimage_sha256"
-  echo "Download the uniquely versioned LCARS Linux v22.2 package."
+  echo "Download the complete matching LCARS Version 23 Linux test package."
   exit 1
 fi
 install_dir="$HOME/.local/opt/lcars-command-interface"
