@@ -1,4 +1,5 @@
 const { app, BrowserWindow, protocol, net, shell, session, screen } = require("electron");
+app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
 const { spawn } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");

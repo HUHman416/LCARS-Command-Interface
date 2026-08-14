@@ -18,9 +18,10 @@ test("Ctrl+F searches settings, modules, applications and pages",()=>{
   assert.match(page,/Voice Control settings/);
 });
 
-test("task rail owns scrolling and exposes tray inventory",()=>{
+test("task rail owns scrolling and exposes the tray drawer",()=>{
   assert.match(css,/\.task-zone \.task-rail[\s\S]*overflow-y: auto !important/);
-  assert.match(page,/className="rail-system-tray"/);
+  assert.match(page,/className="tray-strip-trigger"/);
+  assert.match(page,/function TrayDrawer/);
 });
 
 test("remote terminal launches a native second Electron window",()=>{

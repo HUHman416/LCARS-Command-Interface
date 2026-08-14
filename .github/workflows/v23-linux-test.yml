@@ -1,0 +1,61 @@
+name: Version 23.1 Linux Test Build
+
+on:
+  push:
+    branches: [agent/v23-1-linux-test-20260814]
+
+permissions:
+  contents: read
+
+jobs:
+  linux-test-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run Version 23.1 regression tests
+        run: |
+          node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs
+          python3 -m unittest tests/test_kscreen_parser.py
+          python3 -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py
+          node --check desktop/main.cjs
+          bash -n install.sh
+      - name: Build native Linux AppImage
+        run: npm run desktop:package:linux -- --publish never
+      - name: Assemble private Linux test installer
+        shell: bash
+        run: |
+          set -euo pipefail
+          appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
+          test -s "$appimage"
+          appimage_checksum="$(sha256sum "$appimage" | awk '{print $1}')"
+          stage="release/LCARS-Universal-Linux-Desktop-v23.1-TEST"
+          mkdir -p "$stage/local"
+          cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
+          cp README-LCARS.md start-local.sh install.sh uninstall-linux.sh install-autostart.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Uninstall-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
+          cp desktop/icons/512x512.png "$stage/lcars-command-interface.png"
+          cp local/lcars-recovery.sh "$stage/local/"
+          sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$appimage_checksum\"/" "$stage/install.sh"
+          cat > "$stage/BUILD-INFO-LINUX.txt" <<EOF
+          LCARS Command Interface Version 23.1 — PRIVATE LINUX TEST BUILD
+          Commit: $GITHUB_SHA
+          AppImage SHA-256: $appimage_checksum
+          This is an unpublished test package. It does not update the public Version 23 release.
+          EOF
+          chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh"
+          (cd release && zip -qr LCARS-Universal-Linux-Desktop-v23.1-TEST.zip LCARS-Universal-Linux-Desktop-v23.1-TEST)
+          (cd release && sha256sum LCARS-Universal-Linux-Desktop-v23.1-TEST.zip > SHA256SUMS-v23.1-TEST.txt)
+          (cd release && sha256sum --check SHA256SUMS-v23.1-TEST.txt)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v23.1-Linux-Test
+          path: |
+            release/LCARS-Universal-Linux-Desktop-v23.1-TEST.zip
+            release/SHA256SUMS-v23.1-TEST.txt
+          if-no-files-found: error
+          retention-days: 14

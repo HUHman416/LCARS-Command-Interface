@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Local-only, allowlisted universal Linux system bridge for LCARS."""
-import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re, base64, mimetypes, tempfile
+import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re, base64, mimetypes, tempfile, socket
 from configparser import ConfigParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -15,6 +15,35 @@ TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
 ICON_CACHE={}
 ICON_INDEX=None
+NETWORK_CACHE={"at":0,"value":None}
+
+def network_details():
+    if NETWORK_CACHE["value"] and time.time()-NETWORK_CACHE["at"]<6:return NETWORK_CACHE["value"]
+    addresses={};gateway="";interfaces=[]
+    try:
+        for link in json.loads(subprocess.run(["ip","-j","address"],capture_output=True,text=True,timeout=2).stdout or "[]"):
+            addresses[link.get("ifname","")]=next((x.get("local","") for x in link.get("addr_info",[]) if x.get("family")=="inet"),"")
+    except Exception:pass
+    try:
+        route=subprocess.run(["ip","route","show","default"],capture_output=True,text=True,timeout=2).stdout.split();gateway=route[route.index("via")+1] if "via" in route else ""
+    except Exception:pass
+    counters={}
+    try:
+        for line in Path("/proc/net/dev").read_text().splitlines()[2:]:
+            name,values=line.split(":",1);parts=values.split();counters[name.strip()]=(int(parts[0]),int(parts[8]))
+    except Exception:pass
+    for path in sorted(Path("/sys/class/net").glob("*")):
+        name=path.name
+        if name=="lo":continue
+        try:state=(path/"operstate").read_text().strip()
+        except Exception:state="unknown"
+        try:speed=(path/"speed").read_text().strip()+" MBPS"
+        except Exception:speed=""
+        rx,tx=counters.get(name,(0,0));interfaces.append({"id":name,"name":name,"kind":"wireless" if (path/"wireless").exists() else "ethernet","state":"connected" if state=="up" else state,"address":addresses.get(name,""),"gateway":gateway if state=="up" else "","dns":"SYSTEM RESOLVER","speed":speed,"received":rx,"sent":tx})
+    try:socket.getaddrinfo("example.com",443);dns=True
+    except Exception:dns=False
+    value={"interfaces":interfaces,"diagnostics":{"gateway":bool(gateway),"dns":dns,"internet":dns and any(x["state"]=="connected" for x in interfaces),"latency":None},"bluetooth":Path("/sys/class/bluetooth").exists() or bool(shutil.which("bluetoothctl"))}
+    NETWORK_CACHE.update(at=time.time(),value=value);return value
 
 def extension_manifests():
     """Load the non-executable Module API v1 manifest format."""
@@ -523,7 +552,7 @@ def protected_action(action):
         health=integration_health(); ready=sum(1 for item in health.values() if item["available"])
         return f"Integration check complete — {ready}/{len(health)} systems ready"
     if action=="lcars-update-check":
-        return "LCARS Version 23.0 local build — public update channel remains on the approved release"
+        return "LCARS Version 23.1 test build — public update channel remains on Version 23"
     if action=="lcars-rollback":
         previous=CONFIG_DIR/"previous-release"
         return "Previous release is ready for restoration" if previous.exists() else "No previous LCARS release has been archived yet"
@@ -559,6 +588,7 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/system": self.send_json(system_data())
         elif route=="/api/system-details": self.send_json(system_details())
         elif route=="/api/storage": self.send_json({"drives":storage_data()})
+        elif route=="/api/network-details": self.send_json(network_details())
         elif route=="/api/tray": self.send_json(tray_data())
         elif route=="/api/voice-status": self.send_json(voice_status())
         elif route=="/api/compat": self.send_json(linux_environment())
@@ -568,6 +598,15 @@ class Handler(BaseHTTPRequestHandler):
             from urllib.parse import parse_qs
             requested=parse_qs(urlparse(self.path).query).get("path",["~"])[0]
             self.send_json(file_list(requested))
+        elif route=="/api/file-preview":
+            from urllib.parse import parse_qs
+            try:
+                path=safe_home_path(parse_qs(urlparse(self.path).query).get("path",[""])[0]);mime=mimetypes.guess_type(path.name)[0] or ""
+                if not path.is_file() or path.stat().st_size>2097152:self.send_json({"error":"preview unavailable"},400)
+                elif mime.startswith("image/"):self.send_json({"kind":"image","content":f"data:{mime};base64,"+base64.b64encode(path.read_bytes()).decode()})
+                elif mime.startswith("text/") or path.suffix.lower() in (".md",".json",".log",".ini",".conf",".py",".js",".ts",".tsx",".css",".html",".sh"):self.send_json({"kind":"text","content":path.read_text(encoding="utf-8",errors="replace")[:32768]})
+                else:self.send_json({"kind":"","content":""})
+            except Exception as exc:self.send_json({"error":str(exc)},400)
         elif route=="/api/media": self.send_json(media_data())
         elif route=="/api/windows": self.send_json({"windows":windows_data(),"kwin":bool(command_path("kdotool"))})
         elif route=="/api/displays": self.send_json({"displays":displays_data()})

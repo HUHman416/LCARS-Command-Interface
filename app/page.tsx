@@ -62,6 +62,8 @@ type Display = {
 type Health = Record<string, { available: boolean; detail: string }>;
 type Drive = { id: string; name: string; size: number; type: string; filesystem: string; mountpoints: string[]; mounted: boolean; removable: boolean; parent?: string };
 type TrayItem = { id: string; name: string; status: string; icon?: string };
+type NetworkInterface = { id: string; name: string; kind: string; state: string; address: string; gateway: string; dns: string[]; speed: string; signal?: number; received: number; sent: number };
+type NetworkInfo = { interfaces: NetworkInterface[]; diagnostics: { gateway: boolean; dns: boolean; internet: boolean; latency: number | null }; bluetooth: boolean };
 type SystemDetails = { cpu?: { logical: number; load: number[]; cores: { name: string; usage: number }[] }; storage?: Drive[]; kernel?: string };
 type Compatibility = {
   distro: string;
@@ -91,6 +93,9 @@ type ShellPrefs = {
   voiceModel: string;
   voiceDevice: string;
   voiceSecurity: "navigation" | "applications" | "system";
+  interfaceDensity: "comfortable" | "compact" | "console";
+  startupSound: boolean;
+  startupSequence: boolean;
 };
 type WorkspaceProfile = {
   id: string;
@@ -209,6 +214,9 @@ const defaultPrefs: ShellPrefs = {
   voiceModel: "",
   voiceDevice: "",
   voiceSecurity: "navigation",
+  interfaceDensity: "comfortable",
+  startupSound: true,
+  startupSequence: true,
 };
 const defaultAccess: AccessibilityPrefs = {
   fontScale: 100,
@@ -258,9 +266,12 @@ export default function Home() {
     ]);
   const [health, setHealth] = useState<Health>({});
   const [trayItems, setTrayItems] = useState<TrayItem[]>([]),
+    [trayOpen, setTrayOpen] = useState(false),
     [drives, setDrives] = useState<Drive[]>([]),
     [systemDetails, setSystemDetails] = useState<SystemDetails>({}),
     [detailOpen, setDetailOpen] = useState<string | null>(null);
+  const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({ interfaces: [], diagnostics: { gateway: false, dns: false, internet: false, latency: null }, bluetooth: false }),
+    [startupVisible, setStartupVisible] = useState(true);
   const [extensions, setExtensions] = useState<ExtensionManifest[]>([]);
   const [firstRun, setFirstRun] = useState(false),
     [setupStep, setSetupStep] = useState(0),
@@ -452,8 +463,13 @@ export default function Home() {
       fetch("http://127.0.0.1:8765/api/tray").then((r) => r.json()).then((d) => setTrayItems(d.items || [])).catch(() => {});
       fetch("http://127.0.0.1:8765/api/storage").then((r) => r.json()).then((d) => setDrives(d.drives || [])).catch(() => {});
       fetch("http://127.0.0.1:8765/api/system-details").then((r) => r.json()).then(setSystemDetails).catch(() => {});
+      fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => {});
     };
     getDesktop();
+    let sound = true;
+    try {
+      sound = JSON.parse(localStorage.getItem("lcars-shell-prefs") || "{}").startupSound !== false;
+    } catch {}
     let powered = false;
     const power = () => {
       if (sound && !powered) {
@@ -472,11 +488,13 @@ export default function Home() {
       mediaTimer = setInterval(getMedia, 3000),
       desktopTimer = setInterval(getDesktop, 1800),
       extensionTimer = setInterval(getExtensions, 5000);
+    const startupTimer=setTimeout(()=>setStartupVisible(false),4200);
     return () => {
       clearInterval(timer);
       clearInterval(mediaTimer);
       clearInterval(desktopTimer);
       clearInterval(extensionTimer);
+      clearTimeout(startupTimer);
       window.removeEventListener("pointerdown", power);
     };
   }, []);
@@ -1167,7 +1185,7 @@ export default function Home() {
         (overviewEdit && section === "overview" ? " overview-editing" : "") +
         (access.highContrast ? " accessibility-contrast" : "") +
         (access.reducedMotion ? " reduced-motion" : "") +
-        (access.colorSafe ? " color-safe" : "")
+        (access.colorSafe ? " color-safe" : "") + " density-" + prefs.interfaceDensity
       }
     >
       <header className="top">
@@ -1236,6 +1254,7 @@ export default function Home() {
             onMouseEnter={taskEnter}
             onMouseLeave={taskLeave}
           >
+            <button className="tray-strip-trigger" aria-label="Open system tray" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><i /><i /><i /><b>‹</b></button>
             <button className="task-trigger" onClick={toggleTaskLock}>
               <i>
                 {compat?.capabilities?.windowControl === false
@@ -1258,7 +1277,6 @@ export default function Home() {
               <TaskRail
                 tasks={tasks}
                 apps={apps}
-                trayItems={trayItems}
                 displays={displays}
                 group={prefs.groupByMonitor}
                 restricted={compat?.capabilities?.windowControl === false}
@@ -1551,43 +1569,10 @@ export default function Home() {
             </section>
           )}
           {section === "network" && (
-            <section className="detail-view">
-              <h3>NETWORK OPERATIONS</h3>
-              <div className="status-cards">
-                <article>
-                  <small>PRIMARY LINK</small>
-                  <b>ETHERNET</b>
-                  <span>CONNECTED</span>
-                </article>
-                <article>
-                  <small>WIRELESS</small>
-                  <b>NETWORKMANAGER</b>
-                  <span>READY</span>
-                </article>
-                <article>
-                  <small>BLUETOOTH</small>
-                  <b>BLUEZ</b>
-                  <span>ACTIVE</span>
-                </article>
-              </div>
-              <div className="action-grid">
-                <button onClick={() => coreAction("network-settings")}>
-                  NETWORK SETTINGS
-                </button>
-                <button onClick={() => coreAction("wifi")}>
-                  WI-FI CONTROL
-                </button>
-                <button onClick={() => coreAction("bluetooth")}>
-                  BLUETOOTH CONTROL
-                </button>
-                <button onClick={() => coreAction("network-refresh")}>
-                  REFRESH LINKS
-                </button>
-              </div>
-            </section>
+            <NetworkConsole info={networkInfo} action={coreAction} refresh={() => fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => notify("Network telemetry unavailable","error"))} />
           )}
           {section === "updates" && (
-            <UpdateCenter platform={platform} action={coreAction} />
+            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => setSection("settings")} />
           )}
           {section === "settings" && (
             <section className="detail-view settings-view">
@@ -1715,6 +1700,8 @@ export default function Home() {
         openMedia={() => setSection("media")}
         openNetwork={() => setSection("network")}
       />
+      <TrayDrawer open={trayOpen} items={trayItems} close={() => setTrayOpen(false)} openNetwork={() => { setSection("network");setTrayOpen(false); }} openMedia={() => { setSection("media");setTrayOpen(false); }} />
+      {startupVisible && prefs.startupSequence && <StartupTelemetry bridge={bridge} reduced={access.reducedMotion} />}
       <VoiceControl prefs={prefs} apps={apps} extensions={extensions} navigate={setSection} launch={launch} action={coreAction} notify={notify} />
       {detailOpen && <SystemDetail kind={detailOpen} details={systemDetails} close={() => setDetailOpen(null)} />}
       {firstRun && (
@@ -1784,7 +1771,8 @@ function FileExplorer({
     ),
     [showHidden, setShowHidden] = useState(false),
     [query, setQuery] = useState(""),
-    [loading, setLoading] = useState(false);
+    [loading, setLoading] = useState(false),
+    [preview, setPreview] = useState<{kind:string;content:string}>({kind:"",content:""});
   const load = (next = path) => {
     setLoading(true);
     cue("processing");
@@ -1803,6 +1791,10 @@ function FileExplorer({
   useEffect(() => {
     if (bridge) load("~");
   }, [bridge]);
+  useEffect(() => {
+    if (!selected || selected.directory) return setPreview({kind:"",content:""});
+    fetch("http://127.0.0.1:8765/api/file-preview?path=" + encodeURIComponent(selected.path)).then((r)=>r.json()).then((data)=>setPreview(data.error?{kind:"",content:""}:data)).catch(()=>setPreview({kind:"",content:""}));
+  }, [selected]);
   const visible = files.filter(
     (f) =>
       (showHidden || !f.hidden) &&
@@ -1855,6 +1847,9 @@ function FileExplorer({
         <span>{loading ? "PROCESSING…" : visible.length + " ITEMS"}</span>
       </header>
       <nav>
+        <button onClick={() => load("~")}>HOME</button>
+        <button onClick={() => load("~/Documents")}>DOCUMENTS</button>
+        <button onClick={() => load("~/Downloads")}>DOWNLOADS</button>
         <button disabled={!parent} onClick={() => parent && load(parent)}>
           ‹ UP
         </button>
@@ -1932,6 +1927,8 @@ function FileExplorer({
               <small>
                 {selected.directory ? "DIRECTORY" : size(selected.size)}
               </small>
+              {preview.kind === "image" && <img className="file-preview-image" src={preview.content} alt="Selected file preview" />}
+              {preview.kind === "text" && <pre className="file-preview-text">{preview.content}</pre>}
               <button
                 onClick={() =>
                   selected.directory
@@ -1965,6 +1962,16 @@ function FileExplorer({
   );
 }
 
+function NetworkConsole({info,action,refresh}:{info:NetworkInfo;action:(value:string)=>void;refresh:()=>void}) {
+  const amount=(value:number)=>value>1073741824?(value/1073741824).toFixed(1)+" GB":value>1048576?(value/1048576).toFixed(1)+" MB":(value/1024).toFixed(0)+" KB";
+  const diagnostics=[['GATEWAY',info.diagnostics.gateway],['DNS',info.diagnostics.dns],['EXTERNAL LINK',info.diagnostics.internet]] as const;
+  return <section className="detail-view lcars-console network-console"><header className="console-cap"><div><small>NET / SUBSPACE OPERATIONS</small><h3>NETWORK OPERATIONS</h3></div><strong>{info.interfaces.length.toString().padStart(2,'0')}</strong></header><div className="network-grid">{info.interfaces.length?info.interfaces.map((link,index)=><article className="network-tile" key={link.id}><i>{String(index+1).padStart(2,'0')}</i><header><small>{link.kind.toUpperCase()} INTERFACE</small><b>{link.name}</b><em className={link.state==='connected'?'online':''}>{link.state.toUpperCase()}</em></header><div className="network-address"><span><small>ADDRESS</small><b>{link.address||'UNASSIGNED'}</b></span><span><small>GATEWAY</small><b>{link.gateway||'LOCAL ONLY'}</b></span></div><div className="network-flow"><span>RX {amount(link.received)}</span><i><em style={{width:Math.min(100,(link.received%100000000)/1000000)+'%'}} /></i><span>TX {amount(link.sent)}</span></div><footer><span>{link.speed||'LINK SPEED UNKNOWN'}</span>{typeof link.signal==='number'&&<b>SIGNAL {link.signal}%</b>}</footer></article>):<div className="adaptive-empty"><b>NO NETWORK INTERFACES REPORTED</b><small>The platform adapter did not return an active data link.</small></div>}</div><section className="network-diagnostics"><header><small>CONNECTION DIAGNOSTICS</small><b>{info.diagnostics.latency===null?'NO LATENCY':info.diagnostics.latency+' MS'}</b></header>{diagnostics.map(([name,ok],index)=><article key={name}><i>{String(index+1).padStart(2,'0')}</i><span>{name}</span><b className={ok?'ok':'bad'}>{ok?'ONLINE':'OFFLINE'}</b></article>)}<article><i>04</i><span>BLUETOOTH</span><b className={info.bluetooth?'ok':'bad'}>{info.bluetooth?'ACTIVE':'INACTIVE'}</b></article></section><nav className="network-actions"><button onClick={()=>action('network-settings')}>NETWORK SETTINGS</button><button onClick={()=>action('wifi')}>WI-FI CONTROL</button><button onClick={()=>action('bluetooth')}>BLUETOOTH CONTROL</button><button onClick={refresh}>REFRESH & TEST</button></nav></section>;
+}
+
+function TrayDrawer({open,items,close,openNetwork,openMedia}:{open:boolean;items:TrayItem[];close:()=>void;openNetwork:()=>void;openMedia:()=>void}) { if(!open)return null;const activate=(id:string)=>fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})}).catch(()=>{});return <aside className="tray-drawer"><header><div><small>LOCAL STATUSNOTIFIER MATRIX</small><h3>SYSTEM TRAY</h3></div><button onClick={close}>CLOSE ×</button></header><nav><button onClick={openNetwork}>NETWORK</button><button onClick={openMedia}>MEDIA & AUDIO</button></nav><div>{items.length?items.map((item,index)=><button key={item.id} onClick={()=>activate(item.id)}><i>{item.icon?<img src={item.icon} alt=""/>:String(index+1).padStart(2,'0')}</i><span><b>{item.name}</b><small>{item.status}</small></span><em>›</em></button>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</div></aside>; }
+
+function StartupTelemetry({bridge,reduced}:{bridge:boolean;reduced:boolean}) { return <aside className={'startup-telemetry '+(reduced?'instant':'')} aria-live="polite"><i /><span><small>LCARS INITIALIZATION</small><b>{bridge?'LOCAL CORE SYNCHRONIZED':'LOCAL CORE LINK PENDING'}</b></span><em>SYS 47 · DISPLAY MATRIX · AUDIO BUS</em></aside>; }
+
 function StorageMatrix({ drives, notify, refresh }: { drives: Drive[]; notify: (text: string, kind?: "info" | "error") => void; refresh: () => void }) {
   const operate = async (drive: Drive) => {
     try {
@@ -1982,7 +1989,6 @@ function SystemDetail({ kind, details, close }: { kind: string; details: SystemD
 function TaskRail({
   tasks,
   apps,
-  trayItems,
   displays,
   group,
   restricted,
@@ -1991,7 +1997,6 @@ function TaskRail({
 }: {
   tasks: WindowTask[];
   apps: App[];
-  trayItems: TrayItem[];
   displays: Display[];
   group: boolean;
   restricted: boolean;
@@ -2110,10 +2115,6 @@ function TaskRail({
           )}
         </div>
       ))}
-      <aside className="rail-system-tray">
-        <header><b>SYSTEM TRAY</b><small>{trayItems.length} SERVICES</small></header>
-        {trayItems.length ? trayItems.map((item) => <button key={item.id} title={"Activate "+item.name} onClick={() => fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:item.id})}).catch(()=>{})}>{item.icon ? <img src={item.icon} alt="" /> : <i>●</i>}<span>{item.name}</span></button>) : <p>NO EXTERNAL TRAY SERVICES REPORTED</p>}
-      </aside>
     </section>
   );
 }
@@ -2121,9 +2122,15 @@ function TaskRail({
 function UpdateCenter({
   platform,
   action,
+  health,
+  prefs,
+  configureVoice,
 }: {
   platform: string;
   action: (value: string) => void;
+  health: Health;
+  prefs: ShellPrefs;
+  configureVoice: () => void;
 }) {
   const windows = platform.includes("WINDOWS");
   return (
@@ -2162,13 +2169,13 @@ function UpdateCenter({
           number="02"
           eyebrow="LCARS RELEASE CHANNEL"
           title="LCARS INTERFACE"
-          status="V23.0"
-          description="Version 23 adds offline voice command infrastructure, responsive 20-app favorites, system-tray inventory, storage control, and expanded hardware telemetry."
+          status="V23.1 TEST"
+          description="Version 23.1 adds unified LCARS modules, live network telemetry, safe file previews, startup telemetry and sound controls, and the System Tray drawer."
           primary="CHECK FOR LCARS UPDATE"
           secondary="ROLL BACK RELEASE"
           primaryAction={() => action("lcars-update-check")}
           secondaryAction={() => action("lcars-rollback")}
-          stamp="LOCAL DEVELOPMENT RELEASE · VERSION 23.0"
+          stamp="UNPUBLISHED TEST BUILD · VERSION 23.1"
         />
         <UpdatePanel
           number="03"
@@ -2193,6 +2200,14 @@ function UpdateCenter({
           secondaryAction={() => action("display-settings")}
         />
       </div>
+      <aside className="optional-components">
+        <header><div><small>NONESSENTIAL SOFTWARE BAY</small><h4>OPTIONAL COMPONENTS</h4></div><em>SKIPPED ITEMS DO NOT AFFECT LCARS STATUS</em></header>
+        <div>
+          <article><i className={health.voice?.available ? "ready" : ""}>V</i><span><b>OFFLINE VOICE ENGINE</b><small>{health.voice?.available ? "WHISPER.CPP AND AUDIO CONVERTER READY" : "NOT INSTALLED · LCARS REMAINS FULLY USABLE"}</small></span><button onClick={configureVoice}>{health.voice?.available ? "CONFIGURE" : "SET UP"}</button></article>
+          <article><i className={prefs.voiceModel ? "ready" : ""}>M</i><span><b>LOCAL SPEECH MODEL</b><small>{prefs.voiceModel ? "MODEL PATH CONFIGURED" : "OPTIONAL GGML MODEL NOT SELECTED"}</small></span><button onClick={configureVoice}>{prefs.voiceModel ? "CHANGE" : "SELECT"}</button></article>
+          <article><i className="ready">E</i><span><b>LCARS EXTENSIONS</b><small>DECLARATIVE MODULE BAY · MANUALLY INSTALLED</small></span><button onClick={() => action("extension-folder")}>OPEN BAY</button></article>
+        </div>
+      </aside>
     </section>
   );
 }
@@ -2859,6 +2874,17 @@ function ShellSettings({
       <div className="settings-columns">
         <section>
           <h4>TASK RAIL & NOTICES</h4>
+          <label>
+            INTERFACE DENSITY
+            <small>Changes panel spacing and information density without changing the operating-system display scale.</small>
+            <select value={prefs.interfaceDensity} onChange={(e) => set("interfaceDensity", e.target.value as ShellPrefs["interfaceDensity"])}>
+              <option value="comfortable">COMFORTABLE</option>
+              <option value="compact">COMPACT</option>
+              <option value="console">CONSOLE DENSE</option>
+            </select>
+          </label>
+          <Toggle label="Play startup power sequence" description="Plays the bundled LCARS power-up sound when the desktop app opens. It never delays the interface." checked={prefs.startupSound} change={(v) => set("startupSound", v)} />
+          <Toggle label="Show background startup telemetry" description="Shows a small nonblocking system-check strip while LCARS connects to local services." checked={prefs.startupSequence} change={(v) => set("startupSequence", v)} />
           <Toggle
             label="Reveal task rail on hover"
             description="Temporarily opens the task list when your pointer enters its area."
@@ -3079,21 +3105,22 @@ function VoiceControl({ prefs, apps, extensions, navigate, launch, action, notif
   const [listening, setListening] = useState(false), [busy, setBusy] = useState(false), [history, setHistory] = useState<string[]>([]);
   const recorder = useRef<MediaRecorder | null>(null), chunks = useRef<Blob[]>([]);
   if (!prefs.voiceEnabled) return null;
+  const affirmative = () => { const audio = new Audio("/assets/sounds/voice-affirmative.mp3"); audio.volume = 0.5; audio.play().catch(() => {}); };
   const execute = (raw: string) => {
     let text = raw.trim().toLowerCase().replace(/[.,!?]/g, "");setHistory((old) => [raw, ...old].slice(0, 8));
     if (prefs.voiceWakePhrase) { if (!text.startsWith("computer")) return notify("Voice phrase ignored — say Computer first", "error"); text=text.replace(/^computer\s*/, ""); }
     const pages: Record<string,string> = { overview:"overview", status:"overview", terminal:"terminal", files:"files", file:"files", systems:"system", system:"system", media:"media", network:"network", updates:"updates", settings:"settings" };
     const page=Object.keys(pages).find((name) => text.includes("open "+name) || text.includes("show "+name) || text===name);
-    if (page) { navigate(pages[page]);return notify("Voice command: "+page.toUpperCase()); }
+    if (page) { affirmative();navigate(pages[page]);return notify("Voice command: "+page.toUpperCase()); }
     const extensionCommand=extensions.flatMap((extension)=>extension.voiceCommands||[]).find((command)=>text.includes(command.phrase.toLowerCase()));
-    if (extensionCommand && nav.some((item)=>item[0]===extensionCommand.page)) { navigate(extensionCommand.page);return notify(extensionCommand.response||"Extension voice command accepted"); }
+    if (extensionCommand && nav.some((item)=>item[0]===extensionCommand.page)) { affirmative();navigate(extensionCommand.page);return notify(extensionCommand.response||"Extension voice command accepted"); }
     if (prefs.voiceSecurity !== "navigation") {
       const app=apps.find((candidate) => text.includes("open "+candidate.name.toLowerCase()) || text.includes("launch "+candidate.name.toLowerCase()));
-      if (app) { launch(app);return; }
+      if (app) { affirmative();launch(app);return; }
     }
     if (prefs.voiceSecurity === "system") {
-      if (text.includes("open tasks") || text.includes("task rail")) { action("refresh-system");return notify("Task Rail ready — use the rail control to pin it"); }
-      if (text.includes("check updates")) { navigate("updates");action("check-updates");return; }
+      if (text.includes("open tasks") || text.includes("task rail")) { affirmative();action("refresh-system");return notify("Task Rail ready — use the rail control to pin it"); }
+      if (text.includes("check updates")) { affirmative();navigate("updates");action("check-updates");return; }
       if (/shut ?down|restart|reboot|unmount/.test(text)) return notify("Protected voice command requires manual confirmation in its LCARS panel", "error");
     }
     notify("Voice command not recognized: "+raw, "error");

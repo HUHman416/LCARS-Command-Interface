@@ -48,6 +48,10 @@ Double-click `Uninstall-LCARS-Linux.desktop`, or run `./uninstall-linux.sh` from
 
 > 🖖 Linux integration is strongest on KDE Plasma Wayland and X11. Unsupported desktop-specific controls are clearly marked inside LCARS.
 
+### 🎙️ Optional offline voice setup (Linux)
+
+LCARS itself installs and runs without voice control. To enable it, install a `whisper.cpp` CLI (`whisper-cli`) and FFmpeg using your distribution's normal packages, then download a GGML English model such as `ggml-base.en.bin`. In **Settings → Offline Voice Control**, select **Enable push-to-talk**, enter the full `whisper-cli` and model paths, choose a microphone, and save. On Fedora/Nobara, keep the FFmpeg provider already selected by the OS; do not replace `ffmpeg-free` with a conflicting package. Settings reports any missing component without disabling LCARS.
+
 ## 🪟 Windows — Install & Uninstall
 
 ### 📥 Install
@@ -62,6 +66,10 @@ Double-click `Uninstall-LCARS-Linux.desktop`, or run `./uninstall-linux.sh` from
 Open **Settings → Apps → Installed apps**, select **LCARS Command Interface**, and choose **Uninstall**. You may also use its uninstaller from the Start menu. Choose whether to remove saved settings if offered.
 
 > 🛡️ Windows may show a SmartScreen warning because this community build is not commercially code-signed. Verify `SHA256SUMS.txt` before running it.
+
+### 🎙️ Optional offline voice setup (Windows)
+
+LCARS works normally when voice is skipped. To enable it, install a Windows `whisper.cpp` build and FFmpeg, download a GGML English model such as `ggml-base.en.bin`, then open **Settings → Offline Voice Control**. Enable push-to-talk, enter the full paths to `whisper-cli.exe` and the model, select the microphone, and save. The model stays on the PC and microphone audio is sent only to the local loopback bridge.
 
 ## 🔐 Verify your download
 
