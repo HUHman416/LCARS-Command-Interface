@@ -1,6 +1,6 @@
-# LCARS Command Interface
+# LCARS Command Interface - Created by ChatGPT
 
-An LCARS-inspired standalone desktop environment for Linux and Windows. It is designed as a local-first interface for launching applications, monitoring the system, controlling media and audio, managing windows and displays, browsing files, and using an embedded terminal.
+An LCARS-inspired standalone desktop environment for Linux and Windows created by ChatGPT (5.6 Sol Work Model). It is designed as a local-first interface for launching applications, monitoring the system, controlling media and audio, managing windows and displays, browsing files, and using an embedded terminal.
 
 ![Version](https://img.shields.io/badge/version-23.1-ff9866)
 ![Linux](https://img.shields.io/badge/Linux-Nobara%20%7C%20Fedora%20%7C%20Universal-f2c84b)
