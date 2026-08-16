@@ -39,3 +39,5 @@ jobs:
           name: LCARS-Windows-v23.1-Hotfix
           path: hotfix/*
           retention-days: 7
+
+# Branch-only workflow used to produce the replacement Windows 23.1 installer.
