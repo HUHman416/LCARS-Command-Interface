@@ -84,8 +84,8 @@ bridge_old = '''def system_data():
     return {"platform":"WINDOWS 11" if sys_version()>=11 else "WINDOWS 10","meters":[["CPU",cpu,"SYSTEM PROCESSOR"],["GPU",gpu,gpu_name],["MEM",mem_pct,mem_text],["DISK",disk_pct,disk_text]]}
 '''
 
-bridge_new = '''def windows_system_fallback():
-    script=r'''$cpu=(Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average;$os=Get-CimInstance Win32_OperatingSystem;$drive=Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='$env:SystemDrive'";$gpu=Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | Select-Object -First 1 -ExpandProperty Name;[pscustomobject]@{cpu=[int]$cpu;memTotal=[int64]([double]$os.TotalVisibleMemorySize*1024);memFree=[int64]([double]$os.FreePhysicalMemory*1024);diskTotal=[int64]$drive.Size;diskFree=[int64]$drive.FreeSpace;gpuName=[string]$gpu}|ConvertTo-Json -Compress'''
+bridge_new = """def windows_system_fallback():
+    script=r'''$cpu=(Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average;$os=Get-CimInstance Win32_OperatingSystem;$drive=Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='$env:SystemDrive'\";$gpu=Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | Select-Object -First 1 -ExpandProperty Name;[pscustomobject]@{cpu=[int]$cpu;memTotal=[int64]([double]$os.TotalVisibleMemorySize*1024);memFree=[int64]([double]$os.FreePhysicalMemory*1024);diskTotal=[int64]$drive.Size;diskFree=[int64]$drive.FreeSpace;gpuName=[string]$gpu}|ConvertTo-Json -Compress'''
     try:return json.loads(run_ps(script,6) or "{}")
     except Exception:return {}
 
@@ -113,7 +113,7 @@ def system_data():
         disk_pct=round(disk_used*100/disk_total) if disk_total else 0
         disk_text=f"{disk_free/1073741824:.0f} GB AVAILABLE" if disk_total else "SYSTEM DRIVE"
     return {"platform":"WINDOWS 11" if sys_version()>=11 else "WINDOWS 10","meters":[["CPU",cpu,"SYSTEM PROCESSOR"],["GPU",gpu,gpu_name],["MEM",mem_pct,mem_text],["DISK",disk_pct,disk_text]]}
-'''
+"""
 
 replace_once("windows/lcars_bridge_windows.py", bridge_old, bridge_new)
 print("Windows 23.1 Hotfix v2 source patch applied successfully.")
