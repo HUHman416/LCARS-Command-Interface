@@ -1,0 +1,43 @@
+name: Windows 23.1 Hotfix Build
+
+on:
+  push:
+    branches: [agent/fix-windows-black-screen]
+    paths:
+      - desktop/renderer.tsx
+      - .github/workflows/windows-hotfix-build.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-hotfix:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run regression tests
+        run: node --test tests/version23-1-features.test.mjs
+      - name: Build Windows installer
+        run: npm run desktop:package:windows -- --publish never
+      - name: Prepare replacement installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force hotfix | Out-Null
+          $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
+          if (-not $installer) { throw 'Windows installer was not produced.' }
+          Copy-Item $installer.FullName hotfix/LCARS-Windows-Setup-v23.1-Hotfix.exe
+          (Get-FileHash hotfix/LCARS-Windows-Setup-v23.1-Hotfix.exe -Algorithm SHA256).Hash.ToLower() | Set-Content hotfix/SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-Windows-v23.1-Hotfix
+          path: hotfix/*
+          retention-days: 7
+
+# Branch-only workflow used to produce the replacement Windows 23.1 installer.
