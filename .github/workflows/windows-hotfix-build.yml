@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-windows-hotfix:
@@ -26,18 +26,57 @@ jobs:
         run: node --test tests/version23-1-features.test.mjs
       - name: Build Windows installer
         run: npm run desktop:package:windows -- --publish never
-      - name: Prepare replacement installer
+      - name: Prepare replacement installer and checksums
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           New-Item -ItemType Directory -Force hotfix | Out-Null
+          New-Item -ItemType Directory -Force hotfix/current | Out-Null
+
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName hotfix/LCARS-Windows-Setup-v23.1-Hotfix.exe
-          (Get-FileHash hotfix/LCARS-Windows-Setup-v23.1-Hotfix.exe -Algorithm SHA256).Hash.ToLower() | Set-Content hotfix/SHA256.txt
+
+          $hotfixName = 'LCARS-Windows-Setup-v23.1-Hotfix.exe'
+          $hotfixPath = Join-Path 'hotfix' $hotfixName
+          Copy-Item $installer.FullName $hotfixPath
+
+          $hash = (Get-FileHash $hotfixPath -Algorithm SHA256).Hash.ToLower()
+          "$hash  $hotfixName" | Set-Content "hotfix/$hotfixName.sha256"
+
+          gh release download v23.1 --pattern SHA256SUMS.txt --dir hotfix/current
+          $sumFile = 'hotfix/current/SHA256SUMS.txt'
+          if (-not (Test-Path $sumFile)) { throw 'Existing SHA256SUMS.txt could not be downloaded.' }
+
+          $lines = Get-Content $sumFile | Where-Object {
+            $_ -notmatch 'LCARS-Windows-Setup-v23\.1\.exe' -and
+            $_ -notmatch 'LCARS-Windows-Setup-v23\.1-Hotfix\.exe'
+          }
+          @($lines + "$hash  $hotfixName") | Set-Content hotfix/SHA256SUMS.txt
+
+      - name: Replace Windows installer on v23.1 release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete-asset v23.1 LCARS-Windows-Setup-v23.1.exe --yes 2>$null
+          gh release delete-asset v23.1 LCARS-Windows-Setup-v23.1-Hotfix.exe --yes 2>$null
+          gh release delete-asset v23.1 LCARS-Windows-Setup-v23.1-Hotfix.exe.sha256 --yes 2>$null
+          gh release delete-asset v23.1 SHA256SUMS.txt --yes 2>$null
+
+          gh release upload v23.1 `
+            hotfix/LCARS-Windows-Setup-v23.1-Hotfix.exe `
+            hotfix/LCARS-Windows-Setup-v23.1-Hotfix.exe.sha256 `
+            hotfix/SHA256SUMS.txt `
+            --clobber
+
       - uses: actions/upload-artifact@v4
         with:
           name: LCARS-Windows-v23.1-Hotfix
-          path: hotfix/*
+          path: |
+            hotfix/LCARS-Windows-Setup-v23.1-Hotfix.exe
+            hotfix/LCARS-Windows-Setup-v23.1-Hotfix.exe.sha256
+            hotfix/SHA256SUMS.txt
           retention-days: 7
 
-# Branch-only workflow used to produce the replacement Windows 23.1 installer.
+# Branch-only workflow used to replace the broken Windows v23.1 release installer with the hotfix build.
