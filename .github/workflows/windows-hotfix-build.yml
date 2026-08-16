@@ -1,18 +1,18 @@
-name: Windows 23.1 Hotfix Build
+name: Windows 23.1 Hotfix v2 Build
 
 on:
   push:
-    branches: [agent/fix-windows-black-screen]
+    branches: [agent/windows-hotfix-v2-system-info]
     paths:
-      - desktop/renderer.tsx
+      - hotfixes/apply-windows-23.1-hotfix-v2.py
       - .github/workflows/windows-hotfix-build.yml
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  build-windows-hotfix:
+  build-windows-hotfix-v2:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,24 +20,67 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Apply Hotfix v2 source patch
+        run: python hotfixes/apply-windows-23.1-hotfix-v2.py
+      - name: Validate patched Windows bridge syntax
+        run: python -m py_compile windows/lcars_bridge_windows.py
       - name: Install locked dependencies
         run: npm ci
       - name: Run regression tests
         run: node --test tests/version23-1-features.test.mjs
       - name: Build Windows installer
         run: npm run desktop:package:windows -- --publish never
-      - name: Prepare replacement installer
+      - name: Prepare Hotfix v2 installer and checksums
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           New-Item -ItemType Directory -Force hotfix | Out-Null
+          New-Item -ItemType Directory -Force hotfix/current | Out-Null
+
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName hotfix/LCARS-Windows-Setup-v23.1-Hotfix.exe
-          (Get-FileHash hotfix/LCARS-Windows-Setup-v23.1-Hotfix.exe -Algorithm SHA256).Hash.ToLower() | Set-Content hotfix/SHA256.txt
+
+          $hotfixName = 'LCARS-Windows-Setup-v23.1-Hotfix-v2.exe'
+          $hotfixPath = Join-Path 'hotfix' $hotfixName
+          Copy-Item $installer.FullName $hotfixPath
+
+          $hash = (Get-FileHash $hotfixPath -Algorithm SHA256).Hash.ToLower()
+          "$hash  $hotfixName" | Set-Content "hotfix/$hotfixName.sha256"
+
+          gh release download v23.1 --pattern SHA256SUMS.txt --dir hotfix/current
+          $sumFile = 'hotfix/current/SHA256SUMS.txt'
+          if (-not (Test-Path $sumFile)) { throw 'Existing SHA256SUMS.txt could not be downloaded.' }
+
+          $lines = Get-Content $sumFile | Where-Object {
+            $_ -notmatch 'LCARS-Windows-Setup-v23\.1(?:-Hotfix(?:-v2)?)?\.exe'
+          }
+          @($lines + "$hash  $hotfixName") | Set-Content hotfix/SHA256SUMS.txt
+
+      - name: Replace Hotfix v1 with Hotfix v2 on v23.1 release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete-asset v23.1 LCARS-Windows-Setup-v23.1-Hotfix.exe --yes 2>$null
+          gh release delete-asset v23.1 LCARS-Windows-Setup-v23.1-Hotfix.exe.sha256 --yes 2>$null
+          gh release delete-asset v23.1 LCARS-Windows-Setup-v23.1-Hotfix-v2.exe --yes 2>$null
+          gh release delete-asset v23.1 LCARS-Windows-Setup-v23.1-Hotfix-v2.exe.sha256 --yes 2>$null
+          gh release delete-asset v23.1 SHA256SUMS.txt --yes 2>$null
+
+          gh release upload v23.1 `
+            hotfix/LCARS-Windows-Setup-v23.1-Hotfix-v2.exe `
+            hotfix/LCARS-Windows-Setup-v23.1-Hotfix-v2.exe.sha256 `
+            hotfix/SHA256SUMS.txt `
+            --clobber
+
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-Windows-v23.1-Hotfix
-          path: hotfix/*
+          name: LCARS-Windows-v23.1-Hotfix-v2
+          path: |
+            hotfix/LCARS-Windows-Setup-v23.1-Hotfix-v2.exe
+            hotfix/LCARS-Windows-Setup-v23.1-Hotfix-v2.exe.sha256
+            hotfix/SHA256SUMS.txt
           retention-days: 7
 
-# Branch-only workflow used to produce the replacement Windows 23.1 installer.
+# Branch-only workflow for the Windows v23.1 Status/System Information Hotfix v2.
