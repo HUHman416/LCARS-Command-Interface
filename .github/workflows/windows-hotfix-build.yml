@@ -84,3 +84,4 @@ jobs:
           retention-days: 7
 
 # Branch-only workflow for the Windows v23.1 Status/System Information Hotfix v2.
+# Trigger build after workflow registration.
