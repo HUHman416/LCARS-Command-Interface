@@ -5,7 +5,7 @@ def replace_once(path: str, old: str, new: str) -> None:
     file = Path(path)
     text = file.read_text(encoding="utf-8")
     if old not in text:
-        raise SystemExit(f"Hotfix v2 expected source block was not found in {path}")
+        raise SystemExit(f"Hotfix expected source block was not found in {path}")
     file.write_text(text.replace(old, new, 1), encoding="utf-8")
 
 
@@ -85,8 +85,8 @@ bridge_old = '''def system_data():
 '''
 
 bridge_new = """def windows_system_fallback():
-    script=r'''$cpu=(Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average;$os=Get-CimInstance Win32_OperatingSystem;$drive=Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='$env:SystemDrive'\";$gpu=Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | Select-Object -First 1 -ExpandProperty Name;[pscustomobject]@{cpu=[int]$cpu;memTotal=[int64]([double]$os.TotalVisibleMemorySize*1024);memFree=[int64]([double]$os.FreePhysicalMemory*1024);diskTotal=[int64]$drive.Size;diskFree=[int64]$drive.FreeSpace;gpuName=[string]$gpu}|ConvertTo-Json -Compress'''
-    try:return json.loads(run_ps(script,6) or "{}")
+    script=r'''$cpu=(Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average;$os=Get-CimInstance Win32_OperatingSystem;$drive=Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='$env:SystemDrive'\";$gpu=Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | Select-Object -First 1 -ExpandProperty Name;$gpuUsage=0;try{$samples=(Get-Counter '\\GPU Engine(*)\\Utilization Percentage' -ErrorAction Stop).CounterSamples|ForEach-Object{[double]$_.CookedValue};if($samples){$gpuUsage=[math]::Round(($samples|Measure-Object -Maximum).Maximum)}}catch{};[pscustomobject]@{cpu=[int]$cpu;memTotal=[int64]([double]$os.TotalVisibleMemorySize*1024);memFree=[int64]([double]$os.FreePhysicalMemory*1024);diskTotal=[int64]$drive.Size;diskFree=[int64]$drive.FreeSpace;gpuName=[string]$gpu;gpuUsage=[int]$gpuUsage}|ConvertTo-Json -Compress'''
+    try:return json.loads(run_ps(script,8) or "{}")
     except Exception:return {}
 
 def system_data():
@@ -94,11 +94,11 @@ def system_data():
     cpu=round(psutil.cpu_percent(.12)) if psutil else int(fallback.get("cpu") or 0)
     memory=psutil.virtual_memory() if psutil else None
     disk=psutil.disk_usage(str(Path.home().anchor)) if psutil else None
-    gpu=0;gpu_name=str(fallback.get("gpuName") or "WINDOWS GRAPHICS")
+    gpu=max(0,min(100,int(fallback.get("gpuUsage") or 0)));gpu_name=str(fallback.get("gpuName") or "WINDOWS GRAPHICS")
     if shutil.which("nvidia-smi"):
         try:
             out=subprocess.run(["nvidia-smi","--query-gpu=utilization.gpu,name","--format=csv,noheader,nounits"],capture_output=True,text=True,timeout=3,creationflags=0x08000000).stdout.strip().splitlines()[0]
-            gpu_s,gpu_name=out.split(",",1);gpu=int(float(gpu_s));gpu_name=gpu_name.strip()
+            gpu_s,gpu_name=out.split(",",1);gpu=max(0,min(100,int(float(gpu_s))));gpu_name=gpu_name.strip()
         except Exception: pass
     if memory:
         mem_pct=round(memory.percent);mem_text=f"{memory.used/1073741824:.1f} / {memory.total/1073741824:.1f} GB"
@@ -116,4 +116,4 @@ def system_data():
 """
 
 replace_once("windows/lcars_bridge_windows.py", bridge_old, bridge_new)
-print("Windows 23.1 Hotfix v2 source patch applied successfully.")
+print("Windows 23.1 Hotfix v3 source patch applied successfully.")
