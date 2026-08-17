@@ -37,26 +37,18 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force hotfix | Out-Null
           New-Item -ItemType Directory -Force hotfix/current | Out-Null
-
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-
           $hotfixName = 'LCARS-Windows-Setup-v23.1-Hotfix-v3.exe'
           $hotfixPath = Join-Path 'hotfix' $hotfixName
           Copy-Item $installer.FullName $hotfixPath
-
           $hash = (Get-FileHash $hotfixPath -Algorithm SHA256).Hash.ToLower()
           "$hash  $hotfixName" | Set-Content "hotfix/$hotfixName.sha256"
-
           gh release download v23.1 --pattern SHA256SUMS.txt --dir hotfix/current
           $sumFile = 'hotfix/current/SHA256SUMS.txt'
           if (-not (Test-Path $sumFile)) { throw 'Existing SHA256SUMS.txt could not be downloaded.' }
-
-          $lines = Get-Content $sumFile | Where-Object {
-            $_ -notmatch 'LCARS-Windows-Setup-v23\.1(?:-Hotfix(?:-v[123])?)?\.exe'
-          }
+          $lines = Get-Content $sumFile | Where-Object { $_ -notmatch 'LCARS-Windows-Setup-v23\.1(?:-Hotfix(?:-v[123])?)?\.exe' }
           @($lines + "$hash  $hotfixName") | Set-Content hotfix/SHA256SUMS.txt
-
       - name: Replace Hotfix v2 with Hotfix v3 on v23.1 release
         shell: pwsh
         env:
@@ -69,13 +61,11 @@ jobs:
           gh release delete-asset v23.1 LCARS-Windows-Setup-v23.1-Hotfix-v3.exe --yes 2>$null
           gh release delete-asset v23.1 LCARS-Windows-Setup-v23.1-Hotfix-v3.exe.sha256 --yes 2>$null
           gh release delete-asset v23.1 SHA256SUMS.txt --yes 2>$null
-
           gh release upload v23.1 `
             hotfix/LCARS-Windows-Setup-v23.1-Hotfix-v3.exe `
             hotfix/LCARS-Windows-Setup-v23.1-Hotfix-v3.exe.sha256 `
             hotfix/SHA256SUMS.txt `
             --clobber
-
       - uses: actions/upload-artifact@v4
         with:
           name: LCARS-Windows-v23.1-Hotfix-v3
@@ -86,3 +76,4 @@ jobs:
           retention-days: 7
 
 # Branch-only workflow for Windows v23.1 GPU telemetry Hotfix v3.
+# Trigger build after workflow registration.
