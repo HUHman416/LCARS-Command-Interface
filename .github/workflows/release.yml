@@ -1,6 +1,9 @@
 name: Build Version 24 Release
 
 on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/release.yml]
   workflow_dispatch:
 
 permissions:
