@@ -4,7 +4,7 @@ The Windows edition uses the same LCARS visual interface, themes, modules, profi
 
 ## One-click installation
 
-1. Download `LCARS-Windows-Setup-v25.exe` from the GitHub release.
+1. Download `LCARS-Windows-Setup-v25.1.exe` from the Version 25.1 development prerelease (or use the Version 25 in-app Development update channel).
 2. Double-click the setup executable and choose the installation folder.
 3. Optionally tick **Start LCARS Command Interface when I sign in**.
 

@@ -55,10 +55,13 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Configurable Tray Command Deck for applications, routines, LCARS pages, and desktop tray services
 - Pin-capable Speed Dial Page Peeks that stay visible while working elsewhere in LCARS
 - Stable and development update channels with quiet background checks
+- Version 25.1 Speed Dial media controls with artwork, master audio, and per-application audio
+- Resizable popup surfaces with persistent, viewport-safe sizes
+- Plain number-key page navigation outside Terminal and other editable controls
 
 ## Current stage
 
-Version 25 is the Operations update. It adds user-built routines, fuller Workstation restoration, an Engineering Console, a unified Communications Center, a declarative Extension Hub, configurable keyboard/control mappings, and a scrollable Tray Command Deck. Speed Dial sidebar destinations now open as compact Page Peeks that can be pinned above the rest of the LCARS interface without taking the operator away from the current page. Protected commands, process termination, and computer power steps remain confirmation-gated.
+Version 25.1 is the development-channel maintenance update for the Version 25 Operations line. It rebuilds the Speed Dial media Peek, adds resizable popup surfaces, restores plain number-key page navigation outside editable controls, and ships through an updater-visible prerelease for end-to-end testing. Version 25 introduced user-built routines, fuller Workstation restoration, Engineering and Communications centers, a declarative Extension Hub, configurable control mappings, and the scrollable Tray Command Deck. Protected commands, process termination, and computer power steps remain confirmation-gated.
 
 For one-click Linux installation, open `Install-LCARS-Linux.desktop` or run `Install-LCARS-Linux.run`. Your file manager may ask you to mark the desktop launcher as trusted the first time it is opened. The installer places the standalone application in `~/.local/opt/lcars-command-interface`; Node.js, npm, and an external browser are not required to run it.
 

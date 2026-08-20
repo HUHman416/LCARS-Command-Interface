@@ -79,9 +79,9 @@ test("Stable and development update channels are explicit and stay silent in the
 });
 
 test("Version metadata and desktop recovery include Version 25 state",()=>{
-  assert.equal(pkg.version,"25.0.0");
-  assert.match(linux,/LCARS_VERSION="25\.0\.0"/);
-  assert.match(windows,/LCARS_VERSION="25\.0\.0"/);
+  assert.equal(pkg.version,"25.1.0");
+  assert.match(linux,/LCARS_VERSION="25\.1\.0"/);
+  assert.match(windows,/LCARS_VERSION="25\.1\.0"/);
   assert.match(renderer,/lcars-routines/);
   assert.match(renderer,/lcars-tray-shortcuts/);
 });

@@ -25,7 +25,10 @@
 </p>
 
 > [!IMPORTANT]
-> **Version 25 is the current release prepared by this branch.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
+> **Version 25 is the current stable line; Version 25.1 is the development-channel candidate prepared by this branch.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
+
+> [!NOTE]
+> To test the built-in updater from Version 25, open **Settings → LCARS Update Channel**, select **Development**, then open **Updates** and choose **Check for LCARS Update**. The `v25.1` prerelease remains invisible to the Stable channel.
 
 ## 📥 Choose your download
 
@@ -54,6 +57,13 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔔 **Operator tools** | Build preview-first routines, search with `Ctrl+F`, open the Command Palette with `Ctrl+K`, map keyboard controls, review priority communications and command activity, and use Do Not Disturb |
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install declarative local modules and configure optional offline push-to-talk commands through `whisper.cpp` |
+
+## 🧪 Version 25.1 development update
+
+- Rebuilt the Speed Dial Media Page Peek with current artwork, clear playback controls, master volume/mute, and live per-application audio controls.
+- Added viewport-safe resizing and persistent sizes to Page Peeks and the primary popup surfaces.
+- Restored plain `1`–`8` page navigation whenever focus is outside an editable control; `Ctrl+1`–`Ctrl+8` remains available while typing in Terminal.
+- Publishes signed-by-GitHub Actions cross-platform prerelease packages and SHA-256 checksums for end-to-end Development-channel updater testing.
 
 ## 🆕 Version 25 highlights
 

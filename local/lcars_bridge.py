@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Local-only, allowlisted universal Linux system bridge for LCARS."""
-import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re, base64, mimetypes, tempfile, socket, sys
+import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re, base64, mimetypes, tempfile, socket, sys, hashlib
 from configparser import ConfigParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
 from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
@@ -12,7 +12,7 @@ from lcars_extensions import load_extensions, extension_state, save_extension_st
 from lcars_documents import read_document, write_document
 
 PORT=8765
-LCARS_VERSION="25.0.0"
+LCARS_VERSION="25.1.0"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -25,6 +25,7 @@ TERMINAL_LOCK=threading.Lock()
 ICON_CACHE={}
 ICON_INDEX=None
 MEDIA_ICON_CACHE={}
+MEDIA_ART_PATHS={}
 NETWORK_CACHE={"at":0,"value":None}
 TRAY_CACHE={"at":0,"value":None}
 GRAPHICS_CACHE={"at":0,"value":None}
@@ -586,6 +587,22 @@ def audio_devices_data():
             devices.append({"id":ident,"name":name.strip(),"default":bool(marker),"kind":section})
     return devices
 
+def media_art_source(value):
+    raw=str(value or "").strip()
+    if raw.startswith(("https://","http://")):return raw
+    if not raw.startswith("file://"):return ""
+    try:
+        parsed=urlparse(raw)
+        path=Path(unquote(parsed.path)).resolve()
+        mime=mimetypes.guess_type(path.name)[0] or ""
+        stat=path.stat()
+        if not path.is_file() or not mime.startswith("image/") or stat.st_size>8388608:return ""
+        token=hashlib.sha256(f"{path}:{stat.st_mtime_ns}:{stat.st_size}".encode()).hexdigest()[:24]
+        if len(MEDIA_ART_PATHS)>=64 and token not in MEDIA_ART_PATHS:MEDIA_ART_PATHS.pop(next(iter(MEDIA_ART_PATHS)))
+        MEDIA_ART_PATHS[token]=path
+        return f"http://127.0.0.1:{PORT}/api/media-art?id={token}"
+    except Exception:return ""
+
 def media_data():
     players_by_name={}
     if shutil.which("playerctl"):
@@ -603,7 +620,7 @@ def media_data():
             try: volume=round(float(vol.stdout.strip())*100)
             except Exception: volume=0
             display_name=name.split(".")[0].replace("-"," ").title()
-            art=values[4] if values[4].startswith(("https://","http://")) else ""
+            art=media_art_source(values[4])
             player={"id":name,"name":display_name,"status":values[0] or "Stopped","artist":values[1],"title":values[2] or "No media","album":values[3],"artUrl":art,"position":position,"length":length,"volume":volume,"icon":application_icon_for(display_name)}
             key=display_name.casefold()
             status_rank={"Playing":2,"Paused":1,"Stopped":0}
@@ -810,6 +827,13 @@ class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         origin=self.headers.get("Origin","");allowed=origin if origin in ("lcars://app","http://127.0.0.1:8764") else "lcars://app"
         self.send_response(204);self.send_header("Access-Control-Allow-Origin",allowed);self.send_header("Access-Control-Allow-Methods","GET,POST,OPTIONS");self.send_header("Access-Control-Allow-Headers","Content-Type");self.end_headers()
+    def send_media_art(self,path):
+        try:
+            mime=mimetypes.guess_type(path.name)[0] or ""
+            if not path.is_file() or not mime.startswith("image/") or path.stat().st_size>8388608:return self.send_json({"error":"media artwork unavailable"},404)
+            body=path.read_bytes();origin=self.headers.get("Origin","");allowed=origin if origin in ("lcars://app","http://127.0.0.1:8764") else "lcars://app"
+            self.send_response(200);self.send_header("Content-Type",mime);self.send_header("Content-Length",str(len(body)));self.send_header("Cache-Control","private, max-age=3600");self.send_header("Access-Control-Allow-Origin",allowed);self.end_headers();self.wfile.write(body)
+        except Exception:self.send_json({"error":"media artwork unavailable"},404)
     def do_GET(self):
         route=urlparse(self.path).path
         if route=="/api/apps": self.send_json({"apps":applications()})
@@ -836,6 +860,10 @@ class Handler(BaseHTTPRequestHandler):
                 else:self.send_json({"kind":"","content":""})
             except Exception as exc:self.send_json({"error":str(exc)},400)
         elif route=="/api/media": self.send_json(media_data())
+        elif route=="/api/media-art":
+            token=parse_qs(urlparse(self.path).query).get("id",[""])[0]
+            path=MEDIA_ART_PATHS.get(token) if re.fullmatch(r"[0-9a-f]{24}",token) else None
+            self.send_media_art(path) if path else self.send_json({"error":"media artwork unavailable"},404)
         elif route=="/api/windows": self.send_json({"windows":windows_data(),"kwin":bool(command_path("kdotool"))})
         elif route=="/api/displays": self.send_json({"displays":displays_data()})
         elif route=="/api/health-check": self.send_json({"health":integration_health()})

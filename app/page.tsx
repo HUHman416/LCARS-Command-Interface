@@ -391,6 +391,7 @@ const recoveryConfigKeys = [
   "lcars-shell-prefs","lcars-accessibility","lcars-workspaces","lcars-user-name","lcars-session-restore",
   "lcars-custom-pages","lcars-app-destinations","lcars-default-workstation","lcars-selected-player",
   "lcars-routines","lcars-activity-log","lcars-tray-shortcuts","lcars-control-mappings","lcars-disabled-extensions",
+  "lcars-popup-sizes",
 ];
 const readRecoveryConfig = () => Object.fromEntries(recoveryConfigKeys.flatMap((key)=>{const value=localStorage.getItem(key);return value===null?[]:[[key,value]];}));
 const readRecoverySnapshots = ():RecoverySnapshot[] => {try{const value=JSON.parse(localStorage.getItem("lcars-config-snapshots")||"[]");return Array.isArray(value)?value.slice(0,5):[];}catch{return[];}};
@@ -403,6 +404,93 @@ const createRecoverySnapshot = (reason:string) => {
 const restoreRecoveryValues = (values:Record<string,string>) => {
   recoveryConfigKeys.forEach((key)=>localStorage.removeItem(key));Object.entries(values).forEach(([key,value])=>{if(recoveryConfigKeys.includes(key)&&typeof value==="string")localStorage.setItem(key,value);});
 };
+
+type PopupSize = { width:number; height:number };
+type ResizablePopupProps = {
+  as?: "section" | "aside";
+  popupKey: string;
+  className?: string;
+  floating?: boolean;
+  minWidth?: number;
+  minHeight?: number;
+  role?: "dialog" | "alertdialog";
+  ariaModal?: boolean;
+  ariaLabel?: string;
+  children: ReactNode;
+};
+
+const popupSizeStorageKey = "lcars-popup-sizes";
+const readPopupSizes = ():Record<string,PopupSize> => {
+  try {
+    const value=JSON.parse(localStorage.getItem(popupSizeStorageKey)||"{}");
+    if(!value||typeof value!=="object"||Array.isArray(value))return {};
+    return Object.fromEntries(Object.entries(value).flatMap(([key,size])=>{
+      const candidate=size as Partial<PopupSize>;
+      return Number.isFinite(candidate?.width)&&Number.isFinite(candidate?.height)?[[key,{width:Number(candidate.width),height:Number(candidate.height)}]]:[];
+    }));
+  } catch { return {}; }
+};
+const shortcutTargetIsEditable = (target:EventTarget|null) => {
+  const element=target instanceof HTMLElement?target:null;
+  return Boolean(element?.closest("input, textarea, select, [contenteditable='true'], [role='textbox']"));
+};
+
+function ResizablePopup({as="section",popupKey,className="",floating=false,minWidth=320,minHeight=220,role="dialog",ariaModal,ariaLabel,children}:ResizablePopupProps){
+  const ref=useRef<HTMLElement|null>(null);
+  useEffect(()=>{
+    const element=ref.current;
+    if(!element)return;
+    let frame=0;
+    const bounds=()=>({maxWidth:Math.max(160,window.innerWidth-24),maxHeight:Math.max(140,window.innerHeight-24)});
+    const fitSize=(width:number,height:number)=>{
+      const {maxWidth,maxHeight}=bounds();
+      return {width:Math.min(maxWidth,Math.max(Math.min(minWidth,maxWidth),width)),height:Math.min(maxHeight,Math.max(Math.min(minHeight,maxHeight),height))};
+    };
+    const captureFloatingPosition=()=>{
+      if(!floating)return;
+      const rect=element.getBoundingClientRect(),parent=element.offsetParent?.getBoundingClientRect();
+      element.style.left=`${rect.left-(parent?.left||0)}px`;
+      element.style.top=`${rect.top-(parent?.top||0)}px`;
+      element.style.right="auto";
+      element.style.bottom="auto";
+    };
+    const clampFloatingPosition=()=>{
+      if(!floating)return;
+      const rect=element.getBoundingClientRect(),parent=element.offsetParent?.getBoundingClientRect();
+      let left=Number.parseFloat(element.style.left)||rect.left-(parent?.left||0),top=Number.parseFloat(element.style.top)||rect.top-(parent?.top||0);
+      if(rect.left<8)left+=8-rect.left;
+      if(rect.top<8)top+=8-rect.top;
+      if(rect.right>window.innerWidth-8)left-=rect.right-(window.innerWidth-8);
+      if(rect.bottom>window.innerHeight-8)top-=rect.bottom-(window.innerHeight-8);
+      element.style.left=`${left}px`;element.style.top=`${top}px`;
+    };
+    const persist=()=>{
+      const rect=element.getBoundingClientRect();
+      if(rect.width<1||rect.height<1)return;
+      const stored=readPopupSizes();
+      stored[popupKey]={width:Math.round(rect.width),height:Math.round(rect.height)};
+      localStorage.setItem(popupSizeStorageKey,JSON.stringify(stored));
+    };
+    const initialize=()=>{
+      const rect=element.getBoundingClientRect(),stored=readPopupSizes()[popupKey];
+      const size=fitSize(stored?.width||rect.width,stored?.height||rect.height);
+      element.style.width=`${size.width}px`;element.style.height=`${size.height}px`;
+      captureFloatingPosition();clampFloatingPosition();
+    };
+    const resizeWindow=()=>{
+      const rect=element.getBoundingClientRect(),size=fitSize(rect.width,rect.height);
+      element.style.width=`${size.width}px`;element.style.height=`${size.height}px`;clampFloatingPosition();
+    };
+    frame=window.requestAnimationFrame(initialize);
+    const observer=typeof ResizeObserver==="undefined"?null:new ResizeObserver(()=>{clampFloatingPosition();persist();});
+    observer?.observe(element);window.addEventListener("resize",resizeWindow);
+    return()=>{window.cancelAnimationFrame(frame);observer?.disconnect();window.removeEventListener("resize",resizeWindow);};
+  },[floating,minHeight,minWidth,popupKey]);
+  const popupClass=`resizable-popup${floating?" resizable-popup-floating":""}${className?` ${className}`:""}`;
+  const contents=<>{children}<span className="popup-resize-grip" aria-hidden="true"/></>;
+  if(as==="aside")return <aside ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel}>{contents}</aside>;
+  return <section ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel}>{contents}</section>;
+}
 
 export default function Home() {
   const [theme, setTheme] = useState("classic"),
@@ -765,7 +853,8 @@ export default function Home() {
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       const digit=e.code.match(/^(?:Digit|Numpad)([1-8])$/)?.[1];
-      if (digit && e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      const pageShortcut=digit&&!e.metaKey&&!e.altKey&&!e.shiftKey&&(e.ctrlKey||!shortcutTargetIsEditable(e.target));
+      if (pageShortcut) {
         e.preventDefault();setSection(nav[Number(digit)-1][0]);setPaletteOpen(false);return;
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -2245,8 +2334,8 @@ export default function Home() {
         execute={runSpeedDial}
       />
       <TrayDrawer open={trayOpen} items={trayItems} shortcuts={trayShortcuts} close={() => setTrayOpen(false)} execute={runTrayShortcut} />
-      {speedDialModule&&<div className="backdrop module-spotlight" onMouseDown={(event)=>event.target===event.currentTarget&&setSpeedDialModule(null)}><section role="dialog" aria-modal="true"><header><div><small>SPEED DIAL MODULE</small><h3>{widgetMeta(speedDialModule).name}</h3></div><button onClick={()=>setSpeedDialModule(null)}>CLOSE ×</button></header>{renderWidget(speedDialModule)}</section></div>}
-      {speedDialPage&&<SpeedDialPagePeek page={speedDialPage} pinned={speedDialPagePinned} customPages={customPages} apps={apps} players={sortedPlayers} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} doNotDisturb={doNotDisturb} mediaControl={mediaControl} launch={launch} togglePinned={()=>setSpeedDialPagePinned((value)=>!value)} close={()=>{setSpeedDialPage(null);setSpeedDialPagePinned(false);}} openFull={(page)=>{setSpeedDialPage(null);setSpeedDialPagePinned(false);setSection(page);}} />}
+      {speedDialModule&&<div className="backdrop module-spotlight" onMouseDown={(event)=>event.target===event.currentTarget&&setSpeedDialModule(null)}><ResizablePopup popupKey="speed-dial-module" ariaModal={true}><header><div><small>SPEED DIAL MODULE</small><h3>{widgetMeta(speedDialModule).name}</h3></div><button onClick={()=>setSpeedDialModule(null)}>CLOSE ×</button></header>{renderWidget(speedDialModule)}</ResizablePopup></div>}
+      {speedDialPage&&<SpeedDialPagePeek page={speedDialPage} pinned={speedDialPagePinned} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>setSpeedDialPagePinned((value)=>!value)} close={()=>{setSpeedDialPage(null);setSpeedDialPagePinned(false);}} openFull={(page)=>{setSpeedDialPage(null);setSpeedDialPagePinned(false);setSection(page);}} />}
       {routineCenterOpen&&<RoutineCenter routines={routines} apps={apps} profiles={profiles} devices={audioDevices} players={players} running={runningRoutine} save={saveRoutines} request={requestRoutine} close={()=>setRoutineCenterOpen(false)}/>}
       {pendingRoutine&&<RoutinePreview routine={pendingRoutine} describe={describeRoutineStep} running={runningRoutine===pendingRoutine.id} cancel={()=>setPendingRoutine(null)} run={()=>void executeRoutine(pendingRoutine)}/>}
       {startupVisible && prefs.startupSequence && <StartupTelemetry bridge={bridge} reduced={access.reducedMotion} />}
@@ -2539,7 +2628,7 @@ function NetworkConsole({info,action,refresh}:{info:NetworkInfo;action:(value:st
 function TrayDrawer({open,items,shortcuts,close,execute}:{open:boolean;items:TrayItem[];shortcuts:TrayShortcut[];close:()=>void;execute:(shortcut:TrayShortcut)=>void}) {
   if(!open)return null;
   const activate=(id:string)=>fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})}).catch(()=>{});
-  return <aside className="tray-drawer tray-command-deck"><header><div><small>LOCAL STATUSNOTIFIER & COMMAND MATRIX</small><h3>TRAY COMMAND DECK</h3></div><button onClick={close}>CLOSE ×</button></header><div className="tray-scroll-region" tabIndex={0}><section className="tray-shortcut-grid" aria-label="Configured tray shortcuts">{shortcuts.map((shortcut,index)=><button className={`tray-shortcut tray-kind-${shortcut.kind}`} key={shortcut.id} onClick={()=>execute(shortcut)} title={`${shortcut.kind}: ${shortcut.label}`}><i>{String(index+1).padStart(2,"0")}</i><span><b>{shortcut.label}</b><small>{shortcut.kind.toUpperCase()}</small></span><em>›</em></button>)}{!shortcuts.length&&<p>NO COMMAND BUTTONS ASSIGNED · ADD THEM IN SETTINGS</p>}</section><section className="tray-service-list" aria-label="Desktop tray services"><header><b>DESKTOP SERVICES</b><small>{items.length} ACTIVE</small></header>{items.length?items.map((item)=><button key={item.id} onClick={()=>activate(item.id)} title={item.name}><i>{item.icon?<img src={item.icon} alt=""/>:<b>{item.name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TR"}</b>}</i><span><b>{item.name}</b><small>{item.status||"ACTIVE"}</small></span><em>›</em></button>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</section></div><footer><span>SCROLL MATRIX</span><small>{shortcuts.length} COMMANDS · {items.length} SERVICES</small></footer></aside>;
+  return <ResizablePopup as="aside" popupKey="tray-command-deck" className="tray-drawer tray-command-deck" floating minWidth={340} minHeight={300} ariaModal={false} ariaLabel="Tray Command Deck"><header><div><small>LOCAL STATUSNOTIFIER & COMMAND MATRIX</small><h3>TRAY COMMAND DECK</h3></div><button onClick={close}>CLOSE ×</button></header><div className="tray-scroll-region" tabIndex={0}><section className="tray-shortcut-grid" aria-label="Configured tray shortcuts">{shortcuts.map((shortcut,index)=><button className={`tray-shortcut tray-kind-${shortcut.kind}`} key={shortcut.id} onClick={()=>execute(shortcut)} title={`${shortcut.kind}: ${shortcut.label}`}><i>{String(index+1).padStart(2,"0")}</i><span><b>{shortcut.label}</b><small>{shortcut.kind.toUpperCase()}</small></span><em>›</em></button>)}{!shortcuts.length&&<p>NO COMMAND BUTTONS ASSIGNED · ADD THEM IN SETTINGS</p>}</section><section className="tray-service-list" aria-label="Desktop tray services"><header><b>DESKTOP SERVICES</b><small>{items.length} ACTIVE</small></header>{items.length?items.map((item)=><button key={item.id} onClick={()=>activate(item.id)} title={item.name}><i>{item.icon?<img src={item.icon} alt=""/>:<b>{item.name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TR"}</b>}</i><span><b>{item.name}</b><small>{item.status||"ACTIVE"}</small></span><em>›</em></button>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</section></div><footer><span>SCROLL MATRIX</span><small>{shortcuts.length} COMMANDS · {items.length} SERVICES</small></footer></ResizablePopup>;
 }
 
 function StartupTelemetry({bridge,reduced}:{bridge:boolean;reduced:boolean}) { return <aside className={'startup-telemetry '+(reduced?'instant':'')} aria-live="polite"><i /><span><small>LCARS INITIALIZATION</small><b>{bridge?'LOCAL CORE SYNCHRONIZED':'LOCAL CORE LINK PENDING'}</b></span><em>SYS 47 · DISPLAY MATRIX · AUDIO BUS</em></aside>; }
@@ -2917,11 +3006,7 @@ function PowerDialog({
           if (e.target === e.currentTarget) setConfirmPower(null);
         }}
       >
-        <section
-          className="power-dialog confirm"
-          role="alertdialog"
-          aria-modal="true"
-        >
+        <ResizablePopup popupKey="power-confirmation" className="power-dialog confirm" role="alertdialog" ariaModal={true} minWidth={420} minHeight={260}>
           <header>
             <small>SYSTEM POWER CONFIRMATION</small>
             <h2>
@@ -2945,7 +3030,7 @@ function PowerDialog({
             </button>
             <button onClick={() => setConfirmPower(null)}>GO BACK</button>
           </div>
-        </section>
+        </ResizablePopup>
       </div>
     );
   return (
@@ -2955,7 +3040,7 @@ function PowerDialog({
         if (e.target === e.currentTarget) close();
       }}
     >
-      <section className="power-dialog" role="dialog" aria-modal="true">
+      <ResizablePopup popupKey="power-control" className="power-dialog" ariaModal={true} minWidth={480} minHeight={420}>
         <header>
           <small>LCARS POWER CONTROL</small>
           <h2>SELECT SHUTDOWN MODE</h2>
@@ -3000,7 +3085,7 @@ function PowerDialog({
             </span>
           </button>
         </div>
-      </section>
+      </ResizablePopup>
     </div>
   );
 }
@@ -3032,7 +3117,7 @@ function DisplayMenu({
       ?.writeText("LCARS DISPLAY DIAGNOSTICS\n" + report)
       .catch(() => {});
   return (
-    <section className="display-menu">
+    <ResizablePopup popupKey="display-routing" className="display-menu" floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel="Display Routing">
       <header>
         <b>DISPLAY ROUTING</b>
         <small>KSCREEN / KDE OUTPUTS</small>
@@ -3098,7 +3183,7 @@ function DisplayMenu({
         <button onClick={identify}>IDENTIFY</button>
         <button onClick={configure}>CONFIGURE</button>
       </footer>
-    </section>
+    </ResizablePopup>
   );
 }
 
@@ -3130,7 +3215,7 @@ function CompatibilityCenter({
 }) {
   return (
     <div className="backdrop">
-      <section className="compat-center">
+      <ResizablePopup popupKey="compatibility-center" className="compat-center" minWidth={520} minHeight={420} ariaModal={true} ariaLabel="Compatibility Report">
         <header>
           <div>
             <small>UNIVERSAL LINUX ADAPTER</small>
@@ -3189,7 +3274,7 @@ function CompatibilityCenter({
             available.
           </span>
         </footer>
-      </section>
+      </ResizablePopup>
     </div>
   );
 }
@@ -3423,11 +3508,7 @@ function CommandPalette({
         if (e.target === e.currentTarget) close();
       }}
     >
-      <section
-        className="command-palette"
-        role="dialog"
-        aria-label="LCARS command palette"
-      >
+      <ResizablePopup popupKey="command-palette" className="command-palette" minWidth={440} minHeight={340} ariaLabel="LCARS command palette">
         <header>
           <small>UNIVERSAL COMPUTER ACCESS</small>
           <b>{findMode ? "FIND IN LCARS" : "COMMAND PALETTE"}</b>
@@ -3472,7 +3553,7 @@ function CommandPalette({
           <span>ENTER EXECUTE</span>
           <span>ESC CLOSE</span>
         </footer>
-      </section>
+      </ResizablePopup>
     </div>
   );
 }
@@ -3806,11 +3887,30 @@ function RoutinePreview({routine,describe,running,cancel,run}:{routine:Routine;d
   return <div className="backdrop routine-preview-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&!running&&cancel()}><section className="routine-preview" role="alertdialog" aria-modal="true"><header><div><small>{protectedSteps?"PROTECTED OPERATOR CONFIRMATION":"ROUTINE EXECUTION PREVIEW"}</small><h2>{routine.name}</h2><p>{routine.description||"Operator-defined LCARS routine"}</p></div><i className={protectedSteps?"protected":"ready"}>{protectedSteps?"CONFIRM":"READY"}</i></header><ol>{routine.steps.map((step,index)=><li key={step.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{describe(step)}</b><small>{step.kind.toUpperCase()}{step.kind==="system"||step.kind==="command"?" · PROTECTED":""}</small></span></li>)}</ol><footer><button disabled={running} onClick={cancel}>CANCEL</button><button className={protectedSteps?"protected":""} disabled={running} onClick={run}>{running?"EXECUTING…":protectedSteps?"CONFIRM & RUN":"RUN ROUTINE"}</button></footer></section></div>;
 }
 
-function SpeedDialPagePeek({page,pinned,customPages,apps,players,network,meters,update,notices,bridge,volume,doNotDisturb,mediaControl,launch,togglePinned,close,openFull}:{page:string;pinned:boolean;customPages:CustomPage[];apps:App[];players:Player[];network:NetworkInfo;meters:(string|number)[][];update:UpdateInfo|null;notices:Notice[];bridge:boolean;volume:number;doNotDisturb:boolean;mediaControl:(player:string,command:string)=>void;launch:(app:App)=>void;togglePinned:()=>void;close:()=>void;openFull:(page:string)=>void}){
+function SpeedDialMediaPeek({players,streams,volume,muted,control,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute}:{players:Player[];streams:Stream[];volume:number;muted:boolean;control:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void}){
+  const selected=players.find((player)=>player.status.toLowerCase()==="playing")||players[0],others=players.filter((player)=>player.id!==selected?.id).slice(0,2);
+  const ordinary=streams.filter((stream)=>!stream.advanced),sourceStreams=ordinary.length?ordinary:streams;
+  const groups=Array.from(new Set(sourceStreams.map((stream)=>stream.group||stream.name))).slice(0,4).map((name)=>({name,items:sourceStreams.filter((stream)=>(stream.group||stream.name)===name)}));
+  const initials=(name="MEDIA")=>name.split(/\s+/).map((part)=>part[0]).join("").slice(0,2).toUpperCase();
+  return <div className="peek-media">
+    {selected?<>
+      <article className="peek-media-now">
+        <i className="peek-media-art">{selected.artUrl?<img src={selected.artUrl} alt={`${selected.title||selected.name} artwork`}/>:selected.icon?<img src={selected.icon} alt=""/>:initials(selected.name)}</i>
+        <span><small>{selected.name.toUpperCase()} · {selected.status.toUpperCase()}</small><b>{selected.title||"NO MEDIA TITLE"}</b><em>{selected.artist||"UNKNOWN ARTIST"}{selected.album?` · ${selected.album}`:""}</em></span>
+        <nav className="peek-media-transport" aria-label={`${selected.name} playback controls`}><button aria-label="Previous" onClick={()=>control(selected.id,"previous")}>PREV</button><button className="primary" aria-label="Play or pause" onClick={()=>control(selected.id,"play-pause")}>{selected.status==="Playing"?"PAUSE":"PLAY"}</button><button aria-label="Next" onClick={()=>control(selected.id,"next")}>NEXT</button></nav>
+      </article>
+      {others.length>0&&<div className="peek-media-sources">{others.map((player)=><article key={player.id}><i>{player.icon?<img src={player.icon} alt=""/>:initials(player.name)}</i><span><b>{player.title||player.name}</b><small>{player.artist||player.status}</small></span><button aria-label={`Play or pause ${player.name}`} onClick={()=>control(player.id,"play-pause")}>{player.status==="Playing"?"Ⅱ":"▶"}</button></article>)}</div>}
+    </>:<div className="peek-media-empty"><b>NO ACTIVE MEDIA SOURCES</b><small>MASTER AND APPLICATION AUDIO CONTROLS REMAIN AVAILABLE</small></div>}
+    <section className={`peek-master-audio ${muted?"muted":""}`}><header><span><small>SYSTEM DEFAULT BUS</small><b>MASTER AUDIO</b></span><strong>{muted?"MUTED":`${volume}%`}</strong></header><div><input aria-label="Master audio volume" type="range" min="0" max="100" value={volume} onChange={(event)=>setMasterVolume(+event.target.value)} onPointerUp={commitMasterVolume} onKeyUp={commitMasterVolume} onBlur={commitMasterVolume}/><button className={muted?"active":""} onClick={toggleMasterMute}>{muted?"RESTORE":"MUTE"}</button></div></section>
+    <section className="peek-app-audio"><header><span><small>LIVE AUDIO SESSIONS</small><b>APPLICATION AUDIO</b></span><strong>{String(groups.length).padStart(2,"0")}</strong></header>{groups.length?groups.map((group)=>{const main=group.items[0],isMuted=group.items.every((stream)=>Boolean(stream.muted));return <label className={isMuted?"muted":""} key={group.name}><i>{main.icon?<img src={main.icon} alt=""/>:initials(group.name)}</i><span><b>{group.name}</b><small>{group.items.length===1?"APPLICATION BUS":`${group.items.length} LINKED STREAMS`}</small></span><strong>{main.volume}%</strong><input aria-label={`${group.name} volume`} type="range" min="0" max="100" value={main.volume} onChange={(event)=>group.items.forEach((stream)=>setStreamVolume(stream.id,+event.target.value))}/><button className={isMuted?"active":""} aria-label={`${isMuted?"Unmute":"Mute"} ${group.name}`} onClick={()=>group.items.forEach((stream)=>setStreamMute(stream.id,!isMuted))}>{isMuted?"U":"M"}</button></label>}):<p>NO APPLICATION AUDIO STREAMS</p>}</section>
+  </div>;
+}
+
+function SpeedDialPagePeek({page,pinned,customPages,apps,players,streams,network,meters,update,notices,bridge,volume,muted,doNotDisturb,mediaControl,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute,launch,togglePinned,close,openFull}:{page:string;pinned:boolean;customPages:CustomPage[];apps:App[];players:Player[];streams:Stream[];network:NetworkInfo;meters:(string|number)[][];update:UpdateInfo|null;notices:Notice[];bridge:boolean;volume:number;muted:boolean;doNotDisturb:boolean;mediaControl:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void;launch:(app:App)=>void;togglePinned:()=>void;close:()=>void;openFull:(page:string)=>void}){
   const custom=page.startsWith("custom:")?customPages.find((item)=>item.id===page.slice(7)):undefined;
   const title=custom?.name||nav.find((item)=>item[0]===page)?.[2]||page.replace(/^custom:/,"").toUpperCase();
-  const content=page==="overview"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="system"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="media"?<div className="peek-media">{players.slice(0,3).map((player)=><article key={player.id}><span><b>{player.title||player.name}</b><small>{player.artist||player.status}</small></span><nav><button onClick={()=>mediaControl(player.id,"previous")}>◀</button><button onClick={()=>mediaControl(player.id,"play-pause")}>{player.status==="Playing"?"Ⅱ":"▶"}</button><button onClick={()=>mediaControl(player.id,"next")}>▶</button></nav></article>)}{!players.length&&<p>NO ACTIVE MEDIA SOURCES</p>}<footer>MASTER AUDIO <b>{volume}%</b></footer></div>:page==="network"?<div className="peek-network">{network.interfaces.slice(0,4).map((item)=><article key={item.id}><i className={item.state==="connected"?"ready":""}>●</i><span><b>{item.name}</b><small>{item.address||item.state.toUpperCase()}</small></span><em>{item.speed||"LOCAL"}</em></article>)}{!network.interfaces.length&&<p>{bridge?"NO ACTIVE NETWORK INTERFACES":"LOCAL CORE LINK PENDING"}</p>}</div>:page==="updates"?<div className="peek-update"><strong>{update?.available?`V${update.version} AVAILABLE`:"RELEASE CHANNEL READY"}</strong><p>{update?.available?"A verified release can be downloaded from the full Updates page.":"Background checks remain silent when offline."}</p><small>{update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"STABLE / DEVELOPMENT CHANNEL AWARE"}</small></div>:page==="terminal"?<div className="peek-terminal"><pre>LCARS LOCAL COMMAND LINK{`\n`}{bridge?"PTY CORE READY":"LOCAL CORE STANDBY"}{`\n\n`}terminal@lcars:~$ <i>█</i></pre><small>OPEN THE FULL TERMINAL TO TYPE COMMANDS</small></div>:page==="files"?<div className="peek-files"><i><FileGlyph kind="folder"/></i><span><b>LOCAL FILE SYSTEM</b><small>HOME · DOCUMENTS · DOWNLOADS</small><p>Use the full File Browser for previews, transfers, and document editing.</p></span></div>:page==="settings"?<div className="peek-settings"><article><b>LOCAL CORE</b><span>{bridge?"CONNECTED":"STANDBY"}</span></article><article><b>DO NOT DISTURB</b><span>{doNotDisturb?"ACTIVE":"OFF"}</span></article><article><b>NOTICES</b><span>{notices.length}</span></article><p>Open the full page to change themes, workstations, routines, accessibility, and shell behavior.</p></div>:custom?<div className="peek-custom"><i>{custom.kind.toUpperCase()}</i><span><b>{custom.name}</b><small>{custom.target}</small>{custom.kind==="app"&&apps.find((app)=>app.id===custom.target)&&<button onClick={()=>launch(apps.find((app)=>app.id===custom.target)!)}>OPEN APPLICATION ↗</button>}</span></div>:<p>PAGE PREVIEW IS UNAVAILABLE</p>;
-  return <aside className={`speed-dial-page-peek ${pinned?"pinned":"floating"}`} role="dialog" aria-modal="false" aria-label={`${title} Page Peek`}><header><div><small>{pinned?"PINNED PAGE PEEK · ALWAYS ABOVE LCARS":"SPEED DIAL PAGE PEEK"}</small><h3>{title}</h3></div><nav><button className={pinned?"active":""} onClick={togglePinned}>{pinned?"RELEASE":"PIN"}</button><button onClick={close}>×</button></nav></header><main>{content}</main><footer><span>{pinned?"PIN LOCK ACTIVE":"FLOATING PREVIEW"}</span><button onClick={()=>openFull(page)}>OPEN FULL PAGE ›</button></footer></aside>;
+  const content=page==="overview"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="system"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="media"?<SpeedDialMediaPeek players={players} streams={streams} volume={volume} muted={muted} control={mediaControl} setMasterVolume={setMasterVolume} commitMasterVolume={commitMasterVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={setStreamVolume} setStreamMute={setStreamMute}/>:page==="network"?<div className="peek-network">{network.interfaces.slice(0,4).map((item)=><article key={item.id}><i className={item.state==="connected"?"ready":""}>●</i><span><b>{item.name}</b><small>{item.address||item.state.toUpperCase()}</small></span><em>{item.speed||"LOCAL"}</em></article>)}{!network.interfaces.length&&<p>{bridge?"NO ACTIVE NETWORK INTERFACES":"LOCAL CORE LINK PENDING"}</p>}</div>:page==="updates"?<div className="peek-update"><strong>{update?.available?`V${update.version} AVAILABLE`:"RELEASE CHANNEL READY"}</strong><p>{update?.available?"A verified release can be downloaded from the full Updates page.":"Background checks remain silent when offline."}</p><small>{update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"STABLE / DEVELOPMENT CHANNEL AWARE"}</small></div>:page==="terminal"?<div className="peek-terminal"><pre>LCARS LOCAL COMMAND LINK{`\n`}{bridge?"PTY CORE READY":"LOCAL CORE STANDBY"}{`\n\n`}terminal@lcars:~$ <i>█</i></pre><small>OPEN THE FULL TERMINAL TO TYPE COMMANDS</small></div>:page==="files"?<div className="peek-files"><i><FileGlyph kind="folder"/></i><span><b>LOCAL FILE SYSTEM</b><small>HOME · DOCUMENTS · DOWNLOADS</small><p>Use the full File Browser for previews, transfers, and document editing.</p></span></div>:page==="settings"?<div className="peek-settings"><article><b>LOCAL CORE</b><span>{bridge?"CONNECTED":"STANDBY"}</span></article><article><b>DO NOT DISTURB</b><span>{doNotDisturb?"ACTIVE":"OFF"}</span></article><article><b>NOTICES</b><span>{notices.length}</span></article><p>Open the full page to change themes, workstations, routines, accessibility, and shell behavior.</p></div>:custom?<div className="peek-custom"><i>{custom.kind.toUpperCase()}</i><span><b>{custom.name}</b><small>{custom.target}</small>{custom.kind==="app"&&apps.find((app)=>app.id===custom.target)&&<button onClick={()=>launch(apps.find((app)=>app.id===custom.target)!)}>OPEN APPLICATION ↗</button>}</span></div>:<p>PAGE PREVIEW IS UNAVAILABLE</p>;
+  return <ResizablePopup as="aside" popupKey="speed-dial-page-peek" className={`speed-dial-page-peek ${pinned?"pinned":"floating"}`} floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}><header><div><small>{pinned?"PINNED PAGE PEEK · ALWAYS ABOVE LCARS":"SPEED DIAL PAGE PEEK"}</small><h3>{title}</h3></div><nav><button className={pinned?"active":""} onClick={togglePinned}>{pinned?"RELEASE":"PIN"}</button><button onClick={close}>×</button></nav></header><main>{content}</main><footer><span>{pinned?"PIN LOCK ACTIVE":"FLOATING PREVIEW"}</span><button onClick={()=>openFull(page)}>OPEN FULL PAGE ›</button></footer></ResizablePopup>;
 }
 
 function CustomPageManager({pages,apps,extensions,change}:{pages:CustomPage[];apps:App[];extensions:ExtensionManifest[];change:(pages:CustomPage[])=>void}) {
@@ -3949,7 +4049,7 @@ function FirstRun({
         : "Start LCARS locally to enable desktop integration.",
       ok: bridge,
     },
-    { code:"02", title:"NAVIGATION", text:"Press Ctrl plus the number shown on a sidebar control to open that page—even while Terminal has focus. Ctrl+K opens commands and Ctrl+F finds pages, settings, apps, and modules.", ok:true },
+    { code:"02", title:"NAVIGATION", text:"Press the number shown on a sidebar control to open that page. Number keys remain normal while typing; Ctrl plus the number works even when Terminal has focus. Ctrl+K opens commands and Ctrl+F finds pages, settings, apps, and modules.", ok:true },
     { code:"03", title:"MODULAR OVERVIEW", text:"Choose Configure Overview to add, remove, resize, and reorder built-in or extension modules.", ok:true },
     { code:"04", title:"TASKS & VOICE", text:"The Task Rail manages desktop windows. Optional push-to-talk voice control stays local when whisper.cpp is configured.", ok:true },
     { code:"05", title:"FILES & DETACHABLE TOOLS", text:"Files and supported documents open inside LCARS. Use the compact detach control when you want a separate native window.", ok:true },
@@ -3958,7 +4058,7 @@ function FirstRun({
   const item = cards[step];
   return (
     <div className="backdrop setup-backdrop">
-      <section className="first-run">
+      <ResizablePopup popupKey="first-run-setup" className="first-run" minWidth={520} minHeight={460} ariaModal={true} ariaLabel="LCARS Shell Setup">
         <header>
           <div>
             <small>FIRST-RUN SYSTEM ALIGNMENT</small>
@@ -3995,7 +4095,7 @@ function FirstRun({
             {step < cards.length - 1 ? "CONTINUE" : "ENTER LCARS"}
           </button>
         </footer>
-      </section>
+      </ResizablePopup>
     </div>
   );
 }
@@ -4628,7 +4728,7 @@ function NotificationCenter({
         ))}
       </div>
       {historyOpen && (
-        <aside className="notice-history">
+        <ResizablePopup as="aside" popupKey="communications-center" className="notice-history" floating minWidth={380} minHeight={360} ariaModal={false} ariaLabel="Communications Center">
           <header>
             <div>
               <small>VERSION 25 COMMUNICATIONS MATRIX</small>
@@ -4667,7 +4767,7 @@ function NotificationCenter({
             <p>NO MATCHING NOTIFICATIONS</p>
           ))}
           {tab==="activity"&&(visibleActivity.length?visibleActivity.map((entry)=><article className={`communication-entry activity-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{entry.source} · {entry.status.toUpperCase()} · {new Date(entry.time).toLocaleString()}</small><em>{entry.detail}</em></span></article>):<p>NO MATCHING COMMAND ACTIVITY</p>)}
-        </aside>
+        </ResizablePopup>
       )}
     </>
   );
@@ -4699,7 +4799,7 @@ function AppDrawer({
 }) {
   return (
     <div className="backdrop">
-      <section className="drawer" role="dialog">
+      <ResizablePopup popupKey="application-drawer" className="drawer" minWidth={520} minHeight={480} ariaModal={true} ariaLabel={title}>
         <header>
           <div>
             <small>COMPUTER LIBRARY ACCESS</small>
@@ -4735,7 +4835,7 @@ function AppDrawer({
             </button>{!selectionMode&&(embedded&&setDestination?<button className="drawer-destination" onClick={()=>setDestination(a,destination==="embedded"?"native":"embedded")}><b>{destination==="embedded"?"LCARS":"WINDOW"}</b><small>{destination==="embedded"?`OPEN ${embedded.toUpperCase()} WORKSPACE`:"OPEN NATIVE APP"}</small></button>:<span className="drawer-native-only">NATIVE WINDOW ONLY</span>)}</article>
           );})}
         </div>
-      </section>
+      </ResizablePopup>
     </div>
   );
 }
