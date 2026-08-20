@@ -68,3 +68,5 @@ jobs:
             hotfix/LCARS-Windows-Setup-v24-hotfix1.exe.sha256
             hotfix/SHA256SUMS.txt
           retention-days: 14
+
+# Triggered after workflow registration for the v24 Windows hotfix build.
