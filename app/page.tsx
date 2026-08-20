@@ -1,5 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
+
+declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -98,6 +101,7 @@ type ShellPrefs = {
   startupSequence: boolean;
   lockOnLaunch: boolean;
   quickBootWithoutPassword: boolean;
+  trayPresentation: "rail" | "header";
 };
 type WorkspaceProfile = {
   id: string;
@@ -108,6 +112,21 @@ type WorkspaceProfile = {
   favoriteIds: string[];
 };
 type LockCredential = { salt: string; hash: string; iterations: number };
+type UpdateInfo = {
+  ok: boolean;
+  available?: boolean;
+  current?: string;
+  version?: string;
+  releaseUrl?: string;
+  notes?: string;
+  asset?: { name: string; url: string } | null;
+  downloaded?: boolean;
+  path?: string;
+  sha256?: string;
+  message?: string;
+  error?: string;
+  closeApp?: boolean;
+};
 type AccessibilityPrefs = {
   fontScale: number;
   highContrast: boolean;
@@ -125,19 +144,21 @@ type BuiltinWidgetId =
   | "updates";
 type WidgetId = BuiltinWidgetId | `ext:${string}`;
 type ExtensionManifest = {
-  schema: number;
+  apiVersion: number;
+  schema?: number;
   id: string;
   name: string;
   version: string;
   description: string;
   author: string;
   voiceCommands?: { phrase: string; page: string; response?: string }[];
-  module: {
-    type: "checklist";
-    defaultSize?: "compact" | "standard" | "wide";
-    defaultItems?: string[];
-  };
+  capabilities: string[];
+  settings: { key: string; type: "text"|"number"|"toggle"|"select"; label: string; description?: string; default?: unknown; options?: string[] }[];
+  placements: ExtensionPlacement[];
+  tickSeconds?: number;
 };
+type ExtensionPrimitive = { type:string;id?:string;text?:string;label?:string;action?:string;source?:string;format?:string;placeholder?:string;value?:string|number|boolean;min?:number;max?:number;items?:string[];children?:ExtensionPrimitive[] };
+type ExtensionPlacement = { id:string;type:"overview"|"header"|"page"|"tray"|"panel";title:string;defaultSize?:"compact"|"standard"|"wide";ui:ExtensionPrimitive[] };
 const widgetInfo: Record<BuiltinWidgetId, { name: string; description: string }> = {
   system: {
     name: "System Information",
@@ -222,6 +243,7 @@ const defaultPrefs: ShellPrefs = {
   startupSequence: true,
   lockOnLaunch: true,
   quickBootWithoutPassword: false,
+  trayPresentation: "rail",
 };
 const defaultAccess: AccessibilityPrefs = {
   fontScale: 100,
@@ -319,6 +341,8 @@ export default function Home() {
     [powerOpen, setPowerOpen] = useState(false);
   const [lockCredential, setLockCredential] = useState<LockCredential | null>(null),
     [defaultWorkstation, setDefaultWorkstation] = useState("");
+  const [lcarsUpdate, setLcarsUpdate] = useState<UpdateInfo | null>(null);
+  const [startupAudioStatus,setStartupAudioStatus]=useState("NOT TESTED · SYSTEM DEFAULT OUTPUT");
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get(
       "section",
@@ -391,26 +415,28 @@ export default function Home() {
         }
       })
       .catch(() => {});
-    fetch("http://127.0.0.1:8765/api/system")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.meters) setMeters(d.meters);
-        if (d.platform) {
-          setPlatform(d.platform);
-          if (String(d.platform).includes("WINDOWS"))
-            setPrefs((old) =>
-              old.terminalShell === "/bin/bash"
-                ? {
-                    ...old,
-                    terminalShell: "powershell.exe",
-                    terminalDirectory: "~",
-                  }
-                : old,
-            );
-        }
-        setBridge(true);
-      })
-      .catch(() => {});
+    const getSystem = () =>
+      fetch("http://127.0.0.1:8765/api/system")
+        .then((r) => r.json())
+        .then((d) => {
+          if (Array.isArray(d.meters) && d.meters.length) setMeters(d.meters);
+          if (d.platform) {
+            setPlatform(d.platform);
+            if (String(d.platform).includes("WINDOWS"))
+              setPrefs((old) =>
+                old.terminalShell === "/bin/bash"
+                  ? {
+                      ...old,
+                      terminalShell: "powershell.exe",
+                      terminalDirectory: "~",
+                    }
+                  : old,
+              );
+          }
+          setBridge(true);
+        })
+        .catch(() => {});
+    getSystem();
     fetch("http://127.0.0.1:8765/api/compat")
       .then((r) => r.json())
       .then((d) => setCompat(d))
@@ -501,34 +527,45 @@ export default function Home() {
       sound = JSON.parse(localStorage.getItem("lcars-shell-prefs") || "{}").startupSound !== false;
     } catch {}
     let powered = false;
-    const power = () => {
+    const reportAudio=(event:Event)=>{const result=(event as CustomEvent).detail;if(result)setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);};
+    const power = async () => {
       if (sound && !powered) {
-        const a = new Audio("/assets/sounds/power-up.mp3");
-        a.volume = 0.42;
-        a.play()
-          .then(() => {
-            powered = true;
-          })
-          .catch(() => {});
+        const result=window.__lcarsPlayStartupSound?await window.__lcarsPlayStartupSound():await (async()=>{try{const a=new Audio(new URL("assets/sounds/power-up.mp3",window.location.href).href);a.volume=.42;await a.play();return{ok:true,status:"PLAYING",asset:a.currentSrc,output:"SYSTEM DEFAULT"};}catch(error){return{ok:false,status:"FAILED",error:String(error),output:"SYSTEM DEFAULT"};}})();
+        powered=result.ok;setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);
       }
     };
     power();
     window.addEventListener("lcars-startup-audio", power);
+    window.addEventListener("lcars-startup-audio-result",reportAudio);
     window.addEventListener("pointerdown", power, { once: true });
     const timer = setInterval(() => setClock(new Date()), 1000),
+      systemTimer = setInterval(getSystem, 2000),
       mediaTimer = setInterval(getMedia, 3000),
       desktopTimer = setInterval(getDesktop, 1800),
       extensionTimer = setInterval(getExtensions, 5000);
     const startupTimer=setTimeout(()=>setStartupVisible(false),4200);
     return () => {
       clearInterval(timer);
+      clearInterval(systemTimer);
       clearInterval(mediaTimer);
       clearInterval(desktopTimer);
       clearInterval(extensionTimer);
       clearTimeout(startupTimer);
       window.removeEventListener("lcars-startup-audio", power);
+      window.removeEventListener("lcars-startup-audio-result",reportAudio);
       window.removeEventListener("pointerdown", power);
     };
+  }, []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      fetch("http://127.0.0.1:8765/api/lcars-update")
+        .then((response) => response.json())
+        .then((result: UpdateInfo) => {
+          if (result.ok && result.available) setLcarsUpdate(result);
+        })
+        .catch(() => {});
+    }, 9000);
+    return () => window.clearTimeout(timer);
   }, []);
   const favorites = useMemo(
     () =>
@@ -542,10 +579,8 @@ export default function Home() {
   }, [section, sessionRestore]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      const target=e.target as HTMLElement | null;
-      const editing=!!target && (target.tagName==="INPUT" || target.tagName==="TEXTAREA" || target.tagName==="SELECT" || target.isContentEditable);
       const digit=e.code.match(/^(?:Digit|Numpad)([1-8])$/)?.[1];
-      if (digit && !editing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (digit && e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
         e.preventDefault();setSection(nav[Number(digit)-1][0]);setPaletteOpen(false);return;
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -566,8 +601,8 @@ export default function Home() {
         setLocked(true);
       }
     };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
+    window.addEventListener("keydown", key, true);
+    return () => window.removeEventListener("keydown", key, true);
   }, []);
   const filtered = useMemo(
     () =>
@@ -698,6 +733,7 @@ export default function Home() {
     setPowerOpen(false);
     coreAction(action);
   };
+  const refreshApps=()=>fetch("http://127.0.0.1:8765/api/apps").then((response)=>response.json()).then((result)=>{if(Array.isArray(result.apps)){setApps(result.apps);notify(`Application inventory refreshed · ${result.apps.length} entries`);}}).catch(()=>notify("Application inventory could not be refreshed","error"));
   const saveWidgets = (next: WidgetId[]) => {
     setWidgets(next);
     localStorage.setItem("lcars-overview-widgets", JSON.stringify(next));
@@ -1065,7 +1101,7 @@ export default function Home() {
     if (id.startsWith("ext:")) {
       const extension = extensionFor(id);
       return extension ? (
-        <ChecklistExtension extension={extension} />
+        extension.apiVersion===1?<ChecklistExtension extension={extension} />:<DeclarativeExtension extension={extension} placement={extension.placements.find((placement)=>placement.type==="overview")||extension.placements[0]} />
       ) : (
         <section className="overview-widget extension-widget">
           <h3>EXTENSION OFFLINE <small>MODULE API</small></h3>
@@ -1225,6 +1261,8 @@ export default function Home() {
       </section>
     );
   };
+  const detachedParams=typeof window!=="undefined"?new URLSearchParams(window.location.search):null;
+  if(detachedParams?.get("tool")==="document"&&detachedParams.get("path"))return <DocumentWorkspace path={detachedParams.get("path")||""} detached close={()=>window.close()} notify={notify}/>;
   return (
     <main
       style={{ fontSize: access.fontScale + "%" }}
@@ -1249,6 +1287,7 @@ export default function Home() {
             INTERFACE
           </h1>
         </div>
+        {extensions.flatMap((extension)=>extension.placements.filter((placement)=>placement.type==="header").map((placement)=><ExtensionHeader key={`${extension.id}:${placement.id}`} extension={extension} placement={placement} now={clock||new Date()}/>))}
         <div className="clock">
           <b>
             {clock
@@ -1276,10 +1315,7 @@ export default function Home() {
       </header>
       <div className="shell">
         <aside>
-          <div className="elbow">
-            <span>SYS</span>
-            <small>47</small>
-          </div>
+          {prefs.trayPresentation==="header"?<button className="elbow header-tray-trigger" aria-expanded={trayOpen} onClick={()=>setTrayOpen((value)=>!value)}><span>TRAY</span><small>{trayItems.length.toString().padStart(2,"0")}</small></button>:<div className="elbow"><span>SYS</span><small>47</small></div>}
           <div className="nav-gap" />
           {nav.map((n, i) => (
             <button
@@ -1303,7 +1339,7 @@ export default function Home() {
             onMouseEnter={taskEnter}
             onMouseLeave={taskLeave}
           >
-            <button className="tray-strip-trigger" aria-label="Open system tray" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><i /><i /><i /><b>‹</b></button>
+            {prefs.trayPresentation==="rail"&&<button className="tray-strip-trigger" aria-label="Open system tray" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><span>TRAY</span><b>‹</b></button>}
             <button className="task-trigger" onClick={toggleTaskLock}>
               <i>
                 {compat?.capabilities?.windowControl === false
@@ -1621,7 +1657,7 @@ export default function Home() {
             <NetworkConsole info={networkInfo} action={coreAction} refresh={() => fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => notify("Network telemetry unavailable","error"))} />
           )}
           {section === "updates" && (
-            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => setSection("settings")} />
+            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => setSection("settings")} update={lcarsUpdate} setUpdate={setLcarsUpdate} notify={notify} />
           )}
           {section === "settings" && (
             <section className="detail-view settings-view">
@@ -1684,7 +1720,10 @@ export default function Home() {
                 saved={configSaved}
                 health={health}
                 recheck={() => coreAction("integration-recheck")}
+                startupAudioStatus={startupAudioStatus}
+                testStartupAudio={async()=>{const result=await window.__lcarsPlayStartupSound?.(true);if(result)setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);}}
               />
+              <ExtensionSettings extensions={extensions}/>
               <div className="settings-grid">
                 <button onClick={() => setEditOpen(true)}>
                   <b>FAVORITE APPLICATIONS</b>
@@ -1732,6 +1771,7 @@ export default function Home() {
           setQuery={setQuery}
           close={() => setAllOpen(false)}
           action={launch}
+          refresh={refreshApps}
         />
       )}
       {editOpen && (
@@ -1743,6 +1783,7 @@ export default function Home() {
           close={() => setEditOpen(false)}
           action={(a) => toggleFavorite(a.id)}
           selected={favoriteIds}
+          refresh={refreshApps}
         />
       )}
       <SystemTray
@@ -1805,6 +1846,10 @@ export default function Home() {
   );
 }
 
+type FileKind="folder"|"application"|"pdf"|"document"|"image"|"audio"|"video"|"archive"|"file";
+const fileKind=(file:FileEntry):FileKind=>{if(file.directory)return"folder";const ext=file.name.split(".").pop()?.toLowerCase()||"";if(["exe","appimage","desktop","msi","app","bat","cmd","sh"].includes(ext))return"application";if(ext==="pdf")return"pdf";if(["doc","docx","odt","txt","rtf","md"].includes(ext))return"document";if(["png","jpg","jpeg","gif","webp","svg","bmp"].includes(ext))return"image";if(["mp3","wav","flac","ogg","m4a","aac"].includes(ext))return"audio";if(["mp4","mkv","webm","avi","mov"].includes(ext))return"video";if(["zip","7z","rar","tar","gz","bz2","xz"].includes(ext))return"archive";return"file";};
+function FileGlyph({kind}:{kind:FileKind}){const paths:Record<FileKind,ReactNode>={folder:<path d="M2 6h7l2 2h11v12H2zM3 5V3h7l2 2"/>,application:<><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 8l7 4-7 4z"/></>,pdf:<><path d="M5 2h10l4 4v16H5z"/><path d="M15 2v5h5M8 16c4-8 4-2 8-5M9 13c2 2 4 3 7 4"/></>,document:<><path d="M5 2h10l4 4v16H5z"/><path d="M15 2v5h5M8 11h8M8 15h8M8 19h5"/></>,image:<><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M5 18l5-5 3 3 2-2 4 4"/></>,audio:<><path d="M10 17V6l9-2v11"/><circle cx="7" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></>,video:<><rect x="2" y="5" width="15" height="14" rx="2"/><path d="M17 10l5-3v10l-5-3z"/></>,archive:<><path d="M5 3h14v18H5z"/><path d="M10 3h4v3h-4zm0 6h4v3h-4zm0 6h4v3h-4z"/></>,file:<><path d="M5 2h10l4 4v16H5z"/><path d="M15 2v5h5"/></>};return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[kind]}</svg>;}
+
 function FileExplorer({
   bridge,
   notify,
@@ -1826,7 +1871,8 @@ function FileExplorer({
     [showHidden, setShowHidden] = useState(false),
     [query, setQuery] = useState(""),
     [loading, setLoading] = useState(false),
-    [preview, setPreview] = useState<{kind:string;content:string}>({kind:"",content:""});
+    [preview, setPreview] = useState<{kind:string;content:string}>({kind:"",content:""}),
+    [documentPath,setDocumentPath]=useState("");
   const load = (next = path) => {
     setLoading(true);
     cue("processing");
@@ -1891,6 +1937,8 @@ function FileExplorer({
         : n < 1073741824
           ? (n / 1048576).toFixed(1) + " MB"
           : (n / 1073741824).toFixed(1) + " GB";
+  const openFile=(file:FileEntry)=>["pdf","document"].includes(fileKind(file))?setDocumentPath(file.path):act("/api/file-open",{path:file.path},"File opened");
+  if(documentPath)return <DocumentWorkspace path={documentPath} close={()=>setDocumentPath("")} notify={notify}/>;
   return (
     <section className="file-explorer">
       <header>
@@ -1959,10 +2007,10 @@ function FileExplorer({
               onDoubleClick={() =>
                 file.directory
                   ? load(file.path)
-                  : act("/api/file-open", { path: file.path }, "File opened")
+                  : openFile(file)
               }
             >
-              <i>{file.directory ? "▰" : "▤"}</i>
+              <i className={`file-kind-${fileKind(file)}`}><FileGlyph kind={fileKind(file)}/></i>
               <span>
                 <b>{file.name}</b>
                 <small>
@@ -1976,7 +2024,7 @@ function FileExplorer({
         <aside className="file-inspector">
           {selected ? (
             <>
-              <i>{selected.directory ? "▰" : "▤"}</i>
+              <i className={`file-kind-${fileKind(selected)}`}><FileGlyph kind={fileKind(selected)}/></i>
               <h3>{selected.name}</h3>
               <small>
                 {selected.directory ? "DIRECTORY" : size(selected.size)}
@@ -1987,11 +2035,7 @@ function FileExplorer({
                 onClick={() =>
                   selected.directory
                     ? load(selected.path)
-                    : act(
-                        "/api/file-open",
-                        { path: selected.path },
-                        "File opened",
-                      )
+                    : openFile(selected)
                 }
               >
                 {selected.directory ? "OPEN FOLDER" : "OPEN FILE"}
@@ -2016,13 +2060,24 @@ function FileExplorer({
   );
 }
 
+type DocumentData={kind:"text"|"office"|"pdf";name:string;path:string;editable:boolean;content:string};
+function DocumentWorkspace({path,close,detached=false,notify}:{path:string;close:()=>void;detached?:boolean;notify:(text:string,kind?:"info"|"error")=>void}){
+  const [documentData,setDocumentData]=useState<DocumentData|null>(null),[content,setContent]=useState(""),[dirty,setDirty]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState("");
+  const load=()=>{setLoading(true);setError("");fetch("http://127.0.0.1:8765/api/document?path="+encodeURIComponent(path)).then(async(response)=>{const result=await response.json();if(!response.ok||result.error)throw Error(result.error||"Document unavailable");setDocumentData(result);setContent(result.content);setDirty(false);}).catch((failure)=>{setError(failure.message);notify(failure.message,"error");}).finally(()=>setLoading(false));};
+  useEffect(load,[path]);
+  const save=async()=>{const response=await fetch("http://127.0.0.1:8765/api/document",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path,content})});const result=await response.json();if(!response.ok||result.error)return notify(result.error||"Document could not be saved","error");setDirty(false);notify("Document saved");};
+  const detach=()=>window.open(`lcars://app/index.html?tool=document&path=${encodeURIComponent(path)}`,"_blank","popup=yes");
+  const openDefault=()=>fetch("http://127.0.0.1:8765/api/file-open",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path})}).then(()=>notify("Opened with the operating-system default application")).catch(()=>notify("Default application could not be opened","error"));
+  return <section className="document-workspace"><header draggable={!detached} onDragEnd={(event)=>{if(!detached&&(event.screenX<=1||event.screenY<=1||event.screenX>=window.screen.availWidth-1||event.screenY>=window.screen.availHeight-1))detach();}}><div><small>LCARS DOCUMENT WORKSPACE</small><h3>{documentData?.name||"DOCUMENT LINK"}</h3></div><nav>{documentData?.editable&&<button disabled={!dirty} onClick={save}>SAVE</button>}<button onClick={detached?()=>window.close():detach}>{detached?"REATTACH / CLOSE":"DETACH ↗"}</button><button onClick={close}>{detached?"CLOSE":"BACK TO FILES"}</button></nav></header>{loading?<div className="document-loading">PROCESSING DOCUMENT…</div>:error?<div className="document-error"><b>EMBEDDED READER UNAVAILABLE</b><p>{error}</p><button onClick={openDefault}>OPEN WITH SYSTEM DEFAULT</button></div>:documentData?.kind==="pdf"?<iframe title={documentData.name} src={documentData.content}/>:documentData?.editable?<textarea value={content} onChange={(event)=>{setContent(event.target.value);setDirty(true);}} spellCheck/>:<article className="document-reader"><pre>{content}</pre></article>}<footer><span>{documentData?.kind?.toUpperCase()||"UNKNOWN FORMAT"}</span><small>{documentData?.editable?dirty?"UNSAVED CHANGES":"EDITABLE / SAVED":"READ-ONLY VIEW · OS DEFAULT REMAINS AVAILABLE"}</small></footer></section>;
+}
+
 function NetworkConsole({info,action,refresh}:{info:NetworkInfo;action:(value:string)=>void;refresh:()=>void}) {
   const amount=(value:number)=>value>1073741824?(value/1073741824).toFixed(1)+" GB":value>1048576?(value/1048576).toFixed(1)+" MB":(value/1024).toFixed(0)+" KB";
   const diagnostics=[['GATEWAY',info.diagnostics.gateway],['DNS',info.diagnostics.dns],['EXTERNAL LINK',info.diagnostics.internet]] as const;
   return <section className="detail-view lcars-console network-console"><header className="console-cap"><div><small>NET / SUBSPACE OPERATIONS</small><h3>NETWORK OPERATIONS</h3></div><strong>{info.interfaces.length.toString().padStart(2,'0')}</strong></header><div className="network-grid">{info.interfaces.length?info.interfaces.map((link,index)=><article className="network-tile" key={link.id}><i>{String(index+1).padStart(2,'0')}</i><header><small>{link.kind.toUpperCase()} INTERFACE</small><b>{link.name}</b><em className={link.state==='connected'?'online':''}>{link.state.toUpperCase()}</em></header><div className="network-address"><span><small>ADDRESS</small><b>{link.address||'UNASSIGNED'}</b></span><span><small>GATEWAY</small><b>{link.gateway||'LOCAL ONLY'}</b></span></div><div className="network-flow"><span>RX {amount(link.received)}</span><i><em style={{width:Math.min(100,(link.received%100000000)/1000000)+'%'}} /></i><span>TX {amount(link.sent)}</span></div><footer><span>{link.speed||'LINK SPEED UNKNOWN'}</span>{typeof link.signal==='number'&&<b>SIGNAL {link.signal}%</b>}</footer></article>):<div className="adaptive-empty"><b>NO NETWORK INTERFACES REPORTED</b><small>The platform adapter did not return an active data link.</small></div>}</div><section className="network-diagnostics"><header><small>CONNECTION DIAGNOSTICS</small><b>{info.diagnostics.latency===null?'NO LATENCY':info.diagnostics.latency+' MS'}</b></header>{diagnostics.map(([name,ok],index)=><article key={name}><i>{String(index+1).padStart(2,'0')}</i><span>{name}</span><b className={ok?'ok':'bad'}>{ok?'ONLINE':'OFFLINE'}</b></article>)}<article><i>04</i><span>BLUETOOTH</span><b className={info.bluetooth?'ok':'bad'}>{info.bluetooth?'ACTIVE':'INACTIVE'}</b></article></section><nav className="network-actions"><button onClick={()=>action('network-settings')}>NETWORK SETTINGS</button><button onClick={()=>action('wifi')}>WI-FI CONTROL</button><button onClick={()=>action('bluetooth')}>BLUETOOTH CONTROL</button><button onClick={refresh}>REFRESH & TEST</button></nav></section>;
 }
 
-function TrayDrawer({open,items,close,openNetwork,openMedia}:{open:boolean;items:TrayItem[];close:()=>void;openNetwork:()=>void;openMedia:()=>void}) { if(!open)return null;const activate=(id:string)=>fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})}).catch(()=>{});return <aside className="tray-drawer"><header><div><small>LOCAL STATUSNOTIFIER MATRIX</small><h3>SYSTEM TRAY</h3></div><button onClick={close}>CLOSE ×</button></header><nav><button onClick={openNetwork}>NETWORK</button><button onClick={openMedia}>MEDIA & AUDIO</button></nav><div>{items.length?items.map((item,index)=><button key={item.id} onClick={()=>activate(item.id)}><i>{item.icon?<img src={item.icon} alt=""/>:String(index+1).padStart(2,'0')}</i><span><b>{item.name}</b><small>{item.status}</small></span><em>›</em></button>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</div></aside>; }
+function TrayDrawer({open,items,close,openNetwork,openMedia}:{open:boolean;items:TrayItem[];close:()=>void;openNetwork:()=>void;openMedia:()=>void}) { if(!open)return null;const activate=(id:string)=>fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})}).catch(()=>{});return <aside className="tray-drawer"><header><div><small>LOCAL STATUSNOTIFIER MATRIX</small><h3>SYSTEM TRAY</h3></div><button onClick={close}>CLOSE ×</button></header><nav><button onClick={openNetwork}>NETWORK</button><button onClick={openMedia}>MEDIA & AUDIO</button></nav><div>{items.length?items.map((item)=><button key={item.id} onClick={()=>activate(item.id)} title={item.name}><i>{item.icon?<img src={item.icon} alt=""/>:"◆"}</i><span><b>{item.name}</b><small>{item.status}</small></span><em>›</em></button>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</div></aside>; }
 
 function StartupTelemetry({bridge,reduced}:{bridge:boolean;reduced:boolean}) { return <aside className={'startup-telemetry '+(reduced?'instant':'')} aria-live="polite"><i /><span><small>LCARS INITIALIZATION</small><b>{bridge?'LOCAL CORE SYNCHRONIZED':'LOCAL CORE LINK PENDING'}</b></span><em>SYS 47 · DISPLAY MATRIX · AUDIO BUS</em></aside>; }
 
@@ -2179,14 +2234,33 @@ function UpdateCenter({
   health,
   prefs,
   configureVoice,
+  update,
+  setUpdate,
+  notify,
 }: {
   platform: string;
   action: (value: string) => void;
   health: Health;
   prefs: ShellPrefs;
   configureVoice: () => void;
+  update: UpdateInfo | null;
+  setUpdate: (update: UpdateInfo | null) => void;
+  notify: (text: string, kind?: "info" | "error") => void;
 }) {
   const windows = platform.includes("WINDOWS");
+  const [updateBusy,setUpdateBusy]=useState<""|"check"|"download"|"install">("");
+  const updateOperation=async(operation:"check"|"download"|"install")=>{
+    setUpdateBusy(operation);
+    try{
+      const response=await fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,path:update?.path||""})});
+      const result:UpdateInfo=await response.json();
+      setUpdate(result);
+      if(!response.ok||!result.ok)notify(result.error||"GitHub update service could not be reached","error");
+      else notify(result.message||(result.available?`LCARS ${result.version} is available`:"LCARS is up to date"));
+      if(result.closeApp)window.setTimeout(()=>window.close(),700);
+    }catch{notify("GitHub update service could not be reached","error");}
+    finally{setUpdateBusy("");}
+  };
   return (
     <section className="detail-view update-center">
       <h3>SOFTWARE UPDATE CONTROL</h3>
@@ -2223,20 +2297,20 @@ function UpdateCenter({
           number="02"
           eyebrow="LCARS RELEASE CHANNEL"
           title="LCARS INTERFACE"
-          status="V23.1 TEST"
-          description="Version 23.1 adds unified LCARS modules, live network telemetry, safe file previews, startup telemetry and sound controls, and the System Tray drawer."
-          primary="CHECK FOR LCARS UPDATE"
+          status={updateBusy?updateBusy.toUpperCase()+"…":update?.downloaded?"VERIFIED / READY":update?.available?`V${update.version} AVAILABLE`:"V23.2 CHANNEL"}
+          description={update?.available?`A newer signed release is available from GitHub${update.asset?.name?`: ${update.asset.name}`:""}.`:"Background checks stay silent when offline. Manual checks report useful connection and verification details here."}
+          primary={update?.downloaded?"INSTALL VERIFIED UPDATE":update?.available?"DOWNLOAD & VERIFY":"CHECK FOR LCARS UPDATE"}
           secondary="ROLL BACK RELEASE"
-          primaryAction={() => action("lcars-update-check")}
+          primaryAction={() => updateOperation(update?.downloaded?"install":update?.available?"download":"check")}
           secondaryAction={() => action("lcars-rollback")}
-          stamp="UNPUBLISHED TEST BUILD · VERSION 23.1"
+          stamp={update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"AUTOMATIC GITHUB RELEASE CHANNEL · BACKGROUND ERRORS SILENT"}
         />
         <UpdatePanel
           number="03"
-          eyebrow="LOCAL MODULE API"
+          eyebrow="DECLARATIVE MODULE API"
           title="EXTENSIONS"
-          status="V1"
-          description="Rescan locally installed LCARS modules and review their folder for manual updates."
+          status="V2"
+          description="Rescan isolated declarative modules with placements, settings, permissions, and persistent state. Version 1 checklist modules remain compatible."
           primary="SCAN EXTENSIONS"
           secondary="OPEN MODULE FOLDER"
           primaryAction={() => action("extension-scan")}
@@ -2912,6 +2986,8 @@ function ShellSettings({
   saved,
   health,
   recheck,
+  startupAudioStatus,
+  testStartupAudio,
 }: {
   platform: string;
   prefs: ShellPrefs;
@@ -2920,6 +2996,8 @@ function ShellSettings({
   saved: boolean;
   health: Health;
   recheck: () => void;
+  startupAudioStatus: string;
+  testStartupAudio: () => void | Promise<void>;
 }) {
   const set = <K extends keyof ShellPrefs>(key: K, value: ShellPrefs[K]) =>
     setPrefs({ ...prefs, [key]: value });
@@ -2942,7 +3020,9 @@ function ShellSettings({
             </select>
           </label>
           <Toggle label="Play startup power sequence" description="Plays the bundled LCARS power-up sound when the desktop app opens. It never delays the interface." checked={prefs.startupSound} change={(v) => set("startupSound", v)} />
+          <div className="startup-audio-diagnostic"><button onClick={testStartupAudio}>TEST POWER-UP AUDIO</button><small>{startupAudioStatus}</small><em>ASSET: LCARS BUNDLED MP3 · OUTPUT: OPERATING-SYSTEM DEFAULT</em></div>
           <Toggle label="Show background startup telemetry" description="Shows a small nonblocking system-check strip while LCARS connects to local services." checked={prefs.startupSequence} change={(v) => set("startupSequence", v)} />
+          <label>SYSTEM TRAY PRESENTATION<small>Places the same tray drawer trigger in the side rail or the compact SYS 47 header position.</small><select value={prefs.trayPresentation} onChange={(event)=>set("trayPresentation",event.target.value as ShellPrefs["trayPresentation"])}><option value="rail">SIDE RAIL</option><option value="header">HEADER / SYS 47</option></select></label>
           <Toggle label="Show lock screen on startup" description="Opens normal LCARS windows at the themed authorization screen. Remote Terminal windows always bypass it." checked={prefs.lockOnLaunch} change={(v) => set("lockOnLaunch", v)} />
           {prefs.lockOnLaunch && <div className="subordinate-setting"><Toggle label="Quick boot when no password is set" description="Enters LCARS directly only when no local lock password exists." checked={prefs.quickBootWithoutPassword} change={(v) => set("quickBootWithoutPassword", v)} /></div>}
           <Toggle
@@ -3159,6 +3239,8 @@ function Toggle({
   );
 }
 
+function ExtensionSettings({extensions}:{extensions:ExtensionManifest[]}){const configurable=extensions.filter((extension)=>extension.settings.length);if(!configurable.length)return null;return <section className="extension-settings"><header><b>EXTENSION CONFIGURATION</b><small>HOST-RENDERED · NAMESPACED LOCAL STATE</small></header>{configurable.map((extension)=><ExtensionSettingGroup key={extension.id} extension={extension}/>)}</section>;}
+function ExtensionSettingGroup({extension}:{extension:ExtensionManifest}){const key=`lcars-extension-state:${extension.id}`,[values,setValues]=useState<Record<string,unknown>>(()=>{try{return JSON.parse(localStorage.getItem(key)||"{}");}catch{return{};}});const save=(name:string,value:unknown)=>{const next={...values,[name]:value};setValues(next);localStorage.setItem(key,JSON.stringify(next));fetch("http://127.0.0.1:8765/api/extension-state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:extension.id,state:next})}).catch(()=>{});};return <article><h4>{extension.name.toUpperCase()} <small>API {extension.apiVersion}</small></h4>{extension.settings.map((setting)=>{const value=values[setting.key]??setting.default??"";return <label key={setting.key}>{setting.label}<small>{setting.description}</small>{setting.type==="toggle"?<input type="checkbox" checked={Boolean(value)} onChange={(event)=>save(setting.key,event.target.checked)}/>:setting.type==="select"?<select value={String(value)} onChange={(event)=>save(setting.key,event.target.value)}>{setting.options?.map((option)=><option key={option}>{option}</option>)}</select>:<input type={setting.type==="number"?"number":"text"} value={String(value)} onChange={(event)=>save(setting.key,setting.type==="number"?Number(event.target.value):event.target.value)}/>}</label>;})}</article>;}
 function VoiceDeviceSelect({value,change}:{value:string;change:(value:string)=>void}) { const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);useEffect(()=>{navigator.mediaDevices?.enumerateDevices().then((items)=>setDevices(items.filter((item)=>item.kind==="audioinput"))).catch(()=>{});},[]);return <label>VOICE MICROPHONE<small>Select the input used by push-to-talk. Grant microphone permission once to reveal device names.</small><select value={value} onChange={(event)=>change(event.target.value)}><option value="">SYSTEM DEFAULT</option>{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`MICROPHONE ${index+1}`}</option>)}</select></label>; }
 
 function VoiceControl({ prefs, apps, extensions, navigate, launch, action, notify }: { prefs: ShellPrefs; apps: App[]; extensions: ExtensionManifest[]; navigate: (page: string) => void; launch: (app: App) => void; action: (value: string) => void; notify: (text: string, kind?: "info" | "error") => void }) {
@@ -3246,49 +3328,11 @@ function FirstRun({
         : "Start LCARS locally to enable desktop integration.",
       ok: bridge,
     },
-    {
-      code: "02",
-      title: "DISPLAY MATRIX",
-      text: `${displays.length} connected display${displays.length === 1 ? "" : "s"} detected.`,
-      ok: displays.length > 0,
-    },
-    {
-      code: "03",
-      title: "TASK RAIL",
-      text: "Open, focus, move, minimize, and close desktop windows without using the Plasma taskbar.",
-      ok: true,
-    },
-    {
-      code: "04",
-      title: "COMMAND PALETTE",
-      text: "Press Ctrl + K anywhere to find pages, launch applications, and run system commands.",
-      ok: true,
-    },
-    {
-      code: "05",
-      title: "MODULAR OVERVIEW",
-      text: "Use Configure Overview to add, remove, resize, and reorder your command modules.",
-      ok: true,
-    },
-    {
-      code: "06",
-      title: "WORKSPACE PROFILES",
-      text: "Save separate LCARS layouts and favorites for gaming, work, media, or other activities.",
-      ok: true,
-    },
-    {
-      code: "07",
-      title: "RECOVERY CONTROL",
-      text: "Ctrl + Shift + L locks LCARS. Meta + Shift + Escape restores Plasma panels from shell mode.",
-      ok: true,
-    },
-    {
-      code: "08",
-      title: "AUDIO & MEDIA",
-      text: "PipeWire devices, application volumes, and MPRIS playback are linked through the local core.",
-      ok: bridge,
-    },
-    { code:"09", title:"LOCAL AUTHORIZATION", text:"Optionally protect the LCARS lock screen with a local password. Only a salted PBKDF2 hash is stored on this PC.", ok:true },
+    { code:"02", title:"NAVIGATION", text:"Press Ctrl plus the number shown on a sidebar control to open that page—even while Terminal has focus. Ctrl+K opens commands and Ctrl+F finds pages, settings, apps, and modules.", ok:true },
+    { code:"03", title:"MODULAR OVERVIEW", text:"Choose Configure Overview to add, remove, resize, and reorder built-in or extension modules.", ok:true },
+    { code:"04", title:"TASKS & VOICE", text:"The Task Rail manages desktop windows. Optional push-to-talk voice control stays local when whisper.cpp is configured.", ok:true },
+    { code:"05", title:"FILES & DETACHABLE TOOLS", text:"Files and supported documents open inside LCARS. Use the compact detach control when you want a separate native window.", ok:true },
+    { code:"06", title:"LOCAL AUTHORIZATION", text:"Optionally protect the themed lock screen with a local password. Only a salted PBKDF2 hash is stored on this PC.", ok:true },
   ];
   const item = cards[step];
   return (
@@ -3314,7 +3358,7 @@ function FirstRun({
             <small>SYSTEM CHECK</small>
             <h3>{item.title}</h3>
             <p>{item.text}</p>
-            {item.code === "09" && <div className="setup-password"><input type="password" autoComplete="new-password" placeholder="OPTIONAL PASSWORD" value={setupPassword} onChange={(event)=>setSetupPassword(event.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={setupConfirm} onChange={(event)=>setSetupConfirm(event.target.value)}/><small>Leave both fields blank to use direct local access. You can enable this later in Settings.</small>{setupError&&<em>{setupError}</em>}</div>}
+            {item.code === "06" && <div className="setup-password"><input type="password" autoComplete="new-password" placeholder="OPTIONAL PASSWORD" value={setupPassword} onChange={(event)=>setSetupPassword(event.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={setupConfirm} onChange={(event)=>setSetupConfirm(event.target.value)}/><small>Leave both fields blank to use direct local access. You can enable this later in Settings.</small>{setupError&&<em>{setupError}</em>}</div>}
             <b className={item.ok ? "check-ok" : "check-wait"}>
               {item.ok ? "● READY" : "○ LOCAL CHECK PENDING"}
             </b>
@@ -3426,7 +3470,7 @@ function OverviewEditor({
 type ChecklistItem = { id: string; text: string; done: boolean };
 function ChecklistExtension({ extension }: { extension: ExtensionManifest }) {
   const storageKey = `lcars-extension-state:${extension.id}`;
-  const defaults = (extension.module.defaultItems || []).map((text, index) => ({
+  const defaults = (extension.placements[0]?.ui.find((node)=>node.type==="list")?.items || []).map((text, index) => ({
     id: `default-${index}`,
     text,
     done: false,
@@ -3477,6 +3521,31 @@ function ChecklistExtension({ extension }: { extension: ExtensionManifest }) {
     </section>
   );
 }
+
+function DeclarativeExtension({extension,placement}:{extension:ExtensionManifest;placement:ExtensionPlacement}) {
+  const storageKey=`lcars-extension-state:${extension.id}`;
+  const defaults=Object.fromEntries(extension.settings.map((setting)=>[setting.key,setting.default]));
+  const [state,setState]=useState<Record<string,unknown>>(()=>{try{return {...defaults,...JSON.parse(localStorage.getItem(storageKey)||"{}")};}catch{return defaults;}}),[now,setNow]=useState(Date.now());
+  useEffect(()=>{fetch("http://127.0.0.1:8765/api/extension-state?id="+encodeURIComponent(extension.id)).then((response)=>response.json()).then((result)=>result.state&&setState((old)=>({...old,...result.state}))).catch(()=>{});const timer=window.setInterval(()=>setNow(Date.now()),Math.max(1,extension.tickSeconds||1)*1000);return()=>window.clearInterval(timer);},[extension.id,extension.tickSeconds]);
+  const save=(next:Record<string,unknown>)=>{setState(next);localStorage.setItem(storageKey,JSON.stringify(next));fetch("http://127.0.0.1:8765/api/extension-state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:extension.id,state:next})}).catch(()=>{});};
+  const elapsed=()=>Number(state.elapsed||0)+(state.running&&state.startedAt?now-Number(state.startedAt):0);
+  const act=(action="")=>{if(action==="timer:start"&&!state.running)save({...state,running:true,startedAt:Date.now()});else if(action==="timer:pause"&&state.running)save({...state,elapsed:elapsed(),running:false,startedAt:0});else if(action==="timer:reset")save({...state,elapsed:0,running:false,startedAt:0});else if(action.startsWith("state:toggle:")){const key=action.slice(13);save({...state,[key]:!state[key]});}};
+  const render=(node:ExtensionPrimitive,index:number):ReactNode=>{
+    const key=node.id||`${node.type}-${index}`;
+    if(node.type==="clock"){const date=new Date(now);const value=node.source==="stardate"?`${date.getUTCFullYear()}.${Math.floor(((date.getTime()-Date.UTC(date.getUTCFullYear(),0,1))/(Date.UTC(date.getUTCFullYear()+1,0,1)-Date.UTC(date.getUTCFullYear(),0,1)))*1000).toString().padStart(3,"0")}`:date.toLocaleTimeString();return <strong className="extension-clock" key={key}>{node.label&&<small>{node.label}</small>}{value}</strong>;}
+    if(node.type==="timer"){const total=Math.floor(elapsed()/1000),hours=Math.floor(total/3600),minutes=Math.floor(total%3600/60),seconds=total%60;return <strong className="extension-timer" key={key}>{node.label&&<small>{node.label}</small>}{[hours,minutes,seconds].map((part)=>String(part).padStart(2,"0")).join(":")}</strong>;}
+    if(node.type==="text")return <p key={key}>{node.text||String(state[node.source||""]||"")}</p>;
+    if(node.type==="button")return <button key={key} onClick={()=>act(node.action)}>{node.label||node.text||"ACTIVATE"}</button>;
+    if(node.type==="toggle")return <label className="extension-toggle" key={key}><input type="checkbox" checked={Boolean(state[node.id||""]??node.value)} onChange={()=>save({...state,[node.id||""]:!state[node.id||""]})}/><span>{node.label}</span></label>;
+    if(node.type==="input")return <label key={key}>{node.label}<input placeholder={node.placeholder} value={String(state[node.id||""]??node.value??"")} onChange={(event)=>save({...state,[node.id||""]:event.target.value})}/></label>;
+    if(node.type==="progress"){const value=Number(state[node.source||""]??node.value??0);return <div className="extension-progress" key={key}><span>{node.label}</span><i><em style={{width:`${Math.max(0,Math.min(100,value))}%`}}/></i></div>;}
+    if(node.type==="list")return <ul key={key}>{(node.items||[]).map((item)=><li key={item}>{item}</li>)}</ul>;
+    if(node.type==="grid"||node.type==="tabs")return <div className={`extension-${node.type}`} key={key}>{(node.children||[]).map(render)}</div>;
+    return null;
+  };
+  return <section className="overview-widget extension-widget declarative-extension"><h3>{placement.title.toUpperCase()} <small>EXT API {extension.apiVersion} · {extension.version}</small></h3><div className="extension-primitives">{placement.ui.map(render)}</div></section>;
+}
+function ExtensionHeader({extension,placement,now}:{extension:ExtensionManifest;placement:ExtensionPlacement;now:Date}){const node=placement.ui.find((item)=>item.type==="clock"||item.type==="text");let value=node?.text||extension.name;if(node?.type==="clock")value=node.source==="stardate"?`${now.getUTCFullYear()}.${Math.floor(((now.getTime()-Date.UTC(now.getUTCFullYear(),0,1))/(Date.UTC(now.getUTCFullYear()+1,0,1)-Date.UTC(now.getUTCFullYear(),0,1)))*1000).toString().padStart(3,"0")}`:now.toLocaleTimeString();return <div className="extension-header-item" title={`${extension.name} · Extension API ${extension.apiVersion}`}><small>{node?.label||placement.title}</small><b>{value}</b></div>;}
 function MediaSources({
   players,
   control,
@@ -3763,6 +3832,7 @@ function AppDrawer({
   close,
   action,
   selected = [],
+  refresh,
 }: {
   title: string;
   apps: App[];
@@ -3771,6 +3841,7 @@ function AppDrawer({
   close: () => void;
   action: (a: App) => void;
   selected?: string[];
+  refresh: () => void;
 }) {
   return (
     <div className="backdrop">
@@ -3780,7 +3851,7 @@ function AppDrawer({
             <small>COMPUTER LIBRARY ACCESS</small>
             <h2>{title}</h2>
           </div>
-          <button onClick={close}>CLOSE ×</button>
+          <nav><button onClick={refresh}>REFRESH APPLICATIONS</button><button onClick={close}>CLOSE ×</button></nav>
         </header>
         <input
           autoFocus
@@ -4038,7 +4109,7 @@ function Terminal({
               }
             }}
           >
-            {tab.name}
+            <span>{tab.name}</span>
             <i
               onClick={(e) => {
                 e.stopPropagation();

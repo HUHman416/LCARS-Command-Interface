@@ -1,16 +1,25 @@
 #!/usr/bin/env python3
 """Local-only, allowlisted universal Linux system bridge for LCARS."""
-import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re, base64, mimetypes, tempfile, socket
+import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re, base64, mimetypes, tempfile, socket, sys
 from configparser import ConfigParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
+from lcars_updater import check_update, download_update, schedule_install
+from lcars_extensions import load_extensions, extension_state, save_extension_state
+from lcars_documents import read_document, write_document
+
 PORT=8765
+LCARS_VERSION="23.2.0"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
+UPDATE_DIR=CONFIG_DIR/"updates"
 EXTENSION_DIR=Path(os.environ.get("LCARS_EXTENSION_DIR",Path.home()/".local/share/lcars-command-interface/extensions"))
+BUILTIN_EXTENSION_DIR=Path(__file__).resolve().parent.parent/"extensions"
+EXTENSION_STATE_DIR=CONFIG_DIR/"extension-state"
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
 ICON_CACHE={}
@@ -47,6 +56,8 @@ def network_details():
 
 def extension_manifests():
     """Load the non-executable Module API v1 manifest format."""
+    return load_extensions(EXTENSION_DIR,BUILTIN_EXTENSION_DIR)
+    # Legacy parser retained below for migration reference; API v2 normalizes v1.
     EXTENSION_DIR.mkdir(parents=True,exist_ok=True)
     modules=[];errors=[];seen=set()
     paths=list(EXTENSION_DIR.glob("*/lcars-module.json"))+list(EXTENSION_DIR.glob("*.lcars-module.json"))
@@ -552,7 +563,7 @@ def protected_action(action):
         health=integration_health(); ready=sum(1 for item in health.values() if item["available"])
         return f"Integration check complete — {ready}/{len(health)} systems ready"
     if action=="lcars-update-check":
-        return "LCARS Version 23.1 test build — public update channel remains on Version 23"
+        return "Use Updates → LCARS Interface to check the verified GitHub release channel"
     if action=="lcars-rollback":
         previous=CONFIG_DIR/"previous-release"
         return "Previous release is ready for restoration" if previous.exists() else "No previous LCARS release has been archived yet"
@@ -613,6 +624,17 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/health-check": self.send_json({"health":integration_health()})
         elif route=="/api/config": self.send_json(load_config())
         elif route=="/api/extensions": self.send_json(extension_manifests())
+        elif route=="/api/extension-state":
+            from urllib.parse import parse_qs
+            try:self.send_json({"state":extension_state(EXTENSION_STATE_DIR,parse_qs(urlparse(self.path).query).get("id",[""])[0])})
+            except Exception as exc:self.send_json({"error":str(exc)},400)
+        elif route=="/api/lcars-update":
+            try:self.send_json(check_update(LCARS_VERSION,"linux"))
+            except Exception as exc:self.send_json({"ok":False,"silent":True,"error":str(exc)},503)
+        elif route=="/api/document":
+            from urllib.parse import parse_qs
+            try:self.send_json(read_document(parse_qs(urlparse(self.path).query).get("path",[""])[0]))
+            except Exception as exc:self.send_json({"error":str(exc)},400)
         elif route=="/api/terminal-sessions": self.send_json({"sessions":[{"id":x["id"],"name":x["name"]} for x in TERMINALS.values()]})
         elif route.startswith("/api/terminal-output/"):
             ident=route.rsplit("/",1)[-1]; term=TERMINALS.get(ident)
@@ -623,6 +645,20 @@ class Handler(BaseHTTPRequestHandler):
         try:
             length=int(self.headers.get("Content-Length","0")); data=json.loads(self.rfile.read(length)); app_id=data.get("id","")
             route=urlparse(self.path).path
+            if route=="/api/lcars-update":
+                operation=str(data.get("operation","check"))
+                try:
+                    if operation=="check":return self.send_json(check_update(LCARS_VERSION,"linux"))
+                    if operation=="download":return self.send_json(download_update(LCARS_VERSION,"linux",UPDATE_DIR))
+                    if operation=="install":return self.send_json(schedule_install(str(data.get("path","")),"linux",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),os.environ.get("LCARS_EXECUTABLE","")))
+                    return self.send_json({"ok":False,"error":"Unknown update operation"},400)
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},503)
+            if route=="/api/extension-state":
+                try:return self.send_json({"ok":True,"state":save_extension_state(EXTENSION_STATE_DIR,str(data.get("id","")),data.get("state",{}))})
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/document":
+                try:return self.send_json(write_document(str(data.get("path","")),str(data.get("content",""))))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
             if route=="/api/audio":
                 volume=max(0,min(100,int(data.get("volume",0))))
                 if not shutil.which("wpctl"): return self.send_json({"error":"wpctl unavailable"},503)

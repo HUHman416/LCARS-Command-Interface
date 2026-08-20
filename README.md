@@ -2,17 +2,17 @@
 
 An LCARS-inspired standalone desktop environment for Linux and Windows created by ChatGPT (5.6 Sol Work Model). It is designed as a local-first interface for launching applications, monitoring the system, controlling media and audio, managing windows and displays, browsing files, and using an embedded terminal.
 
-![Version](https://img.shields.io/badge/version-23.1-ff9866)
+![Version](https://img.shields.io/badge/version-23.2-ff9866)
 ![Linux](https://img.shields.io/badge/Linux-Nobara%20%7C%20Fedora%20%7C%20Universal-f2c84b)
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-829af1)
 
-## Download Version 23.1
+## Download Version 23.2
 
-Open the repository's **Releases** page and select **Version 23.1**.
+Version 23.2 is currently under development. When it is published, open the repository's **Releases** page and select **Version 23.2**.
 
-- `LCARS-Universal-Linux-Desktop-v23.1.zip` — universal Linux installer package
-- `LCARS-Windows-Setup-v23.1.exe` — standalone Windows setup program
-- `LCARS-Command-Interface-v23.1-Source.zip` — archived source snapshot
+- `LCARS-Universal-Linux-Desktop-v23.2.zip` — universal Linux installer package
+- `LCARS-Windows-Setup-v23.2.exe` — standalone Windows setup program
+- `LCARS-Command-Interface-v23.2-Source.zip` — archived source snapshot
 
 Always compare a downloaded file against the `SHA256SUMS.txt` attached to that release. The release checksum file is generated from the exact public downloads.
 
@@ -36,7 +36,7 @@ Always compare a downloaded file against the `SHA256SUMS.txt` attached to that r
 
 ### 📥 Install
 
-1. Download `LCARS-Universal-Linux-Desktop-v23.1.zip` from **Releases**.
+1. Download `LCARS-Universal-Linux-Desktop-v23.2.zip` from **Releases**.
 2. Extract the ZIP to a normal folder.
 3. Double-click `Install-LCARS-Linux.desktop` and choose **Execute**.
 4. If your file manager will not execute it, open the extracted folder in Terminal and run: `chmod +x Install-LCARS-Linux.run && ./Install-LCARS-Linux.run`
@@ -56,7 +56,7 @@ LCARS itself installs and runs without voice control. To enable it, install a `w
 
 ### 📥 Install
 
-1. Download `LCARS-Windows-Setup-v23.1.exe` from **Releases**.
+1. Download `LCARS-Windows-Setup-v23.2.exe` from **Releases**.
 2. Double-click the setup file.
 3. Follow the installer and choose the installation folder and shortcuts.
 4. Launch **LCARS Command Interface** from the Start menu or desktop shortcut.
@@ -77,12 +77,12 @@ Download `SHA256SUMS.txt` from the same release, then compare the appropriate fi
 
 ```bash
 # Linux
-sha256sum LCARS-Universal-Linux-Desktop-v23.1.zip
+sha256sum LCARS-Universal-Linux-Desktop-v23.2.zip
 ```
 
 ```powershell
 # Windows PowerShell
-Get-FileHash .\LCARS-Windows-Setup-v23.1.exe -Algorithm SHA256
+Get-FileHash .\LCARS-Windows-Setup-v23.2.exe -Algorithm SHA256
 ```
 
 The displayed hash must exactly match the corresponding line in `SHA256SUMS.txt`.
@@ -104,6 +104,16 @@ npm run desktop:package:windows
 ```
 
 Cross-platform packaging may require the relevant host OS or additional packaging tools.
+
+## Version 23.2 notes
+
+- Added verified GitHub release updates with platform-specific downloads and SHA-256 validation. Automatic checks are silent when offline; manual checks explain failures.
+- Added declarative Extension API v2 with reusable placements, primitives, settings, permissions, and isolated persistent state while preserving v1 checklist compatibility.
+- Added native PDF, document, and text workspaces with detachable windows, edge-drag detaching, and safe editable-text saves.
+- Added Ctrl+number page navigation, a shorter onboarding sequence, optional header System Tray placement, refreshed file-type artwork, and improved terminal tabs.
+- Corrected Windows telemetry fallbacks, packaged startup-audio resolution, and added a renderer recovery boundary.
+
+See [Extension API v2](EXTENSION-API-V2.md) for the module format and bundled examples.
 
 ## Version 23.1 notes
 

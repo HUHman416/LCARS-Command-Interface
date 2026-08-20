@@ -1,0 +1,50 @@
+name: Version 23.2 Cross-Platform Test Builds
+
+on:
+  push:
+    branches: [agent/v23-2-development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux
+          - os: windows-latest
+            target: windows
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Cross-platform regression suite
+        run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs
+      - name: Python bridge syntax
+        run: python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py
+      - name: Build Linux AppImage
+        if: matrix.target == 'linux'
+        run: npm run desktop:package:linux -- --publish never
+      - name: Build Windows installer
+        if: matrix.target == 'windows'
+        run: npm run desktop:package:windows -- --publish never
+      - name: Hash test artifacts (Linux)
+        if: matrix.target == 'linux'
+        shell: bash
+        run: cd release-desktop && sha256sum *.AppImage > SHA256SUMS-23.2-LINUX.txt
+      - name: Hash test artifacts (Windows)
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: Get-ChildItem release-desktop -Filter *.exe | ForEach-Object { "$(($_ | Get-FileHash -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content release-desktop/SHA256SUMS-23.2-WINDOWS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v23.2-${{ matrix.target }}-test
+          path: release-desktop/*
+          retention-days: 14

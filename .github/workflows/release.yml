@@ -1,9 +1,6 @@
-name: Build Version 23.1 Release
+name: Build Version 23.2 Release
 
 on:
-  push:
-    branches: [main]
-    paths: [.github/workflows/release.yml]
   workflow_dispatch:
 
 permissions:
@@ -26,7 +23,7 @@ jobs:
           set -euo pipefail
           appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
           checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          stage="release/LCARS-Universal-Linux-Desktop-v23.1"
+          stage="release/LCARS-Universal-Linux-Desktop-v23.2"
           mkdir -p "$stage/local"
           cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
           cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
@@ -35,11 +32,14 @@ jobs:
           sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
           sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
           chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh"
-          (cd release && zip -qr LCARS-Universal-Linux-Desktop-v23.1.zip LCARS-Universal-Linux-Desktop-v23.1)
+          cp "$appimage" release/LCARS-Command-Interface-v23.2-x86_64.AppImage
+          (cd release && zip -qr LCARS-Universal-Linux-Desktop-v23.2.zip LCARS-Universal-Linux-Desktop-v23.2)
       - uses: actions/upload-artifact@v4
         with:
           name: linux-release
-          path: release/LCARS-Universal-Linux-Desktop-v23.1.zip
+          path: |
+            release/LCARS-Universal-Linux-Desktop-v23.2.zip
+            release/LCARS-Command-Interface-v23.2-x86_64.AppImage
           retention-days: 1
 
   windows:
@@ -58,11 +58,11 @@ jobs:
           New-Item -ItemType Directory -Force release | Out-Null
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName release/LCARS-Windows-Setup-v23.1.exe
+          Copy-Item $installer.FullName release/LCARS-Windows-Setup-v23.2.exe
       - uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: release/LCARS-Windows-Setup-v23.1.exe
+          path: release/LCARS-Windows-Setup-v23.2.exe
           retention-days: 1
 
   publish:
@@ -77,21 +77,22 @@ jobs:
       - name: Create source archive and checksums
         run: |
           set -euo pipefail
-          git archive --format=zip --output=release/LCARS-Command-Interface-v23.1-Source.zip HEAD
-          (cd release && sha256sum LCARS-Universal-Linux-Desktop-v23.1.zip LCARS-Windows-Setup-v23.1.exe LCARS-Command-Interface-v23.1-Source.zip > SHA256SUMS.txt)
+          git archive --format=zip --output=release/LCARS-Command-Interface-v23.2-Source.zip HEAD
+          (cd release && sha256sum LCARS-Command-Interface-v23.2-x86_64.AppImage LCARS-Universal-Linux-Desktop-v23.2.zip LCARS-Windows-Setup-v23.2.exe LCARS-Command-Interface-v23.2-Source.zip > SHA256SUMS.txt)
       - name: Verify release assets against SHA256SUMS
         run: |
           set -euo pipefail
           cd release
-          test -s LCARS-Universal-Linux-Desktop-v23.1.zip
-          test -s LCARS-Windows-Setup-v23.1.exe
-          test -s LCARS-Command-Interface-v23.1-Source.zip
+          test -s LCARS-Command-Interface-v23.2-x86_64.AppImage
+          test -s LCARS-Universal-Linux-Desktop-v23.2.zip
+          test -s LCARS-Windows-Setup-v23.2.exe
+          test -s LCARS-Command-Interface-v23.2-Source.zip
           sha256sum --check SHA256SUMS.txt
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v23.1 release/* \
+          gh release create v23.2 release/* \
             --target "$GITHUB_SHA" \
-            --title "LCARS Command Interface Version 23.1" \
-            --notes "Version 23.1 adds unified LCARS framing, live network telemetry, safe file previews, a clickable System Tray drawer, nonblocking startup telemetry, interface-density controls, voice-command acknowledgement audio, optional-component management, favorite-icon containment, and a themed secure Workstation lock screen with optional PBKDF2 password protection. Download SHA256SUMS.txt to verify the exact Linux, Windows, and source files."
+            --title "LCARS Command Interface Version 23.2" \
+            --notes "Version 23.2 adds safe GitHub release updating with SHA-256 verification, Extension API v2, Ctrl+Number navigation, concise onboarding, reliable packaged startup audio diagnostics, configurable tray placement, improved Terminal tabs and typed file icons, and an embedded detachable document workspace. Download SHA256SUMS.txt to verify every release file."
