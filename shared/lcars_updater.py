@@ -17,7 +17,7 @@ from pathlib import Path
 
 REPOSITORY = "HUHman416/LCARS-Command-Interface"
 API_URL = f"https://api.github.com/repos/{REPOSITORY}/releases/latest"
-USER_AGENT = "LCARS-Command-Interface-Updater/24.0"
+USER_AGENT = "LCARS-Command-Interface-Updater/24.1"
 
 
 def _request(url: str, binary: bool = False, timeout: int = 12):
@@ -105,7 +105,24 @@ def download_update(current_version: str, system: str, update_dir: Path):
     return {**info, "downloaded": True, "path": str(destination), "sha256": actual, "message": f"Version {info['version']} downloaded and verified"}
 
 
-def schedule_install(path: str, system: str, parent_pid: int, executable: str = ""):
+def _sha256(path: Path):
+    digest=hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda:handle.read(1024*1024),b""):digest.update(chunk)
+    return digest.hexdigest()
+
+
+def rollback_status(system: str, executable: str = "", archive_dir: Path | None = None):
+    if system=="windows":
+        return {"available":False,"message":"Windows rollback uses the previous verified setup file; reinstall the desired GitHub release or rerun Setup to repair the current release"}
+    target=Path(executable).resolve() if executable else None
+    directory=Path(archive_dir) if archive_dir else (target.parent/"previous-release" if target else None)
+    previous=directory/(target.name+".previous") if directory and target else None
+    available=bool(previous and previous.is_file() and previous.stat().st_size>1024*1024)
+    return {"available":available,"path":str(previous) if available else "","sha256":_sha256(previous) if available else "","message":"Previous verified Linux AppImage is ready" if available else "No previous Linux release has been archived yet"}
+
+
+def schedule_install(path: str, system: str, parent_pid: int, executable: str = "", archive_dir: Path | None = None):
     installer = Path(path).resolve()
     if not installer.is_file():
         raise RuntimeError("The verified update installer is no longer available")
@@ -117,10 +134,21 @@ def schedule_install(path: str, system: str, parent_pid: int, executable: str = 
     target = Path(executable).resolve() if executable else None
     if target and target.is_file() and os.access(target, os.W_OK):
         helper = Path(tempfile.gettempdir()) / f"lcars-update-{int(time.time())}.sh"
-        source_arg=shlex.quote(str(installer));target_arg=shlex.quote(str(target))
-        helper.write_text(f'''#!/bin/sh\nwhile kill -0 {int(parent_pid)} 2>/dev/null; do sleep 1; done\ncp {source_arg} {target_arg}\nchmod +x {target_arg}\nexec {target_arg}\n''', encoding="utf-8")
+        previous_dir=Path(archive_dir) if archive_dir else target.parent/"previous-release";previous=previous_dir/(target.name+".previous")
+        source_arg=shlex.quote(str(installer));target_arg=shlex.quote(str(target));previous_dir_arg=shlex.quote(str(previous_dir));previous_arg=shlex.quote(str(previous))
+        helper.write_text(f'''#!/bin/sh\nset -eu\nwhile kill -0 {int(parent_pid)} 2>/dev/null; do sleep 1; done\nmkdir -p {previous_dir_arg}\ncp {target_arg} {previous_arg}.part\nmv {previous_arg}.part {previous_arg}\ncp {source_arg} {target_arg}\nchmod +x {target_arg}\nexec {target_arg}\n''', encoding="utf-8")
         helper.chmod(0o700)
         subprocess.Popen([str(helper)], start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return {"ok": True, "message": "Verified Linux update will replace and restart LCARS after it closes", "closeApp": True}
     subprocess.Popen([str(installer)], start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return {"ok": True, "message": "Verified Linux installer opened; close LCARS when prompted", "closeApp": False}
+
+
+def schedule_rollback(system: str, parent_pid: int, executable: str = "", archive_dir: Path | None = None):
+    status=rollback_status(system,executable,archive_dir)
+    if not status["available"]:raise RuntimeError(status["message"])
+    target=Path(executable).resolve();previous=Path(status["path"]);helper=Path(tempfile.gettempdir())/f"lcars-rollback-{int(time.time())}.sh"
+    target_arg=shlex.quote(str(target));previous_arg=shlex.quote(str(previous));swap_arg=shlex.quote(str(previous.with_suffix(".swap")))
+    helper.write_text(f'''#!/bin/sh\nset -eu\nwhile kill -0 {int(parent_pid)} 2>/dev/null; do sleep 1; done\ncp {target_arg} {swap_arg}\ncp {previous_arg} {target_arg}\nchmod +x {target_arg}\nmv {swap_arg} {previous_arg}\nexec {target_arg}\n''',encoding="utf-8");helper.chmod(0o700)
+    subprocess.Popen([str(helper)],start_new_session=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    return {"ok":True,"message":"LCARS will restore the previous Linux release and restart","closeApp":True}

@@ -5,6 +5,7 @@ project_dir="$(cd "$(dirname "$0")" && pwd)"
 mode="${1:-interactive}"
 installed_app="$HOME/.local/opt/lcars-command-interface/LCARS-Command-Interface.AppImage"
 portable_app="$project_dir/LCARS-Command-Interface.AppImage"
+provided_app="${LCARS_APPLICATION_PATH:-}"
 launcher="$HOME/.local/bin/lcars-command-interface"
 recovery_launcher="$HOME/.local/bin/lcars-desktop-recovery"
 desktop_file="$HOME/.local/share/applications/lcars-command-interface.desktop"
@@ -34,7 +35,9 @@ if [[ ! -x "$portable_app" ]]; then
   done
 fi
 
-if [[ -x "$installed_app" ]]; then
+if [[ -n "$provided_app" && -x "$provided_app" ]]; then
+  application="$provided_app"
+elif [[ -x "$installed_app" ]]; then
   application="$installed_app"
 elif [[ -x "$portable_app" ]]; then
   application="$portable_app"
@@ -62,8 +65,9 @@ if [[ -x "$recovery_script" ]]; then
   } > "$recovery_file"
   chmod +x "$recovery_file"
 fi
-if [[ -f "$project_dir/lcars-command-interface.png" ]]; then
-  install -m 644 "$project_dir/lcars-command-interface.png" "$icon_file"
+provided_icon="${LCARS_ICON_PATH:-$project_dir/lcars-command-interface.png}"
+if [[ -f "$provided_icon" ]]; then
+  install -m 644 "$provided_icon" "$icon_file"
 fi
 
 {

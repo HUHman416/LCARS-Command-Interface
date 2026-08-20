@@ -75,7 +75,7 @@ if [[ "$actual_appimage_sha256" != "$expected_appimage_sha256" ]]; then
   echo "This installer contains the wrong LCARS AppImage and will not continue."
   echo "Expected: $expected_appimage_sha256"
   echo "Received: $actual_appimage_sha256"
-  echo "Download the complete matching LCARS Version 24 Linux test package."
+  echo "Download the complete matching LCARS Version 24.1 Linux test package."
   exit 1
 fi
 install_dir="$HOME/.local/opt/lcars-command-interface"

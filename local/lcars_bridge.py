@@ -7,12 +7,12 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
-from lcars_updater import check_update, download_update, schedule_install
+from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
 from lcars_extensions import load_extensions, extension_state, save_extension_state
 from lcars_documents import read_document, write_document
 
 PORT=8765
-LCARS_VERSION="24.0.0"
+LCARS_VERSION="24.1.0"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -24,6 +24,7 @@ TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
 ICON_CACHE={}
 ICON_INDEX=None
+MEDIA_ICON_CACHE={}
 NETWORK_CACHE={"at":0,"value":None}
 TRAY_CACHE={"at":0,"value":None}
 GRAPHICS_CACHE={"at":0,"value":None}
@@ -349,6 +350,27 @@ def icon_data(value):
         result="data:"+mime+";base64,"+base64.b64encode(path.read_bytes()).decode();ICON_CACHE[value]=result;return result
     except Exception:ICON_CACHE[value]="";return ""
 
+def application_icon_for(name):
+    """Resolve one likely desktop-entry icon without rebuilding the app inventory."""
+    key=re.sub(r"[^a-z0-9]+","",str(name).casefold())
+    if not key:return ""
+    if key in MEDIA_ICON_CACHE:return MEDIA_ICON_CACHE[key]
+    best=""
+    for folder in APP_DIRS:
+        if not folder.exists():continue
+        for path in folder.glob("*.desktop"):
+            try:
+                config=ConfigParser(interpolation=None,strict=False);config.read(path,encoding="utf-8")
+                entry=config["Desktop Entry"]
+                label=str(entry.get("Name","")).strip();candidate=re.sub(r"[^a-z0-9]+","",label.casefold())
+                if candidate and (candidate==key or candidate in key or key in candidate):
+                    best=icon_data(entry.get("Icon",""))
+                    if candidate==key:break
+            except Exception:pass
+        if best:break
+    MEDIA_ICON_CACHE[key]=best
+    return best
+
 def storage_data():
     if not shutil.which("lsblk"):return []
     try:
@@ -582,7 +604,7 @@ def media_data():
             except Exception: volume=0
             display_name=name.split(".")[0].replace("-"," ").title()
             art=values[4] if values[4].startswith(("https://","http://")) else ""
-            player={"id":name,"name":display_name,"status":values[0] or "Stopped","artist":values[1],"title":values[2] or "No media","album":values[3],"artUrl":art,"position":position,"length":length,"volume":volume}
+            player={"id":name,"name":display_name,"status":values[0] or "Stopped","artist":values[1],"title":values[2] or "No media","album":values[3],"artUrl":art,"position":position,"length":length,"volume":volume,"icon":application_icon_for(display_name)}
             key=display_name.casefold()
             status_rank={"Playing":2,"Paused":1,"Stopped":0}
             previous=players_by_name.get(key)
@@ -604,12 +626,13 @@ def media_data():
                     vol=subprocess.run(["wpctl","get-volume",ident],capture_output=True,text=True,timeout=1)
                     try: value=round(float(vol.stdout.split()[1])*100)
                     except Exception: value=0
+                    muted="MUTED" in vol.stdout.upper()
                     clean=name.strip()
                     advanced=bool(re.search(r"(?i)(monitor|capture|playback|input_[A-Z0-9]+|output_[A-Z0-9]+|[_ .-](FL|FR|FC|LFE|RL|RR|MONO)(?:\b|$))",clean))
                     group=re.sub(r"(?i)\b(input|output)_(FL|FR|FC|LFE|RL|RR|MONO)\b","",clean)
                     group=re.sub(r"(?i)[:._ -]*(monitor|capture|playback)[._ -]*(FL|FR|FC|LFE|RL|RR|MONO)?$","",group)
                     group=re.sub(r"\s+"," ",group).strip(" .:_-") or clean
-                    streams.append({"id":ident,"name":clean,"group":group,"advanced":advanced,"volume":value})
+                    streams.append({"id":ident,"name":clean,"group":group,"advanced":advanced,"volume":value,"muted":muted,"icon":application_icon_for(group),"routeAvailable":bool(shutil.which("pavucontrol"))})
     return {"players":list(players_by_name.values()),"streams":streams}
 
 def start_first(candidates):
@@ -622,16 +645,45 @@ def start_first(candidates):
 def integration_health():
     displays=displays_data()
     env=linux_environment()
+    try:extension_result=extension_manifests()
+    except Exception as exc:extension_result={"extensions":[],"errors":[{"error":type(exc).__name__}]}
+    config_ready=CONFIG_DIR.exists() or os.access(CONFIG_DIR.parent,os.W_OK)
+    power_ready=bool(shutil.which("systemctl"))
     return {
-        "windows":{"available":env["capabilities"]["windowControl"],"detail":f'{env["desktop"]} / {env["session"]} window adapter'},
-        "displays":{"available":env["capabilities"]["displayControl"],"detail":f'{len(displays)} display output(s) detected'},
-        "audio":{"available":bool(shutil.which("wpctl")),"detail":"PipeWire controls ready" if shutil.which("wpctl") else "wpctl missing; install wireplumber"},
-        "media":{"available":bool(shutil.which("playerctl")),"detail":"MPRIS controls ready" if shutil.which("playerctl") else "playerctl missing"},
-        "terminal":{"available":Path(os.environ.get("SHELL","/bin/bash")).is_file(),"detail":os.environ.get("SHELL","/bin/bash")},
-        "storage":{"available":bool(shutil.which("udisksctl")),"detail":f'{len(storage_data())} block device(s); UDisks2 '+("ready" if shutil.which("udisksctl") else "missing")},
-        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Offline whisper.cpp and FFmpeg ready"},
-        "tray":{"available":tray_data()["supported"],"detail":tray_data()["reason"] or f'{len(tray_data()["items"])} StatusNotifier service(s)'},
+        "window_control":{"available":env["capabilities"]["windowControl"],"detail":f'{env["desktop"]} / {env["session"]} window adapter',"remedy":"Install the supported desktop window-control adapter, then recheck."},
+        "displays":{"available":env["capabilities"]["displayControl"],"detail":f'{len(displays)} display output(s) detected',"remedy":"Install your desktop display utility (KScreen on KDE) and reconnect the display."},
+        "audio":{"available":bool(shutil.which("wpctl")),"detail":"PipeWire controls ready" if shutil.which("wpctl") else "wpctl missing; install wireplumber","remedy":"Install WirePlumber/PipeWire tools to enable audio routing."},
+        "media":{"available":bool(shutil.which("playerctl")),"detail":"MPRIS controls ready" if shutil.which("playerctl") else "playerctl missing","remedy":"Install playerctl to control MPRIS-compatible players."},
+        "terminal":{"available":Path(os.environ.get("SHELL","/bin/bash")).is_file(),"detail":os.environ.get("SHELL","/bin/bash"),"remedy":"Choose an installed shell in Settings → Embedded Terminal."},
+        "storage":{"available":bool(shutil.which("udisksctl")),"detail":f'{len(storage_data())} block device(s); UDisks2 '+("ready" if shutil.which("udisksctl") else "missing"),"remedy":"Install UDisks2 for safe removable-drive mount controls."},
+        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Offline whisper.cpp and FFmpeg ready","remedy":"Install whisper.cpp and FFmpeg, then select a local model in Settings."},
+        "tray":{"available":tray_data()["supported"],"detail":tray_data()["reason"] or f'{len(tray_data()["items"])} StatusNotifier service(s)',"remedy":"Use a KDE StatusNotifier-compatible desktop session for re-hosted tray items."},
+        "extensions":{"available":not bool(extension_result.get("errors")),"detail":f'{len(extension_result.get("extensions",[]))} module(s), {len(extension_result.get("errors",[]))} rejected',"remedy":"Remove or update rejected manifests shown in the extension bay."},
+        "configuration":{"available":config_ready,"detail":"Local settings storage ready" if config_ready else "Settings directory is not writable","remedy":"Restore write access to the LCARS configuration directory."},
+        "updater":{"available":True,"detail":"Verified GitHub release channel configured","remedy":"Connect to GitHub and use the manual update check for detailed errors."},
+        "power":{"available":power_ready,"detail":"systemd-logind power controls ready" if power_ready else "systemctl unavailable","remedy":"Use a systemd-logind compatible session or the operating system power menu."},
     }
+
+def diagnostics_report():
+    """Return support facts without usernames, paths, files, credentials or history."""
+    environment=linux_environment();media=media_data()
+    try:extensions=extension_manifests()
+    except Exception as exc:extensions={"extensions":[],"errors":[{"error":type(exc).__name__}]}
+    return {
+        "schema":1,
+        "generatedUtc":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),
+        "lcarsVersion":LCARS_VERSION,
+        "platform":{"family":"Linux","distribution":environment.get("distro","Linux"),"desktop":environment.get("desktop","Unknown"),"session":environment.get("session","unknown")},
+        "health":integration_health(),
+        "inventory":{"displays":len(displays_data()),"applications":sum(len(list(folder.glob("*.desktop"))) for folder in APP_DIRS if folder.exists()),"drives":len(storage_data()),"mediaPlayers":len(media.get("players",[])),"audioStreams":len(media.get("streams",[])),"extensions":len(extensions.get("extensions",[])),"rejectedExtensions":len(extensions.get("errors",[]))},
+        "configuration":{"settingsFilePresent":CONFIG_FILE.is_file(),"extensionStateDirectoryPresent":EXTENSION_STATE_DIR.is_dir(),"updateDirectoryPresent":UPDATE_DIR.is_dir()},
+        "privacy":"Sanitized report: no usernames, home paths, file names, credentials, terminal history, window titles, or media titles are included.",
+    }
+
+def export_diagnostics():
+    report=diagnostics_report();destination=Path.home()/"Downloads"/f"LCARS-Diagnostics-{time.strftime('%Y%m%d-%H%M%S')}.json"
+    destination.parent.mkdir(parents=True,exist_ok=True);destination.write_text(json.dumps(report,indent=2),encoding="utf-8")
+    return {"ok":True,"message":"Privacy-safe diagnostics report exported to Downloads","path":str(destination)}
 
 def protected_action(action):
     mappings={
@@ -670,6 +722,13 @@ def protected_action(action):
     if action=="integration-recheck":
         health=integration_health(); ready=sum(1 for item in health.values() if item["available"])
         return f"Integration check complete — {ready}/{len(health)} systems ready"
+    if action=="repair-installation":
+        helper=Path(__file__).resolve().parent.parent/"recovery"/"register-app.sh"
+        if not helper.is_file():helper=Path.home()/".local/opt/lcars-command-interface"/"install-autostart.sh"
+        if not helper.is_file():return "Repair helper is unavailable; reinstall the current Linux package without removing settings"
+        repair_env={**os.environ,"LCARS_APPLICATION_PATH":os.environ.get("LCARS_EXECUTABLE",""),"LCARS_ICON_PATH":str(Path(__file__).resolve().parent.parent/"icons"/"lcars-command-interface.png")}
+        result=subprocess.run(["bash",str(helper),"--register"],capture_output=True,text=True,timeout=20,env=repair_env)
+        return "Application launcher, icon registration, and desktop recovery link repaired" if result.returncode==0 else "Repair could not refresh desktop integration: "+(result.stderr.strip()[:180] or "unknown error")
     if action=="lcars-update-check":
         return "Use Updates → LCARS Interface to check the verified GitHub release channel"
     if action=="lcars-rollback":
@@ -730,6 +789,7 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/windows": self.send_json({"windows":windows_data(),"kwin":bool(command_path("kdotool"))})
         elif route=="/api/displays": self.send_json({"displays":displays_data()})
         elif route=="/api/health-check": self.send_json({"health":integration_health()})
+        elif route=="/api/diagnostics": self.send_json(diagnostics_report())
         elif route=="/api/config": self.send_json(load_config())
         elif route=="/api/extensions": self.send_json(extension_manifests())
         elif route=="/api/extension-state":
@@ -737,7 +797,7 @@ class Handler(BaseHTTPRequestHandler):
             try:self.send_json({"state":extension_state(EXTENSION_STATE_DIR,parse_qs(urlparse(self.path).query).get("id",[""])[0])})
             except Exception as exc:self.send_json({"error":str(exc)},400)
         elif route=="/api/lcars-update":
-            try:self.send_json(check_update(LCARS_VERSION,"linux"))
+            try:self.send_json({**check_update(LCARS_VERSION,"linux"),"rollback":rollback_status("linux",os.environ.get("LCARS_EXECUTABLE",""),CONFIG_DIR/"previous-release")})
             except Exception as exc:self.send_json({"ok":False,"silent":True,"error":str(exc)},503)
         elif route=="/api/document":
             from urllib.parse import parse_qs
@@ -756,11 +816,17 @@ class Handler(BaseHTTPRequestHandler):
             if route=="/api/lcars-update":
                 operation=str(data.get("operation","check"))
                 try:
-                    if operation=="check":return self.send_json(check_update(LCARS_VERSION,"linux"))
-                    if operation=="download":return self.send_json(download_update(LCARS_VERSION,"linux",UPDATE_DIR))
-                    if operation=="install":return self.send_json(schedule_install(str(data.get("path","")),"linux",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),os.environ.get("LCARS_EXECUTABLE","")))
+                    executable=os.environ.get("LCARS_EXECUTABLE","");archive=CONFIG_DIR/"previous-release"
+                    if operation=="check":return self.send_json({**check_update(LCARS_VERSION,"linux"),"rollback":rollback_status("linux",executable,archive)})
+                    if operation=="download":return self.send_json({**download_update(LCARS_VERSION,"linux",UPDATE_DIR),"rollback":rollback_status("linux",executable,archive)})
+                    if operation=="install":return self.send_json(schedule_install(str(data.get("path","")),"linux",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
+                    if operation=="rollback":return self.send_json(schedule_rollback("linux",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
+                    if operation=="status":return self.send_json({"ok":True,"rollback":rollback_status("linux",executable,archive)})
                     return self.send_json({"ok":False,"error":"Unknown update operation"},400)
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},503)
+            if route=="/api/diagnostics-export":
+                try:return self.send_json(export_diagnostics())
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},500)
             if route=="/api/extension-state":
                 try:return self.send_json({"ok":True,"state":save_extension_state(EXTENSION_STATE_DIR,str(data.get("id","")),data.get("state",{}))})
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
@@ -768,8 +834,11 @@ class Handler(BaseHTTPRequestHandler):
                 try:return self.send_json(write_document(str(data.get("path","")),str(data.get("content",""))))
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
             if route=="/api/audio":
-                volume=max(0,min(100,int(data.get("volume",0))))
                 if not shutil.which("wpctl"): return self.send_json({"error":"wpctl unavailable"},503)
+                if "muted" in data:
+                    muted=bool(data.get("muted"));result=subprocess.run(["wpctl","set-mute","@DEFAULT_AUDIO_SINK@","1" if muted else "0"],capture_output=True,text=True,timeout=3)
+                    return self.send_json({"ok":result.returncode==0,"muted":muted},200 if result.returncode==0 else 503)
+                volume=max(0,min(100,int(data.get("volume",0))))
                 subprocess.run(["wpctl","set-volume","@DEFAULT_AUDIO_SINK@",f"{volume}%"],timeout=3)
                 return self.send_json({"volume":volume})
             if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action",""))))
@@ -820,6 +889,11 @@ class Handler(BaseHTTPRequestHandler):
                 if not ident.isdigit(): return self.send_json({"error":"invalid stream"},400)
                 result=subprocess.run(["wpctl","set-volume",ident,f"{volume}%"],capture_output=True,text=True,timeout=3)
                 return self.send_json({"ok":result.returncode==0,"volume":volume})
+            if route=="/api/stream-mute":
+                ident=str(data.get("id","")); muted=bool(data.get("muted"))
+                if not ident.isdigit(): return self.send_json({"error":"invalid stream"},400)
+                result=subprocess.run(["wpctl","set-mute",ident,"1" if muted else "0"],capture_output=True,text=True,timeout=3)
+                return self.send_json({"ok":result.returncode==0,"muted":muted},200 if result.returncode==0 else 503)
             if route=="/api/action":
                 action=str(data.get("action",""))
                 return self.send_json({"message":protected_action(action)})

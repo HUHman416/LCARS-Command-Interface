@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Component, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
@@ -16,6 +16,7 @@ type Player = {
   artUrl?: string;
   position?: number;
   length?: number;
+  icon?: string;
 };
 type Stream = {
   id: string;
@@ -23,6 +24,9 @@ type Stream = {
   volume: number;
   group?: string;
   advanced?: boolean;
+  muted?: boolean;
+  icon?: string;
+  routeAvailable?: boolean;
 };
 type AudioDevice = {
   id: string;
@@ -62,7 +66,16 @@ type Display = {
   geometry: string;
   source?: string;
 };
-type Health = Record<string, { available: boolean; detail: string }>;
+type Health = Record<string, { available: boolean; detail: string; remedy?: string }>;
+type DiagnosticsReport = {
+  generatedUtc?: string;
+  lcarsVersion?: string;
+  platform?: Record<string, string>;
+  inventory?: Record<string, number>;
+  configuration?: Record<string, boolean>;
+  health?: Health;
+  privacy?: string;
+};
 type Drive = { id: string; name: string; size: number; type: string; filesystem: string; mountpoints: string[]; mounted: boolean; removable: boolean; parent?: string };
 type TrayItem = { id: string; name: string; status: string; icon?: string };
 type NetworkInterface = { id: string; name: string; kind: string; state: string; address: string; gateway: string; dns: string[]; speed: string; signal?: number; received: number; sent: number };
@@ -140,6 +153,7 @@ type UpdateInfo = {
   message?: string;
   error?: string;
   closeApp?: boolean;
+  rollback?: { available: boolean; path?: string; sha256?: string; message?: string };
 };
 type AccessibilityPrefs = {
   fontScale: number;
@@ -327,11 +341,30 @@ const verifyLockCredential = async (password: string, credential: LockCredential
   return (await deriveLockHash(password, salt, credential.iterations)) === credential.hash;
 };
 
+type RecoverySnapshot = { id:string; created:string; reason:string; values:Record<string,string> };
+const recoveryConfigKeys = [
+  "lcars-theme","lcars-favorites","lcars-overview-widgets","lcars-widget-sizes","lcars-pinned-players",
+  "lcars-shell-prefs","lcars-accessibility","lcars-workspaces","lcars-user-name","lcars-session-restore",
+  "lcars-custom-pages","lcars-app-destinations","lcars-default-workstation","lcars-selected-player",
+];
+const readRecoveryConfig = () => Object.fromEntries(recoveryConfigKeys.flatMap((key)=>{const value=localStorage.getItem(key);return value===null?[]:[[key,value]];}));
+const readRecoverySnapshots = ():RecoverySnapshot[] => {try{const value=JSON.parse(localStorage.getItem("lcars-config-snapshots")||"[]");return Array.isArray(value)?value.slice(0,5):[];}catch{return[];}};
+const createRecoverySnapshot = (reason:string) => {
+  const values=readRecoveryConfig(),existing=readRecoverySnapshots();
+  if(existing[0]&&JSON.stringify(existing[0].values)===JSON.stringify(values))return existing;
+  const snapshot:RecoverySnapshot={id:`snapshot-${Date.now()}`,created:new Date().toISOString(),reason,values};
+  const snapshots=[snapshot,...existing].slice(0,5);localStorage.setItem("lcars-config-snapshots",JSON.stringify(snapshots));return snapshots;
+};
+const restoreRecoveryValues = (values:Record<string,string>) => {
+  recoveryConfigKeys.forEach((key)=>localStorage.removeItem(key));Object.entries(values).forEach(([key,value])=>{if(recoveryConfigKeys.includes(key)&&typeof value==="string")localStorage.setItem(key,value);});
+};
+
 export default function Home() {
   const [theme, setTheme] = useState("classic"),
     [section, setSection] = useState("overview"),
     [sound, setSound] = useState(true);
   const [volume, setVolume] = useState(64),
+    [audioMuted, setAudioMuted] = useState(false),
     [allOpen, setAllOpen] = useState(false),
     [editOpen, setEditOpen] = useState(false);
   const [bayApp, setBayApp] = useState<App | null>(null),
@@ -375,6 +408,7 @@ export default function Home() {
   const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({ interfaces: [], diagnostics: { gateway: false, dns: false, internet: false, latency: null }, bluetooth: false }),
     [startupVisible, setStartupVisible] = useState(true);
   const [extensions, setExtensions] = useState<ExtensionManifest[]>([]);
+  const [quarantinedExtensions,setQuarantinedExtensions]=useState<string[]>([]);
   const [customPages,setCustomPages]=useState<CustomPage[]>([]),
     [appDestinations,setAppDestinations]=useState<Record<string,ApplicationDestination>>({});
   const [firstRun, setFirstRun] = useState(false),
@@ -406,28 +440,32 @@ export default function Home() {
     [defaultWorkstation, setDefaultWorkstation] = useState("");
   const [lcarsUpdate, setLcarsUpdate] = useState<UpdateInfo | null>(null);
   const [startupAudioStatus,setStartupAudioStatus]=useState("NOT TESTED · SYSTEM DEFAULT OUTPUT");
+  const [safeMode,setSafeMode]=useState(false);
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get(
       "section",
     );
-    const restore = localStorage.getItem("lcars-session-restore") !== "false";
-    setSessionRestore(restore);
+    const safeBoot=sessionStorage.getItem("lcars-safe-mode")==="1";
+    let restoredQuarantine:string[]=[];
+    if(!safeBoot)try{const quarantine=JSON.parse(localStorage.getItem("lcars-extension-quarantine")||"[]");if(Array.isArray(quarantine))restoredQuarantine=quarantine.filter((item):item is string=>typeof item==="string");}catch{}
+    const restore = !safeBoot && localStorage.getItem("lcars-session-restore") !== "false";
+    queueMicrotask(()=>{setSafeMode(safeBoot);setQuarantinedExtensions(restoredQuarantine);setSessionRestore(restore);});
     if (requested && (nav.some((n) => n[0] === requested)||requested.startsWith("custom:"))) setSection(requested);
     else if (restore && localStorage.getItem("lcars-last-section"))
       setSection(localStorage.getItem("lcars-last-section") || "overview");
-    const t = localStorage.getItem("lcars-theme"),
-      f = localStorage.getItem("lcars-favorites"),
-      w = localStorage.getItem("lcars-overview-widgets"),
-      z = localStorage.getItem("lcars-widget-sizes"),
-      p = localStorage.getItem("lcars-pinned-players"),
-      s = localStorage.getItem("lcars-shell-prefs"),
-      a = localStorage.getItem("lcars-accessibility"),
-      pr = localStorage.getItem("lcars-workspaces"),
+    const t = safeBoot?null:localStorage.getItem("lcars-theme"),
+      f = safeBoot?null:localStorage.getItem("lcars-favorites"),
+      w = safeBoot?null:localStorage.getItem("lcars-overview-widgets"),
+      z = safeBoot?null:localStorage.getItem("lcars-widget-sizes"),
+      p = safeBoot?null:localStorage.getItem("lcars-pinned-players"),
+      s = safeBoot?null:localStorage.getItem("lcars-shell-prefs"),
+      a = safeBoot?null:localStorage.getItem("lcars-accessibility"),
+      pr = safeBoot?null:localStorage.getItem("lcars-workspaces"),
       u = localStorage.getItem("lcars-user-name"),
-      lockData = localStorage.getItem("lcars-lock-credential"),
-      customData = localStorage.getItem("lcars-custom-pages"),
-      destinationData = localStorage.getItem("lcars-app-destinations"),
-      defaultStation = localStorage.getItem("lcars-default-workstation") || "";
+      lockData = safeBoot?null:localStorage.getItem("lcars-lock-credential"),
+      customData = safeBoot?null:localStorage.getItem("lcars-custom-pages"),
+      destinationData = safeBoot?null:localStorage.getItem("lcars-app-destinations"),
+      defaultStation = safeBoot?"":localStorage.getItem("lcars-default-workstation") || "";
     if (t) setTheme(t);
     if (f)
       try {
@@ -466,7 +504,7 @@ export default function Home() {
     if (destinationData) try { setAppDestinations(normalizeAppDestinations(JSON.parse(destinationData))); } catch {}
     setDefaultWorkstation(defaultStation);
     const remoteTerminal = requested === "terminal";
-    if (!remoteTerminal && localStorage.getItem("lcars-setup-complete") && restoredPrefs.lockOnLaunch && !(restoredPrefs.quickBootWithoutPassword && !lockData)) setLocked(true);
+    if (!safeBoot && !remoteTerminal && localStorage.getItem("lcars-setup-complete") && restoredPrefs.lockOnLaunch && !(restoredPrefs.quickBootWithoutPassword && !lockData)) setLocked(true);
     if (
       !localStorage.getItem("lcars-setup-complete") &&
       !sessionStorage.getItem("lcars-setup-dismissed")
@@ -512,15 +550,16 @@ export default function Home() {
       .then((r) => r.json())
       .then((d) => {
         if (typeof d.volume === "number") setVolume(d.volume);
+        setAudioMuted(Boolean(d.muted));
       })
       .catch(() => {});
     fetch("http://127.0.0.1:8765/api/config")
       .then((r) => r.json())
       .then((d) => {
-        if (d.shell_prefs) setPrefs(normalizePrefs(d.shell_prefs));
+        if (!safeBoot&&d.shell_prefs) setPrefs(normalizePrefs(d.shell_prefs));
       })
       .catch(() => {});
-    const getExtensions = () =>
+    const getExtensions = () => safeBoot?Promise.resolve():
       fetch("http://127.0.0.1:8765/api/extensions")
         .then((r) => r.json())
         .then((d) => setExtensions(Array.isArray(d.extensions) ? d.extensions : []))
@@ -611,6 +650,7 @@ export default function Home() {
       desktopTimer = setInterval(getDesktop, 1800),
       extensionTimer = setInterval(getExtensions, 5000);
     const startupTimer=setTimeout(()=>setStartupVisible(false),4200);
+    const stableTimer=setTimeout(()=>{if(!safeBoot)window.dispatchEvent(new CustomEvent("lcars-runtime-stable",{detail:readRecoveryConfig()}));},6500);
     return () => {
       clearInterval(timer);
       clearInterval(systemTimer);
@@ -618,6 +658,7 @@ export default function Home() {
       clearInterval(desktopTimer);
       clearInterval(extensionTimer);
       clearTimeout(startupTimer);
+      clearTimeout(stableTimer);
       window.removeEventListener("lcars-startup-audio", power);
       window.removeEventListener("lcars-startup-audio-result",reportAudio);
       window.removeEventListener("pointerdown", power);
@@ -628,7 +669,7 @@ export default function Home() {
       fetch("http://127.0.0.1:8765/api/lcars-update")
         .then((response) => response.json())
         .then((result: UpdateInfo) => {
-          if (result.ok && result.available) setLcarsUpdate(result);
+          if (result.ok && (result.available || result.rollback?.available)) setLcarsUpdate(result);
         })
         .catch(() => {});
     }, 9000);
@@ -697,6 +738,7 @@ export default function Home() {
     a.play().catch(() => {});
   };
   const choose = (id: string) => {
+    createRecoverySnapshot("Before theme change");
     beep(true);
     setTheme(id);
     localStorage.setItem("lcars-theme", id);
@@ -717,7 +759,8 @@ export default function Home() {
     else notify("Local application launching requires the installed desktop edition", "error");
   };
   const chooseAppDestination=(app:App,destination:ApplicationDestination)=>saveAppDestinations({...appDestinations,[app.id]:destination});
-  const toggleFavorite = (id: string) =>
+  const toggleFavorite = (id: string) => {
+    createRecoverySnapshot("Before favorites change");
     setFavoriteIds((old) => {
       const next = old.includes(id)
         ? old.filter((x) => x !== id)
@@ -727,6 +770,7 @@ export default function Home() {
       localStorage.setItem("lcars-favorites", JSON.stringify(next));
       return next;
     });
+  };
   const setSystemVolume = () => {
     if (bridge)
       fetch("http://127.0.0.1:8765/api/audio", {
@@ -734,6 +778,24 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ volume }),
       }).catch(() => {});
+  };
+  const toggleMasterMute = () => {
+    const muted = !audioMuted;
+    setAudioMuted(muted);
+    fetch("http://127.0.0.1:8765/api/audio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ muted }),
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.ok === false) throw new Error(result.error || "Mute unavailable");
+        notify(muted ? "Master audio muted" : "Master audio restored");
+      })
+      .catch(() => {
+        setAudioMuted(!muted);
+        notify("Master mute control is unavailable", "error");
+      });
   };
   const notify = (
     text: string,
@@ -818,11 +880,12 @@ export default function Home() {
   };
   const refreshApps=()=>fetch("http://127.0.0.1:8765/api/apps").then((response)=>response.json()).then((result)=>{if(Array.isArray(result.apps)){setApps(result.apps);notify(`Application inventory refreshed · ${result.apps.length} entries`);}}).catch(()=>notify("Application inventory could not be refreshed","error"));
   const saveWidgets = (next: WidgetId[]) => {
+    createRecoverySnapshot("Before Overview layout change");
     setWidgets(next);
     localStorage.setItem("lcars-overview-widgets", JSON.stringify(next));
   };
-  const saveCustomPages=(next:CustomPage[])=>{const normalized=normalizeCustomPages(next);setCustomPages(normalized);localStorage.setItem("lcars-custom-pages",JSON.stringify(normalized));};
-  const saveAppDestinations=(next:Record<string,ApplicationDestination>)=>{const normalized=normalizeAppDestinations(next);setAppDestinations(normalized);localStorage.setItem("lcars-app-destinations",JSON.stringify(normalized));};
+  const saveCustomPages=(next:CustomPage[])=>{createRecoverySnapshot("Before sidebar page change");const normalized=normalizeCustomPages(next);setCustomPages(normalized);localStorage.setItem("lcars-custom-pages",JSON.stringify(normalized));};
+  const saveAppDestinations=(next:Record<string,ApplicationDestination>)=>{createRecoverySnapshot("Before application destination change");const normalized=normalizeAppDestinations(next);setAppDestinations(normalized);localStorage.setItem("lcars-app-destinations",JSON.stringify(normalized));};
   const moveWidget = (id: WidgetId, direction: number) => {
     const index = widgets.indexOf(id);
     if (index < 0) return;
@@ -840,6 +903,7 @@ export default function Home() {
     setDragged(null);
   };
   const cycleSize = (id: WidgetId) => {
+    createRecoverySnapshot("Before module size change");
     const values = ["compact", "standard", "wide"],
       current = widgetSizes[id] || "standard",
       next = values[(values.indexOf(current) + 1) % values.length];
@@ -863,6 +927,50 @@ export default function Home() {
       body: JSON.stringify({ id, volume: value }),
     }).catch(() => {});
   };
+  const streamMute = (id: string, muted: boolean) => {
+    setStreams((old) =>
+      old.map((stream) => (stream.id === id ? { ...stream, muted } : stream)),
+    );
+    fetch("http://127.0.0.1:8765/api/stream-mute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, muted }),
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.ok === false) throw new Error(result.message || "Mute unavailable");
+      })
+      .catch(() => {
+        setStreams((old) =>
+          old.map((stream) =>
+            stream.id === id ? { ...stream, muted: !muted } : stream,
+          ),
+        );
+        notify("Application mute control is unavailable", "error");
+      });
+  };
+  const refreshMedia = () => {
+    Promise.all([
+      fetch("http://127.0.0.1:8765/api/media").then((response) =>
+        response.json(),
+      ),
+      fetch("http://127.0.0.1:8765/api/audio-devices").then((response) =>
+        response.json(),
+      ),
+      fetch("http://127.0.0.1:8765/api/audio").then((response) =>
+        response.json(),
+      ),
+    ])
+      .then(([media, devices, master]) => {
+        setPlayers(media.players || []);
+        setStreams(media.streams || []);
+        setAudioDevices(devices.devices || []);
+        if (typeof master.volume === "number") setVolume(master.volume);
+        setAudioMuted(Boolean(master.muted));
+        notify("Media and audio buses rescanned");
+      })
+      .catch(() => notify("Media rescan could not reach the local core", "error"));
+  };
   const chooseAudioDevice = (id: string) =>
     fetch("http://127.0.0.1:8765/api/audio-device", {
       method: "POST",
@@ -871,13 +979,19 @@ export default function Home() {
     })
       .then((r) => r.json())
       .then((d) => {
-        setAudioDevices((old) =>
-          old.map((x) => ({ ...x, default: x.id === id })),
-        );
+        setAudioDevices((old) => {
+          const selected = old.find((device) => device.id === id);
+          return old.map((device) =>
+            selected && device.kind === selected.kind
+              ? { ...device, default: device.id === id }
+              : device,
+          );
+        });
         notify(d.message || "Audio output changed");
       })
       .catch(() => notify("Unable to change audio output", "error"));
   const savePrefs = (next = prefs) => {
+    createRecoverySnapshot("Before interface settings save");
     setPrefs(next);
     localStorage.setItem("lcars-shell-prefs", JSON.stringify(next));
     fetch("http://127.0.0.1:8765/api/config", {
@@ -954,6 +1068,7 @@ export default function Home() {
     });
   };
   const togglePinned = (id: string) => {
+    createRecoverySnapshot("Before media source preference change");
     const next = pinnedPlayers.includes(id)
       ? pinnedPlayers.filter((x) => x !== id)
       : [...pinnedPlayers, id];
@@ -966,10 +1081,12 @@ export default function Home() {
       Number(pinnedPlayers.includes(a.id)),
   );
   const saveProfiles = (next: WorkspaceProfile[]) => {
+    createRecoverySnapshot("Before workstation list change");
     setProfiles(next);
     localStorage.setItem("lcars-workspaces", JSON.stringify(next));
   };
   const chooseDefaultWorkstation = (id: string) => {
+    createRecoverySnapshot("Before default workstation change");
     setDefaultWorkstation(id);
     if (id) localStorage.setItem("lcars-default-workstation", id);
     else localStorage.removeItem("lcars-default-workstation");
@@ -991,6 +1108,7 @@ export default function Home() {
     notify(name + " workspace saved");
   };
   const applyProfile = (profile: WorkspaceProfile) => {
+    createRecoverySnapshot("Before workstation profile change");
     setTheme(profile.theme);
     setWidgets(profile.widgets);
     setWidgetSizes(profile.widgetSizes);
@@ -1017,12 +1135,13 @@ export default function Home() {
     if (defaultWorkstation === id) chooseDefaultWorkstation("");
   };
   const saveAccess = (next: AccessibilityPrefs) => {
+    createRecoverySnapshot("Before accessibility setting change");
     setAccess(next);
     localStorage.setItem("lcars-accessibility", JSON.stringify(next));
   };
   const exportConfig = () => {
     const data = {
-      version: 24,
+      version: 24.1,
       theme,
       favoriteIds,
       widgets,
@@ -1052,7 +1171,8 @@ export default function Home() {
     reader.onload = () => {
       try {
         const d = JSON.parse(String(reader.result));
-        if (d.theme) choose(d.theme);
+        createRecoverySnapshot("Before configuration import");
+        if (d.theme) {setTheme(d.theme);localStorage.setItem("lcars-theme",d.theme);}
         if (Array.isArray(d.favoriteIds)) {
           setFavoriteIds(d.favoriteIds);
           localStorage.setItem(
@@ -1060,7 +1180,7 @@ export default function Home() {
             JSON.stringify(d.favoriteIds),
           );
         }
-        if (Array.isArray(d.widgets)) saveWidgets(d.widgets);
+        if (Array.isArray(d.widgets)) {setWidgets(d.widgets);localStorage.setItem("lcars-overview-widgets",JSON.stringify(d.widgets));}
         if (d.widgetSizes) {
           setWidgetSizes(d.widgetSizes);
           localStorage.setItem(
@@ -1072,14 +1192,14 @@ export default function Home() {
           const imported=normalizePrefs(d.prefs);setPrefs(imported);
           localStorage.setItem("lcars-shell-prefs", JSON.stringify(imported));
         }
-        if (d.access) saveAccess({ ...defaultAccess, ...d.access });
-        if (Array.isArray(d.profiles)) saveProfiles(d.profiles);
+        if (d.access) {const importedAccess={...defaultAccess,...d.access};setAccess(importedAccess);localStorage.setItem("lcars-accessibility",JSON.stringify(importedAccess));}
+        if (Array.isArray(d.profiles)) {setProfiles(d.profiles);localStorage.setItem("lcars-workspaces",JSON.stringify(d.profiles));}
         if (d.userName) {
           setUserName(d.userName);
           localStorage.setItem("lcars-user-name", d.userName);
         }
-        if (Array.isArray(d.customPages)) saveCustomPages(normalizeCustomPages(d.customPages));
-        if (d.appDestinations&&typeof d.appDestinations==="object") saveAppDestinations(normalizeAppDestinations(d.appDestinations));
+        if (Array.isArray(d.customPages)) {const importedPages=normalizeCustomPages(d.customPages);setCustomPages(importedPages);localStorage.setItem("lcars-custom-pages",JSON.stringify(importedPages));}
+        if (d.appDestinations&&typeof d.appDestinations==="object") {const importedDestinations=normalizeAppDestinations(d.appDestinations);setAppDestinations(importedDestinations);localStorage.setItem("lcars-app-destinations",JSON.stringify(importedDestinations));}
         notify("Configuration restored");
       } catch {
         notify("Configuration file could not be read", "error");
@@ -1177,8 +1297,10 @@ export default function Home() {
   );
   const extensionFor = (id: WidgetId) =>
     id.startsWith("ext:")
-      ? extensions.find((extension) => `ext:${extension.id}` === id)
+      ? extensions.find((extension) => `ext:${extension.id}` === id&&!quarantinedExtensions.includes(extension.id))
       : undefined;
+  const recordExtensionFailure=(id:string)=>{const key=`lcars-extension-failures:${id}`,failures=Number(localStorage.getItem(key)||"0")+1;localStorage.setItem(key,String(failures));if(failures>=2){setQuarantinedExtensions((old)=>{const next=old.includes(id)?old:[...old,id];localStorage.setItem("lcars-extension-quarantine",JSON.stringify(next));return next;});notify(`Extension ${id} was quarantined after repeated render failures`,"error");}};
+  const clearExtensionQuarantine=()=>{quarantinedExtensions.forEach((id)=>localStorage.removeItem(`lcars-extension-failures:${id}`));localStorage.removeItem("lcars-extension-quarantine");setQuarantinedExtensions([]);notify("Extension quarantine cleared; modules will be retried");};
   const activePageDensity:PageDensity=prefs.pageDensityScope==="per-page"?(prefs.pageDensities[section]||prefs.pageDensity):prefs.pageDensity;
   const widgetMeta = (id: WidgetId) => {
     const extension = extensionFor(id);
@@ -1192,7 +1314,7 @@ export default function Home() {
     if (id.startsWith("ext:")) {
       const extension = extensionFor(id);
       return extension ? (
-        extension.apiVersion===1?<ChecklistExtension extension={extension} />:<DeclarativeExtension extension={extension} placement={extension.placements.find((placement)=>placement.type==="overview")||extension.placements[0]} />
+        <ExtensionBoundary id={extension.id} name={extension.name} onFailure={recordExtensionFailure}>{extension.apiVersion===1?<ChecklistExtension extension={extension} />:<DeclarativeExtension extension={extension} placement={extension.placements.find((placement)=>placement.type==="overview")||extension.placements[0]} />}</ExtensionBoundary>
       ) : (
         <section className="overview-widget extension-widget">
           <h3>EXTENSION OFFLINE <small>MODULE API</small></h3>
@@ -1360,7 +1482,7 @@ export default function Home() {
     if(activeCustomPage.kind==="module")return <section className="detail-view custom-page-view"><header className="custom-page-cap"><small>USER-ASSIGNED MODULE</small><h3>{activeCustomPage.name}</h3></header><div className="custom-module-host">{renderWidget(activeCustomPage.target as WidgetId)}</div></section>;
     if(activeCustomPage.kind==="extension"){
       const [extensionId,placementId]=activeCustomPage.target.split("::"),extension=extensions.find((item)=>item.id===extensionId),placement=extension?.placements.find((item)=>item.id===placementId);
-      return <section className="detail-view custom-page-view"><header className="custom-page-cap"><small>LCARS EXTENSION PAGE</small><h3>{activeCustomPage.name}</h3></header>{extension?(extension.apiVersion===1?<ChecklistExtension extension={extension}/>:placement?<DeclarativeExtension extension={extension} placement={placement}/>:<p>THE SELECTED EXTENSION PLACEMENT IS NO LONGER AVAILABLE</p>):<p>EXTENSION OFFLINE · RESCAN OR REINSTALL IT FROM UPDATES</p>}</section>;
+      return <section className="detail-view custom-page-view"><header className="custom-page-cap"><small>LCARS EXTENSION PAGE</small><h3>{activeCustomPage.name}</h3></header>{extension&&!quarantinedExtensions.includes(extension.id)?<ExtensionBoundary id={extension.id} name={extension.name} onFailure={recordExtensionFailure}>{extension.apiVersion===1?<ChecklistExtension extension={extension}/>:placement?<DeclarativeExtension extension={extension} placement={placement}/>:<p>THE SELECTED EXTENSION PLACEMENT IS NO LONGER AVAILABLE</p>}</ExtensionBoundary>:<p>EXTENSION OFFLINE OR QUARANTINED · REVIEW RECOVERY SETTINGS</p>}</section>;
     }
     const app=apps.find((item)=>item.id===activeCustomPage.target);
     return <CustomApplicationPage page={activeCustomPage} app={app} embedded={app?embeddedPageForApp(app):null} launch={()=>app&&launch(app)} navigate={setSection}/>;
@@ -1376,7 +1498,7 @@ export default function Home() {
         (overviewEdit && section === "overview" ? " overview-editing" : "") +
         (access.highContrast ? " accessibility-contrast" : "") +
         (access.reducedMotion ? " reduced-motion" : "") +
-        (access.colorSafe ? " color-safe" : "") + " density-" + prefs.interfaceDensity + " page-density-" + activePageDensity
+        (access.colorSafe ? " color-safe" : "") + (safeMode ? " safe-mode" : "") + " density-" + prefs.interfaceDensity + " page-density-" + activePageDensity
       }
     >
       <header className="top">
@@ -1391,7 +1513,7 @@ export default function Home() {
             INTERFACE
           </h1>
         </div>
-        {extensions.flatMap((extension)=>extension.placements.filter((placement)=>placement.type==="header").map((placement)=><ExtensionHeader key={`${extension.id}:${placement.id}`} extension={extension} placement={placement} now={clock||new Date()}/>))}
+        {extensions.filter((extension)=>!quarantinedExtensions.includes(extension.id)).flatMap((extension)=>extension.placements.filter((placement)=>placement.type==="header").map((placement)=><ExtensionBoundary key={`${extension.id}:${placement.id}`} id={extension.id} name={extension.name} onFailure={recordExtensionFailure}><ExtensionHeader extension={extension} placement={placement} now={clock||new Date()}/></ExtensionBoundary>))}
         <div className="clock">
           <b>
             {clock
@@ -1417,6 +1539,7 @@ export default function Home() {
               : "MUTED"}
         </button>
       </header>
+      {safeMode&&<button className="safe-mode-banner" onClick={()=>setSection("settings")}><b>SAFE STARTUP ACTIVE</b><span>SAVED VISUAL SETTINGS AND EXTENSIONS ARE TEMPORARILY BYPASSED · OPEN RECOVERY</span></button>}
       <div className="shell">
         <aside>
           {prefs.trayPresentation==="header"?<button className="elbow header-tray-trigger" aria-expanded={trayOpen} onClick={()=>setTrayOpen((value)=>!value)}><span>TRAY</span><small>{trayItems.length.toString().padStart(2,"0")}</small></button>:<div className="elbow"><span>SYS</span><small>47</small></div>}
@@ -1681,82 +1804,28 @@ export default function Home() {
             </section>
           )}
           {section === "media" && (
-            <section className="detail-view media-view scroll-page">
+            <section className="detail-view media-view media-console-view">
               <h3>MEDIA & AUDIO CONTROL</h3>
-              <MediaSources
+              <MediaConsole
                 players={sortedPlayers}
                 pinned={pinnedPlayers}
                 togglePinned={togglePinned}
                 control={mediaControl}
+                volume={volume}
+                muted={audioMuted}
+                setVolume={setVolume}
+                commitVolume={setSystemVolume}
+                toggleMute={toggleMasterMute}
+                devices={audioDevices}
+                chooseDevice={chooseAudioDevice}
+                streams={streams}
+                setStreamVolume={streamVolume}
+                setStreamMute={streamMute}
+                platform={platform}
+                openMedia={() => coreAction("media-player")}
+                openDevices={() => coreAction("audio-settings")}
+                refresh={refreshMedia}
               />
-              <div className="volume-console">
-                <span>MASTER AUDIO OUTPUT</span>
-                <strong>{volume}%</strong>
-                <input
-                  aria-label="Master audio"
-                  type="range"
-                  value={volume}
-                  onChange={(e) => setVolume(+e.target.value)}
-                  onPointerUp={setSystemVolume}
-                />
-                <div className="audio-routing">
-                  {(["output", "input"] as const).map((kind) => {
-                    const devices = audioDevices.filter((d) => d.kind === kind);
-                    return (
-                      <label className="audio-device-select" key={kind}>
-                        <span>
-                          {kind === "output"
-                            ? "OUTPUT DEVICE"
-                            : "INPUT / MICROPHONE"}
-                        </span>
-                        <select
-                          aria-label={
-                            kind === "output"
-                              ? "Audio output device"
-                              : "Audio input device"
-                          }
-                          value={devices.find((d) => d.default)?.id || ""}
-                          onChange={(e) => chooseAudioDevice(e.target.value)}
-                        >
-                          <option value="" disabled>
-                            {devices.length
-                              ? "SELECT DEVICE"
-                              : "NO PIPEWIRE DEVICES DETECTED"}
-                          </option>
-                          {devices.map((d) => (
-                            <option value={d.id} key={d.id}>
-                              {d.default ? "● " : ""}
-                              {d.name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    );
-                  })}
-                </div>
-                <div>
-                  <button
-                    onClick={() => {
-                      setVolume(0);
-                      if (bridge)
-                        fetch("http://127.0.0.1:8765/api/audio", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ volume: 0 }),
-                        });
-                    }}
-                  >
-                    MUTE
-                  </button>
-                  <button onClick={() => coreAction("media-player")}>
-                    OPEN MEDIA PLAYER
-                  </button>
-                  <button onClick={() => coreAction("audio-settings")}>
-                    AUDIO DEVICES
-                  </button>
-                </div>
-              </div>
-              <StreamVolumes streams={streams} setVolume={streamVolume} />
             </section>
           )}
           {section === "network" && (
@@ -1802,11 +1871,13 @@ export default function Home() {
                 setDoNotDisturb={setDoNotDisturb}
                 sessionRestore={sessionRestore}
                 setSessionRestore={(v) => {
+                  createRecoverySnapshot("Before session restore change");
                   setSessionRestore(v);
                   localStorage.setItem("lcars-session-restore", String(v));
                 }}
                 userName={userName}
                 setUserName={(v) => {
+                  createRecoverySnapshot("Before operator name change");
                   setUserName(v);
                   localStorage.setItem("lcars-user-name", v);
                 }}
@@ -1831,6 +1902,9 @@ export default function Home() {
                 recheck={() => coreAction("integration-recheck")}
                 startupAudioStatus={startupAudioStatus}
                 testStartupAudio={async()=>{const result=await window.__lcarsPlayStartupSound?.(true);if(result)setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);}}
+                safeMode={safeMode}
+                quarantinedExtensions={quarantinedExtensions}
+                clearExtensionQuarantine={clearExtensionQuarantine}
               />
               <CustomPageManager pages={customPages} apps={apps} extensions={extensions} change={saveCustomPages}/>
               <ExtensionSettings extensions={extensions}/>
@@ -2378,7 +2452,7 @@ function UpdateCenter({
 }) {
   const windows = platform.includes("WINDOWS");
   const [updateBusy,setUpdateBusy]=useState<""|"check"|"download"|"install">("");
-  const updateOperation=async(operation:"check"|"download"|"install")=>{
+  const updateOperation=async(operation:"check"|"download"|"install"|"rollback")=>{
     setUpdateBusy(operation);
     try{
       const response=await fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,path:update?.path||""})});
@@ -2426,13 +2500,13 @@ function UpdateCenter({
           number="02"
           eyebrow="LCARS RELEASE CHANNEL"
           title="LCARS INTERFACE"
-          status={updateBusy?updateBusy.toUpperCase()+"…":update?.downloaded?"VERIFIED / READY":update?.available?`V${update.version} AVAILABLE`:"V24 CHANNEL"}
+          status={updateBusy?updateBusy.toUpperCase()+"…":update?.downloaded?"VERIFIED / READY":update?.available?`V${update.version} AVAILABLE`:"V24.1 CHANNEL"}
           description={update?.available?`A newer signed release is available from GitHub${update.asset?.name?`: ${update.asset.name}`:""}.`:"Background checks stay silent when offline. Manual checks report useful connection and verification details here."}
           primary={update?.downloaded?"INSTALL VERIFIED UPDATE":update?.available?"DOWNLOAD & VERIFY":"CHECK FOR LCARS UPDATE"}
-          secondary="ROLL BACK RELEASE"
+          secondary={update?.rollback?.available?"RESTORE PREVIOUS RELEASE":"ROLLBACK STATUS"}
           primaryAction={() => updateOperation(update?.downloaded?"install":update?.available?"download":"check")}
-          secondaryAction={() => action("lcars-rollback")}
-          stamp={update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"AUTOMATIC GITHUB RELEASE CHANNEL · BACKGROUND ERRORS SILENT"}
+          secondaryAction={() => updateOperation("rollback")}
+          stamp={update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:update?.rollback?.available?`ROLLBACK ${update.rollback.sha256?.slice(0,12).toUpperCase()||"ARCHIVED"}… · PREVIOUS LINUX RELEASE READY`:"AUTOMATIC GITHUB RELEASE CHANNEL · BACKGROUND ERRORS SILENT"}
         />
         <UpdatePanel
           number="03"
@@ -2465,8 +2539,23 @@ function UpdateCenter({
           <article><i className="ready">E</i><span><b>LCARS EXTENSIONS</b><small>DECLARATIVE MODULE BAY · MANUALLY INSTALLED</small></span><button onClick={() => action("extension-folder")}>OPEN BAY</button></article>
         </div>
       </aside>
+      {update?.notes && <details className="release-notes"><summary>RELEASE NOTES · VERSION {update.version}</summary><pre>{update.notes}</pre></details>}
+      <DiagnosticsCenter health={health} notify={notify} action={action} />
     </section>
   );
+}
+
+function DiagnosticsCenter({health,notify,action}:{health:Health;notify:(text:string,kind?:"info"|"error")=>void;action:(value:string)=>void}) {
+  const [report,setReport]=useState<DiagnosticsReport|null>(null),[busy,setBusy]=useState(false),[expanded,setExpanded]=useState(true);
+  const scan=async()=>{setBusy(true);try{const response=await fetch("http://127.0.0.1:8765/api/diagnostics");const data=await response.json();if(!response.ok)throw new Error(data.error||"Diagnostic scan failed");setReport(data);notify("Full local diagnostic scan complete");}catch(error){notify(error instanceof Error?error.message:"Diagnostic scan failed","error");}finally{setBusy(false);}};
+  const exportReport=async()=>{setBusy(true);try{const response=await fetch("http://127.0.0.1:8765/api/diagnostics-export",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});const data=await response.json();if(!response.ok)throw new Error(data.error||"Support export failed");notify(data.message||"Privacy-safe support report exported");}catch(error){notify(error instanceof Error?error.message:"Support export failed","error");}finally{setBusy(false);}};
+  const matrix=report?.health||health, ready=Object.values(matrix).filter((item)=>item.available).length,total=Object.keys(matrix).length;
+  return <aside className="diagnostics-center">
+    <header><div><small>OPERATIONS & RECOVERY</small><h4>DIAGNOSTICS CENTER</h4><p>Checks local adapters and creates a privacy-scrubbed support file without collecting personal content.</p></div><strong>{String(ready).padStart(2,"0")}<small>/ {String(total).padStart(2,"0")} READY</small></strong></header>
+    <nav><button disabled={busy} onClick={scan}>{busy?"SCANNING…":"RUN FULL CHECK"}</button><button disabled={busy} onClick={exportReport}>EXPORT SAFE SUPPORT REPORT</button><button onClick={()=>action("repair-installation")}>REPAIR INSTALLATION</button><button onClick={()=>setExpanded(!expanded)}>{expanded?"COLLAPSE MATRIX":"SHOW MATRIX"}</button></nav>
+    {expanded&&<div className="diagnostic-matrix">{Object.entries(matrix).map(([name,item],index)=><article className={item.available?"ready":"attention"} key={name}><i>{String(index+1).padStart(2,"0")}</i><span><b>{name.replaceAll("_"," ").toUpperCase()}</b><small>{item.detail}</small>{!item.available&&item.remedy&&<em>{item.remedy}</em>}</span><strong>{item.available?"READY":"ACTION"}</strong></article>)}</div>}
+    <footer><b>PRIVACY FILTER ACTIVE</b><span>{report?.privacy||"The export excludes usernames, home paths, file names, credentials, terminal history, window titles, and media titles."}</span>{report?.generatedUtc&&<small>LAST FULL CHECK · {new Date(report.generatedUtc).toLocaleString()}</small>}</footer>
+  </aside>;
 }
 
 function UpdatePanel({
@@ -3130,6 +3219,9 @@ function ShellSettings({
   recheck,
   startupAudioStatus,
   testStartupAudio,
+  safeMode,
+  quarantinedExtensions,
+  clearExtensionQuarantine,
 }: {
   platform: string;
   prefs: ShellPrefs;
@@ -3142,6 +3234,9 @@ function ShellSettings({
   recheck: () => void;
   startupAudioStatus: string;
   testStartupAudio: () => void | Promise<void>;
+  safeMode: boolean;
+  quarantinedExtensions: string[];
+  clearExtensionQuarantine: () => void;
 }) {
   const set = <K extends keyof ShellPrefs>(key: K, value: ShellPrefs[K]) =>
     setPrefs({ ...prefs, [key]: value });
@@ -3328,6 +3423,7 @@ function ShellSettings({
             <small>RECOVERY LINK</small>
             <b>ARMED</b>
           </div>
+          <RecoveryControls safeMode={safeMode} quarantinedExtensions={quarantinedExtensions} clearExtensionQuarantine={clearExtensionQuarantine} />
           <h4>INTEGRATION HEALTH</h4>
           <p>Shows whether each local service needed by LCARS is available.</p>
           <div className="health-grid">
@@ -3335,7 +3431,7 @@ function ShellSettings({
               <p key={name}>
                 <i className={item.available ? "ok" : "bad"} />
                 <span>
-                  <b>{name.toUpperCase()}</b>
+                  <b>{name.replaceAll("_", " ").toUpperCase()}</b>
                   <small>{item.detail}</small>
                 </span>
               </p>
@@ -3351,6 +3447,23 @@ function ShellSettings({
       </button>
     </div>
   );
+}
+
+function RecoveryControls({safeMode,quarantinedExtensions,clearExtensionQuarantine}:{safeMode:boolean;quarantinedExtensions:string[];clearExtensionQuarantine:()=>void}) {
+  const [snapshots,setSnapshots]=useState<RecoverySnapshot[]>(()=>typeof window==="undefined"?[]:readRecoverySnapshots()),[status,setStatus]=useState(safeMode?"SAFE MODE ACTIVE · EXTENSIONS AND SAVED VISUAL SETTINGS ARE BYPASSED":"NORMAL STARTUP MODE");
+  const snapshot=()=>{setSnapshots(createRecoverySnapshot("Manual recovery point"));setStatus("RECOVERY POINT CREATED");};
+  const restoreAndReload=async(values:Record<string,string>)=>{restoreRecoveryValues(values);sessionStorage.removeItem("lcars-safe-mode");try{const shellPrefs=JSON.parse(values["lcars-shell-prefs"]||"{}");await fetch("http://127.0.0.1:8765/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({shell_prefs:shellPrefs})});}catch{}location.reload();};
+  const restore=(item:RecoverySnapshot)=>{createRecoverySnapshot("Before recovery restore");void restoreAndReload(item.values);};
+  const startSafe=()=>{sessionStorage.setItem("lcars-safe-mode","1");location.reload();};
+  const leaveSafe=()=>{sessionStorage.removeItem("lcars-safe-mode");location.reload();};
+  const restoreLastGood=()=>{try{const value=JSON.parse(localStorage.getItem("lcars-last-known-good")||"null");if(!value?.values)throw new Error();createRecoverySnapshot("Before last-known-good restore");void restoreAndReload(value.values);}catch{setStatus("NO LAST-KNOWN-GOOD CONFIGURATION IS AVAILABLE");}};
+  return <section className="recovery-controls">
+    <header><span><b>SAFE STARTUP</b><small>{status}</small></span><i className={safeMode?"attention":"ready"}>{safeMode?"SAFE":"READY"}</i></header>
+    <p>Safe Mode starts with the built-in theme, default layout, and no extensions. Your saved configuration remains untouched.</p>
+    <nav>{safeMode?<button onClick={leaveSafe}>RETURN TO NORMAL MODE</button>:<button onClick={startSafe}>RESTART IN SAFE MODE</button>}<button onClick={restoreLastGood}>RESTORE LAST KNOWN GOOD</button><button onClick={snapshot}>CREATE RECOVERY POINT</button></nav>
+    <div className="recovery-snapshots"><small>AUTOMATIC CONFIGURATION SNAPSHOTS · MAXIMUM 5</small>{snapshots.length?snapshots.map((item)=><article key={item.id}><span><b>{item.reason}</b><small>{new Date(item.created).toLocaleString()}</small></span><button onClick={()=>restore(item)}>RESTORE</button></article>):<p>NO SNAPSHOTS YET · ONE IS CREATED BEFORE SAVES, IMPORTS, AND WORKSTATION CHANGES</p>}</div>
+    <div className="extension-quarantine"><span><b>EXTENSION QUARANTINE</b><small>{quarantinedExtensions.length?`${quarantinedExtensions.length} MODULE(S) ISOLATED · ${quarantinedExtensions.join(", ")}`:"NO EXTENSION FAILURES ISOLATED"}</small></span><button disabled={!quarantinedExtensions.length} onClick={clearExtensionQuarantine}>RETRY MODULES</button></div>
+  </section>;
 }
 
 function SpeedDialEditor({items,extensions,customPages,change}:{items:SpeedDialItem[];extensions:ExtensionManifest[];customPages:CustomPage[];change:(items:SpeedDialItem[])=>void}) {
@@ -3633,6 +3746,12 @@ function OverviewEditor({
 }
 
 type ChecklistItem = { id: string; text: string; done: boolean };
+class ExtensionBoundary extends Component<{id:string;name:string;onFailure:(id:string)=>void;children:ReactNode},{failed:boolean}> {
+  state={failed:false};
+  static getDerivedStateFromError(){return{failed:true};}
+  componentDidCatch(error:unknown){console.error(`LCARS extension ${this.props.id} was isolated`,error);this.props.onFailure(this.props.id);}
+  render(){return this.state.failed?<section className="overview-widget extension-widget extension-isolated"><h3>EXTENSION ISOLATED <small>SAFE RENDERER</small></h3><b>{this.props.name}</b><p>This module failed inside its protected renderer. LCARS remains operational; retry or inspect it in Settings → Recovery.</p></section>:this.props.children;}
+}
 function ChecklistExtension({ extension }: { extension: ExtensionManifest }) {
   const storageKey = `lcars-extension-state:${extension.id}`;
   const defaults = (extension.placements[0]?.ui.find((node)=>node.type==="list")?.items || []).map((text, index) => ({
@@ -3711,6 +3830,306 @@ function DeclarativeExtension({extension,placement}:{extension:ExtensionManifest
   return <section className="overview-widget extension-widget declarative-extension"><h3>{placement.title.toUpperCase()} <small>EXT API {extension.apiVersion} · {extension.version}</small></h3><div className="extension-primitives">{placement.ui.map(render)}</div></section>;
 }
 function ExtensionHeader({extension,placement,now}:{extension:ExtensionManifest;placement:ExtensionPlacement;now:Date}){const node=placement.ui.find((item)=>item.type==="clock"||item.type==="text");let value=node?.text||extension.name;if(node?.type==="clock")value=node.source==="stardate"?`${now.getUTCFullYear()}.${Math.floor(((now.getTime()-Date.UTC(now.getUTCFullYear(),0,1))/(Date.UTC(now.getUTCFullYear()+1,0,1)-Date.UTC(now.getUTCFullYear(),0,1)))*1000).toString().padStart(3,"0")}`:now.toLocaleTimeString();return <div className="extension-header-item" title={`${extension.name} · Extension API ${extension.apiVersion}`}><small>{node?.label||placement.title}</small><b>{value}</b></div>;}
+const formatMediaTime = (seconds = 0) => {
+  const safe = Math.max(0, Math.floor(seconds));
+  return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, "0")}`;
+};
+
+function MediaConsole({
+  players,
+  pinned,
+  togglePinned,
+  control,
+  volume,
+  muted,
+  setVolume,
+  commitVolume,
+  toggleMute,
+  devices,
+  chooseDevice,
+  streams,
+  setStreamVolume,
+  setStreamMute,
+  platform,
+  openMedia,
+  openDevices,
+  refresh,
+}: {
+  players: Player[];
+  pinned: string[];
+  togglePinned: (id: string) => void;
+  control: (player: string, command: string) => void;
+  volume: number;
+  muted: boolean;
+  setVolume: (value: number) => void;
+  commitVolume: () => void;
+  toggleMute: () => void;
+  devices: AudioDevice[];
+  chooseDevice: (id: string) => void;
+  streams: Stream[];
+  setStreamVolume: (id: string, value: number) => void;
+  setStreamMute: (id: string, muted: boolean) => void;
+  platform: string;
+  openMedia: () => void;
+  openDevices: () => void;
+  refresh: () => void;
+}) {
+  const [pane, setPane] = useState<"players" | "master" | "mixer">("players"),
+    [selectedId, setSelectedId] = useState(() =>
+      typeof window === "undefined"
+        ? ""
+        : localStorage.getItem("lcars-selected-player") || "",
+    );
+  useEffect(() => {
+    if (players.some((player) => player.id === selectedId)) return;
+    const next =
+      players.find((player) => player.status.toLowerCase() === "playing") ||
+      players.find((player) => pinned.includes(player.id)) ||
+      players[0];
+    setSelectedId(next?.id || "");
+  }, [players, pinned, selectedId]);
+  const selectPlayer = (id: string) => {
+      setSelectedId(id);
+      localStorage.setItem("lcars-selected-player", id);
+    },
+    selected = players.find((player) => player.id === selectedId) || players[0],
+    otherPlayers = players.filter((player) => player.id !== selected?.id),
+    outputs = devices.filter((device) => device.kind === "output"),
+    inputs = devices.filter((device) => device.kind === "input"),
+    output = outputs.find((device) => device.default),
+    input = inputs.find((device) => device.default);
+  const initials = (name = "MEDIA") =>
+    name
+      .split(/\s+/)
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  return (
+    <>
+      <nav className="media-console-tabs" aria-label="Media console sections">
+        {([
+          ["players", "NOW PLAYING"],
+          ["master", "MASTER AUDIO"],
+          ["mixer", "APP MIXER"],
+        ] as const).map(([id, label]) => (
+          <button
+            className={pane === id ? "active" : ""}
+            aria-pressed={pane === id}
+            onClick={() => setPane(id)}
+            key={id}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+      <div className="media-console">
+        <section
+          className={`media-zone media-player-zone ${pane === "players" ? "active-pane" : ""}`}
+        >
+          <header>
+            <span>
+              <small>MEDIA SOURCE CONTROL</small>
+              <b>NOW PLAYING</b>
+            </span>
+            <i>{String(players.length).padStart(2, "0")}</i>
+          </header>
+          {selected ? (
+            <div className="media-player-stack">
+              <article className="selected-media-player">
+                <i className="selected-media-art">
+                  {selected.artUrl ? (
+                    <img src={selected.artUrl} alt={`${selected.title} artwork`} />
+                  ) : selected.icon ? (
+                    <img src={selected.icon} alt="" />
+                  ) : (
+                    initials(selected.name)
+                  )}
+                </i>
+                <span className="selected-media-title">
+                  <small>
+                    {selected.name.toUpperCase()} · {selected.status.toUpperCase()}
+                  </small>
+                  <strong>{selected.title || "NO MEDIA TITLE"}</strong>
+                  <small>
+                    {selected.artist || "UNKNOWN ARTIST"}
+                    {selected.album ? ` · ${selected.album}` : ""}
+                  </small>
+                </span>
+                <button
+                  className={`selected-media-pin ${pinned.includes(selected.id) ? "pinned" : ""}`}
+                  onClick={() => togglePinned(selected.id)}
+                  aria-label={`${pinned.includes(selected.id) ? "Unpin" : "Pin"} ${selected.name}`}
+                  title="Keep this source at the top"
+                >
+                  {pinned.includes(selected.id) ? "★" : "☆"}
+                </button>
+                <div className="selected-media-progress">
+                  <span>{formatMediaTime(selected.position)}</span>
+                  <i>
+                    <b
+                      style={{
+                        width: `${selected.length ? Math.min(100, ((selected.position || 0) / selected.length) * 100) : 0}%`,
+                      }}
+                    />
+                  </i>
+                  <span>{selected.length ? formatMediaTime(selected.length) : "--:--"}</span>
+                </div>
+                <nav className="selected-media-transport" aria-label={`${selected.name} playback controls`}>
+                  <button title="Previous" aria-label="Previous" onClick={() => control(selected.id, "previous")}>◀◀</button>
+                  <button className="primary" title="Play or pause" aria-label="Play or pause" onClick={() => control(selected.id, "play-pause")}>{selected.status === "Playing" ? "Ⅱ" : "▶"}</button>
+                  <button title="Next" aria-label="Next" onClick={() => control(selected.id, "next")}>▶▶</button>
+                  <button title="Shuffle" aria-label="Shuffle" onClick={() => control(selected.id, "shuffle")}>SHUF</button>
+                  <button title="Stop" aria-label="Stop" onClick={() => control(selected.id, "stop")}>■</button>
+                </nav>
+              </article>
+              <div className="media-source-list">
+                {otherPlayers.length ? (
+                  otherPlayers.map((player) => (
+                    <article className="media-source-row" key={player.id}>
+                      <button className="media-source-select" onClick={() => selectPlayer(player.id)} aria-label={`Show ${player.name}`}>
+                        <i>{player.icon ? <img src={player.icon} alt="" /> : initials(player.name)}</i>
+                        <span><b>{player.name}</b><small>{player.title || "NO MEDIA"}</small></span>
+                        <em className={player.status === "Playing" ? "playing" : ""}>{player.status.toUpperCase()}</em>
+                      </button>
+                      <button className="media-source-quick" title={`Play or pause ${player.name}`} aria-label={`Play or pause ${player.name}`} onClick={() => control(player.id, "play-pause")}>{player.status === "Playing" ? "Ⅱ" : "▶"}</button>
+                    </article>
+                  ))
+                ) : (
+                  <div className="media-compact-empty"><b>PRIMARY SOURCE LINKED</b><small>Additional players appear here as compact sources.</small></div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="media-compact-empty"><b>NO ACTIVE MEDIA SOURCES</b><small>Start playback in a compatible application. LCARS will detect it automatically.</small></div>
+          )}
+        </section>
+
+        <section className={`media-zone media-master-zone ${pane === "master" ? "active-pane" : ""}`}>
+          <header>
+            <span><small>SYSTEM DEFAULT BUS</small><b>MASTER AUDIO</b></span>
+            <i>{muted ? "M" : "01"}</i>
+          </header>
+          <div className="media-master-body">
+            <div className="media-master-level">
+              <strong>{volume}%</strong>
+              <small>{muted ? "OUTPUT MUTED" : "OUTPUT ACTIVE"}</small>
+            </div>
+            <input
+              className="media-master-slider"
+              aria-label="Master audio volume"
+              type="range"
+              min="0"
+              max="100"
+              value={volume}
+              onChange={(event) => setVolume(+event.target.value)}
+              onPointerUp={commitVolume}
+              onKeyUp={commitVolume}
+            />
+            <div className="media-device-routing">
+              <label htmlFor="media-output-device">
+                OUTPUT
+                <select id="media-output-device" aria-label="Audio output device" value={output?.id || ""} onChange={(event) => chooseDevice(event.target.value)}>
+                  <option value="" disabled>{outputs.length ? "SELECT OUTPUT" : platform.includes("WINDOWS") ? "NO WINDOWS OUTPUTS DETECTED" : "NO PIPEWIRE OUTPUTS DETECTED"}</option>
+                  {outputs.map((device) => <option value={device.id} key={device.id}>{device.default ? "● " : ""}{device.name}</option>)}
+                </select>
+              </label>
+              <label htmlFor="media-input-device">
+                INPUT
+                <select id="media-input-device" aria-label="Audio input or microphone device" value={input?.id || ""} onChange={(event) => chooseDevice(event.target.value)}>
+                  <option value="" disabled>{inputs.length ? "SELECT MICROPHONE" : platform.includes("WINDOWS") ? "NO WINDOWS INPUTS DETECTED" : "NO PIPEWIRE INPUTS DETECTED"}</option>
+                  {inputs.map((device) => <option value={device.id} key={device.id}>{device.default ? "● " : ""}{device.name}</option>)}
+                </select>
+              </label>
+            </div>
+            <nav className="media-master-actions">
+              <button className={muted ? "active" : ""} onClick={toggleMute}>{muted ? "RESTORE AUDIO" : "MUTE OUTPUT"}</button>
+              <button onClick={openDevices}>DEVICE DETAILS</button>
+            </nav>
+          </div>
+        </section>
+
+        <ApplicationMixer
+          streams={streams}
+          setVolume={setStreamVolume}
+          setMuted={setStreamMute}
+          openRouting={openDevices}
+          platform={platform}
+          active={pane === "mixer"}
+        />
+
+        <nav className="media-quick-strip" aria-label="Media quick controls">
+          <button onClick={openMedia}>OPEN MEDIA PLAYER</button>
+          <button onClick={openDevices}>AUDIO DEVICES</button>
+          <button onClick={refresh}>REFRESH / RESCAN</button>
+          <button disabled={!output} onClick={() => document.getElementById("media-output-device")?.focus()} title={output?.name || "No default output"}>DEFAULT OUTPUT</button>
+          <button disabled={!input} onClick={() => document.getElementById("media-input-device")?.focus()} title={input?.name || "No default input"}>DEFAULT INPUT</button>
+        </nav>
+      </div>
+    </>
+  );
+}
+
+function ApplicationMixer({
+  streams,
+  setVolume,
+  setMuted,
+  openRouting,
+  platform,
+  active,
+}: {
+  streams: Stream[];
+  setVolume: (id: string, value: number) => void;
+  setMuted: (id: string, muted: boolean) => void;
+  openRouting: () => void;
+  platform: string;
+  active: boolean;
+}) {
+  const [advanced, setAdvanced] = useState(false),
+    [expanded, setExpanded] = useState<string[]>([]);
+  const groups = Array.from(new Set(streams.map((stream) => stream.group || stream.name))).map((name) => ({
+      name,
+      items: streams.filter((stream) => (stream.group || stream.name) === name),
+    })),
+    visible = advanced ? groups : groups.filter((group) => group.items.some((stream) => !stream.advanced)),
+    hasAdvanced = groups.some((group) => group.items.some((stream) => stream.advanced));
+  const toggleExpanded = (name: string) =>
+      setExpanded((old) => old.includes(name) ? old.filter((item) => item !== name) : [...old, name]),
+    initials = (name: string) => name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
+  return (
+    <section className={`media-zone media-mixer-zone ${active ? "active-pane" : ""}`}>
+      <header>
+        <span><small>{platform.includes("WINDOWS") ? "WINDOWS CORE AUDIO" : "PIPEWIRE APPLICATION BUS"}</small><b>APPLICATION MIXER</b></span>
+        <button className="media-mixer-header-button" disabled={!hasAdvanced} onClick={() => setAdvanced(!advanced)}>{advanced ? "APPLICATIONS ONLY" : "SHOW ALL STREAMS"}</button>
+      </header>
+      <div className="media-mixer-list">
+        {visible.length ? visible.map((group) => {
+          const main = group.items.find((stream) => !stream.advanced) || group.items[0],
+            isMuted = group.items.every((stream) => Boolean(stream.muted)),
+            open = expanded.includes(group.name),
+            routeAvailable = group.items.some((stream) => stream.routeAvailable);
+          return (
+            <article className={`media-mixer-group ${isMuted ? "muted" : ""} ${main.volume > 0 ? "active" : ""}`} key={group.name}>
+              <div className="media-mixer-row">
+                <i>{main.icon ? <img src={main.icon} alt="" /> : initials(group.name)}</i>
+                <span><b>{group.name}</b><small>{group.items.length} {group.items.length === 1 ? "STREAM" : "STREAMS"}</small></span>
+                <strong>{main.volume}%</strong>
+                <input aria-label={`${group.name} volume`} type="range" min="0" max="100" value={main.volume} onChange={(event) => group.items.forEach((stream) => setVolume(stream.id, +event.target.value))} />
+                <nav className="media-mixer-actions">
+                  <button className={isMuted ? "active" : ""} aria-label={`${isMuted ? "Unmute" : "Mute"} ${group.name}`} onClick={() => group.items.forEach((stream) => setMuted(stream.id, !isMuted))}>{isMuted ? "U" : "M"}</button>
+                  <button disabled={!routeAvailable} aria-label={`Route ${group.name}`} title={routeAvailable?"Open application routing controls":"Per-application routing is unavailable on this platform"} onClick={openRouting}>ROUTE</button>
+                  <button disabled={group.items.length < 2} aria-label={`${open ? "Collapse" : "Expand"} ${group.name} streams`} onClick={() => toggleExpanded(group.name)}>{open ? "−" : "+"}</button>
+                </nav>
+              </div>
+              {open && <div className="media-stream-details">{group.items.map((stream) => <label className="media-stream-detail" key={stream.id}><span>{stream.name}</span><strong>{stream.volume}%</strong><input aria-label={`${stream.name} stream volume`} type="range" min="0" max="100" value={stream.volume} onChange={(event) => setVolume(stream.id, +event.target.value)} /><button className={stream.muted ? "active" : ""} onClick={() => setMuted(stream.id, !stream.muted)}>{stream.muted ? "U" : "M"}</button></label>)}</div>}
+            </article>
+          );
+        }) : <div className="media-compact-empty"><b>NO APPLICATION AUDIO STREAMS</b><small>Applications producing audio will appear here automatically.</small></div>}
+      </div>
+    </section>
+  );
+}
+
 function MediaSources({
   players,
   control,
@@ -3815,94 +4234,6 @@ function MediaSources({
         </div>
       )}
     </div>
-  );
-}
-function StreamVolumes({
-  streams,
-  setVolume,
-}: {
-  streams: Stream[];
-  setVolume: (id: string, value: number) => void;
-}) {
-  const [advanced, setAdvanced] = useState(false),
-    [expanded, setExpanded] = useState<string[]>([]);
-  const groups = Array.from(new Set(streams.map((s) => s.group || s.name))).map(
-    (name) => ({
-      name,
-      items: streams.filter((s) => (s.group || s.name) === name),
-    }),
-  );
-  const visible = advanced
-    ? groups
-    : groups.filter((g) => g.items.some((s) => !s.advanced));
-  const toggle = (name: string) =>
-    setExpanded((old) =>
-      old.includes(name) ? old.filter((x) => x !== name) : [...old, name],
-    );
-  return (
-    <section className="stream-volumes">
-      <h4>
-        <span>
-          APPLICATION AUDIO STREAMS <small>PIPEWIRE</small>
-        </span>
-        <button onClick={() => setAdvanced(!advanced)}>
-          {advanced ? "APPLICATIONS ONLY" : "SHOW ALL PIPEWIRE STREAMS"}
-        </button>
-      </h4>
-      {visible.length ? (
-        visible.map((group) => {
-          const main = group.items.find((s) => !s.advanced) || group.items[0],
-            open = expanded.includes(group.name);
-          return (
-            <article className="audio-group" key={group.name}>
-              <label>
-                <span>
-                  <b>{group.name}</b>
-                  <small>
-                    {main.volume}% · {group.items.length}{" "}
-                    {group.items.length === 1 ? "STREAM" : "STREAMS"}
-                  </small>
-                </span>
-                <input
-                  aria-label={group.name + " volume"}
-                  type="range"
-                  value={main.volume}
-                  onChange={(e) => setVolume(main.id, +e.target.value)}
-                />
-                <button
-                  aria-label={
-                    open ? "Collapse " + group.name : "Expand " + group.name
-                  }
-                  onClick={() => toggle(group.name)}
-                >
-                  {open ? "−" : "+"}
-                </button>
-              </label>
-              {open && (
-                <div>
-                  {group.items.map((stream) => (
-                    <label key={stream.id}>
-                      <span>
-                        <b>{stream.name}</b>
-                        <small>{stream.volume}%</small>
-                      </span>
-                      <input
-                        aria-label={stream.name + " volume"}
-                        type="range"
-                        value={stream.volume}
-                        onChange={(e) => setVolume(stream.id, +e.target.value)}
-                      />
-                    </label>
-                  ))}
-                </div>
-              )}
-            </article>
-          );
-        })
-      ) : (
-        <p>NO APPLICATION AUDIO STREAMS ARE CURRENTLY ACTIVE</p>
-      )}
-    </section>
   );
 }
 function NotificationCenter({

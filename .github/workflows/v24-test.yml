@@ -1,4 +1,4 @@
-name: Version 24 Cross-Platform Test Builds
+name: Version 24.1 Cross-Platform Test Builds
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Regression suite
-        run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs
+        run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs
       - name: Bridge and script validation
         run: |
           python3 -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/*.py
@@ -32,7 +32,7 @@ jobs:
           set -euo pipefail
           appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
           checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          stage="test-release/LCARS-Universal-Linux-Desktop-v24"
+          stage="test-release/LCARS-Universal-Linux-Desktop-v24.1"
           mkdir -p "$stage/local"
           cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
           cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
@@ -41,19 +41,19 @@ jobs:
           sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
           sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
           chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh"
-          cp "$appimage" test-release/LCARS-Command-Interface-v24-x86_64.AppImage
-          cp install-autostart.sh test-release/LCARS-Linux-Integration-v24.sh
-          chmod +x test-release/LCARS-Linux-Integration-v24.sh
-          (cd test-release && zip -qr LCARS-Universal-Linux-Desktop-v24.zip LCARS-Universal-Linux-Desktop-v24)
-          (cd test-release && sha256sum LCARS-Command-Interface-v24-x86_64.AppImage LCARS-Universal-Linux-Desktop-v24.zip LCARS-Linux-Integration-v24.sh > SHA256SUMS-24-LINUX.txt)
+          cp "$appimage" test-release/LCARS-Command-Interface-v24.1-x86_64.AppImage
+          cp install-autostart.sh test-release/LCARS-Linux-Integration-v24.1.sh
+          chmod +x test-release/LCARS-Linux-Integration-v24.1.sh
+          (cd test-release && zip -qr LCARS-Universal-Linux-Desktop-v24.1.zip LCARS-Universal-Linux-Desktop-v24.1)
+          (cd test-release && sha256sum LCARS-Command-Interface-v24.1-x86_64.AppImage LCARS-Universal-Linux-Desktop-v24.1.zip LCARS-Linux-Integration-v24.1.sh > SHA256SUMS-24.1-LINUX.txt)
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v24-linux-test
+          name: LCARS-v24.1-linux-test
           path: |
-            test-release/LCARS-Command-Interface-v24-x86_64.AppImage
-            test-release/LCARS-Universal-Linux-Desktop-v24.zip
-            test-release/LCARS-Linux-Integration-v24.sh
-            test-release/SHA256SUMS-24-LINUX.txt
+            test-release/LCARS-Command-Interface-v24.1-x86_64.AppImage
+            test-release/LCARS-Universal-Linux-Desktop-v24.1.zip
+            test-release/LCARS-Linux-Integration-v24.1.sh
+            test-release/SHA256SUMS-24.1-LINUX.txt
           retention-days: 14
 
   windows:
@@ -66,18 +66,18 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Regression suite
-        run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs
+        run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs
       - name: Bridge syntax
         run: python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py
       - name: Build Windows installer
         run: npm run desktop:package:windows -- --publish never
       - name: Hash installer
         shell: pwsh
-        run: Get-ChildItem release-desktop -Filter *.exe | ForEach-Object { "$(($_ | Get-FileHash -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content release-desktop/SHA256SUMS-24-WINDOWS.txt
+        run: Get-ChildItem release-desktop -Filter *.exe | ForEach-Object { "$(($_ | Get-FileHash -Algorithm SHA256).Hash.ToLower())  $($_.Name)" } | Set-Content release-desktop/SHA256SUMS-24.1-WINDOWS.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v24-windows-test
+          name: LCARS-v24.1-windows-test
           path: |
             release-desktop/*.exe
-            release-desktop/SHA256SUMS-24-WINDOWS.txt
+            release-desktop/SHA256SUMS-24.1-WINDOWS.txt
           retention-days: 14
