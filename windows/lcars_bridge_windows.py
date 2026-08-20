@@ -8,11 +8,11 @@ from urllib.parse import parse_qs, urlparse
 
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
 from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
-from lcars_extensions import load_extensions, extension_state, save_extension_state
+from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation
 from lcars_documents import read_document, write_document
 
 PORT=8765
-LCARS_VERSION="24.1.0"
+LCARS_VERSION="25.0.0"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -414,6 +414,43 @@ def integration_health():
         "power":{"available":True,"detail":"Windows power APIs ready","remedy":"Use the native Windows power menu if system policy blocks the request."},
     }
 
+def engineering_data():
+    processes=[];sensors=[];critical={"system","registry","smss.exe","csrss.exe","wininit.exe","services.exe","lsass.exe","winlogon.exe","dwm.exe","explorer.exe","lcars-command-interface.exe","python.exe","pythonw.exe"}
+    if psutil:
+        try:current_user=psutil.Process().username()
+        except Exception:current_user=""
+        for process in psutil.process_iter(["pid","name","cpu_percent","memory_percent","username","status"]):
+            try:
+                info=process.info;name=str(info.get("name") or "PROCESS");owner=str(info.get("username") or "")
+                if current_user and owner and owner.casefold()!=current_user.casefold():continue
+                protected=process.pid in (0,4,os.getpid(),os.getppid()) or name.casefold() in critical or "lcars" in name.casefold()
+                processes.append({"pid":process.pid,"name":name[:80],"cpu":round(float(info.get("cpu_percent") or 0),1),"memory":round(float(info.get("memory_percent") or 0),1),"user":owner.split("\\")[-1][:48],"state":"stopped" if str(info.get("status"))==getattr(psutil,"STATUS_STOPPED","stopped") else "running","protected":protected})
+            except Exception:pass
+        processes.sort(key=lambda item:(item["cpu"],item["memory"]),reverse=True)
+        try:
+            battery=psutil.sensors_battery()
+            if battery:sensors.append({"id":"windows-battery","name":"SYSTEM BATTERY","kind":"battery","value":f"{round(battery.percent)}%","status":"attention" if battery.percent<20 and not battery.power_plugged else "ready","detail":"AC POWER" if battery.power_plugged else "DISCHARGING"})
+        except Exception:pass
+    sensors.append({"id":"windows-storage","name":"STORAGE MATRIX","kind":"drive","value":f"{len(storage_data())} VOLUMES","status":"ready","detail":"WINDOWS VOLUME INVENTORY"})
+    sensors.append({"id":"windows-thermal","name":"THERMAL ADAPTER","kind":"temperature","value":"OS MANAGED","status":"unavailable","detail":"WINDOWS DOES NOT EXPOSE A UNIVERSAL NON-ADMIN SENSOR API"})
+    return {"generated":int(time.time()),"processes":processes[:80],"sensors":sensors,"processControl":bool(psutil),"serviceControl":False,"notes":["Only current-user processes are offered for control","Windows and LCARS processes remain protected"]}
+
+def process_action(pid,action):
+    if not psutil:raise RuntimeError("the optional psutil component is not installed")
+    if action not in ("terminate","suspend","resume"):raise ValueError("unsupported process action")
+    process=psutil.Process(int(pid));name=process.name().casefold()
+    if process.pid in (0,4,os.getpid(),os.getppid()) or name in {"system","registry","smss.exe","csrss.exe","wininit.exe","services.exe","lsass.exe","winlogon.exe","dwm.exe","explorer.exe"} or "lcars" in name:raise PermissionError("this Windows or LCARS process is protected")
+    try:
+        if process.username().casefold()!=psutil.Process().username().casefold():raise PermissionError("LCARS only controls processes owned by the current user")
+    except psutil.AccessDenied:raise PermissionError("Windows protected this process")
+    {"terminate":process.terminate,"suspend":process.suspend,"resume":process.resume}[action]()
+    return {"ok":True,"message":f"Process {pid} {action} command accepted"}
+
+def routine_command(command):
+    commands={"refresh-applications":lambda:"Application inventory refreshed","integration-recheck":lambda:protected_action("integration-recheck"),"open-system-monitor":lambda:protected_action("system-monitor"),"open-software-center":lambda:protected_action("software-center")}
+    if command not in commands:raise PermissionError("routine command is not on the LCARS allowlist")
+    return {"ok":True,"message":commands[command]()}
+
 def diagnostics_report():
     try:extensions=extension_manifests()
     except Exception as exc:extensions={"extensions":[],"errors":[{"error":type(exc).__name__}]}
@@ -453,11 +490,15 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/health-check":return self.send_json({"health":integration_health()})
         if route=="/api/diagnostics":return self.send_json(diagnostics_report())
         if route=="/api/extensions":return self.send_json(extension_manifests())
+        if route=="/api/extension-catalog":return self.send_json(build_extension_catalog(EXTENSION_DIR,BUILTIN_EXTENSION_DIR))
+        if route=="/api/engineering":return self.send_json(engineering_data())
         if route=="/api/extension-state":
             try:return self.send_json({"state":extension_state(EXTENSION_STATE_DIR,parse_qs(parsed.query).get("id",[""])[0])})
             except Exception as exc:return self.send_json({"error":str(exc)},400)
         if route=="/api/lcars-update":
-            try:return self.send_json({**check_update(LCARS_VERSION,"windows"),"rollback":rollback_status("windows",os.environ.get("LCARS_EXECUTABLE",""),CONFIG_DIR/"previous-release")})
+            try:
+                channel=parse_qs(parsed.query).get("channel",["stable"])[0]
+                return self.send_json({**check_update(LCARS_VERSION,"windows",channel),"rollback":rollback_status("windows",os.environ.get("LCARS_EXECUTABLE",""),CONFIG_DIR/"previous-release")})
             except Exception as exc:return self.send_json({"ok":False,"silent":True,"error":str(exc)},503)
         if route=="/api/document":
             try:return self.send_json(read_document(parse_qs(parsed.query).get("path",[""])[0]))
@@ -482,10 +523,11 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         if route=="/api/lcars-update":
             operation=str(data.get("operation","check"))
+            channel="development" if str(data.get("channel","stable"))=="development" else "stable"
             try:
                 executable=os.environ.get("LCARS_EXECUTABLE","");archive=CONFIG_DIR/"previous-release"
-                if operation=="check":return self.send_json({**check_update(LCARS_VERSION,"windows"),"rollback":rollback_status("windows",executable,archive)})
-                if operation=="download":return self.send_json({**download_update(LCARS_VERSION,"windows",UPDATE_DIR),"rollback":rollback_status("windows",executable,archive)})
+                if operation=="check":return self.send_json({**check_update(LCARS_VERSION,"windows",channel),"rollback":rollback_status("windows",executable,archive)})
+                if operation=="download":return self.send_json({**download_update(LCARS_VERSION,"windows",UPDATE_DIR,channel),"rollback":rollback_status("windows",executable,archive)})
                 if operation=="install":return self.send_json(schedule_install(str(data.get("path","")),"windows",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
                 if operation=="rollback":return self.send_json(schedule_rollback("windows",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
                 if operation=="status":return self.send_json({"ok":True,"rollback":rollback_status("windows",executable,archive)})
@@ -497,6 +539,16 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/extension-state":
             try:return self.send_json({"ok":True,"state":save_extension_state(EXTENSION_STATE_DIR,str(data.get("id","")),data.get("state",{}))})
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/extension-install":
+            try:return self.send_json(extension_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,str(data.get("id","")),str(data.get("operation","install"))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/process-action":
+            try:return self.send_json(process_action(data.get("pid",0),str(data.get("action",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+        if route=="/api/routine-command":
+            if not bool(data.get("approved")):return self.send_json({"ok":False,"error":"operator approval is required"},403)
+            try:return self.send_json(routine_command(str(data.get("command",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
         if route=="/api/document":
             try:return self.send_json(write_document(str(data.get("path","")),str(data.get("content",""))))
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)

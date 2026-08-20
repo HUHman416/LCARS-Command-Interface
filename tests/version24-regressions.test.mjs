@@ -20,7 +20,7 @@ test("lcars protocol serves audio with a playable MIME type and no HTML fallback
 });
 
 test("rail tray actuator is contained, unrotated, and labelled accessibly",()=>{
-  assert.match(page,/aria-label="Open system tray" title="System Tray"/);
+  assert.match(page,/aria-label="Open system tray" title="Tray Command Deck"/);
   assert.match(css,/right:0!important/);
   assert.match(css,/writing-mode:horizontal-tb!important/);
   assert.doesNotMatch(css,/right:-2[01]px/);
@@ -94,9 +94,9 @@ test("portable Linux registration and Windows installer autostart are opt-in",()
   assert.match(nsisOptions,/\$SMSTARTUP/);
 });
 
-test("Version 24 metadata and protected sleep voice intent stay aligned",()=>{
-  assert.match(page,/V24\.1 CHANNEL/);
+test("Current metadata and protected sleep voice intent stay aligned",()=>{
+  assert.match(page,/V25 \$\{prefs\.updateChannel\.toUpperCase\(\)\} CHANNEL/);
   assert.match(page,/sleep\|suspend/);
-  assert.match(linux,/LCARS_VERSION="24\.1\.0"/);
-  assert.match(windows,/LCARS_VERSION="24\.1\.0"/);
+  assert.match(linux,/LCARS_VERSION="25\.0\.0"/);
+  assert.match(windows,/LCARS_VERSION="25\.0\.0"/);
 });

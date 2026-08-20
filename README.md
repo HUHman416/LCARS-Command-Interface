@@ -10,14 +10,14 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/stable-v24-ff9866" alt="Stable version 24">
+  <img src="https://img.shields.io/badge/stable-v25-ff9866" alt="Stable version 25">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
 </p>
 
 <p align="center">
-  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v24"><strong>🚀 Download Version 24</strong></a>
+  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v25"><strong>🚀 Download Version 25</strong></a>
   ·
   <a href="https://github.com/HUHman416/LCARS-Command-Interface/issues">🐞 Report an issue</a>
   ·
@@ -25,18 +25,18 @@
 </p>
 
 > [!IMPORTANT]
-> **Version 24 is the current stable public release.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
+> **Version 25 is the current release prepared by this branch.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
 
 ## 📥 Choose your download
 
 | Platform | Download | Best for |
 | --- | --- | --- |
-| 🐧 Linux | [Universal Linux package](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v24/LCARS-Universal-Linux-Desktop-v24.zip) | Recommended installer bundle with desktop launcher, icon, uninstaller, dependencies, and integration tools |
-| 🐧 Linux | [Portable AppImage](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v24/LCARS-Command-Interface-v24-x86_64.AppImage) | Running LCARS directly without a traditional installation |
-| 🐧 Linux | [Search and autostart helper](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v24/LCARS-Linux-Integration-v24.sh) | Registering the portable AppImage in the application menu and optionally starting it at login |
-| 🪟 Windows | [One-click Windows setup](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v24/LCARS-Windows-Setup-v24.exe) | Normal Windows installation, Start Menu search, shortcuts, optional autostart, and clean uninstall |
-| 💻 Developers | [Version 24 source](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v24/LCARS-Command-Interface-v24-Source.zip) | Reviewing, extending, or building the project |
-| 🔐 Verification | [SHA256SUMS.txt](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v24/SHA256SUMS.txt) | Confirming that a download is complete and authentic |
+| 🐧 Linux | [Universal Linux package](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Universal-Linux-Desktop-v25.zip) | Recommended installer bundle with desktop launcher, icon, uninstaller, dependencies, and integration tools |
+| 🐧 Linux | [Portable AppImage](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Command-Interface-v25-x86_64.AppImage) | Running LCARS directly without a traditional installation |
+| 🐧 Linux | [Search and autostart helper](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Linux-Integration-v25.sh) | Registering the portable AppImage in the application menu and optionally starting it at login |
+| 🪟 Windows | [One-click Windows setup](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Windows-Setup-v25.exe) | Normal Windows installation, Start Menu search, shortcuts, optional autostart, and clean uninstall |
+| 💻 Developers | [Version 25 source](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Command-Interface-v25-Source.zip) | Reviewing, extending, or building the project |
+| 🔐 Verification | [SHA256SUMS.txt](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/SHA256SUMS.txt) | Confirming that a download is complete and authentic |
 
 The Universal Linux download contains **Linux files only**. Windows is distributed separately through the setup executable.
 
@@ -44,35 +44,36 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 
 | System | Capabilities |
 | --- | --- |
-| 🖥️ **Desktop command center** | Launch installed applications, manage up to 20 favorites, switch open windows through the Task Rail, access named system-tray services, and route supported windows between displays |
+| 🖥️ **Desktop command center** | Launch installed applications, manage up to 20 favorites, switch open windows through the Task Rail, mix named tray services with configurable command buttons, and route supported windows between displays |
 | 📊 **Live telemetry** | Inspect overall and per-core CPU use, RAM, graphics hardware, GPU memory and temperature where available, disks, removable storage, networking, and platform compatibility |
 | 🧱 **Modular Overview** | Add, remove, resize, and reorder modules in Compact, Standard, or Wide layouts; use one global density or save different sizes per page |
 | 📁 **Files and documents** | Browse local files, mount or unmount supported removable drives, preview common formats, and open text, document, and PDF workspaces in LCARS or detached windows |
 | ⌨️ **Embedded terminal** | Use isolated local shell tabs directly inside LCARS, configure terminal behavior, open another native terminal window on a selected display, and middle-click tabs to close them |
 | 🎵 **Media and audio** | Control compatible players, pin media sources, adjust master and per-application volume, and select output devices and microphones where the OS exposes them |
-| 🎨 **Personalization** | Choose six visual themes, configure the modular Speed Dial and sidebar destinations, save Workstations, adjust accessibility options, and import or export settings |
-| 🔔 **Operator tools** | Search the interface with `Ctrl+F`, open the Command Palette with `Ctrl+K`, navigate pages with number keys `1–8`, review notices, and use Do Not Disturb |
+| 🎨 **Personalization** | Choose six visual themes, configure the modular Speed Dial and sidebar destinations, pin compact Page Peeks, save richer Workstations, adjust accessibility options, and import or export settings |
+| 🔔 **Operator tools** | Build preview-first routines, search with `Ctrl+F`, open the Command Palette with `Ctrl+K`, map keyboard controls, review priority communications and command activity, and use Do Not Disturb |
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install declarative local modules and configure optional offline push-to-talk commands through `whisper.cpp` |
 
-## 🆕 Version 24 highlights
+## 🆕 Version 25 highlights
 
-- Added global or per-page **Compact, Standard, and Wide** content layouts without shifting the outer LCARS frame.
-- Added a configurable **two-to-six item Speed Dial** for pages, modules, extensions, Do Not Disturb, displays, tasks, notices, and the system tray.
-- Added custom sidebar destinations backed by installed applications, Overview modules, and compatible extensions.
-- Added immersive LCARS workspaces for compatible applications while keeping native-window launching available; `Shift`+click always requests a native window.
-- Expanded graphics, RAM, CPU-core, storage, and removable-media telemetry on Linux and Windows.
-- Rebuilt Linux system-tray discovery so entries prefer recognizable application labels and icons instead of numeric D-Bus identifiers.
-- Corrected packaged startup-audio loading and kept the startup system check visible but nonblocking.
-- Added confirmed whole-computer **Sleep** alongside Exit LCARS, Restart, and Shut Down.
-- Added opt-in application-menu registration and login startup support on both platforms.
-- Added GitHub release updates with platform-specific downloads and SHA-256 verification. Background connection failures remain silent; manual checks explain errors.
+- Added **Operations Automation** for editable multi-step routines with manual, startup, time, application, and device triggers.
+- Every routine opens a readable execution preview; approved commands and computer power steps require explicit operator confirmation and never run unattended.
+- Expanded **Workstations** to restore pages, theme, modules, favorites, audio devices, volume, applications, and supported display destinations.
+- Added an **Engineering Console** with local sensor telemetry and protected controls for current-user processes.
+- Added a unified **Communications Center** for priority notices, Do Not Disturb, and a persistent local command-activity record.
+- Added a declarative **Extension Hub** with catalog search, enable/disable controls, and guarded removal of non-bundled local extensions.
+- Rebuilt the system tray as a scrollable **Tray Command Deck** that mixes desktop services with operator-defined application, routine, and LCARS-page buttons.
+- Sidebar destinations on the modular Speed Dial now open compact **Page Peeks**; pinning keeps a Peek above other LCARS pages until released.
+- Added configurable keyboard/control mappings and voice-command access to routines.
+- Added explicit Stable and Development update channels. Automatic checks remain silent when offline; manual checks report useful errors.
+- Corrected scaled media-control alignment and retained the fixed three-zone Version 24.1 Media console.
 
 ## 🐧 Linux installation
 
 ### Recommended: Universal installer
 
-1. Download [`LCARS-Universal-Linux-Desktop-v24.zip`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v24/LCARS-Universal-Linux-Desktop-v24.zip).
+1. Download [`LCARS-Universal-Linux-Desktop-v25.zip`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Universal-Linux-Desktop-v25.zip).
 2. Extract the ZIP into a normal folder.
 3. Double-click `Install-LCARS-Linux.desktop` and choose **Execute**.
 4. Launch **LCARS Command Interface** from your application menu.
@@ -89,15 +90,15 @@ The installer detects DNF, APT, Pacman, Zypper, APK, or XBPS and installs the ma
 ### Portable AppImage
 
 ```bash
-chmod +x LCARS-Command-Interface-v24-x86_64.AppImage
-./LCARS-Command-Interface-v24-x86_64.AppImage
+chmod +x LCARS-Command-Interface-v25-x86_64.AppImage
+./LCARS-Command-Interface-v25-x86_64.AppImage
 ```
 
-To make a portable AppImage searchable from your desktop application menu, place `LCARS-Linux-Integration-v24.sh` beside it and run:
+To make a portable AppImage searchable from your desktop application menu, place `LCARS-Linux-Integration-v25.sh` beside it and run:
 
 ```bash
-chmod +x LCARS-Linux-Integration-v24.sh
-./LCARS-Linux-Integration-v24.sh --register
+chmod +x LCARS-Linux-Integration-v25.sh
+./LCARS-Linux-Integration-v25.sh --register
 ```
 
 Use `--enable-autostart` or `--disable-autostart` to control login startup. These per-user integration actions do not require `sudo`.
@@ -111,7 +112,7 @@ Double-click `Uninstall-LCARS-Linux.desktop`, or run `./uninstall-linux.sh` from
 
 ## 🪟 Windows installation
 
-1. Download [`LCARS-Windows-Setup-v24.exe`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v24/LCARS-Windows-Setup-v24.exe).
+1. Download [`LCARS-Windows-Setup-v25.exe`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Windows-Setup-v25.exe).
 2. Open the setup executable and follow the installer.
 3. Optionally enable **Start LCARS Command Interface when I sign in**.
 4. Launch LCARS from its desktop shortcut, Start Menu entry, or Windows taskbar search.
@@ -147,33 +148,22 @@ The Linux installer attempts a non-destructive FFmpeg installation but will neve
 
 ## 🔐 Verify a download
 
-Download [`SHA256SUMS.txt`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v24/SHA256SUMS.txt) from the same release and compare the appropriate file.
+Download [`SHA256SUMS.txt`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/SHA256SUMS.txt) from the same release and compare the appropriate file.
 
 ```bash
 # Linux
-sha256sum LCARS-Universal-Linux-Desktop-v24.zip
-sha256sum LCARS-Command-Interface-v24-x86_64.AppImage
+sha256sum LCARS-Universal-Linux-Desktop-v25.zip
+sha256sum LCARS-Command-Interface-v25-x86_64.AppImage
 ```
 
 ```powershell
 # Windows PowerShell
-Get-FileHash .\LCARS-Windows-Setup-v24.exe -Algorithm SHA256
+Get-FileHash .\LCARS-Windows-Setup-v25.exe -Algorithm SHA256
 ```
 
 The displayed value must exactly match the filename's line in `SHA256SUMS.txt`.
 
-<details>
-<summary><strong>Version 24 published SHA-256 values</strong></summary>
-
-```text
-765846a9f8076b109c76d3150ce0843e1c0212ee5b504bd874222807cb55d966  LCARS-Command-Interface-v24-x86_64.AppImage
-e2becb034462b9addd1e6107c45c2f19252abc43518459aee1fd2edb08359eba  LCARS-Universal-Linux-Desktop-v24.zip
-73576b5db76727297310f51a0cd8a3711739fd4fc890f34908266f5b86675f9a  LCARS-Linux-Integration-v24.sh
-09904824738f63152c823f24ba1a03bcce96a87315b568cc234db06bf5362f1d  LCARS-Windows-Setup-v24.exe
-562aa17b2d02d3e56e634c1cda447e7a988c5a228396865e31063402669896f4  LCARS-Command-Interface-v24-Source.zip
-```
-
-</details>
+Release checksums are generated from the final Linux, Windows, and source artifacts in the publishing workflow. Treat the release's `SHA256SUMS.txt` as authoritative; development-build hashes are not interchangeable with public release hashes.
 
 ## 🧩 Extensions
 
@@ -204,6 +194,14 @@ Cross-platform packaging may require additional native packaging tools. The rele
 
 <details>
 <summary><strong>📚 Earlier release foundations</strong></summary>
+
+### Version 24.1
+
+- Rebuilt Media into a fixed three-zone operations console and added recovery, repair, diagnostics, and rollback surfaces.
+
+### Version 24
+
+- Added page density, richer GPU/RAM telemetry, modular Speed Dial controls, custom sidebar pages, application destinations, whole-computer sleep, and opt-in login startup.
 
 ### Version 23.2
 

@@ -6,6 +6,7 @@ import "../app/v23-1.css";
 import "../app/v23-2.css";
 import "../app/v24.css";
 import "../app/v24-1.css";
+import "../app/v25.css";
 
 const nativeFetch: typeof window.fetch = window.fetch.bind(window);
 const compatFallback = {
@@ -36,7 +37,7 @@ window.fetch = async (input, init) => {
   return response;
 };
 
-const recoveryKeys=["lcars-theme","lcars-favorites","lcars-overview-widgets","lcars-widget-sizes","lcars-pinned-players","lcars-shell-prefs","lcars-accessibility","lcars-workspaces","lcars-user-name","lcars-session-restore","lcars-custom-pages","lcars-app-destinations","lcars-default-workstation","lcars-selected-player"];
+const recoveryKeys=["lcars-theme","lcars-favorites","lcars-overview-widgets","lcars-widget-sizes","lcars-pinned-players","lcars-shell-prefs","lcars-accessibility","lcars-workspaces","lcars-user-name","lcars-session-restore","lcars-custom-pages","lcars-app-destinations","lcars-default-workstation","lcars-selected-player","lcars-routines","lcars-activity-log","lcars-tray-shortcuts","lcars-control-mappings","lcars-disabled-extensions"];
 const restoreValues=(values:Record<string,string>)=>{recoveryKeys.forEach((key)=>localStorage.removeItem(key));Object.entries(values).forEach(([key,value])=>{if(recoveryKeys.includes(key)&&typeof value==="string")localStorage.setItem(key,value);});};
 const bootAttempts=Number(sessionStorage.getItem("lcars-boot-attempts")||"0")+1;
 sessionStorage.setItem("lcars-boot-attempts",String(bootAttempts));

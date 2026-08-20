@@ -17,7 +17,8 @@ from pathlib import Path
 
 REPOSITORY = "HUHman416/LCARS-Command-Interface"
 API_URL = f"https://api.github.com/repos/{REPOSITORY}/releases/latest"
-USER_AGENT = "LCARS-Command-Interface-Updater/24.1"
+RELEASES_URL = f"https://api.github.com/repos/{REPOSITORY}/releases?per_page=30"
+USER_AGENT = "LCARS-Command-Interface-Updater/25"
 
 
 def _request(url: str, binary: bool = False, timeout: int = 12):
@@ -41,9 +42,34 @@ def _platform_asset(assets: list[dict], system: str):
     return candidates[0] if candidates else None
 
 
-def check_update(current_version: str, system: str | None = None):
+def _release_for_channel(channel: str):
+    channel = "development" if channel == "development" else "stable"
+    if channel == "stable":
+        candidates = json.loads(_request(RELEASES_URL))
+        if not isinstance(candidates, list):
+            candidates = []
+        whole = []
+        for release in candidates:
+            tag = str(release.get("tag_name", ""))
+            parts = _version(tag)
+            if not release.get("draft") and not release.get("prerelease") and parts[1:] == (0, 0):
+                whole.append(release)
+        if whole:
+            return max(whole, key=lambda item: _version(str(item.get("tag_name", ""))))
+        return json.loads(_request(API_URL))
+    candidates = json.loads(_request(RELEASES_URL))
+    if not isinstance(candidates, list):
+        candidates = []
+    candidates = [item for item in candidates if not item.get("draft")]
+    if not candidates:
+        return json.loads(_request(API_URL))
+    return max(candidates, key=lambda item: _version(str(item.get("tag_name", ""))))
+
+
+def check_update(current_version: str, system: str | None = None, channel: str = "stable"):
     system = (system or platform.system()).lower()
-    release = json.loads(_request(API_URL))
+    channel = "development" if channel == "development" else "stable"
+    release = _release_for_channel(channel)
     tag = str(release.get("tag_name", "")).strip()
     assets = release.get("assets") if isinstance(release.get("assets"), list) else []
     asset = _platform_asset(assets, system)
@@ -51,6 +77,7 @@ def check_update(current_version: str, system: str | None = None):
     available = bool(tag and _version(tag) > _version(current_version))
     return {
         "ok": True,
+        "channel": channel,
         "available": available,
         "current": current_version,
         "version": tag.lstrip("vV"),
@@ -72,8 +99,8 @@ def _expected_hash(checksums_url: str, asset_name: str):
     return ""
 
 
-def download_update(current_version: str, system: str, update_dir: Path):
-    info = check_update(current_version, system)
+def download_update(current_version: str, system: str, update_dir: Path, channel: str = "stable"):
+    info = check_update(current_version, system, channel)
     if not info["available"]:
         return {**info, "message": "LCARS is already on the newest public release"}
     asset = info.get("asset")

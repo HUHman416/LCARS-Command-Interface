@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 from pathlib import Path
 
 API_VERSION=2
@@ -72,6 +73,28 @@ def load_extensions(extension_dir:Path, bundled_dir:Path|None=None):
             seen.add(item["id"]);items.append(item)
         except Exception as exc:errors.append({"file":path.name,"error":str(exc)})
     return {"extensions":items,"errors":errors,"directory":str(extension_dir),"apiVersion":API_VERSION}
+
+
+def extension_catalog(extension_dir:Path,bundled_dir:Path|None=None):
+    installed=load_extensions(extension_dir,bundled_dir).get("extensions",[])
+    bundled_ids=set()
+    if bundled_dir and bundled_dir.exists():
+        for path in list(bundled_dir.glob("*/lcars-module.json"))+list(bundled_dir.glob("*.lcars-module.json")):
+            try:bundled_ids.add(validate_manifest(json.loads(path.read_text(encoding="utf-8")))["id"])
+            except Exception:pass
+    return {"catalog":[{"id":item["id"],"name":item["name"],"version":item["version"],"description":item["description"],"author":item["author"],"capabilities":item.get("capabilities",[]),"installed":True,"bundled":item["id"] in bundled_ids} for item in installed],"apiVersion":API_VERSION}
+
+
+def extension_operation(extension_dir:Path,bundled_dir:Path|None,ident:str,operation:str):
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,47}",ident):raise ValueError("invalid extension id")
+    bundled_ids=set(item["id"] for item in extension_catalog(extension_dir,bundled_dir).get("catalog",[]) if item.get("bundled"))
+    if ident in bundled_ids:raise ValueError("bundled extensions can be disabled but not removed")
+    target=(extension_dir/ident).resolve();root=extension_dir.resolve()
+    if root not in target.parents:raise ValueError("invalid extension path")
+    if operation=="remove":
+        if not target.is_dir():raise ValueError("extension is not installed in the local module folder")
+        shutil.rmtree(target);return {"ok":True,"message":f"Extension {ident} removed"}
+    raise ValueError("this catalog entry has no trusted local installation payload")
 
 
 def extension_state(state_dir:Path,ident:str):

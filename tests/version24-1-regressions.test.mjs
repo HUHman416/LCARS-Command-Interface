@@ -75,10 +75,10 @@ test("Updater archives Linux releases, verifies downloads, and supports rollback
   assert.match(page,/RESTORE PREVIOUS RELEASE/);
 });
 
-test("Packaged repair support and 24.1 versions stay aligned",()=>{
+test("Packaged repair support and current bridge versions stay aligned",()=>{
   assert.match(builder,/recovery\/register-app\.sh/);
   assert.match(linux,/repair-installation/);
   assert.match(windows,/repair-installation/);
-  assert.match(linux,/LCARS_VERSION="24\.1\.0"/);
-  assert.match(windows,/LCARS_VERSION="24\.1\.0"/);
+  assert.match(linux,/LCARS_VERSION="25\.0\.0"/);
+  assert.match(windows,/LCARS_VERSION="25\.0\.0"/);
 });

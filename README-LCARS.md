@@ -47,10 +47,18 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Safe Startup, last-known-good recovery, and five automatic configuration snapshots
 - Verified GitHub updates with release notes and automatic previous-AppImage archiving for Linux rollback
 - Non-destructive installation repair for Linux desktop registration and Windows application search
+- Version 25 Operations Automation with editable, preview-first routines and guarded system steps
+- Workstation profiles that restore layout, audio, applications, and supported display destinations
+- Engineering Console with cross-platform sensors and protected current-user process controls
+- Communications Center with priority notices and persistent command activity
+- Extension Hub with declarative catalog, enable/disable controls, and guarded local removal
+- Configurable Tray Command Deck for applications, routines, LCARS pages, and desktop tray services
+- Pin-capable Speed Dial Page Peeks that stay visible while working elsewhere in LCARS
+- Stable and development update channels with quiet background checks
 
 ## Current stage
 
-Version 24.1 is the Operations & Recovery update. Its redesigned Media page keeps routine playback, volume, device, and application-mixer controls inside one fixed console; long source lists scroll inside their own panels rather than growing the whole page. Recovery tools preserve user data and are intended to make failed settings or third-party modules recoverable without reinstalling.
+Version 25 is the Operations update. It adds user-built routines, fuller Workstation restoration, an Engineering Console, a unified Communications Center, a declarative Extension Hub, configurable keyboard/control mappings, and a scrollable Tray Command Deck. Speed Dial sidebar destinations now open as compact Page Peeks that can be pinned above the rest of the LCARS interface without taking the operator away from the current page. Protected commands, process termination, and computer power steps remain confirmation-gated.
 
 For one-click Linux installation, open `Install-LCARS-Linux.desktop` or run `Install-LCARS-Linux.run`. Your file manager may ask you to mark the desktop launcher as trusted the first time it is opened. The installer places the standalone application in `~/.local/opt/lcars-command-interface`; Node.js, npm, and an external browser are not required to run it.
 

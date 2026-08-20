@@ -1,4 +1,4 @@
-name: Build Version 24 Release
+name: Build Version 25 Release
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs
+      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs
       - run: npm run desktop:package:linux -- --publish never
       - name: Assemble universal Linux package
         shell: bash
@@ -27,7 +27,7 @@ jobs:
           set -euo pipefail
           appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
           checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          stage="release/LCARS-Universal-Linux-Desktop-v24"
+          stage="release/LCARS-Universal-Linux-Desktop-v25"
           mkdir -p "$stage/local"
           cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
           cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
@@ -36,17 +36,17 @@ jobs:
           sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
           sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
           chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh"
-          cp "$appimage" release/LCARS-Command-Interface-v24-x86_64.AppImage
-          cp install-autostart.sh release/LCARS-Linux-Integration-v24.sh
-          chmod +x release/LCARS-Linux-Integration-v24.sh
-          (cd release && zip -qr LCARS-Universal-Linux-Desktop-v24.zip LCARS-Universal-Linux-Desktop-v24)
+          cp "$appimage" release/LCARS-Command-Interface-v25-x86_64.AppImage
+          cp install-autostart.sh release/LCARS-Linux-Integration-v25.sh
+          chmod +x release/LCARS-Linux-Integration-v25.sh
+          (cd release && zip -qr LCARS-Universal-Linux-Desktop-v25.zip LCARS-Universal-Linux-Desktop-v25)
       - uses: actions/upload-artifact@v4
         with:
           name: linux-release
           path: |
-            release/LCARS-Universal-Linux-Desktop-v24.zip
-            release/LCARS-Command-Interface-v24-x86_64.AppImage
-            release/LCARS-Linux-Integration-v24.sh
+            release/LCARS-Universal-Linux-Desktop-v25.zip
+            release/LCARS-Command-Interface-v25-x86_64.AppImage
+            release/LCARS-Linux-Integration-v25.sh
           retention-days: 1
 
   windows:
@@ -58,7 +58,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs
+      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs
       - run: npm run desktop:package:windows -- --publish never
       - name: Prepare Windows installer
         shell: pwsh
@@ -66,11 +66,11 @@ jobs:
           New-Item -ItemType Directory -Force release | Out-Null
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName release/LCARS-Windows-Setup-v24.exe
+          Copy-Item $installer.FullName release/LCARS-Windows-Setup-v25.exe
       - uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: release/LCARS-Windows-Setup-v24.exe
+          path: release/LCARS-Windows-Setup-v25.exe
           retention-days: 1
 
   publish:
@@ -85,23 +85,23 @@ jobs:
       - name: Create source archive and checksums
         run: |
           set -euo pipefail
-          git archive --format=zip --output=release/LCARS-Command-Interface-v24-Source.zip HEAD
-          (cd release && sha256sum LCARS-Command-Interface-v24-x86_64.AppImage LCARS-Universal-Linux-Desktop-v24.zip LCARS-Linux-Integration-v24.sh LCARS-Windows-Setup-v24.exe LCARS-Command-Interface-v24-Source.zip > SHA256SUMS.txt)
+          git archive --format=zip --output=release/LCARS-Command-Interface-v25-Source.zip HEAD
+          (cd release && sha256sum LCARS-Command-Interface-v25-x86_64.AppImage LCARS-Universal-Linux-Desktop-v25.zip LCARS-Linux-Integration-v25.sh LCARS-Windows-Setup-v25.exe LCARS-Command-Interface-v25-Source.zip > SHA256SUMS.txt)
       - name: Verify release assets against SHA256SUMS
         run: |
           set -euo pipefail
           cd release
-          test -s LCARS-Command-Interface-v24-x86_64.AppImage
-          test -s LCARS-Universal-Linux-Desktop-v24.zip
-          test -s LCARS-Linux-Integration-v24.sh
-          test -s LCARS-Windows-Setup-v24.exe
-          test -s LCARS-Command-Interface-v24-Source.zip
+          test -s LCARS-Command-Interface-v25-x86_64.AppImage
+          test -s LCARS-Universal-Linux-Desktop-v25.zip
+          test -s LCARS-Linux-Integration-v25.sh
+          test -s LCARS-Windows-Setup-v25.exe
+          test -s LCARS-Command-Interface-v25-Source.zip
           sha256sum --check SHA256SUMS.txt
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create v24 release/* \
+          gh release create v25 release/* \
             --target "$GITHUB_SHA" \
-            --title "LCARS Command Interface Version 24" \
-            --notes "Version 24 adds per-page size modes, richer GPU/RAM telemetry, a modular Speed Dial, custom sidebar pages, embedded/native application destinations, named system-tray services, reliable packaged startup audio, whole-computer sleep, and opt-in login startup. Download SHA256SUMS.txt to verify every release file."
+            --title "LCARS Command Interface Version 25" \
+            --notes "Version 25 adds preview-first Operations Automation, fuller Workstation restore, Engineering and Communications centers, a declarative Extension Hub, configurable control mappings, a mixed scrollable Tray Command Deck, and pin-capable Speed Dial Page Peeks. Protected system steps remain confirmation-gated. Download SHA256SUMS.txt to verify every release file."

@@ -4,15 +4,15 @@ import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal,
 from configparser import ConfigParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
 from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
-from lcars_extensions import load_extensions, extension_state, save_extension_state
+from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation
 from lcars_documents import read_document, write_document
 
 PORT=8765
-LCARS_VERSION="24.1.0"
+LCARS_VERSION="25.0.0"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -664,6 +664,56 @@ def integration_health():
         "power":{"available":power_ready,"detail":"systemd-logind power controls ready" if power_ready else "systemctl unavailable","remedy":"Use a systemd-logind compatible session or the operating system power menu."},
     }
 
+def engineering_data():
+    processes=[];sensors=[];current_uid=os.getuid();protected_names={"systemd","init","kthreadd","plasmashell","kwin_wayland","kwin_x11","lcars_bridge.py","lcars-command-interface"}
+    try:
+        raw=subprocess.run(["ps","-eo","pid=,comm=,%cpu=,%mem=,user=,stat=","--sort=-%cpu"],capture_output=True,text=True,timeout=3).stdout
+        for line in raw.splitlines()[:120]:
+            parts=line.split(None,5)
+            if len(parts)<6:continue
+            pid_text,name,cpu,memory,user,state=parts
+            try:pid=int(pid_text);owner=Path(f"/proc/{pid}").stat().st_uid
+            except Exception:continue
+            if owner!=current_uid:continue
+            protected=pid in {1,os.getpid(),os.getppid()} or name.casefold() in protected_names or "lcars" in name.casefold()
+            processes.append({"pid":pid,"name":name[:80],"cpu":round(float(cpu),1),"memory":round(float(memory),1),"user":user[:48],"state":"stopped" if "T" in state else "running","protected":protected})
+    except Exception:pass
+    for path in sorted(Path("/sys/class/thermal").glob("thermal_zone*"))[:8]:
+        try:
+            value=float((path/"temp").read_text().strip())/1000;name=(path/"type").read_text().strip().replace("_"," ").upper()
+            sensors.append({"id":f"temp-{path.name}","name":name or "THERMAL ZONE","kind":"temperature","value":f"{value:.1f}°C","status":"attention" if value>=85 else "ready","detail":"KERNEL THERMAL SENSOR"})
+        except Exception:pass
+    for path in sorted(Path("/sys/class/hwmon").glob("hwmon*/fan*_input"))[:8]:
+        try:
+            value=int(path.read_text().strip());name=(path.parent/"name").read_text().strip().replace("_"," ").upper()
+            sensors.append({"id":f"fan-{path.parent.name}-{path.stem}","name":name+" FAN","kind":"fan","value":f"{value} RPM","status":"ready" if value>0 else "attention","detail":"HARDWARE MONITOR"})
+        except Exception:pass
+    for path in sorted(Path("/sys/class/power_supply").glob("*")):
+        try:
+            kind=(path/"type").read_text().strip().casefold()
+            if kind not in ("battery","ups"):continue
+            capacity=int((path/"capacity").read_text().strip());state=(path/"status").read_text().strip() if (path/"status").exists() else ""
+            sensors.append({"id":f"power-{path.name}","name":path.name.upper(),"kind":"ups" if kind=="ups" else "battery","value":f"{capacity}%","status":"attention" if capacity<20 and state.casefold()!="charging" else "ready","detail":state.upper() or kind.upper()})
+        except Exception:pass
+    removable=sum(1 for drive in storage_data() if drive.get("removable"));sensors.append({"id":"storage-matrix","name":"STORAGE MATRIX","kind":"drive","value":f"{len(storage_data())} DRIVES","status":"ready","detail":f"{removable} REMOVABLE DEVICE(S)"})
+    return {"generated":int(time.time()),"processes":processes[:80],"sensors":sensors[:24],"processControl":True,"serviceControl":False,"notes":["Only processes owned by the current user can be controlled","LCARS and critical desktop processes remain protected"]}
+
+def process_action(pid,action):
+    if action not in ("terminate","suspend","resume"):raise ValueError("unsupported process action")
+    pid=int(pid);target=Path(f"/proc/{pid}")
+    if pid<=1 or pid in (os.getpid(),os.getppid()) or not target.exists():raise ValueError("process is unavailable or protected")
+    if target.stat().st_uid!=os.getuid():raise PermissionError("LCARS only controls processes owned by the current user")
+    try:name=(target/"comm").read_text().strip().casefold()
+    except Exception:name=""
+    if "lcars" in name or name in {"systemd","plasmashell","kwin_wayland","kwin_x11"}:raise PermissionError("this desktop process is protected")
+    os.kill(pid,{"terminate":signal.SIGTERM,"suspend":signal.SIGSTOP,"resume":signal.SIGCONT}[action])
+    return {"ok":True,"message":f"Process {pid} {action} command accepted"}
+
+def routine_command(command):
+    commands={"refresh-applications":lambda:"Application inventory refreshed","integration-recheck":lambda:protected_action("integration-recheck"),"open-system-monitor":lambda:protected_action("system-monitor"),"open-software-center":lambda:protected_action("software-center")}
+    if command not in commands:raise PermissionError("routine command is not on the LCARS allowlist")
+    return {"ok":True,"message":commands[command]()}
+
 def diagnostics_report():
     """Return support facts without usernames, paths, files, credentials or history."""
     environment=linux_environment();media=media_data()
@@ -792,12 +842,16 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/diagnostics": self.send_json(diagnostics_report())
         elif route=="/api/config": self.send_json(load_config())
         elif route=="/api/extensions": self.send_json(extension_manifests())
+        elif route=="/api/extension-catalog": self.send_json(build_extension_catalog(EXTENSION_DIR,BUILTIN_EXTENSION_DIR))
+        elif route=="/api/engineering": self.send_json(engineering_data())
         elif route=="/api/extension-state":
             from urllib.parse import parse_qs
             try:self.send_json({"state":extension_state(EXTENSION_STATE_DIR,parse_qs(urlparse(self.path).query).get("id",[""])[0])})
             except Exception as exc:self.send_json({"error":str(exc)},400)
         elif route=="/api/lcars-update":
-            try:self.send_json({**check_update(LCARS_VERSION,"linux"),"rollback":rollback_status("linux",os.environ.get("LCARS_EXECUTABLE",""),CONFIG_DIR/"previous-release")})
+            try:
+                channel=parse_qs(urlparse(self.path).query).get("channel",["stable"])[0]
+                self.send_json({**check_update(LCARS_VERSION,"linux",channel),"rollback":rollback_status("linux",os.environ.get("LCARS_EXECUTABLE",""),CONFIG_DIR/"previous-release")})
             except Exception as exc:self.send_json({"ok":False,"silent":True,"error":str(exc)},503)
         elif route=="/api/document":
             from urllib.parse import parse_qs
@@ -815,10 +869,11 @@ class Handler(BaseHTTPRequestHandler):
             route=urlparse(self.path).path
             if route=="/api/lcars-update":
                 operation=str(data.get("operation","check"))
+                channel="development" if str(data.get("channel","stable"))=="development" else "stable"
                 try:
                     executable=os.environ.get("LCARS_EXECUTABLE","");archive=CONFIG_DIR/"previous-release"
-                    if operation=="check":return self.send_json({**check_update(LCARS_VERSION,"linux"),"rollback":rollback_status("linux",executable,archive)})
-                    if operation=="download":return self.send_json({**download_update(LCARS_VERSION,"linux",UPDATE_DIR),"rollback":rollback_status("linux",executable,archive)})
+                    if operation=="check":return self.send_json({**check_update(LCARS_VERSION,"linux",channel),"rollback":rollback_status("linux",executable,archive)})
+                    if operation=="download":return self.send_json({**download_update(LCARS_VERSION,"linux",UPDATE_DIR,channel),"rollback":rollback_status("linux",executable,archive)})
                     if operation=="install":return self.send_json(schedule_install(str(data.get("path","")),"linux",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
                     if operation=="rollback":return self.send_json(schedule_rollback("linux",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
                     if operation=="status":return self.send_json({"ok":True,"rollback":rollback_status("linux",executable,archive)})
@@ -830,6 +885,16 @@ class Handler(BaseHTTPRequestHandler):
             if route=="/api/extension-state":
                 try:return self.send_json({"ok":True,"state":save_extension_state(EXTENSION_STATE_DIR,str(data.get("id","")),data.get("state",{}))})
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/extension-install":
+                try:return self.send_json(extension_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,str(data.get("id","")),str(data.get("operation","install"))))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/process-action":
+                try:return self.send_json(process_action(data.get("pid",0),str(data.get("action",""))))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+            if route=="/api/routine-command":
+                if not bool(data.get("approved")):return self.send_json({"ok":False,"error":"operator approval is required"},403)
+                try:return self.send_json(routine_command(str(data.get("command",""))))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
             if route=="/api/document":
                 try:return self.send_json(write_document(str(data.get("path","")),str(data.get("content",""))))
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)

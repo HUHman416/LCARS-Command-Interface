@@ -4,7 +4,7 @@ The Windows edition uses the same LCARS visual interface, themes, modules, profi
 
 ## One-click installation
 
-1. Download `LCARS-Windows-Setup-v24.exe` from the GitHub release.
+1. Download `LCARS-Windows-Setup-v25.exe` from the GitHub release.
 2. Double-click the setup executable and choose the installation folder.
 3. Optionally tick **Start LCARS Command Interface when I sign in**.
 
@@ -32,6 +32,8 @@ A Windows setup executable can be produced from source by running `windows\insta
 - Windows Update, Microsoft Store, network, Bluetooth, audio, display, Task Manager, and Explorer shortcuts
 - Start Menu and login-startup integration
 - Confirmed whole-computer sleep, restart, and shutdown controls
+- Operations Automation, richer Workstation restore, Engineering, Communications, and Extension Hub surfaces
+- Configurable Tray Command Deck controls and pin-capable Speed Dial Page Peeks
 
 ## Current limitations
 
