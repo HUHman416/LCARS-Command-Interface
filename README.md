@@ -25,10 +25,10 @@
 </p>
 
 > [!IMPORTANT]
-> **Version 25 is the current stable line; Version 25.1 is the development-channel candidate prepared by this branch.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
+> **Version 25 is the current stable line; Version 25.2 is the latest development-channel candidate prepared by this branch.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
 
 > [!NOTE]
-> To test the built-in updater from Version 25, open **Settings → LCARS Update Channel**, select **Development**, then open **Updates** and choose **Check for LCARS Update**. The `v25.1` prerelease remains invisible to the Stable channel.
+> To test the built-in updater from Version 25 or 25.1, open **Settings → LCARS Update Channel**, select **Development**, then open **Updates** and choose **Check for LCARS Update**. The `v25.2` prerelease remains invisible to the Stable channel.
 
 ## 📥 Choose your download
 
@@ -58,7 +58,14 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install declarative local modules and configure optional offline push-to-talk commands through `whisper.cpp` |
 
-## 🧪 Version 25.1 development update
+## 🧪 Version 25.2 development update
+
+- Added width, height, and diagonal resizing from every popup edge and corner, with saved viewport-safe dimensions.
+- Made popup layouts respond to their own width so controls stack cleanly instead of overflowing when a window is narrowed.
+- Rebuilt inactive Page Peek play glyphs with geometric centering instead of font-dependent spacing.
+- Tightened Linux media icon matching so a stream never borrows an icon from a partially matching application name.
+
+## Version 25.1 development update
 
 - Rebuilt the Speed Dial Media Page Peek with current artwork, clear playback controls, master volume/mute, and live per-application audio controls.
 - Added viewport-safe resizing and persistent sizes to Page Peeks and the primary popup surfaces.

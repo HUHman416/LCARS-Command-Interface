@@ -27,8 +27,19 @@ test("Popup surfaces expose persistent viewport-safe resizing",()=>{
   assert.match(page,/lcars-popup-sizes/);
   assert.match(page,/popupKey="speed-dial-page-peek"/);
   assert.match(page,/popupKey="application-drawer"/);
-  assert.match(css,/\.resizable-popup\s*\{[^}]*resize:\s*both/);
+  for(const direction of ["n","ne","e","se","s","sw","w","nw"])assert.match(page,new RegExp(`beginResize\\("${direction}"`));
+  assert.match(css,/\.popup-resize-edge-n/);
+  assert.match(css,/\.popup-resize-edge-w/);
+  assert.match(css,/@container\s*\(max-width:\s*700px\)/);
+  assert.match(css,/\.settings-columns\s*\{\s*grid-template-columns:\s*1fr\s*!important/);
   assert.match(css,/\.popup-resize-grip\s*\{/);
+});
+
+test("Page Peek play controls are geometrically centered and media icons require exact app identities",()=>{
+  assert.match(page,/className=\{playing\?"is-pause":"is-play"\}/);
+  assert.match(css,/button\.is-play\s*>\s*span\s*\{/);
+  assert.match(linux,/an absent icon is safer than a wrong one/);
+  assert.doesNotMatch(linux,/candidate in key or key in candidate/);
 });
 
 test("Plain number keys navigate unless the operator is typing",()=>{
@@ -38,11 +49,11 @@ test("Plain number keys navigate unless the operator is typing",()=>{
   assert.match(page,/Press the number shown on a sidebar control/);
 });
 
-test("Version 25.1 development builds publish an updater-visible prerelease",()=>{
-  assert.equal(pkg.version,"25.1.0");
+test("Version 25.2 development builds publish an updater-visible prerelease",()=>{
+  assert.equal(pkg.version,"25.2.0");
   assert.match(workflow,/branches:\s*\[agent\/v25-development\]/);
-  assert.match(workflow,/LCARS-Command-Interface-v25\.1-x86_64\.AppImage/);
-  assert.match(workflow,/LCARS-Windows-Setup-v25\.1\.exe/);
-  assert.match(workflow,/gh release (?:create|upload) v25\.1/);
+  assert.match(workflow,/LCARS-Command-Interface-v25\.2-x86_64\.AppImage/);
+  assert.match(workflow,/LCARS-Windows-Setup-v25\.2\.exe/);
+  assert.match(workflow,/gh release (?:create|upload) v25\.2/);
   assert.match(workflow,/--prerelease/);
 });

@@ -1,6 +1,6 @@
 "use client";
 import { Component, useEffect, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import {
   createV25Id,
   defaultControlMappings,
@@ -486,8 +486,28 @@ function ResizablePopup({as="section",popupKey,className="",floating=false,minWi
     observer?.observe(element);window.addEventListener("resize",resizeWindow);
     return()=>{window.cancelAnimationFrame(frame);observer?.disconnect();window.removeEventListener("resize",resizeWindow);};
   },[floating,minHeight,minWidth,popupKey]);
+  const beginResize=(direction:"n"|"ne"|"e"|"se"|"s"|"sw"|"w"|"nw",event:ReactPointerEvent<HTMLSpanElement>)=>{
+    const element=ref.current;
+    if(!element)return;
+    event.preventDefault();event.stopPropagation();
+    const start=element.getBoundingClientRect(),startX=event.clientX,startY=event.clientY;
+    const startLeft=Number.parseFloat(element.style.left)||start.left,startTop=Number.parseFloat(element.style.top)||start.top;
+    const move=(pointer:PointerEvent)=>{
+      const maxWidth=Math.max(160,window.innerWidth-24),maxHeight=Math.max(140,window.innerHeight-24);
+      const west=direction.includes("w"),east=direction.includes("e"),north=direction.includes("n"),south=direction.includes("s");
+      const requestedWidth=west?start.width-(pointer.clientX-startX):east?start.width+pointer.clientX-startX:start.width;
+      const requestedHeight=north?start.height-(pointer.clientY-startY):south?start.height+pointer.clientY-startY:start.height;
+      const width=Math.min(maxWidth,Math.max(Math.min(minWidth,maxWidth),requestedWidth));
+      const height=Math.min(maxHeight,Math.max(Math.min(minHeight,maxHeight),requestedHeight));
+      element.style.width=`${width}px`;element.style.height=`${height}px`;
+      if(floating&&west)element.style.left=`${startLeft+start.width-width}px`;
+      if(floating&&north)element.style.top=`${startTop+start.height-height}px`;
+    };
+    const finish=()=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",finish);window.removeEventListener("pointercancel",finish);};
+    window.addEventListener("pointermove",move);window.addEventListener("pointerup",finish,{once:true});window.addEventListener("pointercancel",finish,{once:true});
+  };
   const popupClass=`resizable-popup${floating?" resizable-popup-floating":""}${className?` ${className}`:""}`;
-  const contents=<>{children}<span className="popup-resize-grip" aria-hidden="true"/></>;
+  const contents=<>{children}<span className="popup-resize-edge popup-resize-edge-n" onPointerDown={(event)=>beginResize("n",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-e" onPointerDown={(event)=>beginResize("e",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-s" onPointerDown={(event)=>beginResize("s",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-w" onPointerDown={(event)=>beginResize("w",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-nw" onPointerDown={(event)=>beginResize("nw",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-ne" onPointerDown={(event)=>beginResize("ne",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-sw" onPointerDown={(event)=>beginResize("sw",event)} aria-hidden="true"/><span className="popup-resize-grip" onPointerDown={(event)=>beginResize("se",event)} aria-hidden="true"/></>;
   if(as==="aside")return <aside ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel}>{contents}</aside>;
   return <section ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel}>{contents}</section>;
 }
@@ -3899,7 +3919,7 @@ function SpeedDialMediaPeek({players,streams,volume,muted,control,setMasterVolum
         <span><small>{selected.name.toUpperCase()} · {selected.status.toUpperCase()}</small><b>{selected.title||"NO MEDIA TITLE"}</b><em>{selected.artist||"UNKNOWN ARTIST"}{selected.album?` · ${selected.album}`:""}</em></span>
         <nav className="peek-media-transport" aria-label={`${selected.name} playback controls`}><button aria-label="Previous" onClick={()=>control(selected.id,"previous")}>PREV</button><button className="primary" aria-label="Play or pause" onClick={()=>control(selected.id,"play-pause")}>{selected.status==="Playing"?"PAUSE":"PLAY"}</button><button aria-label="Next" onClick={()=>control(selected.id,"next")}>NEXT</button></nav>
       </article>
-      {others.length>0&&<div className="peek-media-sources">{others.map((player)=><article key={player.id}><i>{player.icon?<img src={player.icon} alt=""/>:initials(player.name)}</i><span><b>{player.title||player.name}</b><small>{player.artist||player.status}</small></span><button aria-label={`Play or pause ${player.name}`} onClick={()=>control(player.id,"play-pause")}>{player.status==="Playing"?"Ⅱ":"▶"}</button></article>)}</div>}
+      {others.length>0&&<div className="peek-media-sources">{others.map((player)=>{const playing=player.status==="Playing";return <article key={player.id}><i>{player.icon?<img src={player.icon} alt=""/>:initials(player.name)}</i><span><b>{player.title||player.name}</b><small>{player.artist||player.status}</small></span><button className={playing?"is-pause":"is-play"} aria-label={`Play or pause ${player.name}`} onClick={()=>control(player.id,"play-pause")}><span aria-hidden="true">{playing?"Ⅱ":""}</span></button></article>;})}</div>}
     </>:<div className="peek-media-empty"><b>NO ACTIVE MEDIA SOURCES</b><small>MASTER AND APPLICATION AUDIO CONTROLS REMAIN AVAILABLE</small></div>}
     <section className={`peek-master-audio ${muted?"muted":""}`}><header><span><small>SYSTEM DEFAULT BUS</small><b>MASTER AUDIO</b></span><strong>{muted?"MUTED":`${volume}%`}</strong></header><div><input aria-label="Master audio volume" type="range" min="0" max="100" value={volume} onChange={(event)=>setMasterVolume(+event.target.value)} onPointerUp={commitMasterVolume} onKeyUp={commitMasterVolume} onBlur={commitMasterVolume}/><button className={muted?"active":""} onClick={toggleMasterMute}>{muted?"RESTORE":"MUTE"}</button></div></section>
     <section className="peek-app-audio"><header><span><small>LIVE AUDIO SESSIONS</small><b>APPLICATION AUDIO</b></span><strong>{String(groups.length).padStart(2,"0")}</strong></header>{groups.length?groups.map((group)=>{const main=group.items[0],isMuted=group.items.every((stream)=>Boolean(stream.muted));return <label className={isMuted?"muted":""} key={group.name}><i>{main.icon?<img src={main.icon} alt=""/>:initials(group.name)}</i><span><b>{group.name}</b><small>{group.items.length===1?"APPLICATION BUS":`${group.items.length} LINKED STREAMS`}</small></span><strong>{main.volume}%</strong><input aria-label={`${group.name} volume`} type="range" min="0" max="100" value={main.volume} onChange={(event)=>group.items.forEach((stream)=>setStreamVolume(stream.id,+event.target.value))}/><button className={isMuted?"active":""} aria-label={`${isMuted?"Unmute":"Mute"} ${group.name}`} onClick={()=>group.items.forEach((stream)=>setStreamMute(stream.id,!isMuted))}>{isMuted?"U":"M"}</button></label>}):<p>NO APPLICATION AUDIO STREAMS</p>}</section>

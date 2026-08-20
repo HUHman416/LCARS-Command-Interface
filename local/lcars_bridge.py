@@ -12,7 +12,7 @@ from lcars_extensions import load_extensions, extension_state, save_extension_st
 from lcars_documents import read_document, write_document
 
 PORT=8765
-LCARS_VERSION="25.1.0"
+LCARS_VERSION="25.2.0"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -352,25 +352,23 @@ def icon_data(value):
     except Exception:ICON_CACHE[value]="";return ""
 
 def application_icon_for(name):
-    """Resolve one likely desktop-entry icon without rebuilding the app inventory."""
+    """Resolve an exact desktop-entry identity; an absent icon is safer than a wrong one."""
     key=re.sub(r"[^a-z0-9]+","",str(name).casefold())
     if not key:return ""
     if key in MEDIA_ICON_CACHE:return MEDIA_ICON_CACHE[key]
-    best=""
     for folder in APP_DIRS:
         if not folder.exists():continue
         for path in folder.glob("*.desktop"):
             try:
                 config=ConfigParser(interpolation=None,strict=False);config.read(path,encoding="utf-8")
                 entry=config["Desktop Entry"]
-                label=str(entry.get("Name","")).strip();candidate=re.sub(r"[^a-z0-9]+","",label.casefold())
-                if candidate and (candidate==key or candidate in key or key in candidate):
-                    best=icon_data(entry.get("Icon",""))
-                    if candidate==key:break
+                executable=entry.get("Exec","").split()[0] if entry.get("Exec") else ""
+                aliases=(entry.get("Name",""),entry.get("StartupWMClass",""),path.stem,Path(executable).name)
+                if key in {re.sub(r"[^a-z0-9]+","",str(alias).casefold()) for alias in aliases if alias}:
+                    result=icon_data(entry.get("Icon",""));MEDIA_ICON_CACHE[key]=result;return result
             except Exception:pass
-        if best:break
-    MEDIA_ICON_CACHE[key]=best
-    return best
+    MEDIA_ICON_CACHE[key]=""
+    return ""
 
 def storage_data():
     if not shutil.which("lsblk"):return []
