@@ -62,3 +62,5 @@ jobs:
           name: LCARS-v25-2-Windows-Hotfix-1
           path: hotfix/*
           retention-days: 14
+
+# Triggered after workflow registration so GitHub builds the Windows hotfix immediately.
