@@ -46,5 +46,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: LCARS-v23.2-${{ matrix.target }}-test
-          path: release-desktop/*
+          path: |
+            release-desktop/*.AppImage
+            release-desktop/*.exe
+            release-desktop/SHA256SUMS-23.2-*.txt
           retention-days: 14
