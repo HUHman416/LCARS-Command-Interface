@@ -16,7 +16,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/*.test.mjs
+      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs
       - run: npm run desktop:package:linux -- --publish never
       - name: Assemble universal Linux package
         shell: bash
@@ -55,7 +55,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/*.test.mjs
+      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs
       - run: npm run desktop:package:windows -- --publish never
       - name: Prepare Windows installer
         shell: pwsh

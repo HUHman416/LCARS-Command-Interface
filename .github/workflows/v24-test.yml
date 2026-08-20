@@ -19,7 +19,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Regression suite
-        run: node --test tests/*.test.mjs
+        run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs
       - name: Bridge and script validation
         run: |
           python3 -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/*.py
@@ -66,7 +66,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Regression suite
-        run: node --test tests/*.test.mjs
+        run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs
       - name: Bridge syntax
         run: python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py
       - name: Build Windows installer
