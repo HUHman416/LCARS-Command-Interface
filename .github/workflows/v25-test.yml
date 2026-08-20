@@ -19,7 +19,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Regression suite
-        run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs
+        run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
       - name: Bridge and script validation
         run: |
           python3 -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/*.py
@@ -66,7 +66,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Regression suite
-        run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs
+        run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
       - name: Bridge syntax
         run: python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py
       - name: Build Windows installer
@@ -118,7 +118,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          notes='Version 25.2 adds eight-direction popup resizing with container-responsive layouts, geometrically centers Page Peek playback controls, and prevents partial application-name matches from assigning the wrong Linux media icon. It includes the Version 25.1 media, audio, and number-key improvements and remains a Development-channel prerelease.'
+          notes='Version 25.2 adds eight-direction popup resizing with container-responsive layouts, geometrically centers Page Peek playback controls, and prevents partial application-name matches from assigning the wrong Linux media icon. Windows hotfix: bridge startup now detects the available Python launcher/runtime instead of assuming py.exe exists, preventing the Electron spawn py ENOENT crash and restoring live telemetry on affected systems. It includes the Version 25.1 media, audio, and number-key improvements and remains a Development-channel prerelease.'
           if gh release view v25.2 >/dev/null 2>&1; then
             gh release upload v25.2 prerelease/* --clobber
             gh release edit v25.2 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 25.2" --notes "$notes" --prerelease
