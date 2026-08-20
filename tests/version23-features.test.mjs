@@ -7,9 +7,10 @@ const css=fs.readFileSync(new URL("../app/globals.css",import.meta.url),"utf8");
 const main=fs.readFileSync(new URL("../desktop/main.cjs",import.meta.url),"utf8");
 const linux=fs.readFileSync(new URL("../local/lcars_bridge.py",import.meta.url),"utf8");
 
-test("number row and keypad navigate only outside editable controls",()=>{
+test("Ctrl plus number row or keypad navigates at application level",()=>{
   assert.match(page,/\(\?:Digit\|Numpad\)\(\[1-8\]\)/);
-  assert.match(page,/target\.isContentEditable/);
+  assert.match(page,/digit && e\.ctrlKey/);
+  assert.match(page,/addEventListener\("keydown", key, true\)/);
 });
 
 test("Ctrl+F searches settings, modules, applications and pages",()=>{

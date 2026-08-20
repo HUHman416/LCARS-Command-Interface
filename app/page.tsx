@@ -1,5 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
+
+declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -64,7 +67,17 @@ type Drive = { id: string; name: string; size: number; type: string; filesystem:
 type TrayItem = { id: string; name: string; status: string; icon?: string };
 type NetworkInterface = { id: string; name: string; kind: string; state: string; address: string; gateway: string; dns: string[]; speed: string; signal?: number; received: number; sent: number };
 type NetworkInfo = { interfaces: NetworkInterface[]; diagnostics: { gateway: boolean; dns: boolean; internet: boolean; latency: number | null }; bluetooth: boolean };
-type SystemDetails = { cpu?: { logical: number; load: number[]; cores: { name: string; usage: number }[] }; storage?: Drive[]; kernel?: string };
+type PageDensity = "compact" | "standard" | "wide";
+type SpeedDialItem = `page:${string}` | `module:${string}` | `action:${string}`;
+type CustomPage = { id: string; name: string; kind: "app" | "module" | "extension"; target: string };
+type ApplicationDestination = "embedded" | "native";
+type SystemDetails = {
+  cpu?: { logical: number; load: number[]; cores: { name: string; usage: number }[] };
+  memory?: { total: number; used: number; available: number; percent: number; swapTotal: number; swapUsed: number; modules?: { bank: string; capacity: number; speed?: number; manufacturer?: string; part?: string }[] };
+  graphics?: { name: string; vendor?: string; driver?: string; usage?: number; temperature?: number|null; memoryTotal?: number; memoryUsed?: number; resolution?: string }[];
+  storage?: Drive[];
+  kernel?: string;
+};
 type Compatibility = {
   distro: string;
   desktop: string;
@@ -94,10 +107,15 @@ type ShellPrefs = {
   voiceDevice: string;
   voiceSecurity: "navigation" | "applications" | "system";
   interfaceDensity: "comfortable" | "compact" | "console";
+  pageDensityScope: "global" | "per-page";
+  pageDensity: PageDensity;
+  pageDensities: Record<string, PageDensity>;
   startupSound: boolean;
   startupSequence: boolean;
   lockOnLaunch: boolean;
   quickBootWithoutPassword: boolean;
+  trayPresentation: "rail" | "header";
+  speedDial: SpeedDialItem[];
 };
 type WorkspaceProfile = {
   id: string;
@@ -108,6 +126,21 @@ type WorkspaceProfile = {
   favoriteIds: string[];
 };
 type LockCredential = { salt: string; hash: string; iterations: number };
+type UpdateInfo = {
+  ok: boolean;
+  available?: boolean;
+  current?: string;
+  version?: string;
+  releaseUrl?: string;
+  notes?: string;
+  asset?: { name: string; url: string } | null;
+  downloaded?: boolean;
+  path?: string;
+  sha256?: string;
+  message?: string;
+  error?: string;
+  closeApp?: boolean;
+};
 type AccessibilityPrefs = {
   fontScale: number;
   highContrast: boolean;
@@ -125,19 +158,21 @@ type BuiltinWidgetId =
   | "updates";
 type WidgetId = BuiltinWidgetId | `ext:${string}`;
 type ExtensionManifest = {
-  schema: number;
+  apiVersion: number;
+  schema?: number;
   id: string;
   name: string;
   version: string;
   description: string;
   author: string;
   voiceCommands?: { phrase: string; page: string; response?: string }[];
-  module: {
-    type: "checklist";
-    defaultSize?: "compact" | "standard" | "wide";
-    defaultItems?: string[];
-  };
+  capabilities: string[];
+  settings: { key: string; type: "text"|"number"|"toggle"|"select"; label: string; description?: string; default?: unknown; options?: string[] }[];
+  placements: ExtensionPlacement[];
+  tickSeconds?: number;
 };
+type ExtensionPrimitive = { type:string;id?:string;text?:string;label?:string;action?:string;source?:string;format?:string;placeholder?:string;value?:string|number|boolean;min?:number;max?:number;items?:string[];children?:ExtensionPrimitive[] };
+type ExtensionPlacement = { id:string;type:"overview"|"header"|"page"|"tray"|"panel";title:string;defaultSize?:"compact"|"standard"|"wide";ui:ExtensionPrimitive[] };
 const widgetInfo: Record<BuiltinWidgetId, { name: string; description: string }> = {
   system: {
     name: "System Information",
@@ -196,6 +231,27 @@ const nav = [
   ["updates", "07", "UPDATES"],
   ["settings", "08", "SETTINGS"],
 ];
+const speedDialChoices: { id: SpeedDialItem; label: string; description: string }[] = [
+  { id:"page:network", label:"NETWORK", description:"Open network operations" },
+  { id:"page:media", label:"MEDIA", description:"Open media and audio controls" },
+  { id:"page:files", label:"FILES", description:"Open the LCARS file browser" },
+  { id:"page:terminal", label:"TERMINAL", description:"Open the embedded terminal" },
+  { id:"page:system", label:"SYSTEMS", description:"Open detailed system telemetry" },
+  { id:"page:updates", label:"UPDATES", description:"Open software and LCARS updates" },
+  { id:"page:settings", label:"SETTINGS", description:"Open interface configuration" },
+  { id:"module:system", label:"SYS MODULE", description:"Open System Information as a focused module" },
+  { id:"module:favorites", label:"FAVORITES", description:"Open Favorite Applications as a focused module" },
+  { id:"module:operations", label:"OPERATIONS", description:"Open Operations as a focused module" },
+  { id:"module:media", label:"NOW PLAYING", description:"Open Now Playing as a focused module" },
+  { id:"module:terminal", label:"TERM MODULE", description:"Open Terminal launcher as a focused module" },
+  { id:"module:network", label:"NET MODULE", description:"Open Network as a focused module" },
+  { id:"module:updates", label:"UPD MODULE", description:"Open Updates as a focused module" },
+  { id:"action:dnd", label:"DND", description:"Toggle Do Not Disturb" },
+  { id:"action:notices", label:"NOTICES", description:"Open notification history" },
+  { id:"action:displays", label:"DISPLAYS", description:"Open monitor routing" },
+  { id:"action:tasks", label:"TASKS", description:"Pin or release the Task Rail" },
+  { id:"action:tray", label:"TRAY", description:"Open the desktop system tray" },
+];
 const defaultPrefs: ShellPrefs = {
   taskHover: true,
   hoverDelay: 300,
@@ -218,10 +274,36 @@ const defaultPrefs: ShellPrefs = {
   voiceDevice: "",
   voiceSecurity: "navigation",
   interfaceDensity: "comfortable",
+  pageDensityScope: "global",
+  pageDensity: "standard",
+  pageDensities: {},
   startupSound: true,
   startupSequence: true,
   lockOnLaunch: true,
   quickBootWithoutPassword: false,
+  trayPresentation: "rail",
+  speedDial: ["page:network","page:media","action:dnd","action:notices","action:displays"],
+};
+const normalizePrefs = (value: unknown): ShellPrefs => {
+  const source=value&&typeof value==="object"?value as Partial<ShellPrefs>:{};
+  const pageDensity:PageDensity=source.pageDensity==="compact"||source.pageDensity==="wide"?source.pageDensity:"standard";
+  const pageDensities=source.pageDensities&&typeof source.pageDensities==="object"?Object.fromEntries(Object.entries(source.pageDensities).filter(([,density])=>density==="compact"||density==="standard"||density==="wide")) as Record<string,PageDensity>:{};
+  const allowedSpeedDial=new Set(speedDialChoices.map((choice)=>choice.id));
+  const speedDial=Array.isArray(source.speedDial)?source.speedDial.filter((item):item is SpeedDialItem=>typeof item==="string"&&(allowedSpeedDial.has(item as SpeedDialItem)||/^module:ext:[a-z0-9-]+$/i.test(item)||/^page:custom:[a-z0-9-]+$/i.test(item))).slice(0,6):defaultPrefs.speedDial;
+  return {...defaultPrefs,...source,pageDensity,pageDensities,pageDensityScope:source.pageDensityScope==="per-page"?"per-page":"global",speedDial:speedDial.length>=2?speedDial:defaultPrefs.speedDial};
+};
+const normalizeCustomPages = (value: unknown): CustomPage[] => Array.isArray(value) ? value.filter((item):item is CustomPage=>Boolean(item)&&typeof item==="object"&&typeof item.id==="string"&&typeof item.name==="string"&&typeof item.target==="string"&&["app","module","extension"].includes(String(item.kind))).slice(0,6).map((item)=>({...item,id:item.id.replace(/[^a-z0-9-]/gi,"-").slice(0,48),name:item.name.trim().slice(0,24)||"CUSTOM PAGE",target:item.target.slice(0,180)})) : [];
+const normalizeAppDestinations = (value: unknown): Record<string,ApplicationDestination> => value&&typeof value==="object"?Object.fromEntries(Object.entries(value).filter((entry):entry is [string,ApplicationDestination]=>entry[1]==="embedded"||entry[1]==="native").slice(0,512)):{};
+const embeddedPageForApp = (app: App): string | null => {
+  const value=`${app.id} ${app.name} ${app.comment}`.toLowerCase();
+  if(/terminal|konsole|powershell|command prompt|cmd\.exe/.test(value))return "terminal";
+  if(/dolphin|nautilus|nemo|thunar|file manager|explorer/.test(value))return "files";
+  if(/discover|software center|gnome-software|microsoft store|windows store/.test(value))return "updates";
+  if(/system monitor|task manager|plasma-systemmonitor|resources/.test(value))return "system";
+  if(/pavucontrol|volume control|audio control/.test(value))return "media";
+  if(/network manager|network settings|connection editor/.test(value))return "network";
+  if(/system settings|control panel/.test(value))return "settings";
+  return null;
 };
 const defaultAccess: AccessibilityPrefs = {
   fontScale: 100,
@@ -288,10 +370,13 @@ export default function Home() {
     [trayOpen, setTrayOpen] = useState(false),
     [drives, setDrives] = useState<Drive[]>([]),
     [systemDetails, setSystemDetails] = useState<SystemDetails>({}),
-    [detailOpen, setDetailOpen] = useState<string | null>(null);
+    [detailOpen, setDetailOpen] = useState<string | null>(null),
+    [speedDialModule,setSpeedDialModule]=useState<WidgetId|null>(null);
   const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({ interfaces: [], diagnostics: { gateway: false, dns: false, internet: false, latency: null }, bluetooth: false }),
     [startupVisible, setStartupVisible] = useState(true);
   const [extensions, setExtensions] = useState<ExtensionManifest[]>([]);
+  const [customPages,setCustomPages]=useState<CustomPage[]>([]),
+    [appDestinations,setAppDestinations]=useState<Record<string,ApplicationDestination>>({});
   const [firstRun, setFirstRun] = useState(false),
     [setupStep, setSetupStep] = useState(0),
     hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -319,13 +404,15 @@ export default function Home() {
     [powerOpen, setPowerOpen] = useState(false);
   const [lockCredential, setLockCredential] = useState<LockCredential | null>(null),
     [defaultWorkstation, setDefaultWorkstation] = useState("");
+  const [lcarsUpdate, setLcarsUpdate] = useState<UpdateInfo | null>(null);
+  const [startupAudioStatus,setStartupAudioStatus]=useState("NOT TESTED · SYSTEM DEFAULT OUTPUT");
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get(
       "section",
     );
     const restore = localStorage.getItem("lcars-session-restore") !== "false";
     setSessionRestore(restore);
-    if (requested && nav.some((n) => n[0] === requested)) setSection(requested);
+    if (requested && (nav.some((n) => n[0] === requested)||requested.startsWith("custom:"))) setSection(requested);
     else if (restore && localStorage.getItem("lcars-last-section"))
       setSection(localStorage.getItem("lcars-last-section") || "overview");
     const t = localStorage.getItem("lcars-theme"),
@@ -338,6 +425,8 @@ export default function Home() {
       pr = localStorage.getItem("lcars-workspaces"),
       u = localStorage.getItem("lcars-user-name"),
       lockData = localStorage.getItem("lcars-lock-credential"),
+      customData = localStorage.getItem("lcars-custom-pages"),
+      destinationData = localStorage.getItem("lcars-app-destinations"),
       defaultStation = localStorage.getItem("lcars-default-workstation") || "";
     if (t) setTheme(t);
     if (f)
@@ -357,7 +446,7 @@ export default function Home() {
         setPinnedPlayers(JSON.parse(p));
       } catch {}
     let restoredPrefs = defaultPrefs;
-    if (s) try { restoredPrefs = { ...defaultPrefs, ...JSON.parse(s) }; setPrefs(restoredPrefs); } catch {}
+    if (s) try { restoredPrefs = normalizePrefs(JSON.parse(s)); setPrefs(restoredPrefs); } catch {}
     if (a)
       try {
         setAccess({ ...defaultAccess, ...JSON.parse(a) });
@@ -373,6 +462,8 @@ export default function Home() {
       } catch {}
     if (u) setUserName(u);
     if (lockData) try { setLockCredential(JSON.parse(lockData)); } catch {}
+    if (customData) try { setCustomPages(normalizeCustomPages(JSON.parse(customData))); } catch {}
+    if (destinationData) try { setAppDestinations(normalizeAppDestinations(JSON.parse(destinationData))); } catch {}
     setDefaultWorkstation(defaultStation);
     const remoteTerminal = requested === "terminal";
     if (!remoteTerminal && localStorage.getItem("lcars-setup-complete") && restoredPrefs.lockOnLaunch && !(restoredPrefs.quickBootWithoutPassword && !lockData)) setLocked(true);
@@ -391,26 +482,28 @@ export default function Home() {
         }
       })
       .catch(() => {});
-    fetch("http://127.0.0.1:8765/api/system")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.meters) setMeters(d.meters);
-        if (d.platform) {
-          setPlatform(d.platform);
-          if (String(d.platform).includes("WINDOWS"))
-            setPrefs((old) =>
-              old.terminalShell === "/bin/bash"
-                ? {
-                    ...old,
-                    terminalShell: "powershell.exe",
-                    terminalDirectory: "~",
-                  }
-                : old,
-            );
-        }
-        setBridge(true);
-      })
-      .catch(() => {});
+    const getSystem = () =>
+      fetch("http://127.0.0.1:8765/api/system")
+        .then((r) => r.json())
+        .then((d) => {
+          if (Array.isArray(d.meters) && d.meters.length) setMeters(d.meters);
+          if (d.platform) {
+            setPlatform(d.platform);
+            if (String(d.platform).includes("WINDOWS"))
+              setPrefs((old) =>
+                old.terminalShell === "/bin/bash"
+                  ? {
+                      ...old,
+                      terminalShell: "powershell.exe",
+                      terminalDirectory: "~",
+                    }
+                  : old,
+              );
+          }
+          setBridge(true);
+        })
+        .catch(() => {});
+    getSystem();
     fetch("http://127.0.0.1:8765/api/compat")
       .then((r) => r.json())
       .then((d) => setCompat(d))
@@ -424,7 +517,7 @@ export default function Home() {
     fetch("http://127.0.0.1:8765/api/config")
       .then((r) => r.json())
       .then((d) => {
-        if (d.shell_prefs) setPrefs({ ...defaultPrefs, ...d.shell_prefs });
+        if (d.shell_prefs) setPrefs(normalizePrefs(d.shell_prefs));
       })
       .catch(() => {});
     const getExtensions = () =>
@@ -501,34 +594,45 @@ export default function Home() {
       sound = JSON.parse(localStorage.getItem("lcars-shell-prefs") || "{}").startupSound !== false;
     } catch {}
     let powered = false;
-    const power = () => {
+    const reportAudio=(event:Event)=>{const result=(event as CustomEvent).detail;if(result)setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);};
+    const power = async () => {
       if (sound && !powered) {
-        const a = new Audio("/assets/sounds/power-up.mp3");
-        a.volume = 0.42;
-        a.play()
-          .then(() => {
-            powered = true;
-          })
-          .catch(() => {});
+        const result=window.__lcarsPlayStartupSound?await window.__lcarsPlayStartupSound():await (async()=>{const asset=new URL("assets/sounds/power-up.mp3",window.location.href).href;try{const response=await fetch(asset,{cache:"no-store"});if(!response.ok)throw new Error(`Audio asset returned HTTP ${response.status}`);const blob=await response.blob();if(!blob.type.startsWith("audio/"))throw new Error(`Audio asset returned ${blob.type||"an unknown content type"}`);const objectUrl=URL.createObjectURL(blob);const a=new Audio(objectUrl);a.volume=.42;a.addEventListener("ended",()=>URL.revokeObjectURL(objectUrl),{once:true});await a.play();return{ok:true,status:"PLAYING",asset,output:"SYSTEM DEFAULT"};}catch(error){return{ok:false,status:"FAILED",error:String(error),asset,output:"SYSTEM DEFAULT"};}})();
+        powered=result.ok;setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);
       }
     };
     power();
     window.addEventListener("lcars-startup-audio", power);
+    window.addEventListener("lcars-startup-audio-result",reportAudio);
     window.addEventListener("pointerdown", power, { once: true });
     const timer = setInterval(() => setClock(new Date()), 1000),
+      systemTimer = setInterval(getSystem, 2000),
       mediaTimer = setInterval(getMedia, 3000),
       desktopTimer = setInterval(getDesktop, 1800),
       extensionTimer = setInterval(getExtensions, 5000);
     const startupTimer=setTimeout(()=>setStartupVisible(false),4200);
     return () => {
       clearInterval(timer);
+      clearInterval(systemTimer);
       clearInterval(mediaTimer);
       clearInterval(desktopTimer);
       clearInterval(extensionTimer);
       clearTimeout(startupTimer);
       window.removeEventListener("lcars-startup-audio", power);
+      window.removeEventListener("lcars-startup-audio-result",reportAudio);
       window.removeEventListener("pointerdown", power);
     };
+  }, []);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      fetch("http://127.0.0.1:8765/api/lcars-update")
+        .then((response) => response.json())
+        .then((result: UpdateInfo) => {
+          if (result.ok && result.available) setLcarsUpdate(result);
+        })
+        .catch(() => {});
+    }, 9000);
+    return () => window.clearTimeout(timer);
   }, []);
   const favorites = useMemo(
     () =>
@@ -542,10 +646,8 @@ export default function Home() {
   }, [section, sessionRestore]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      const target=e.target as HTMLElement | null;
-      const editing=!!target && (target.tagName==="INPUT" || target.tagName==="TEXTAREA" || target.tagName==="SELECT" || target.isContentEditable);
       const digit=e.code.match(/^(?:Digit|Numpad)([1-8])$/)?.[1];
-      if (digit && !editing && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (digit && e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
         e.preventDefault();setSection(nav[Number(digit)-1][0]);setPaletteOpen(false);return;
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -566,8 +668,8 @@ export default function Home() {
         setLocked(true);
       }
     };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
+    window.addEventListener("keydown", key, true);
+    return () => window.removeEventListener("keydown", key, true);
   }, []);
   const filtered = useMemo(
     () =>
@@ -599,20 +701,22 @@ export default function Home() {
     setTheme(id);
     localStorage.setItem("lcars-theme", id);
   };
-  const launch = (app: App) => {
+  const launch = (app: App, requested?: ApplicationDestination) => {
     beep(true);
-    setBayApp(app);
-    setSection("bay");
     setAllOpen(false);
+    const embedded=embeddedPageForApp(app),destination=requested||appDestinations[app.id]||(embedded?"embedded":"native");
+    if(destination==="embedded"&&embedded){setSection(embedded);notify(`${app.name} opened in the LCARS ${embedded.toUpperCase()} workspace`);return;}
     if (bridge)
       fetch("http://127.0.0.1:8765/api/launch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: app.id, mode: "bay" }),
+        body: JSON.stringify({ id: app.id, mode: "window" }),
       })
-        .then(() => notify(app.name + " opened"))
+        .then(() => notify(app.name + " opened in a native window"))
         .catch(() => notify("Unable to launch " + app.name, "error"));
+    else notify("Local application launching requires the installed desktop edition", "error");
   };
+  const chooseAppDestination=(app:App,destination:ApplicationDestination)=>saveAppDestinations({...appDestinations,[app.id]:destination});
   const toggleFavorite = (id: string) =>
     setFavoriteIds((old) => {
       const next = old.includes(id)
@@ -689,7 +793,7 @@ export default function Home() {
         .catch(() => notify("LOCAL CORE UNAVAILABLE", "error"));
     else notify(action.toUpperCase());
   };
-  const powerAction = (action: "exit" | "poweroff" | "reboot") => {
+  const powerAction = (action: "exit" | "sleep" | "poweroff" | "reboot") => {
     if (action === "exit") {
       setPowerOpen(false);
       window.close();
@@ -698,10 +802,27 @@ export default function Home() {
     setPowerOpen(false);
     coreAction(action);
   };
+  const runSpeedDial = (item: SpeedDialItem) => {
+    beep(true);
+    if (item.startsWith("page:")) {
+      setSection(item.slice(5));
+      return;
+    }
+    if(item.startsWith("module:")){setSpeedDialModule(item.slice(7) as WidgetId);return;}
+    const action=item.slice(7);
+    if (action==="dnd") setDoNotDisturb((value)=>!value);
+    else if (action==="notices") setHistoryOpen(true);
+    else if (action==="displays") setDisplayMenu(true);
+    else if (action==="tasks") { setTaskRail(true);setTaskLocked((value)=>!value); }
+    else if (action==="tray") setTrayOpen(true);
+  };
+  const refreshApps=()=>fetch("http://127.0.0.1:8765/api/apps").then((response)=>response.json()).then((result)=>{if(Array.isArray(result.apps)){setApps(result.apps);notify(`Application inventory refreshed · ${result.apps.length} entries`);}}).catch(()=>notify("Application inventory could not be refreshed","error"));
   const saveWidgets = (next: WidgetId[]) => {
     setWidgets(next);
     localStorage.setItem("lcars-overview-widgets", JSON.stringify(next));
   };
+  const saveCustomPages=(next:CustomPage[])=>{const normalized=normalizeCustomPages(next);setCustomPages(normalized);localStorage.setItem("lcars-custom-pages",JSON.stringify(normalized));};
+  const saveAppDestinations=(next:Record<string,ApplicationDestination>)=>{const normalized=normalizeAppDestinations(next);setAppDestinations(normalized);localStorage.setItem("lcars-app-destinations",JSON.stringify(normalized));};
   const moveWidget = (id: WidgetId, direction: number) => {
     const index = widgets.indexOf(id);
     if (index < 0) return;
@@ -901,7 +1022,7 @@ export default function Home() {
   };
   const exportConfig = () => {
     const data = {
-      version: 12,
+      version: 24,
       theme,
       favoriteIds,
       widgets,
@@ -912,6 +1033,8 @@ export default function Home() {
       profiles,
       userName,
       sessionRestore,
+      customPages,
+      appDestinations,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: "application/json",
@@ -946,8 +1069,8 @@ export default function Home() {
           );
         }
         if (d.prefs) {
-          setPrefs({ ...defaultPrefs, ...d.prefs });
-          localStorage.setItem("lcars-shell-prefs", JSON.stringify(d.prefs));
+          const imported=normalizePrefs(d.prefs);setPrefs(imported);
+          localStorage.setItem("lcars-shell-prefs", JSON.stringify(imported));
         }
         if (d.access) saveAccess({ ...defaultAccess, ...d.access });
         if (Array.isArray(d.profiles)) saveProfiles(d.profiles);
@@ -955,6 +1078,8 @@ export default function Home() {
           setUserName(d.userName);
           localStorage.setItem("lcars-user-name", d.userName);
         }
+        if (Array.isArray(d.customPages)) saveCustomPages(normalizeCustomPages(d.customPages));
+        if (d.appDestinations&&typeof d.appDestinations==="object") saveAppDestinations(normalizeAppDestinations(d.appDestinations));
         notify("Configuration restored");
       } catch {
         notify("Configuration file could not be read", "error");
@@ -973,6 +1098,7 @@ export default function Home() {
           setPaletteOpen(false);
         },
       })),
+      ...customPages.map((custom)=>({id:"custom-"+custom.id,label:"Open "+custom.name,detail:`CUSTOM ${custom.kind.toUpperCase()} PAGE`,run:()=>{setSection("custom:"+custom.id);setPaletteOpen(false);}})),
       ...apps.map((a) => ({
         id: "app-" + a.id,
         label: "Launch " + a.name,
@@ -1032,7 +1158,7 @@ export default function Home() {
         },
       },
     ],
-    [apps],
+    [apps,customPages],
   );
   const filteredCommands = paletteCommands
     .filter((c) =>
@@ -1053,6 +1179,7 @@ export default function Home() {
     id.startsWith("ext:")
       ? extensions.find((extension) => `ext:${extension.id}` === id)
       : undefined;
+  const activePageDensity:PageDensity=prefs.pageDensityScope==="per-page"?(prefs.pageDensities[section]||prefs.pageDensity):prefs.pageDensity;
   const widgetMeta = (id: WidgetId) => {
     const extension = extensionFor(id);
     if (extension)
@@ -1065,7 +1192,7 @@ export default function Home() {
     if (id.startsWith("ext:")) {
       const extension = extensionFor(id);
       return extension ? (
-        <ChecklistExtension extension={extension} />
+        extension.apiVersion===1?<ChecklistExtension extension={extension} />:<DeclarativeExtension extension={extension} placement={extension.placements.find((placement)=>placement.type==="overview")||extension.placements[0]} />
       ) : (
         <section className="overview-widget extension-widget">
           <h3>EXTENSION OFFLINE <small>MODULE API</small></h3>
@@ -1095,6 +1222,11 @@ export default function Home() {
               </article>
             ))}
           </div>
+          <div className="hardware-glance">
+            <span><small>MEMORY AVAILABLE</small><b>{formatBytes(systemDetails.memory?.available||0)}</b></span>
+            <span><small>GRAPHICS ADAPTERS</small><b>{systemDetails.graphics?.length||0}</b></span>
+            <span><small>GPU MEMORY</small><b>{formatBytes(systemDetails.graphics?.reduce((total,item)=>total+(item.memoryTotal||0),0)||0)}</b></span>
+          </div>
         </section>
       );
     if (id === "favorites")
@@ -1104,15 +1236,12 @@ export default function Home() {
             FAVORITE APPLICATIONS <small>APP-02</small>
           </h3>
           <div className="apps">
-            {favorites.slice(0, 20).map((a, i) => (
-              <button key={a.id} onClick={() => launch(a)}>
+            {favorites.slice(0, 20).map((a, i) => {const embedded=embeddedPageForApp(a),destination=appDestinations[a.id]||(embedded?"embedded":"native");return (
+              <article className="favorite-app" key={a.id}><button className="app-launch-button" title={embedded?"Click for the selected destination · Shift+Click for a native window":"Open native application window"} onClick={(event) => launch(a,event.shiftKey?"native":undefined)}>
                 <i className={"c" + i}>{a.icon ? <img src={a.icon} alt="" /> : a.name.slice(0, 2).toUpperCase()}</i>
-                <span>
-                  <b>{a.name}</b>
-                  <small>{a.comment || "APPLICATION"}</small>
-                </span>
-              </button>
-            ))}
+                <span><b>{a.name}</b><small>{a.comment || "APPLICATION"}</small></span>
+              </button>{embedded?<button className="app-destination-toggle" onClick={()=>chooseAppDestination(a,destination==="embedded"?"native":"embedded")} title="Choose the normal-click destination">{destination==="embedded"?"LCARS":"WINDOW"}</button>:<small className="native-only">NATIVE</small>}</article>
+            );})}
             <button className="all-apps" onClick={() => setAllOpen(true)}>
               <i>•••</i>
               <span>
@@ -1225,6 +1354,19 @@ export default function Home() {
       </section>
     );
   };
+  const activeCustomPage=section.startsWith("custom:")?customPages.find((page)=>page.id===section.slice(7)):undefined;
+  const renderCustomPage=()=>{
+    if(!activeCustomPage)return <section className="detail-view custom-page-missing"><h3>CUSTOM PAGE UNAVAILABLE</h3><p>This sidebar destination was removed or its source is no longer installed.</p><button onClick={()=>setSection("settings")}>OPEN PAGE CONFIGURATION</button></section>;
+    if(activeCustomPage.kind==="module")return <section className="detail-view custom-page-view"><header className="custom-page-cap"><small>USER-ASSIGNED MODULE</small><h3>{activeCustomPage.name}</h3></header><div className="custom-module-host">{renderWidget(activeCustomPage.target as WidgetId)}</div></section>;
+    if(activeCustomPage.kind==="extension"){
+      const [extensionId,placementId]=activeCustomPage.target.split("::"),extension=extensions.find((item)=>item.id===extensionId),placement=extension?.placements.find((item)=>item.id===placementId);
+      return <section className="detail-view custom-page-view"><header className="custom-page-cap"><small>LCARS EXTENSION PAGE</small><h3>{activeCustomPage.name}</h3></header>{extension?(extension.apiVersion===1?<ChecklistExtension extension={extension}/>:placement?<DeclarativeExtension extension={extension} placement={placement}/>:<p>THE SELECTED EXTENSION PLACEMENT IS NO LONGER AVAILABLE</p>):<p>EXTENSION OFFLINE · RESCAN OR REINSTALL IT FROM UPDATES</p>}</section>;
+    }
+    const app=apps.find((item)=>item.id===activeCustomPage.target);
+    return <CustomApplicationPage page={activeCustomPage} app={app} embedded={app?embeddedPageForApp(app):null} launch={()=>app&&launch(app)} navigate={setSection}/>;
+  };
+  const detachedParams=typeof window!=="undefined"?new URLSearchParams(window.location.search):null;
+  if(detachedParams?.get("tool")==="document"&&detachedParams.get("path"))return <DocumentWorkspace path={detachedParams.get("path")||""} detached close={()=>window.close()} notify={notify}/>;
   return (
     <main
       style={{ fontSize: access.fontScale + "%" }}
@@ -1234,7 +1376,7 @@ export default function Home() {
         (overviewEdit && section === "overview" ? " overview-editing" : "") +
         (access.highContrast ? " accessibility-contrast" : "") +
         (access.reducedMotion ? " reduced-motion" : "") +
-        (access.colorSafe ? " color-safe" : "") + " density-" + prefs.interfaceDensity
+        (access.colorSafe ? " color-safe" : "") + " density-" + prefs.interfaceDensity + " page-density-" + activePageDensity
       }
     >
       <header className="top">
@@ -1249,6 +1391,7 @@ export default function Home() {
             INTERFACE
           </h1>
         </div>
+        {extensions.flatMap((extension)=>extension.placements.filter((placement)=>placement.type==="header").map((placement)=><ExtensionHeader key={`${extension.id}:${placement.id}`} extension={extension} placement={placement} now={clock||new Date()}/>))}
         <div className="clock">
           <b>
             {clock
@@ -1276,10 +1419,7 @@ export default function Home() {
       </header>
       <div className="shell">
         <aside>
-          <div className="elbow">
-            <span>SYS</span>
-            <small>47</small>
-          </div>
+          {prefs.trayPresentation==="header"?<button className="elbow header-tray-trigger" aria-expanded={trayOpen} onClick={()=>setTrayOpen((value)=>!value)}><span>TRAY</span><small>{trayItems.length.toString().padStart(2,"0")}</small></button>:<div className="elbow"><span>SYS</span><small>47</small></div>}
           <div className="nav-gap" />
           {nav.map((n, i) => (
             <button
@@ -1294,6 +1434,7 @@ export default function Home() {
               <span>{n[2]}</span>
             </button>
           ))}
+          {customPages.map((page,index)=><button title={`${page.kind.toUpperCase()} · ${page.name}`} key={page.id} className={`nav custom-nav n${(index+2)%6}${section===`custom:${page.id}`?" active":""}`} onClick={()=>{beep();setSection(`custom:${page.id}`);}}><i>C{index+1}</i><span>{page.name}</span></button>)}
           <div
             className={
               "task-zone " +
@@ -1303,7 +1444,7 @@ export default function Home() {
             onMouseEnter={taskEnter}
             onMouseLeave={taskLeave}
           >
-            <button className="tray-strip-trigger" aria-label="Open system tray" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><i /><i /><i /><b>‹</b></button>
+            {prefs.trayPresentation==="rail"&&<button className="tray-strip-trigger" aria-label="Open system tray" title="System Tray" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><span aria-hidden="true"><i/><i/><i/></span><small>{trayItems.length.toString().padStart(2,"0")}</small><b aria-hidden="true">›</b></button>}
             <button className="task-trigger" onClick={toggleTaskLock}>
               <i>
                 {compat?.capabilities?.windowControl === false
@@ -1363,7 +1504,7 @@ export default function Home() {
                   ? "SYSTEM OVERVIEW"
                   : section === "bay"
                     ? "APPLICATION BAY"
-                    : section.toUpperCase()}
+                    : activeCustomPage?.name.toUpperCase() || section.toUpperCase()}
               </h2>
             </div>
             <div className="heading-actions">
@@ -1535,6 +1676,7 @@ export default function Home() {
                   REFRESH TELEMETRY
                 </button>
               </div>
+              <HardwareTelemetry details={systemDetails} open={setDetailOpen}/>
               <StorageMatrix drives={drives} notify={notify} refresh={() => fetch("http://127.0.0.1:8765/api/storage").then((r) => r.json()).then((d) => setDrives(d.drives || []))} />
             </section>
           )}
@@ -1621,8 +1763,9 @@ export default function Home() {
             <NetworkConsole info={networkInfo} action={coreAction} refresh={() => fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => notify("Network telemetry unavailable","error"))} />
           )}
           {section === "updates" && (
-            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => setSection("settings")} />
+            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => setSection("settings")} update={lcarsUpdate} setUpdate={setLcarsUpdate} notify={notify} />
           )}
+          {section.startsWith("custom:") && renderCustomPage()}
           {section === "settings" && (
             <section className="detail-view settings-view">
               <h3>INTERFACE CONFIGURATION</h3>
@@ -1679,12 +1822,18 @@ export default function Home() {
               <ShellSettings
                 platform={platform}
                 prefs={prefs}
+                extensions={extensions}
+                customPages={customPages}
                 setPrefs={setPrefs}
                 save={() => savePrefs()}
                 saved={configSaved}
                 health={health}
                 recheck={() => coreAction("integration-recheck")}
+                startupAudioStatus={startupAudioStatus}
+                testStartupAudio={async()=>{const result=await window.__lcarsPlayStartupSound?.(true);if(result)setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);}}
               />
+              <CustomPageManager pages={customPages} apps={apps} extensions={extensions} change={saveCustomPages}/>
+              <ExtensionSettings extensions={extensions}/>
               <div className="settings-grid">
                 <button onClick={() => setEditOpen(true)}>
                   <b>FAVORITE APPLICATIONS</b>
@@ -1732,6 +1881,9 @@ export default function Home() {
           setQuery={setQuery}
           close={() => setAllOpen(false)}
           action={launch}
+          destinations={appDestinations}
+          setDestination={chooseAppDestination}
+          refresh={refreshApps}
         />
       )}
       {editOpen && (
@@ -1743,18 +1895,25 @@ export default function Home() {
           close={() => setEditOpen(false)}
           action={(a) => toggleFavorite(a.id)}
           selected={favoriteIds}
+          selectionMode
+          refresh={refreshApps}
         />
       )}
-      <SystemTray
+      <SpeedDial
+        items={prefs.speedDial}
+        extensions={extensions}
+        customPages={customPages}
         players={players.length}
         notices={notices.length}
         displays={displays.length}
+        trayItems={trayItems.length}
         bridge={bridge}
-        openNotices={() => setHistoryOpen(true)}
-        openMedia={() => setSection("media")}
-        openNetwork={() => setSection("network")}
+        doNotDisturb={doNotDisturb}
+        taskPinned={taskLocked || prefs.taskPinned}
+        execute={runSpeedDial}
       />
       <TrayDrawer open={trayOpen} items={trayItems} close={() => setTrayOpen(false)} openNetwork={() => { setSection("network");setTrayOpen(false); }} openMedia={() => { setSection("media");setTrayOpen(false); }} />
+      {speedDialModule&&<div className="backdrop module-spotlight" onMouseDown={(event)=>event.target===event.currentTarget&&setSpeedDialModule(null)}><section role="dialog" aria-modal="true"><header><div><small>SPEED DIAL MODULE</small><h3>{widgetMeta(speedDialModule).name}</h3></div><button onClick={()=>setSpeedDialModule(null)}>CLOSE ×</button></header>{renderWidget(speedDialModule)}</section></div>}
       {startupVisible && prefs.startupSequence && <StartupTelemetry bridge={bridge} reduced={access.reducedMotion} />}
       <VoiceControl prefs={prefs} apps={apps} extensions={extensions} navigate={setSection} launch={launch} action={coreAction} notify={notify} />
       {detailOpen && <SystemDetail kind={detailOpen} details={systemDetails} close={() => setDetailOpen(null)} />}
@@ -1805,6 +1964,10 @@ export default function Home() {
   );
 }
 
+type FileKind="folder"|"application"|"pdf"|"document"|"image"|"audio"|"video"|"archive"|"file";
+const fileKind=(file:FileEntry):FileKind=>{if(file.directory)return"folder";const ext=file.name.split(".").pop()?.toLowerCase()||"";if(["exe","appimage","desktop","msi","app","bat","cmd","sh"].includes(ext))return"application";if(ext==="pdf")return"pdf";if(["doc","docx","odt","txt","rtf","md"].includes(ext))return"document";if(["png","jpg","jpeg","gif","webp","svg","bmp"].includes(ext))return"image";if(["mp3","wav","flac","ogg","m4a","aac"].includes(ext))return"audio";if(["mp4","mkv","webm","avi","mov"].includes(ext))return"video";if(["zip","7z","rar","tar","gz","bz2","xz"].includes(ext))return"archive";return"file";};
+function FileGlyph({kind}:{kind:FileKind}){const paths:Record<FileKind,ReactNode>={folder:<path d="M2 6h7l2 2h11v12H2zM3 5V3h7l2 2"/>,application:<><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 8l7 4-7 4z"/></>,pdf:<><path d="M5 2h10l4 4v16H5z"/><path d="M15 2v5h5M8 16c4-8 4-2 8-5M9 13c2 2 4 3 7 4"/></>,document:<><path d="M5 2h10l4 4v16H5z"/><path d="M15 2v5h5M8 11h8M8 15h8M8 19h5"/></>,image:<><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M5 18l5-5 3 3 2-2 4 4"/></>,audio:<><path d="M10 17V6l9-2v11"/><circle cx="7" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></>,video:<><rect x="2" y="5" width="15" height="14" rx="2"/><path d="M17 10l5-3v10l-5-3z"/></>,archive:<><path d="M5 3h14v18H5z"/><path d="M10 3h4v3h-4zm0 6h4v3h-4zm0 6h4v3h-4z"/></>,file:<><path d="M5 2h10l4 4v16H5z"/><path d="M15 2v5h5"/></>};return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[kind]}</svg>;}
+
 function FileExplorer({
   bridge,
   notify,
@@ -1826,7 +1989,8 @@ function FileExplorer({
     [showHidden, setShowHidden] = useState(false),
     [query, setQuery] = useState(""),
     [loading, setLoading] = useState(false),
-    [preview, setPreview] = useState<{kind:string;content:string}>({kind:"",content:""});
+    [preview, setPreview] = useState<{kind:string;content:string}>({kind:"",content:""}),
+    [documentPath,setDocumentPath]=useState("");
   const load = (next = path) => {
     setLoading(true);
     cue("processing");
@@ -1891,6 +2055,8 @@ function FileExplorer({
         : n < 1073741824
           ? (n / 1048576).toFixed(1) + " MB"
           : (n / 1073741824).toFixed(1) + " GB";
+  const openFile=(file:FileEntry)=>["pdf","document"].includes(fileKind(file))?setDocumentPath(file.path):act("/api/file-open",{path:file.path},"File opened");
+  if(documentPath)return <DocumentWorkspace path={documentPath} close={()=>setDocumentPath("")} notify={notify}/>;
   return (
     <section className="file-explorer">
       <header>
@@ -1959,10 +2125,10 @@ function FileExplorer({
               onDoubleClick={() =>
                 file.directory
                   ? load(file.path)
-                  : act("/api/file-open", { path: file.path }, "File opened")
+                  : openFile(file)
               }
             >
-              <i>{file.directory ? "▰" : "▤"}</i>
+              <i className={`file-kind-${fileKind(file)}`}><FileGlyph kind={fileKind(file)}/></i>
               <span>
                 <b>{file.name}</b>
                 <small>
@@ -1976,7 +2142,7 @@ function FileExplorer({
         <aside className="file-inspector">
           {selected ? (
             <>
-              <i>{selected.directory ? "▰" : "▤"}</i>
+              <i className={`file-kind-${fileKind(selected)}`}><FileGlyph kind={fileKind(selected)}/></i>
               <h3>{selected.name}</h3>
               <small>
                 {selected.directory ? "DIRECTORY" : size(selected.size)}
@@ -1987,11 +2153,7 @@ function FileExplorer({
                 onClick={() =>
                   selected.directory
                     ? load(selected.path)
-                    : act(
-                        "/api/file-open",
-                        { path: selected.path },
-                        "File opened",
-                      )
+                    : openFile(selected)
                 }
               >
                 {selected.directory ? "OPEN FOLDER" : "OPEN FILE"}
@@ -2016,13 +2178,28 @@ function FileExplorer({
   );
 }
 
+type DocumentData={kind:"text"|"office"|"pdf";name:string;path:string;editable:boolean;content:string};
+function DocumentWorkspace({path,close,detached=false,notify}:{path:string;close:()=>void;detached?:boolean;notify:(text:string,kind?:"info"|"error")=>void}){
+  const [documentData,setDocumentData]=useState<DocumentData|null>(null),[content,setContent]=useState(""),[dirty,setDirty]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState("");
+  const load=()=>{setLoading(true);setError("");fetch("http://127.0.0.1:8765/api/document?path="+encodeURIComponent(path)).then(async(response)=>{const result=await response.json();if(!response.ok||result.error)throw Error(result.error||"Document unavailable");setDocumentData(result);setContent(result.content);setDirty(false);}).catch((failure)=>{setError(failure.message);notify(failure.message,"error");}).finally(()=>setLoading(false));};
+  useEffect(load,[path]);
+  const save=async()=>{const response=await fetch("http://127.0.0.1:8765/api/document",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path,content})});const result=await response.json();if(!response.ok||result.error)return notify(result.error||"Document could not be saved","error");setDirty(false);notify("Document saved");};
+  const detach=()=>window.open(`lcars://app/index.html?tool=document&path=${encodeURIComponent(path)}`,"_blank","popup=yes");
+  const openDefault=()=>fetch("http://127.0.0.1:8765/api/file-open",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path})}).then(()=>notify("Opened with the operating-system default application")).catch(()=>notify("Default application could not be opened","error"));
+  return <section className="document-workspace"><header draggable={!detached} onDragEnd={(event)=>{if(!detached&&(event.screenX<=1||event.screenY<=1||event.screenX>=window.screen.availWidth-1||event.screenY>=window.screen.availHeight-1))detach();}}><div><small>LCARS DOCUMENT WORKSPACE</small><h3>{documentData?.name||"DOCUMENT LINK"}</h3></div><nav>{documentData?.editable&&<button disabled={!dirty} onClick={save}>SAVE</button>}<button onClick={detached?()=>window.close():detach}>{detached?"REATTACH / CLOSE":"DETACH ↗"}</button><button onClick={close}>{detached?"CLOSE":"BACK TO FILES"}</button></nav></header>{loading?<div className="document-loading">PROCESSING DOCUMENT…</div>:error?<div className="document-error"><b>EMBEDDED READER UNAVAILABLE</b><p>{error}</p><button onClick={openDefault}>OPEN WITH SYSTEM DEFAULT</button></div>:documentData?.kind==="pdf"?<iframe title={documentData.name} src={documentData.content}/>:documentData?.editable?<textarea value={content} onChange={(event)=>{setContent(event.target.value);setDirty(true);}} spellCheck/>:<article className="document-reader"><pre>{content}</pre></article>}<footer><span>{documentData?.kind?.toUpperCase()||"UNKNOWN FORMAT"}</span><small>{documentData?.editable?dirty?"UNSAVED CHANGES":"EDITABLE / SAVED":"READ-ONLY VIEW · OS DEFAULT REMAINS AVAILABLE"}</small></footer></section>;
+}
+
+function CustomApplicationPage({page,app,embedded,launch,navigate}:{page:CustomPage;app:App|undefined;embedded:string|null;launch:()=>void;navigate:(page:string)=>void}) {
+  return <section className="detail-view custom-page-view application-destination"><header className="custom-page-cap"><small>ASSIGNED APPLICATION DESTINATION</small><h3>{page.name}</h3></header>{app?<div className="application-destination-card"><i>{app.icon?<img src={app.icon} alt=""/>:app.name.slice(0,2).toUpperCase()}</i><span><small>INSTALLED APPLICATION</small><h4>{app.name}</h4><p>{app.comment||"Local desktop application"}</p></span><nav>{embedded&&<button onClick={()=>navigate(embedded)}>OPEN LCARS {embedded.toUpperCase()} VIEW</button>}<button onClick={launch}>OPEN NATIVE WINDOW ↗</button></nav></div>:<div className="adaptive-empty"><b>APPLICATION NOT FOUND</b><small>The application may have been removed or its launcher identifier changed. Edit this custom page in Settings.</small></div>}<footer>{embedded?"LCARS-COMPATIBLE DESTINATION AVAILABLE":"THE OPERATING SYSTEM DOES NOT ALLOW THIS APPLICATION TO BE RE-PARENTED INSIDE LCARS"}</footer></section>;
+}
+
 function NetworkConsole({info,action,refresh}:{info:NetworkInfo;action:(value:string)=>void;refresh:()=>void}) {
   const amount=(value:number)=>value>1073741824?(value/1073741824).toFixed(1)+" GB":value>1048576?(value/1048576).toFixed(1)+" MB":(value/1024).toFixed(0)+" KB";
   const diagnostics=[['GATEWAY',info.diagnostics.gateway],['DNS',info.diagnostics.dns],['EXTERNAL LINK',info.diagnostics.internet]] as const;
   return <section className="detail-view lcars-console network-console"><header className="console-cap"><div><small>NET / SUBSPACE OPERATIONS</small><h3>NETWORK OPERATIONS</h3></div><strong>{info.interfaces.length.toString().padStart(2,'0')}</strong></header><div className="network-grid">{info.interfaces.length?info.interfaces.map((link,index)=><article className="network-tile" key={link.id}><i>{String(index+1).padStart(2,'0')}</i><header><small>{link.kind.toUpperCase()} INTERFACE</small><b>{link.name}</b><em className={link.state==='connected'?'online':''}>{link.state.toUpperCase()}</em></header><div className="network-address"><span><small>ADDRESS</small><b>{link.address||'UNASSIGNED'}</b></span><span><small>GATEWAY</small><b>{link.gateway||'LOCAL ONLY'}</b></span></div><div className="network-flow"><span>RX {amount(link.received)}</span><i><em style={{width:Math.min(100,(link.received%100000000)/1000000)+'%'}} /></i><span>TX {amount(link.sent)}</span></div><footer><span>{link.speed||'LINK SPEED UNKNOWN'}</span>{typeof link.signal==='number'&&<b>SIGNAL {link.signal}%</b>}</footer></article>):<div className="adaptive-empty"><b>NO NETWORK INTERFACES REPORTED</b><small>The platform adapter did not return an active data link.</small></div>}</div><section className="network-diagnostics"><header><small>CONNECTION DIAGNOSTICS</small><b>{info.diagnostics.latency===null?'NO LATENCY':info.diagnostics.latency+' MS'}</b></header>{diagnostics.map(([name,ok],index)=><article key={name}><i>{String(index+1).padStart(2,'0')}</i><span>{name}</span><b className={ok?'ok':'bad'}>{ok?'ONLINE':'OFFLINE'}</b></article>)}<article><i>04</i><span>BLUETOOTH</span><b className={info.bluetooth?'ok':'bad'}>{info.bluetooth?'ACTIVE':'INACTIVE'}</b></article></section><nav className="network-actions"><button onClick={()=>action('network-settings')}>NETWORK SETTINGS</button><button onClick={()=>action('wifi')}>WI-FI CONTROL</button><button onClick={()=>action('bluetooth')}>BLUETOOTH CONTROL</button><button onClick={refresh}>REFRESH & TEST</button></nav></section>;
 }
 
-function TrayDrawer({open,items,close,openNetwork,openMedia}:{open:boolean;items:TrayItem[];close:()=>void;openNetwork:()=>void;openMedia:()=>void}) { if(!open)return null;const activate=(id:string)=>fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})}).catch(()=>{});return <aside className="tray-drawer"><header><div><small>LOCAL STATUSNOTIFIER MATRIX</small><h3>SYSTEM TRAY</h3></div><button onClick={close}>CLOSE ×</button></header><nav><button onClick={openNetwork}>NETWORK</button><button onClick={openMedia}>MEDIA & AUDIO</button></nav><div>{items.length?items.map((item,index)=><button key={item.id} onClick={()=>activate(item.id)}><i>{item.icon?<img src={item.icon} alt=""/>:String(index+1).padStart(2,'0')}</i><span><b>{item.name}</b><small>{item.status}</small></span><em>›</em></button>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</div></aside>; }
+function TrayDrawer({open,items,close,openNetwork,openMedia}:{open:boolean;items:TrayItem[];close:()=>void;openNetwork:()=>void;openMedia:()=>void}) { if(!open)return null;const activate=(id:string)=>fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})}).catch(()=>{});return <aside className="tray-drawer"><header><div><small>LOCAL STATUSNOTIFIER MATRIX</small><h3>SYSTEM TRAY</h3></div><button onClick={close}>CLOSE ×</button></header><nav><button onClick={openNetwork}>NETWORK</button><button onClick={openMedia}>MEDIA & AUDIO</button></nav><div>{items.length?items.map((item)=><button key={item.id} onClick={()=>activate(item.id)} title={item.name}><i>{item.icon?<img src={item.icon} alt=""/>:<b>{item.name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TR"}</b>}</i><span><b>{item.name}</b><small>{item.status||"ACTIVE"}</small></span><em>›</em></button>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</div></aside>; }
 
 function StartupTelemetry({bridge,reduced}:{bridge:boolean;reduced:boolean}) { return <aside className={'startup-telemetry '+(reduced?'instant':'')} aria-live="polite"><i /><span><small>LCARS INITIALIZATION</small><b>{bridge?'LOCAL CORE SYNCHRONIZED':'LOCAL CORE LINK PENDING'}</b></span><em>SYS 47 · DISPLAY MATRIX · AUDIO BUS</em></aside>; }
 
@@ -2036,8 +2213,15 @@ function StorageMatrix({ drives, notify, refresh }: { drives: Drive[]; notify: (
   return <section className="storage-matrix"><header><div><small>PHYSICAL STORAGE MATRIX</small><h4>DRIVES & REMOVABLE MEDIA</h4></div><button onClick={refresh}>RESCAN</button></header><div>{drives.map((drive) => <article key={drive.id}><i>{drive.removable ? "REM" : "DRV"}</i><span><b>{drive.name}</b><small>{(drive.size / 1073741824).toFixed(1)} GB · {drive.filesystem || drive.type.toUpperCase()} · {drive.mounted ? drive.mountpoints.join(", ") : "NOT MOUNTED"}</small></span>{drive.removable && drive.type !== "disk" && <button onClick={() => operate(drive)}>{drive.mounted ? "UNMOUNT" : "MOUNT"}</button>}</article>)}</div></section>;
 }
 
+const formatBytes=(value:number)=>value>=1099511627776?(value/1099511627776).toFixed(1)+" TB":value>=1073741824?(value/1073741824).toFixed(1)+" GB":value>=1048576?(value/1048576).toFixed(0)+" MB":value?Math.round(value/1024)+" KB":"NOT REPORTED";
+function HardwareTelemetry({details,open}:{details:SystemDetails;open:(kind:string)=>void}){
+  const memory=details.memory,graphics=details.graphics||[];
+  return <section className="hardware-telemetry"><header><div><small>EXPANDED HARDWARE MATRIX</small><h4>GRAPHICS & MEMORY</h4></div><b>{graphics.length.toString().padStart(2,"0")} GPU</b></header><div className="memory-telemetry" role="button" tabIndex={0} onClick={()=>open("MEM")} onKeyDown={(event)=>event.key==="Enter"&&open("MEM")}><i>MEM</i><span><small>PHYSICAL MEMORY</small><b>{formatBytes(memory?.used||0)} / {formatBytes(memory?.total||0)}</b><em>{formatBytes(memory?.available||0)} AVAILABLE · SWAP {formatBytes(memory?.swapUsed||0)} / {formatBytes(memory?.swapTotal||0)}</em></span><strong>{memory?.percent||0}%</strong></div><div className="graphics-telemetry">{graphics.length?graphics.map((adapter,index)=><article role="button" tabIndex={0} onClick={()=>open("GPU")} onKeyDown={(event)=>event.key==="Enter"&&open("GPU")} key={`${adapter.name}:${index}`}><i>{String(index+1).padStart(2,"0")}</i><span><small>{adapter.vendor||"GRAPHICS ADAPTER"}</small><b>{adapter.name}</b><em>{adapter.driver?`DRIVER ${adapter.driver}`:"DRIVER NOT REPORTED"}{adapter.resolution?` · ${adapter.resolution}`:""}</em></span><strong>{adapter.usage??0}%</strong></article>):<p>NO DETAILED GRAPHICS TELEMETRY REPORTED BY THIS PLATFORM</p>}</div></section>;
+}
+
 function SystemDetail({ kind, details, close }: { kind: string; details: SystemDetails; close: () => void }) {
-  return <div className="backdrop"><section className="system-detail" role="dialog" aria-modal="true"><header><div><small>EXPANDED TELEMETRY</small><h2>{kind} DIAGNOSTIC</h2></div><button onClick={close}>CLOSE ×</button></header>{kind === "CPU" && <><p>{details.cpu?.logical || 0} LOGICAL PROCESSORS · LOAD {details.cpu?.load?.join(" / ") || "UNKNOWN"}</p><div className="core-grid">{details.cpu?.cores?.map((core) => <article key={core.name}><span><b>{core.name}</b><strong>{core.usage}%</strong></span><i><em style={{ width: core.usage + "%" }} /></i></article>)}</div></>}{kind === "DISK" && <div className="detail-drives">{details.storage?.map((drive) => <p key={drive.id}><b>{drive.name}</b><small>{(drive.size / 1073741824).toFixed(1)} GB · {drive.mounted ? drive.mountpoints.join(", ") : "NOT MOUNTED"}</small></p>)}</div>}{kind !== "CPU" && kind !== "DISK" && <p>LIVE {kind} telemetry is displayed on the primary meter. Additional hardware sensors will appear here when the platform adapter reports them.</p>}<footer>KERNEL {details.kernel || "PLATFORM MANAGED"}</footer></section></div>;
+  const memory=details.memory,graphics=details.graphics||[];
+  return <div className="backdrop"><section className="system-detail" role="dialog" aria-modal="true"><header><div><small>EXPANDED TELEMETRY</small><h2>{kind} DIAGNOSTIC</h2></div><button onClick={close}>CLOSE ×</button></header>{kind === "CPU" && <><p>{details.cpu?.logical || 0} LOGICAL PROCESSORS · LOAD {details.cpu?.load?.join(" / ") || "UNKNOWN"}</p><div className="core-grid">{details.cpu?.cores?.map((core) => <article key={core.name}><span><b>{core.name}</b><strong>{core.usage}%</strong></span><i><em style={{ width: core.usage + "%" }} /></i></article>)}</div></>}{kind === "MEM"&&<div className="memory-detail"><div><span><small>TOTAL</small><b>{formatBytes(memory?.total||0)}</b></span><span><small>IN USE</small><b>{formatBytes(memory?.used||0)}</b></span><span><small>AVAILABLE</small><b>{formatBytes(memory?.available||0)}</b></span><span><small>SWAP IN USE</small><b>{formatBytes(memory?.swapUsed||0)}</b></span></div>{memory?.modules?.length?<section>{memory.modules.map((module,index)=><article key={`${module.bank}:${index}`}><i>{String(index+1).padStart(2,"0")}</i><span><b>{module.bank||`MEMORY MODULE ${index+1}`}</b><small>{formatBytes(module.capacity)} · {module.speed?module.speed+" MT/S · ":""}{module.manufacturer||"MANUFACTURER UNKNOWN"} {module.part||""}</small></span></article>)}</section>:<p>Individual memory-module information is not exposed by this platform without elevated hardware access.</p>}</div>}{kind === "GPU"&&<div className="graphics-detail">{graphics.length?graphics.map((adapter,index)=><article key={`${adapter.name}:${index}`}><i>{String(index+1).padStart(2,"0")}</i><header><small>{adapter.vendor||"GRAPHICS"}</small><b>{adapter.name}</b></header><p><span>UTILIZATION <b>{adapter.usage??0}%</b></span><span>VIDEO MEMORY <b>{formatBytes(adapter.memoryUsed||0)} / {formatBytes(adapter.memoryTotal||0)}</b></span><span>TEMPERATURE <b>{adapter.temperature==null?"NOT REPORTED":adapter.temperature+"°C"}</b></span><span>DRIVER <b>{adapter.driver||"NOT REPORTED"}</b></span><span>DISPLAY MODE <b>{adapter.resolution||"DESKTOP MANAGED"}</b></span></p></article>):<p>Detailed graphics telemetry is unavailable from the current platform adapter.</p>}</div>}{kind === "DISK" && <div className="detail-drives">{details.storage?.map((drive) => <p key={drive.id}><b>{drive.name}</b><small>{(drive.size / 1073741824).toFixed(1)} GB · {drive.mounted ? drive.mountpoints.join(", ") : "NOT MOUNTED"}</small></p>)}</div>}<footer>KERNEL {details.kernel || "PLATFORM MANAGED"}</footer></section></div>;
 }
 
 function TaskRail({
@@ -2179,14 +2363,33 @@ function UpdateCenter({
   health,
   prefs,
   configureVoice,
+  update,
+  setUpdate,
+  notify,
 }: {
   platform: string;
   action: (value: string) => void;
   health: Health;
   prefs: ShellPrefs;
   configureVoice: () => void;
+  update: UpdateInfo | null;
+  setUpdate: (update: UpdateInfo | null) => void;
+  notify: (text: string, kind?: "info" | "error") => void;
 }) {
   const windows = platform.includes("WINDOWS");
+  const [updateBusy,setUpdateBusy]=useState<""|"check"|"download"|"install">("");
+  const updateOperation=async(operation:"check"|"download"|"install")=>{
+    setUpdateBusy(operation);
+    try{
+      const response=await fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,path:update?.path||""})});
+      const result:UpdateInfo=await response.json();
+      setUpdate(result);
+      if(!response.ok||!result.ok)notify(result.error||"GitHub update service could not be reached","error");
+      else notify(result.message||(result.available?`LCARS ${result.version} is available`:"LCARS is up to date"));
+      if(result.closeApp)window.setTimeout(()=>window.close(),700);
+    }catch{notify("GitHub update service could not be reached","error");}
+    finally{setUpdateBusy("");}
+  };
   return (
     <section className="detail-view update-center">
       <h3>SOFTWARE UPDATE CONTROL</h3>
@@ -2223,20 +2426,20 @@ function UpdateCenter({
           number="02"
           eyebrow="LCARS RELEASE CHANNEL"
           title="LCARS INTERFACE"
-          status="V23.1 TEST"
-          description="Version 23.1 adds unified LCARS modules, live network telemetry, safe file previews, startup telemetry and sound controls, and the System Tray drawer."
-          primary="CHECK FOR LCARS UPDATE"
+          status={updateBusy?updateBusy.toUpperCase()+"…":update?.downloaded?"VERIFIED / READY":update?.available?`V${update.version} AVAILABLE`:"V24 CHANNEL"}
+          description={update?.available?`A newer signed release is available from GitHub${update.asset?.name?`: ${update.asset.name}`:""}.`:"Background checks stay silent when offline. Manual checks report useful connection and verification details here."}
+          primary={update?.downloaded?"INSTALL VERIFIED UPDATE":update?.available?"DOWNLOAD & VERIFY":"CHECK FOR LCARS UPDATE"}
           secondary="ROLL BACK RELEASE"
-          primaryAction={() => action("lcars-update-check")}
+          primaryAction={() => updateOperation(update?.downloaded?"install":update?.available?"download":"check")}
           secondaryAction={() => action("lcars-rollback")}
-          stamp="UNPUBLISHED TEST BUILD · VERSION 23.1"
+          stamp={update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"AUTOMATIC GITHUB RELEASE CHANNEL · BACKGROUND ERRORS SILENT"}
         />
         <UpdatePanel
           number="03"
-          eyebrow="LOCAL MODULE API"
+          eyebrow="DECLARATIVE MODULE API"
           title="EXTENSIONS"
-          status="V1"
-          description="Rescan locally installed LCARS modules and review their folder for manual updates."
+          status="V2"
+          description="Rescan isolated declarative modules with placements, settings, permissions, and persistent state. Version 1 checklist modules remain compatible."
           primary="SCAN EXTENSIONS"
           secondary="OPEN MODULE FOLDER"
           primaryAction={() => action("extension-scan")}
@@ -2319,10 +2522,10 @@ function PowerDialog({
   action,
 }: {
   close: () => void;
-  action: (value: "exit" | "poweroff" | "reboot") => void;
+  action: (value: "exit" | "sleep" | "poweroff" | "reboot") => void;
 }) {
   const [confirmPower, setConfirmPower] = useState<
-    "poweroff" | "reboot" | null
+    "sleep" | "poweroff" | "reboot" | null
   >(null);
   if (confirmPower)
     return (
@@ -2340,19 +2543,23 @@ function PowerDialog({
           <header>
             <small>SYSTEM POWER CONFIRMATION</small>
             <h2>
-              CONFIRM {confirmPower === "poweroff" ? "SHUTDOWN" : "RESTART"}
+              CONFIRM {confirmPower === "poweroff" ? "SHUTDOWN" : confirmPower === "reboot" ? "RESTART" : "SLEEP"}
             </h2>
           </header>
           <p>
             {confirmPower === "poweroff"
               ? "The computer will turn off and all running applications will close."
-              : "The computer will restart and all running applications will close."}
+              : confirmPower === "reboot"
+                ? "The computer will restart and all running applications will close."
+                : "The entire computer will enter sleep mode. LCARS and your applications will remain open for resume."}
           </p>
           <div className="power-confirm-actions">
             <button autoFocus onClick={() => action(confirmPower)}>
               {confirmPower === "poweroff"
                 ? "SHUT DOWN COMPUTER"
-                : "RESTART COMPUTER"}
+                : confirmPower === "reboot"
+                  ? "RESTART COMPUTER"
+                  : "SLEEP COMPUTER"}
             </button>
             <button onClick={() => setConfirmPower(null)}>GO BACK</button>
           </div>
@@ -2396,8 +2603,15 @@ function PowerDialog({
               <small>Close applications and reboot the PC</small>
             </span>
           </button>
-          <button className="power-cancel" onClick={close}>
+          <button onClick={() => setConfirmPower("sleep")}>
             <i>04</i>
+            <span>
+              <b>SLEEP COMPUTER</b>
+              <small>Suspend the whole PC and resume this session later</small>
+            </span>
+          </button>
+          <button className="power-cancel" onClick={close}>
+            <i>05</i>
             <span>
               <b>CANCEL</b>
               <small>Return to the LCARS interface</small>
@@ -2907,19 +3121,27 @@ function LockScreen({userName,credential,profiles,activeProfile,defaultWorkstati
 function ShellSettings({
   platform,
   prefs,
+  extensions,
+  customPages,
   setPrefs,
   save,
   saved,
   health,
   recheck,
+  startupAudioStatus,
+  testStartupAudio,
 }: {
   platform: string;
   prefs: ShellPrefs;
+  extensions: ExtensionManifest[];
+  customPages: CustomPage[];
   setPrefs: (p: ShellPrefs) => void;
   save: () => void;
   saved: boolean;
   health: Health;
   recheck: () => void;
+  startupAudioStatus: string;
+  testStartupAudio: () => void | Promise<void>;
 }) {
   const set = <K extends keyof ShellPrefs>(key: K, value: ShellPrefs[K]) =>
     setPrefs({ ...prefs, [key]: value });
@@ -2932,17 +3154,16 @@ function ShellSettings({
       <div className="settings-columns">
         <section>
           <h4>TASK RAIL & NOTICES</h4>
-          <label>
-            INTERFACE DENSITY
-            <small>Changes panel spacing and information density without changing the operating-system display scale.</small>
-            <select value={prefs.interfaceDensity} onChange={(e) => set("interfaceDensity", e.target.value as ShellPrefs["interfaceDensity"])}>
-              <option value="comfortable">COMFORTABLE</option>
-              <option value="compact">COMPACT</option>
-              <option value="console">CONSOLE DENSE</option>
-            </select>
-          </label>
+          <div className="page-density-settings">
+            <label>PAGE SIZE CONTROL<small>Uses one layout size everywhere or remembers a separate Compact, Standard, or Wide layout for each major page.</small><select value={prefs.pageDensityScope} onChange={(event)=>set("pageDensityScope",event.target.value as ShellPrefs["pageDensityScope"])}><option value="global">ONE SIZE FOR ALL PAGES</option><option value="per-page">CHOOSE EACH PAGE</option></select></label>
+            <label>DEFAULT PAGE SIZE<small>Compact shows more controls, Standard balances space, and Wide gives panels more breathing room.</small><select value={prefs.pageDensity} onChange={(event)=>set("pageDensity",event.target.value as PageDensity)}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></select></label>
+            {prefs.pageDensityScope==="per-page"&&<div className="page-density-matrix">{nav.map((item)=><label key={item[0]}><span>{item[1]} {item[2]}</span><select value={prefs.pageDensities[item[0]]||prefs.pageDensity} onChange={(event)=>set("pageDensities",{...prefs.pageDensities,[item[0]]:event.target.value as PageDensity})}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></select></label>)}</div>}
+          </div>
           <Toggle label="Play startup power sequence" description="Plays the bundled LCARS power-up sound when the desktop app opens. It never delays the interface." checked={prefs.startupSound} change={(v) => set("startupSound", v)} />
+          <div className="startup-audio-diagnostic"><button onClick={testStartupAudio}>TEST POWER-UP AUDIO</button><small>{startupAudioStatus}</small><em>ASSET: LCARS BUNDLED MP3 · OUTPUT: OPERATING-SYSTEM DEFAULT</em></div>
           <Toggle label="Show background startup telemetry" description="Shows a small nonblocking system-check strip while LCARS connects to local services." checked={prefs.startupSequence} change={(v) => set("startupSequence", v)} />
+          <label>SYSTEM TRAY PRESENTATION<small>Places the same tray drawer trigger in the side rail or the compact SYS 47 header position.</small><select value={prefs.trayPresentation} onChange={(event)=>set("trayPresentation",event.target.value as ShellPrefs["trayPresentation"])}><option value="rail">SIDE RAIL</option><option value="header">HEADER / SYS 47</option></select></label>
+          <SpeedDialEditor items={prefs.speedDial} extensions={extensions} customPages={customPages} change={(items)=>set("speedDial",items)} />
           <Toggle label="Show lock screen on startup" description="Opens normal LCARS windows at the themed authorization screen. Remote Terminal windows always bypass it." checked={prefs.lockOnLaunch} change={(v) => set("lockOnLaunch", v)} />
           {prefs.lockOnLaunch && <div className="subordinate-setting"><Toggle label="Quick boot when no password is set" description="Enters LCARS directly only when no local lock password exists." checked={prefs.quickBootWithoutPassword} change={(v) => set("quickBootWithoutPassword", v)} /></div>}
           <Toggle
@@ -3132,6 +3353,26 @@ function ShellSettings({
   );
 }
 
+function SpeedDialEditor({items,extensions,customPages,change}:{items:SpeedDialItem[];extensions:ExtensionManifest[];customPages:CustomPage[];change:(items:SpeedDialItem[])=>void}) {
+  const choices=[...speedDialChoices,...extensions.map((extension)=>({id:`module:ext:${extension.id}` as SpeedDialItem,label:`${extension.name.toUpperCase()} MODULE`,description:"Open extension in a focused module"})),...customPages.map((page)=>({id:`page:custom:${page.id}` as SpeedDialItem,label:page.name.toUpperCase(),description:"Open custom sidebar page"}))];
+  const replace=(index:number,value:SpeedDialItem)=>change(items.map((item,itemIndex)=>itemIndex===index?value:item));
+  const move=(index:number,direction:number)=>{const target=index+direction;if(target<0||target>=items.length)return;const next=[...items];[next[index],next[target]]=[next[target],next[index]];change(next);};
+  const add=()=>{const unused=choices.find((choice)=>!items.includes(choice.id))?.id||"page:settings";change([...items,unused].slice(0,6));};
+  return <section className="speed-dial-editor"><header><span><b>SPEED DIAL MODULES</b><small>Choose two to six pages, focused modules, or actions for the bottom-right control strip and arrange their order.</small></span><em>{items.length}/6</em></header><div>{items.map((item,index)=><article key={`${index}:${item}`}><i>{String(index+1).padStart(2,"0")}</i><label><span>SLOT {index+1}</span><select aria-label={`Speed Dial slot ${index+1}`} value={item} onChange={(event)=>replace(index,event.target.value as SpeedDialItem)}>{choices.map((choice)=><option value={choice.id} key={choice.id}>{choice.label} — {choice.description}</option>)}</select></label><nav><button aria-label="Move shortcut left" disabled={index===0} onClick={()=>move(index,-1)}>‹</button><button aria-label="Move shortcut right" disabled={index===items.length-1} onClick={()=>move(index,1)}>›</button><button aria-label="Remove shortcut" disabled={items.length<=2} onClick={()=>change(items.filter((_,itemIndex)=>itemIndex!==index))}>×</button></nav></article>)}</div><button disabled={items.length>=6} onClick={add}>+ ADD SPEED DIAL SLOT</button></section>;
+}
+
+function CustomPageManager({pages,apps,extensions,change}:{pages:CustomPage[];apps:App[];extensions:ExtensionManifest[];change:(pages:CustomPage[])=>void}) {
+  const moduleSources=Object.entries(widgetInfo).map(([id,info])=>({value:`module|${id}`,label:info.name}));
+  const extensionSources=extensions.flatMap((extension)=>extension.apiVersion===1?[{value:`extension|${extension.id}::__legacy`,label:`${extension.name} — full checklist`}]:extension.placements.map((placement)=>({value:`extension|${extension.id}::${placement.id}`,label:`${extension.name} — ${placement.title}`})));
+  const appSources=apps.map((app)=>({value:`app|${app.id}`,label:app.name}));
+  const sources=[...moduleSources,...extensionSources,...appSources];
+  const [source,setSource]=useState(sources[0]?.value||"module|system"),[name,setName]=useState("");
+  useEffect(()=>{if(!sources.some((item)=>item.value===source)&&sources[0])setSource(sources[0].value);},[apps.length,extensions.length]);
+  const add=()=>{if(pages.length>=6)return;const selected=sources.find((item)=>item.value===source);if(!selected)return;const separator=source.indexOf("|"),kind=source.slice(0,separator) as CustomPage["kind"],target=source.slice(separator+1);const page:CustomPage={id:`page-${Date.now().toString(36)}`,name:(name.trim()||selected.label).slice(0,24),kind,target};change([...pages,page]);setName("");};
+  const move=(index:number,direction:number)=>{const target=index+direction;if(target<0||target>=pages.length)return;const next=[...pages];[next[index],next[target]]=[next[target],next[index]];change(next);};
+  return <section className="custom-page-manager"><header><div><small>SIDEBAR ARCHITECTURE</small><h4>CUSTOM PAGES</h4></div><b>{pages.length}/6</b></header><p>Add a persistent sidebar destination for an application, an Overview module, or a full extension placement. Arbitrary desktop apps open natively when the OS cannot safely embed them.</p><div className="custom-page-create"><label>PAGE SOURCE<select value={source} onChange={(event)=>{setSource(event.target.value);const selected=sources.find((item)=>item.value===event.target.value);if(selected)setName(selected.label);}}><optgroup label="OVERVIEW MODULES">{moduleSources.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</optgroup>{extensionSources.length>0&&<optgroup label="EXTENSION PAGES">{extensionSources.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</optgroup>}<optgroup label="INSTALLED APPLICATIONS">{appSources.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</optgroup></select></label><label>SIDEBAR LABEL<input maxLength={24} placeholder={sources.find((item)=>item.value===source)?.label||"CUSTOM PAGE"} value={name} onChange={(event)=>setName(event.target.value)}/></label><button disabled={pages.length>=6} onClick={add}>ADD PAGE</button></div><div className="custom-page-list">{pages.map((page,index)=><article key={page.id}><i>C{index+1}</i><span><b>{page.name}</b><small>{page.kind.toUpperCase()} · {page.target}</small></span><nav><button disabled={index===0} onClick={()=>move(index,-1)}>↑</button><button disabled={index===pages.length-1} onClick={()=>move(index,1)}>↓</button><button onClick={()=>change(pages.filter((item)=>item.id!==page.id))}>REMOVE</button></nav></article>)}{!pages.length&&<p>NO CUSTOM SIDEBAR PAGES ASSIGNED</p>}</div></section>;
+}
+
 function Toggle({
   label,
   description,
@@ -3159,6 +3400,8 @@ function Toggle({
   );
 }
 
+function ExtensionSettings({extensions}:{extensions:ExtensionManifest[]}){const configurable=extensions.filter((extension)=>extension.settings.length);if(!configurable.length)return null;return <section className="extension-settings"><header><b>EXTENSION CONFIGURATION</b><small>HOST-RENDERED · NAMESPACED LOCAL STATE</small></header>{configurable.map((extension)=><ExtensionSettingGroup key={extension.id} extension={extension}/>)}</section>;}
+function ExtensionSettingGroup({extension}:{extension:ExtensionManifest}){const key=`lcars-extension-state:${extension.id}`,[values,setValues]=useState<Record<string,unknown>>(()=>{try{return JSON.parse(localStorage.getItem(key)||"{}");}catch{return{};}});const save=(name:string,value:unknown)=>{const next={...values,[name]:value};setValues(next);localStorage.setItem(key,JSON.stringify(next));fetch("http://127.0.0.1:8765/api/extension-state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:extension.id,state:next})}).catch(()=>{});};return <article><h4>{extension.name.toUpperCase()} <small>API {extension.apiVersion}</small></h4>{extension.settings.map((setting)=>{const value=values[setting.key]??setting.default??"";return <label key={setting.key}>{setting.label}<small>{setting.description}</small>{setting.type==="toggle"?<input type="checkbox" checked={Boolean(value)} onChange={(event)=>save(setting.key,event.target.checked)}/>:setting.type==="select"?<select value={String(value)} onChange={(event)=>save(setting.key,event.target.value)}>{setting.options?.map((option)=><option key={option}>{option}</option>)}</select>:<input type={setting.type==="number"?"number":"text"} value={String(value)} onChange={(event)=>save(setting.key,setting.type==="number"?Number(event.target.value):event.target.value)}/>}</label>;})}</article>;}
 function VoiceDeviceSelect({value,change}:{value:string;change:(value:string)=>void}) { const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);useEffect(()=>{navigator.mediaDevices?.enumerateDevices().then((items)=>setDevices(items.filter((item)=>item.kind==="audioinput"))).catch(()=>{});},[]);return <label>VOICE MICROPHONE<small>Select the input used by push-to-talk. Grant microphone permission once to reveal device names.</small><select value={value} onChange={(event)=>change(event.target.value)}><option value="">SYSTEM DEFAULT</option>{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`MICROPHONE ${index+1}`}</option>)}</select></label>; }
 
 function VoiceControl({ prefs, apps, extensions, navigate, launch, action, notify }: { prefs: ShellPrefs; apps: App[]; extensions: ExtensionManifest[]; navigate: (page: string) => void; launch: (app: App) => void; action: (value: string) => void; notify: (text: string, kind?: "info" | "error") => void }) {
@@ -3181,7 +3424,7 @@ function VoiceControl({ prefs, apps, extensions, navigate, launch, action, notif
     if (prefs.voiceSecurity === "system") {
       if (text.includes("open tasks") || text.includes("task rail")) { affirmative();action("refresh-system");return notify("Task Rail ready — use the rail control to pin it"); }
       if (text.includes("check updates")) { affirmative();navigate("updates");action("check-updates");return; }
-      if (/shut ?down|restart|reboot|unmount/.test(text)) return notify("Protected voice command requires manual confirmation in its LCARS panel", "error");
+      if (/shut ?down|restart|reboot|sleep|suspend|unmount/.test(text)) return notify("Protected voice command requires manual confirmation in its LCARS panel", "error");
     }
     notify("Voice command not recognized: "+raw, "error");
   };
@@ -3191,32 +3434,36 @@ function VoiceControl({ prefs, apps, extensions, navigate, launch, action, notif
   return <aside className={(listening ? "listening " : "")+"voice-control"}><button aria-label={listening?"Stop listening":"Push to talk"} onClick={() => listening ? recorder.current?.stop() : start()} disabled={busy}><i>●</i>{busy?"PROCESSING":listening?"LISTENING — STOP":"VOICE"}</button>{history.length>0&&<small title={history.join("\n")}>LAST: {history[0]}</small>}</aside>;
 }
 
-function SystemTray({
+function SpeedDial({
+  items,
+  extensions,
+  customPages,
   players,
   notices,
   displays,
+  trayItems,
   bridge,
-  openNotices,
-  openMedia,
-  openNetwork,
+  doNotDisturb,
+  taskPinned,
+  execute,
 }: {
+  items: SpeedDialItem[];
+  extensions: ExtensionManifest[];
+  customPages: CustomPage[];
   players: number;
   notices: number;
   displays: number;
+  trayItems: number;
   bridge: boolean;
-  openNotices: () => void;
-  openMedia: () => void;
-  openNetwork: () => void;
+  doNotDisturb: boolean;
+  taskPinned: boolean;
+  execute: (item: SpeedDialItem) => void;
 }) {
+  const choices=[...speedDialChoices,...extensions.map((extension)=>({id:`module:ext:${extension.id}` as SpeedDialItem,label:extension.name.toUpperCase().slice(0,14),description:`Open ${extension.name} as a focused module`})),...customPages.map((page)=>({id:`page:custom:${page.id}` as SpeedDialItem,label:page.name.toUpperCase().slice(0,14),description:`Open custom page ${page.name}`}))];
+  const suffix=(item:SpeedDialItem)=>item==="page:network"?(bridge?"●":"○"):item==="page:media"?String(players):item==="action:dnd"?(doNotDisturb?"ON":"OFF"):item==="action:notices"?String(notices):item==="action:displays"?String(displays):item==="action:tasks"?(taskPinned?"PIN":"OPEN"):item==="action:tray"?String(trayItems):item.startsWith("module:")?"MOD":"";
   return (
-    <nav className="system-tray" aria-label="LCARS system tray">
-      <button onClick={openNetwork}>
-        <i className={bridge ? "online" : ""} />
-        NET
-      </button>
-      <button onClick={openMedia}>♫ {players}</button>
-      <button onClick={openNotices}>◈ {notices}</button>
-      <span>{displays} DISP</span>
+    <nav className="system-tray speed-dial" aria-label="LCARS Speed Dial">
+      {items.map((item,index)=>{const choice=choices.find((candidate)=>candidate.id===item);if(!choice)return null;return <button className={item==="action:dnd"&&doNotDisturb?"active":""} key={`${item}:${index}`} onClick={()=>execute(item)} title={choice.description}><i>{String(index+1).padStart(2,"0")}</i><span>{choice.label}</span><b>{suffix(item)}</b></button>;})}
     </nav>
   );
 }
@@ -3246,49 +3493,11 @@ function FirstRun({
         : "Start LCARS locally to enable desktop integration.",
       ok: bridge,
     },
-    {
-      code: "02",
-      title: "DISPLAY MATRIX",
-      text: `${displays.length} connected display${displays.length === 1 ? "" : "s"} detected.`,
-      ok: displays.length > 0,
-    },
-    {
-      code: "03",
-      title: "TASK RAIL",
-      text: "Open, focus, move, minimize, and close desktop windows without using the Plasma taskbar.",
-      ok: true,
-    },
-    {
-      code: "04",
-      title: "COMMAND PALETTE",
-      text: "Press Ctrl + K anywhere to find pages, launch applications, and run system commands.",
-      ok: true,
-    },
-    {
-      code: "05",
-      title: "MODULAR OVERVIEW",
-      text: "Use Configure Overview to add, remove, resize, and reorder your command modules.",
-      ok: true,
-    },
-    {
-      code: "06",
-      title: "WORKSPACE PROFILES",
-      text: "Save separate LCARS layouts and favorites for gaming, work, media, or other activities.",
-      ok: true,
-    },
-    {
-      code: "07",
-      title: "RECOVERY CONTROL",
-      text: "Ctrl + Shift + L locks LCARS. Meta + Shift + Escape restores Plasma panels from shell mode.",
-      ok: true,
-    },
-    {
-      code: "08",
-      title: "AUDIO & MEDIA",
-      text: "PipeWire devices, application volumes, and MPRIS playback are linked through the local core.",
-      ok: bridge,
-    },
-    { code:"09", title:"LOCAL AUTHORIZATION", text:"Optionally protect the LCARS lock screen with a local password. Only a salted PBKDF2 hash is stored on this PC.", ok:true },
+    { code:"02", title:"NAVIGATION", text:"Press Ctrl plus the number shown on a sidebar control to open that page—even while Terminal has focus. Ctrl+K opens commands and Ctrl+F finds pages, settings, apps, and modules.", ok:true },
+    { code:"03", title:"MODULAR OVERVIEW", text:"Choose Configure Overview to add, remove, resize, and reorder built-in or extension modules.", ok:true },
+    { code:"04", title:"TASKS & VOICE", text:"The Task Rail manages desktop windows. Optional push-to-talk voice control stays local when whisper.cpp is configured.", ok:true },
+    { code:"05", title:"FILES & DETACHABLE TOOLS", text:"Files and supported documents open inside LCARS. Use the compact detach control when you want a separate native window.", ok:true },
+    { code:"06", title:"LOCAL AUTHORIZATION", text:"Optionally protect the themed lock screen with a local password. Only a salted PBKDF2 hash is stored on this PC.", ok:true },
   ];
   const item = cards[step];
   return (
@@ -3314,7 +3523,7 @@ function FirstRun({
             <small>SYSTEM CHECK</small>
             <h3>{item.title}</h3>
             <p>{item.text}</p>
-            {item.code === "09" && <div className="setup-password"><input type="password" autoComplete="new-password" placeholder="OPTIONAL PASSWORD" value={setupPassword} onChange={(event)=>setSetupPassword(event.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={setupConfirm} onChange={(event)=>setSetupConfirm(event.target.value)}/><small>Leave both fields blank to use direct local access. You can enable this later in Settings.</small>{setupError&&<em>{setupError}</em>}</div>}
+            {item.code === "06" && <div className="setup-password"><input type="password" autoComplete="new-password" placeholder="OPTIONAL PASSWORD" value={setupPassword} onChange={(event)=>setSetupPassword(event.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={setupConfirm} onChange={(event)=>setSetupConfirm(event.target.value)}/><small>Leave both fields blank to use direct local access. You can enable this later in Settings.</small>{setupError&&<em>{setupError}</em>}</div>}
             <b className={item.ok ? "check-ok" : "check-wait"}>
               {item.ok ? "● READY" : "○ LOCAL CHECK PENDING"}
             </b>
@@ -3426,7 +3635,7 @@ function OverviewEditor({
 type ChecklistItem = { id: string; text: string; done: boolean };
 function ChecklistExtension({ extension }: { extension: ExtensionManifest }) {
   const storageKey = `lcars-extension-state:${extension.id}`;
-  const defaults = (extension.module.defaultItems || []).map((text, index) => ({
+  const defaults = (extension.placements[0]?.ui.find((node)=>node.type==="list")?.items || []).map((text, index) => ({
     id: `default-${index}`,
     text,
     done: false,
@@ -3477,6 +3686,31 @@ function ChecklistExtension({ extension }: { extension: ExtensionManifest }) {
     </section>
   );
 }
+
+function DeclarativeExtension({extension,placement}:{extension:ExtensionManifest;placement:ExtensionPlacement}) {
+  const storageKey=`lcars-extension-state:${extension.id}`;
+  const defaults=Object.fromEntries(extension.settings.map((setting)=>[setting.key,setting.default]));
+  const [state,setState]=useState<Record<string,unknown>>(()=>{try{return {...defaults,...JSON.parse(localStorage.getItem(storageKey)||"{}")};}catch{return defaults;}}),[now,setNow]=useState(Date.now());
+  useEffect(()=>{fetch("http://127.0.0.1:8765/api/extension-state?id="+encodeURIComponent(extension.id)).then((response)=>response.json()).then((result)=>result.state&&setState((old)=>({...old,...result.state}))).catch(()=>{});const timer=window.setInterval(()=>setNow(Date.now()),Math.max(1,extension.tickSeconds||1)*1000);return()=>window.clearInterval(timer);},[extension.id,extension.tickSeconds]);
+  const save=(next:Record<string,unknown>)=>{setState(next);localStorage.setItem(storageKey,JSON.stringify(next));fetch("http://127.0.0.1:8765/api/extension-state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:extension.id,state:next})}).catch(()=>{});};
+  const elapsed=()=>Number(state.elapsed||0)+(state.running&&state.startedAt?now-Number(state.startedAt):0);
+  const act=(action="")=>{if(action==="timer:start"&&!state.running)save({...state,running:true,startedAt:Date.now()});else if(action==="timer:pause"&&state.running)save({...state,elapsed:elapsed(),running:false,startedAt:0});else if(action==="timer:reset")save({...state,elapsed:0,running:false,startedAt:0});else if(action.startsWith("state:toggle:")){const key=action.slice(13);save({...state,[key]:!state[key]});}};
+  const render=(node:ExtensionPrimitive,index:number):ReactNode=>{
+    const key=node.id||`${node.type}-${index}`;
+    if(node.type==="clock"){const date=new Date(now);const value=node.source==="stardate"?`${date.getUTCFullYear()}.${Math.floor(((date.getTime()-Date.UTC(date.getUTCFullYear(),0,1))/(Date.UTC(date.getUTCFullYear()+1,0,1)-Date.UTC(date.getUTCFullYear(),0,1)))*1000).toString().padStart(3,"0")}`:date.toLocaleTimeString();return <strong className="extension-clock" key={key}>{node.label&&<small>{node.label}</small>}{value}</strong>;}
+    if(node.type==="timer"){const total=Math.floor(elapsed()/1000),hours=Math.floor(total/3600),minutes=Math.floor(total%3600/60),seconds=total%60;return <strong className="extension-timer" key={key}>{node.label&&<small>{node.label}</small>}{[hours,minutes,seconds].map((part)=>String(part).padStart(2,"0")).join(":")}</strong>;}
+    if(node.type==="text")return <p key={key}>{node.text||String(state[node.source||""]||"")}</p>;
+    if(node.type==="button")return <button key={key} onClick={()=>act(node.action)}>{node.label||node.text||"ACTIVATE"}</button>;
+    if(node.type==="toggle")return <label className="extension-toggle" key={key}><input type="checkbox" checked={Boolean(state[node.id||""]??node.value)} onChange={()=>save({...state,[node.id||""]:!state[node.id||""]})}/><span>{node.label}</span></label>;
+    if(node.type==="input")return <label key={key}>{node.label}<input placeholder={node.placeholder} value={String(state[node.id||""]??node.value??"")} onChange={(event)=>save({...state,[node.id||""]:event.target.value})}/></label>;
+    if(node.type==="progress"){const value=Number(state[node.source||""]??node.value??0);return <div className="extension-progress" key={key}><span>{node.label}</span><i><em style={{width:`${Math.max(0,Math.min(100,value))}%`}}/></i></div>;}
+    if(node.type==="list")return <ul key={key}>{(node.items||[]).map((item)=><li key={item}>{item}</li>)}</ul>;
+    if(node.type==="grid"||node.type==="tabs")return <div className={`extension-${node.type}`} key={key}>{(node.children||[]).map(render)}</div>;
+    return null;
+  };
+  return <section className="overview-widget extension-widget declarative-extension"><h3>{placement.title.toUpperCase()} <small>EXT API {extension.apiVersion} · {extension.version}</small></h3><div className="extension-primitives">{placement.ui.map(render)}</div></section>;
+}
+function ExtensionHeader({extension,placement,now}:{extension:ExtensionManifest;placement:ExtensionPlacement;now:Date}){const node=placement.ui.find((item)=>item.type==="clock"||item.type==="text");let value=node?.text||extension.name;if(node?.type==="clock")value=node.source==="stardate"?`${now.getUTCFullYear()}.${Math.floor(((now.getTime()-Date.UTC(now.getUTCFullYear(),0,1))/(Date.UTC(now.getUTCFullYear()+1,0,1)-Date.UTC(now.getUTCFullYear(),0,1)))*1000).toString().padStart(3,"0")}`:now.toLocaleTimeString();return <div className="extension-header-item" title={`${extension.name} · Extension API ${extension.apiVersion}`}><small>{node?.label||placement.title}</small><b>{value}</b></div>;}
 function MediaSources({
   players,
   control,
@@ -3763,14 +3997,22 @@ function AppDrawer({
   close,
   action,
   selected = [],
+  selectionMode = false,
+  destinations,
+  setDestination,
+  refresh,
 }: {
   title: string;
   apps: App[];
   query: string;
   setQuery: (x: string) => void;
   close: () => void;
-  action: (a: App) => void;
+  action: (a: App, destination?: ApplicationDestination) => void;
   selected?: string[];
+  selectionMode?: boolean;
+  destinations?: Record<string,ApplicationDestination>;
+  setDestination?: (app:App,destination:ApplicationDestination)=>void;
+  refresh: () => void;
 }) {
   return (
     <div className="backdrop">
@@ -3780,7 +4022,7 @@ function AppDrawer({
             <small>COMPUTER LIBRARY ACCESS</small>
             <h2>{title}</h2>
           </div>
-          <button onClick={close}>CLOSE ×</button>
+          <nav><button onClick={refresh}>REFRESH APPLICATIONS</button><button onClick={close}>CLOSE ×</button></nav>
         </header>
         <input
           autoFocus
@@ -3789,12 +4031,11 @@ function AppDrawer({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
+        {!selectionMode&&<p className="application-destination-help">NORMAL CLICK USES THE SHOWN DESTINATION · SHIFT+CLICK ALWAYS OPENS A NATIVE WINDOW</p>}
         <div className="app-list">
-          {apps.map((a) => (
-            <button
-              key={a.id}
-              className={selected.includes(a.id) ? "chosen" : ""}
-              onClick={() => action(a)}
+          {apps.map((a) => {const embedded=embeddedPageForApp(a),destination=destinations?.[a.id]||(embedded?"embedded":"native");return (
+            <article className={(selected.includes(a.id)?"chosen ":"")+"application-library-entry"} key={a.id}><button
+              onClick={(event) => action(a,event.shiftKey?"native":undefined)}
             >
               <i>{a.icon ? <img src={a.icon} alt="" /> : a.name.slice(0, 2).toUpperCase()}</i>
               <span>
@@ -3802,14 +4043,14 @@ function AppDrawer({
                 <small>{a.comment || a.id}</small>
               </span>
               <strong>
-                {selected.length
+                {selectionMode
                   ? selected.includes(a.id)
                     ? "REMOVE"
                     : "ADD"
                   : "LAUNCH"}
               </strong>
-            </button>
-          ))}
+            </button>{!selectionMode&&(embedded&&setDestination?<button className="drawer-destination" onClick={()=>setDestination(a,destination==="embedded"?"native":"embedded")}><b>{destination==="embedded"?"LCARS":"WINDOW"}</b><small>{destination==="embedded"?`OPEN ${embedded.toUpperCase()} WORKSPACE`:"OPEN NATIVE APP"}</small></button>:<span className="drawer-native-only">NATIVE WINDOW ONLY</span>)}</article>
+          );})}
         </div>
       </section>
     </div>
@@ -4038,7 +4279,7 @@ function Terminal({
               }
             }}
           >
-            {tab.name}
+            <span>{tab.name}</span>
             <i
               onClick={(e) => {
                 e.stopPropagation();

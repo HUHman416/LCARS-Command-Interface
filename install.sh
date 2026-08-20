@@ -75,7 +75,7 @@ if [[ "$actual_appimage_sha256" != "$expected_appimage_sha256" ]]; then
   echo "This installer contains the wrong LCARS AppImage and will not continue."
   echo "Expected: $expected_appimage_sha256"
   echo "Received: $actual_appimage_sha256"
-  echo "Download the complete matching LCARS Version 23 Linux test package."
+  echo "Download the complete matching LCARS Version 24 Linux test package."
   exit 1
 fi
 install_dir="$HOME/.local/opt/lcars-command-interface"
@@ -95,11 +95,13 @@ done
 
 mkdir -p "$install_dir" "$HOME/.local/share/icons/hicolor/512x512/apps"
 install -m 755 "$appimage_source" "$install_dir/LCARS-Command-Interface.AppImage"
+install -m 755 "$project_dir/local/lcars-recovery.sh" "$install_dir/lcars-recovery.sh"
 [[ -f "$project_dir/lcars-command-interface.png" ]] && install -m 644 "$project_dir/lcars-command-interface.png" "$HOME/.local/share/icons/hicolor/512x512/apps/lcars-command-interface.png"
 chmod +x "$project_dir/start-local.sh" "$project_dir/install-autostart.sh" "$project_dir/install.sh" "$project_dir/Install-LCARS-Linux.run" "$project_dir/uninstall-linux.sh" "$project_dir/local/lcars-recovery.sh"
 [[ -f "$project_dir/Start-LCARS-Linux.desktop" ]] && chmod +x "$project_dir/Start-LCARS-Linux.desktop"
-"$project_dir/install-autostart.sh"
+"$project_dir/install-autostart.sh" --register
 
 echo
 echo "Installation complete for ${desktop} / ${session} using ${manager}."
 echo "LCARS will explain any desktop-specific restrictions inside the affected controls."
+echo "Optional: run ./install-autostart.sh --enable-autostart to launch LCARS when you sign in."

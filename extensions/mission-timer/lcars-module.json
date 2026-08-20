@@ -1,0 +1,28 @@
+{
+  "apiVersion": 2,
+  "id": "mission-timer",
+  "name": "Mission Chronometer",
+  "version": "1.0.0",
+  "description": "A persistent mission timer built only from standard Extension API controls.",
+  "author": "LCARS Command Interface Project",
+  "capabilities": ["time-date"],
+  "tickSeconds": 1,
+  "settings": [{ "key": "missionName", "type": "text", "label": "Mission label", "description": "Names the active timed operation.", "default": "PRIMARY MISSION" }],
+  "placements": [
+    {
+      "id": "chronometer",
+      "type": "overview",
+      "title": "Mission Chronometer",
+      "defaultSize": "standard",
+      "ui": [
+        { "type": "input", "id": "missionName", "label": "MISSION", "placeholder": "PRIMARY MISSION" },
+        { "type": "timer", "id": "elapsed", "source": "elapsed", "label": "ELAPSED TIME" },
+        { "type": "grid", "id": "controls", "children": [
+          { "type": "button", "label": "START", "action": "timer:start" },
+          { "type": "button", "label": "PAUSE", "action": "timer:pause" },
+          { "type": "button", "label": "RESET", "action": "timer:reset" }
+        ] }
+      ]
+    }
+  ]
+}

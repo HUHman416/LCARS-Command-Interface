@@ -40,7 +40,8 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Interface scaling, high contrast, reduced motion, color-safe indicators, and independent cue volume
 - Local operator lock screen with Ctrl+Shift+L shortcut
 - Guided eight-step desktop tour
-- LCARS power panel with separate Exit LCARS, Shut Down Computer, and Restart Computer controls; system power actions require confirmation
+- LCARS power panel with separate Exit LCARS, Sleep Computer, Shut Down Computer, and Restart Computer controls; system power actions require confirmation
+- Configurable Speed Dial, per-page sizing, custom sidebar destinations, and rich graphics/RAM telemetry
 - Local extension-manifest discovery and update/rollback control groundwork
 
 ## Current stage
@@ -55,7 +56,7 @@ To uninstall, open `Uninstall-LCARS-Linux.desktop` or run `./uninstall-linux.sh`
 
 Run `./start-local.sh` to start both the interface and its local system bridge. It listens only on the loopback interface and does not expose the dashboard to other devices.
 
-Run `./install-autostart.sh` once if you want LCARS to launch automatically at login. This adds a per-user application and autostart entry; it does not replace or remove KDE.
+Run `./install-autostart.sh --register` to add a portable AppImage to application/taskbar search. Use `./install-autostart.sh --enable-autostart` to launch it at login or `--disable-autostart` to turn that behavior off. These per-user operations do not require sudo and do not replace or remove KDE.
 
 Media integration uses `playerctl` for MPRIS playback sources and `wpctl` for PipeWire volume control. Install `playerctl` through DNF if the Media screen does not detect compatible players.
 

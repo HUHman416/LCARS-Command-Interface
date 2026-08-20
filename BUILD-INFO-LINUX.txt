@@ -1,6 +1,7 @@
-LCARS Universal Linux Desktop v23.1
-Application version: 23.1.0
-AppImage SHA-256: 76a0389c512af08cf1f0d99e9f8b3325cc24be7b69c7b23b5c3c926bd4856708
+LCARS Universal Linux Desktop v24
+Application version: 24.0.0
+AppImage SHA-256: GENERATED-DURING-PACKAGING
 
 The installer verifies this checksum before replacing the installed application.
 Shell Mode uses safe fullscreen immersion and never terminates Plasma.
+Run install-autostart.sh to register a portable AppImage in application search and optionally enable login startup without sudo.

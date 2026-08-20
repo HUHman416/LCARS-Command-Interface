@@ -1,21 +1,33 @@
 #!/usr/bin/env python3
 """Local-only, allowlisted universal Linux system bridge for LCARS."""
-import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re, base64, mimetypes, tempfile, socket
+import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re, base64, mimetypes, tempfile, socket, sys
 from configparser import ConfigParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
+from lcars_updater import check_update, download_update, schedule_install
+from lcars_extensions import load_extensions, extension_state, save_extension_state
+from lcars_documents import read_document, write_document
+
 PORT=8765
+LCARS_VERSION="24.0.0"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
+UPDATE_DIR=CONFIG_DIR/"updates"
 EXTENSION_DIR=Path(os.environ.get("LCARS_EXTENSION_DIR",Path.home()/".local/share/lcars-command-interface/extensions"))
+BUILTIN_EXTENSION_DIR=Path(__file__).resolve().parent.parent/"extensions"
+EXTENSION_STATE_DIR=CONFIG_DIR/"extension-state"
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
 ICON_CACHE={}
 ICON_INDEX=None
 NETWORK_CACHE={"at":0,"value":None}
+TRAY_CACHE={"at":0,"value":None}
+GRAPHICS_CACHE={"at":0,"value":None}
+CPU_TIME_CACHE={}
 
 def network_details():
     if NETWORK_CACHE["value"] and time.time()-NETWORK_CACHE["at"]<6:return NETWORK_CACHE["value"]
@@ -47,6 +59,8 @@ def network_details():
 
 def extension_manifests():
     """Load the non-executable Module API v1 manifest format."""
+    return load_extensions(EXTENSION_DIR,BUILTIN_EXTENSION_DIR)
+    # Legacy parser retained below for migration reference; API v2 normalizes v1.
     EXTENSION_DIR.mkdir(parents=True,exist_ok=True)
     modules=[];errors=[];seen=set()
     paths=list(EXTENSION_DIR.glob("*/lcars-module.json"))+list(EXTENSION_DIR.glob("*.lcars-module.json"))
@@ -348,16 +362,80 @@ def storage_data():
         return result
     except Exception:return []
 
+def memory_details():
+    values={}
+    try:
+        for line in Path("/proc/meminfo").read_text().splitlines():
+            key,value=line.split(":",1);values[key]=int(value.strip().split()[0])*1024
+    except Exception:pass
+    total=int(values.get("MemTotal",0));available=int(values.get("MemAvailable",values.get("MemFree",0)));used=max(0,total-available)
+    swap_total=int(values.get("SwapTotal",0));swap_free=int(values.get("SwapFree",0));swap_used=max(0,swap_total-swap_free)
+    return {"total":total,"used":used,"available":available,"percent":round(used*100/total) if total else 0,"swapTotal":swap_total,"swapUsed":swap_used,"modules":[]}
+
+def graphics_details():
+    if GRAPHICS_CACHE["value"] is not None and time.time()-GRAPHICS_CACHE["at"]<3:return GRAPHICS_CACHE["value"]
+    adapters=[];seen=set()
+    vendor_names={"0x10de":"NVIDIA","0x1002":"AMD","0x1022":"AMD","0x8086":"INTEL"}
+    if shutil.which("nvidia-smi"):
+        try:
+            query="name,utilization.gpu,temperature.gpu,memory.total,memory.used,driver_version"
+            rows=subprocess.run(["nvidia-smi",f"--query-gpu={query}","--format=csv,noheader,nounits"],capture_output=True,text=True,timeout=3).stdout.splitlines()
+            for row in rows:
+                parts=[item.strip() for item in row.split(",")]
+                if len(parts)<6:continue
+                name,usage,temp,total,used,driver=parts[:6];seen.add(name.casefold())
+                adapters.append({"name":name,"vendor":"NVIDIA","driver":driver,"usage":max(0,min(100,int(float(usage or 0)))),"temperature":float(temp) if temp not in ("N/A","") else None,"memoryTotal":int(float(total or 0))*1048576,"memoryUsed":int(float(used or 0))*1048576,"resolution":""})
+        except Exception:pass
+    for card in sorted(Path("/sys/class/drm").glob("card[0-9]*")):
+        if not re.fullmatch(r"card\d+",card.name):continue
+        device=card/"device"
+        if not device.exists():continue
+        try:vendor=(device/"vendor").read_text().strip().lower()
+        except Exception:vendor=""
+        try:driver=(device/"driver").resolve().name
+        except Exception:driver=""
+        try:
+            slot=next((line.split("=",1)[1] for line in (device/"uevent").read_text().splitlines() if line.startswith("PCI_SLOT_NAME=")),"")
+        except Exception:slot=""
+        name=""
+        if slot and shutil.which("lspci"):
+            try:
+                output=subprocess.run(["lspci","-s",slot],capture_output=True,text=True,timeout=2).stdout.strip()
+                name=output.split(": ",1)[-1] if ": " in output else output
+            except Exception:pass
+        name=name or f"{vendor_names.get(vendor,'GRAPHICS')} ADAPTER {card.name.replace('card','')}"
+        if any(existing in name.casefold() or name.casefold() in existing for existing in seen):continue
+        def integer_file(filename):
+            try:return int((device/filename).read_text().strip())
+            except Exception:return 0
+        temperature=None
+        for sensor in device.glob("hwmon/hwmon*/temp1_input"):
+            try:temperature=round(int(sensor.read_text().strip())/1000,1);break
+            except Exception:pass
+        resolution=""
+        try:
+            modes=[]
+            for connector in Path("/sys/class/drm").glob(card.name+"-*"):
+                if (connector/"status").read_text().strip()=="connected":
+                    mode=(connector/"modes").read_text().splitlines();modes+=mode[:1]
+            resolution=" · ".join(dict.fromkeys(modes))
+        except Exception:pass
+        adapters.append({"name":name[:120],"vendor":vendor_names.get(vendor,vendor or "UNKNOWN"),"driver":driver,"usage":max(0,min(100,integer_file("gpu_busy_percent"))),"temperature":temperature,"memoryTotal":integer_file("mem_info_vram_total"),"memoryUsed":integer_file("mem_info_vram_used"),"resolution":resolution})
+    GRAPHICS_CACHE.update(at=time.time(),value=adapters);return adapters
+
 def system_details():
     cores=[]
     try:
         for row in Path("/proc/stat").read_text().splitlines():
             match=re.match(r"cpu(\d+)\s+(.+)",row)
             if not match:continue
-            values=[int(x) for x in match.group(2).split()];total=sum(values);idle=values[3]+(values[4] if len(values)>4 else 0)
-            cores.append({"name":"CORE "+match.group(1),"usage":round(100*(total-idle)/total) if total else 0})
+            values=[int(x) for x in match.group(2).split()];total=sum(values);idle=values[3]+(values[4] if len(values)>4 else 0);key=match.group(1);previous=CPU_TIME_CACHE.get(key);CPU_TIME_CACHE[key]=(total,idle)
+            if previous:
+                total_delta=max(0,total-previous[0]);idle_delta=max(0,idle-previous[1]);usage=round(100*(total_delta-idle_delta)/total_delta) if total_delta else 0
+            else:usage=round(100*(total-idle)/total) if total else 0
+            cores.append({"name":"CORE "+key,"usage":max(0,min(100,usage))})
     except Exception:pass
-    return {"cpu":{"logical":os.cpu_count() or 1,"load":[round(x,2) for x in os.getloadavg()],"cores":cores},"storage":storage_data(),"kernel":os.uname().release}
+    return {"cpu":{"logical":os.cpu_count() or 1,"load":[round(x,2) for x in os.getloadavg()],"cores":cores},"memory":memory_details(),"graphics":graphics_details(),"storage":storage_data(),"kernel":os.uname().release}
 
 def storage_action(ident,action):
     allowed={x["id"]:x for x in storage_data() if x["removable"] and x["type"] in ("part","rom")}
@@ -369,15 +447,58 @@ def storage_action(ident,action):
     return {"ok":result.returncode==0,"message":(result.stdout or result.stderr).strip() or command.title()+" complete"}
 
 def tray_data():
+    if TRAY_CACHE["value"] and time.time()-TRAY_CACHE["at"]<4:return TRAY_CACHE["value"]
     if not shutil.which("gdbus"):return {"items":[],"supported":False,"reason":"GDBus is unavailable"}
     try:
         raw=subprocess.run(["gdbus","call","--session","--dest","org.kde.StatusNotifierWatcher","--object-path","/StatusNotifierWatcher","--method","org.freedesktop.DBus.Properties.Get","org.kde.StatusNotifierWatcher","RegisteredStatusNotifierItems"],capture_output=True,text=True,timeout=3)
         values=list(dict.fromkeys(re.findall(r"'([^']+)'",raw.stdout)));items=[]
+        def property_value(service,path,name):
+            try:
+                response=subprocess.run(["gdbus","call","--session","--dest",service,"--object-path",path,"--method","org.freedesktop.DBus.Properties.Get","org.kde.StatusNotifierItem",name],capture_output=True,text=True,timeout=2)
+                quoted=re.findall(r"'((?:[^'\\]|\\.)*)'",response.stdout)
+                return bytes(quoted[-1],"utf-8").decode("unicode_escape").strip() if quoted else ""
+            except Exception:return ""
+        def friendly_service(value):
+            clean=re.sub(r"^(org|com|net|io)\.","",value,flags=re.I)
+            clean=re.sub(r"(?i)(statusnotifieritem|indicator|tray)[-_.]*", "", clean)
+            clean=re.sub(r"[-_.:]?\d+(?:[-_.:]\d+)*$", "", clean)
+            parts=[part for part in re.split(r"[._:-]+",clean) if part and not part.isdigit()]
+            return " ".join(parts[-2:] if len(parts)>1 else parts).strip().title() or "Tray Service"
+        def process_identity(service):
+            try:
+                response=subprocess.run(["gdbus","call","--session","--dest","org.freedesktop.DBus","--object-path","/org/freedesktop/DBus","--method","org.freedesktop.DBus.GetConnectionUnixProcessID",service],capture_output=True,text=True,timeout=2)
+                match=re.search(r"uint32\s+(\d+)",response.stdout)
+                if not match:return ""
+                pid=match.group(1);comm=(Path("/proc")/pid/"comm").read_text().strip()
+                cmd=(Path("/proc")/pid/"cmdline").read_bytes().split(b"\0",1)[0].decode(errors="replace")
+                return Path(cmd).name or comm
+            except Exception:return ""
+        def desktop_identity(*values):
+            keys={re.sub(r"\.desktop$","",Path(str(value)).name,flags=re.I).casefold() for value in values if value}
+            keys|={key.replace("-","").replace("_","").replace(".","") for key in list(keys)}
+            if not keys:return ("","")
+            for folder in APP_DIRS:
+                if not folder.exists():continue
+                for path in folder.glob("*.desktop"):
+                    try:
+                        config=ConfigParser(interpolation=None,strict=False);config.read(path,encoding="utf-8");entry=config["Desktop Entry"]
+                        candidates={path.stem.casefold(),entry.get("StartupWMClass","").casefold(),Path(entry.get("Exec","").split()[0]).name.casefold() if entry.get("Exec") else ""}
+                        candidates|={key.replace("-","").replace("_","").replace(".","") for key in list(candidates)}
+                        if keys.isdisjoint(candidates):continue
+                        return (entry.get("Name","").strip(),entry.get("Icon","").strip())
+                    except Exception:pass
+            return ("","")
         for value in values:
             service,path=(value.split("/",1)+[""])[:2] if "/" in value else (value,"")
-            path="/"+path if path else "/StatusNotifierItem";name=service.split(".")[-1] or "Tray Service"
-            items.append({"id":service+"|"+path,"name":name,"status":"ACTIVE"})
-        return {"items":items,"supported":raw.returncode==0,"reason":"" if raw.returncode==0 else "StatusNotifierWatcher did not respond"}
+            path="/"+path if path else "/StatusNotifierItem"
+            title=property_value(service,path,"Title");app_id=property_value(service,path,"Id");status=property_value(service,path,"Status")
+            desktop_entry=property_value(service,path,"DesktopEntry");icon_name=property_value(service,path,"IconName");process=process_identity(service)
+            desktop_name,desktop_icon=desktop_identity(desktop_entry,app_id,process)
+            generic=not title or title.isdigit() or title.casefold() in ("status notifier item","statusnotifieritem","indicator","tray")
+            name=desktop_name or ("" if generic else title) or friendly_service(app_id or process or service)
+            if not name or name.isdigit() or name=="Tray Service":name=friendly_service(process or desktop_entry or app_id or service)
+            items.append({"id":service+"|"+path,"name":name[:80],"status":status.upper() if status else "ACTIVE","icon":icon_data(icon_name or desktop_icon)})
+        result={"items":items,"supported":raw.returncode==0,"reason":"" if raw.returncode==0 else "StatusNotifierWatcher did not respond"};TRAY_CACHE.update(at=time.time(),value=result);return result
     except Exception:return {"items":[],"supported":False,"reason":"System tray inventory unavailable"}
 
 def voice_status():
@@ -413,12 +534,9 @@ def system_data():
         used=100-round(mem["MemAvailable"]/mem["MemTotal"]*100)
         load=os.getloadavg()[0]; cpus=os.cpu_count() or 1; cpu=min(100,round(load/cpus*100))
         disk=shutil.disk_usage(Path.home()); disk_used=round((disk.total-disk.free)/disk.total*100)
-        gpu=0
-        if shutil.which("nvidia-smi"):
-            out=subprocess.run(["nvidia-smi","--query-gpu=utilization.gpu","--format=csv,noheader,nounits"],capture_output=True,text=True,timeout=2)
-            if out.returncode==0: gpu=int(out.stdout.splitlines()[0])
+        graphics=graphics_details();gpu=max((int(item.get("usage") or 0) for item in graphics),default=0);gpu_name=" + ".join(item.get("name","GRAPHICS") for item in graphics[:2]) or "GRAPHICS ADAPTER"
         env=linux_environment()
-        return {"platform":env["distro"].upper(),"environment":env,"meters":[["CPU",cpu,"SYSTEM PROCESSOR"],["GPU",gpu,"NVIDIA GRAPHICS"],["MEM",used,f'{(mem["MemTotal"]-mem["MemAvailable"])/1048576:.1f} / {mem["MemTotal"]/1048576:.1f} GB'],["DISK",disk_used,f"{disk.free/1073741824:.0f} GB AVAILABLE"]]}
+        return {"platform":env["distro"].upper(),"environment":env,"meters":[["CPU",cpu,"SYSTEM PROCESSOR"],["GPU",gpu,gpu_name],["MEM",used,f'{(mem["MemTotal"]-mem["MemAvailable"])/1048576:.1f} / {mem["MemTotal"]/1048576:.1f} GB'],["DISK",disk_used,f"{disk.free/1073741824:.0f} GB AVAILABLE"]]}
     except Exception: return {}
 
 def audio_data():
@@ -533,11 +651,12 @@ def protected_action(action):
         return "Application removed from bay; its native Wayland window remains under desktop control"
     if action=="minimize-bay-app":
         return "Application Bay minimized"
-    if action in ("poweroff","reboot"):
-        command=["systemctl","poweroff" if action=="poweroff" else "reboot"]
+    if action in ("poweroff","reboot","sleep"):
+        verb={"poweroff":"poweroff","reboot":"reboot","sleep":"suspend"}[action]
+        command=["systemctl",verb]
         if not shutil.which(command[0]): return "System power control is not available on this Linux distribution"
         subprocess.Popen(command,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
-        return "Computer shutdown requested" if action=="poweroff" else "Computer restart requested"
+        return {"poweroff":"Computer shutdown requested","reboot":"Computer restart requested","sleep":"Computer sleep requested"}[action]
     if action=="shell-mode-off":
         running=shutil.which("pgrep") and subprocess.run(["pgrep","-x","plasmashell"],capture_output=True).stdout
         if not running:
@@ -552,7 +671,7 @@ def protected_action(action):
         health=integration_health(); ready=sum(1 for item in health.values() if item["available"])
         return f"Integration check complete — {ready}/{len(health)} systems ready"
     if action=="lcars-update-check":
-        return "LCARS Version 23.1 test build — public update channel remains on Version 23"
+        return "Use Updates → LCARS Interface to check the verified GitHub release channel"
     if action=="lcars-rollback":
         previous=CONFIG_DIR/"previous-release"
         return "Previous release is ready for restoration" if previous.exists() else "No previous LCARS release has been archived yet"
@@ -613,6 +732,17 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/health-check": self.send_json({"health":integration_health()})
         elif route=="/api/config": self.send_json(load_config())
         elif route=="/api/extensions": self.send_json(extension_manifests())
+        elif route=="/api/extension-state":
+            from urllib.parse import parse_qs
+            try:self.send_json({"state":extension_state(EXTENSION_STATE_DIR,parse_qs(urlparse(self.path).query).get("id",[""])[0])})
+            except Exception as exc:self.send_json({"error":str(exc)},400)
+        elif route=="/api/lcars-update":
+            try:self.send_json(check_update(LCARS_VERSION,"linux"))
+            except Exception as exc:self.send_json({"ok":False,"silent":True,"error":str(exc)},503)
+        elif route=="/api/document":
+            from urllib.parse import parse_qs
+            try:self.send_json(read_document(parse_qs(urlparse(self.path).query).get("path",[""])[0]))
+            except Exception as exc:self.send_json({"error":str(exc)},400)
         elif route=="/api/terminal-sessions": self.send_json({"sessions":[{"id":x["id"],"name":x["name"]} for x in TERMINALS.values()]})
         elif route.startswith("/api/terminal-output/"):
             ident=route.rsplit("/",1)[-1]; term=TERMINALS.get(ident)
@@ -623,6 +753,20 @@ class Handler(BaseHTTPRequestHandler):
         try:
             length=int(self.headers.get("Content-Length","0")); data=json.loads(self.rfile.read(length)); app_id=data.get("id","")
             route=urlparse(self.path).path
+            if route=="/api/lcars-update":
+                operation=str(data.get("operation","check"))
+                try:
+                    if operation=="check":return self.send_json(check_update(LCARS_VERSION,"linux"))
+                    if operation=="download":return self.send_json(download_update(LCARS_VERSION,"linux",UPDATE_DIR))
+                    if operation=="install":return self.send_json(schedule_install(str(data.get("path","")),"linux",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),os.environ.get("LCARS_EXECUTABLE","")))
+                    return self.send_json({"ok":False,"error":"Unknown update operation"},400)
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},503)
+            if route=="/api/extension-state":
+                try:return self.send_json({"ok":True,"state":save_extension_state(EXTENSION_STATE_DIR,str(data.get("id","")),data.get("state",{}))})
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/document":
+                try:return self.send_json(write_document(str(data.get("path","")),str(data.get("content",""))))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
             if route=="/api/audio":
                 volume=max(0,min(100,int(data.get("volume",0))))
                 if not shutil.which("wpctl"): return self.send_json({"error":"wpctl unavailable"},503)

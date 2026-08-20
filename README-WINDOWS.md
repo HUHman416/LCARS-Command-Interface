@@ -4,18 +4,18 @@ The Windows edition uses the same LCARS visual interface, themes, modules, profi
 
 ## One-click installation
 
-1. Extract the Windows ZIP completely.
-2. Double-click `Install-LCARS-Windows.cmd`.
-3. Approve any normal Windows prerequisite installation prompts.
+1. Download `LCARS-Windows-Setup-v24.exe` from the GitHub release.
+2. Double-click the setup executable and choose the installation folder.
+3. Optionally tick **Start LCARS Command Interface when I sign in**.
 
-The installer obtains Node.js and Python when needed, installs the local Windows companions, creates a Start Menu shortcut, enables launch at sign-in, and starts LCARS. Nothing listens beyond `127.0.0.1`.
+The installer obtains the local Python runtime components when needed, creates a searchable Start Menu shortcut, and starts the standalone LCARS app. Login startup is opt-in. Nothing listens beyond `127.0.0.1`, and an external browser is not used.
 
-A normal Windows setup executable can be produced by running `windows\installer\build-installer.ps1` on Windows. It creates `windows\installer\output\LCARS-Windows-Setup.exe` using Inno Setup.
+A Windows setup executable can be produced from source by running `windows\installer\build-installer.ps1` on Windows. It invokes the same Electron/NSIS packaging path used by GitHub Releases.
 
 ## Starting and stopping
 
-- Start: double-click `Start-LCARS-Windows.cmd` or use the Start Menu entry.
-- Stop local services: run `stop-windows.ps1` from PowerShell.
+- Start: search for **LCARS Command Interface** in the Start menu/taskbar.
+- Stop: choose **Exit LCARS** from its power menu or close the native window.
 - Recovery: Settings → Recovery Control starts Windows Explorer again.
 
 ## Windows integrations
@@ -31,6 +31,7 @@ A normal Windows setup executable can be produced by running `windows\installer\
 - Local file browsing, opening, folder creation, copy, and move
 - Windows Update, Microsoft Store, network, Bluetooth, audio, display, Task Manager, and Explorer shortcuts
 - Start Menu and login-startup integration
+- Confirmed whole-computer sleep, restart, and shutdown controls
 
 ## Current limitations
 
@@ -40,4 +41,3 @@ LCARS immersive mode does not replace `explorer.exe` in this first release. That
 # Optional offline voice commands
 
 Voice control is not required for LCARS. Install a Windows whisper.cpp build and FFmpeg, download a GGML English model (for example `ggml-base.en.bin`), then set the full executable and model paths under **Settings → Offline Voice Control**. Select a microphone and enable push-to-talk. All recognition stays local; missing voice files do not affect the rest of the interface.
-

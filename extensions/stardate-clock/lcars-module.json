@@ -1,0 +1,19 @@
+{
+  "apiVersion": 2,
+  "id": "stardate-clock",
+  "name": "Stardate Clock",
+  "version": "1.0.0",
+  "description": "Shows a continuously updated Earth-calendar stardate in the LCARS header.",
+  "author": "LCARS Command Interface Project",
+  "capabilities": ["time-date"],
+  "tickSeconds": 1,
+  "settings": [],
+  "placements": [
+    {
+      "id": "header-clock",
+      "type": "header",
+      "title": "Stardate",
+      "ui": [{ "type": "clock", "id": "stardate", "source": "stardate", "label": "STARDATE" }]
+    }
+  ]
+}
