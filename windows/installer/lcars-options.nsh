@@ -1,6 +1,7 @@
 !include "nsDialogs.nsh"
 !include "LogicLib.nsh"
 
+!ifndef BUILD_UNINSTALLER
 Var LcarsAutostartCheckbox
 Var LcarsAutostartEnabled
 Var LcarsResetCheckbox
@@ -49,7 +50,9 @@ FunctionEnd
   nsExec::ExecToLog 'powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$INSTDIR\resources\windows\install-runtime.ps1"'
   Pop $0
 !macroend
+!endif
 
+!ifdef BUILD_UNINSTALLER
 !macro customUnInstall
   Delete "$SMSTARTUP\LCARS Command Interface.lnk"
   ${IfNot} ${Silent}
@@ -59,3 +62,4 @@ FunctionEnd
     lcarsKeepUserData:
   ${EndIf}
 !macroend
+!endif
