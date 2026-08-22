@@ -10,6 +10,7 @@ on:
 permissions:
   contents: write
 
+# Retry 2: deterministic source migration for the integrated Module Repository.
 jobs:
   finalize:
     runs-on: ubuntu-latest
