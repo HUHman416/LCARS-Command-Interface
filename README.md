@@ -2,10 +2,10 @@
   <img src="desktop/icons/512x512.png" width="160" alt="LCARS Command Interface emblem">
 </p>
 
-<h1 align="center">🖖 LCARS Command Interface</h1>
+<h1 align="center">🖖 LCARS Command Interface- With ChatGPT</h1>
 
 <p align="center">
-  <strong>A local-first LCARS-inspired desktop command environment for Linux and Windows.</strong><br>
+  <strong>A local-first LCARS-inspired desktop command environment for Linux and Windows made with ChatGPT, using their 5.6 Sol model in a Work chat.</strong><br>
   Launch applications, control media, inspect your system, manage windows, browse files, and use a real terminal—all without opening a web browser.
 </p>
 
