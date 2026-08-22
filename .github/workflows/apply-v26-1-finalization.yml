@@ -1,0 +1,39 @@
+name: Apply Version 26.1 Finalization
+
+on:
+  push:
+    branches: [26.1]
+    paths:
+      - .github/workflows/apply-v26-1-finalization.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 26.1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Apply 26.1 source finalization
+        run: python scripts/apply-v26-1-finalization.py
+      - name: Verify generated source
+        run: |
+          python -m py_compile shared/lcars_extensions.py local/lcars_bridge.py windows/lcars_bridge_windows.py
+          node --test tests/version26-1-module-repository.test.mjs
+      - name: Commit finalized 26.1 source
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- app/page.tsx app/v26-1.css app/layout.tsx package.json package-lock.json local/lcars_bridge.py windows/lcars_bridge_windows.py tests/version26-1-module-repository.test.mjs
+          if git diff --cached --quiet; then
+            echo "Version 26.1 finalization is already applied."
+            exit 0
+          fi
+          git commit -m "Finalize Version 26.1 module repository interface"
+          git push origin HEAD:26.1
