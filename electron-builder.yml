@@ -28,6 +28,8 @@ linux:
       to: extensions
     - from: local/lcars-recovery.sh
       to: recovery/lcars-recovery.sh
+    - from: install-autostart.sh
+      to: recovery/register-app.sh
     - from: desktop/icons/512x512.png
       to: icons/lcars-command-interface.png
 win:

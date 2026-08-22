@@ -1,6 +1,27 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import { Component, useEffect, useMemo, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
+import {
+  createV25Id,
+  defaultControlMappings,
+  defaultTrayShortcuts,
+  eventShortcut,
+  normalizeActivity,
+  normalizeControlMappings,
+  normalizeRoutines,
+  normalizeTrayShortcuts,
+  routineNeedsConfirmation,
+} from "./v25-core";
+import type {
+  ActivityEntry,
+  ControlMapping,
+  EngineeringData,
+  ExtensionCatalogEntry,
+  Routine,
+  RoutineStep,
+  RoutineStepKind,
+  TrayShortcut,
+} from "./v25-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
 
@@ -16,6 +37,7 @@ type Player = {
   artUrl?: string;
   position?: number;
   length?: number;
+  icon?: string;
 };
 type Stream = {
   id: string;
@@ -23,6 +45,9 @@ type Stream = {
   volume: number;
   group?: string;
   advanced?: boolean;
+  muted?: boolean;
+  icon?: string;
+  routeAvailable?: boolean;
 };
 type AudioDevice = {
   id: string;
@@ -43,6 +68,8 @@ type Notice = {
   text: string;
   kind: "info" | "error";
   time: string;
+  source?: string;
+  priority?: "routine" | "priority" | "critical";
 };
 type WindowTask = {
   id: string;
@@ -62,13 +89,22 @@ type Display = {
   geometry: string;
   source?: string;
 };
-type Health = Record<string, { available: boolean; detail: string }>;
+type Health = Record<string, { available: boolean; detail: string; remedy?: string }>;
+type DiagnosticsReport = {
+  generatedUtc?: string;
+  lcarsVersion?: string;
+  platform?: Record<string, string>;
+  inventory?: Record<string, number>;
+  configuration?: Record<string, boolean>;
+  health?: Health;
+  privacy?: string;
+};
 type Drive = { id: string; name: string; size: number; type: string; filesystem: string; mountpoints: string[]; mounted: boolean; removable: boolean; parent?: string };
 type TrayItem = { id: string; name: string; status: string; icon?: string };
 type NetworkInterface = { id: string; name: string; kind: string; state: string; address: string; gateway: string; dns: string[]; speed: string; signal?: number; received: number; sent: number };
 type NetworkInfo = { interfaces: NetworkInterface[]; diagnostics: { gateway: boolean; dns: boolean; internet: boolean; latency: number | null }; bluetooth: boolean };
 type PageDensity = "compact" | "standard" | "wide";
-type SpeedDialItem = `page:${string}` | `module:${string}` | `action:${string}`;
+type SpeedDialItem = `page:${string}` | `module:${string}` | `action:${string}` | `routine:${string}`;
 type CustomPage = { id: string; name: string; kind: "app" | "module" | "extension"; target: string };
 type ApplicationDestination = "embedded" | "native";
 type SystemDetails = {
@@ -116,7 +152,9 @@ type ShellPrefs = {
   quickBootWithoutPassword: boolean;
   trayPresentation: "rail" | "header";
   speedDial: SpeedDialItem[];
+  updateChannel: "stable" | "development";
 };
+type WorkspaceAppState = { appId: string; display: string; name: string };
 type WorkspaceProfile = {
   id: string;
   name: string;
@@ -124,6 +162,14 @@ type WorkspaceProfile = {
   widgets: WidgetId[];
   widgetSizes: Record<string, string>;
   favoriteIds: string[];
+  section?: string;
+  applications?: WorkspaceAppState[];
+  volume?: number;
+  outputDevice?: string;
+  inputDevice?: string;
+  doNotDisturb?: boolean;
+  trayShortcuts?: TrayShortcut[];
+  restoreApplications?: boolean;
 };
 type LockCredential = { salt: string; hash: string; iterations: number };
 type UpdateInfo = {
@@ -140,6 +186,7 @@ type UpdateInfo = {
   message?: string;
   error?: string;
   closeApp?: boolean;
+  rollback?: { available: boolean; path?: string; sha256?: string; message?: string };
 };
 type AccessibilityPrefs = {
   fontScale: number;
@@ -155,7 +202,11 @@ type BuiltinWidgetId =
   | "media"
   | "terminal"
   | "network"
-  | "updates";
+  | "updates"
+  | "routines"
+  | "engineering"
+  | "communications"
+  | "activity";
 type WidgetId = BuiltinWidgetId | `ext:${string}`;
 type ExtensionManifest = {
   apiVersion: number;
@@ -193,6 +244,10 @@ const widgetInfo: Record<BuiltinWidgetId, { name: string; description: string }>
   terminal: { name: "Terminal", description: "Quick LCARS Terminal access" },
   network: { name: "Network", description: "Connection status and controls" },
   updates: { name: "Updates", description: "Software update status" },
+  routines: { name: "Operations Routines", description: "Launch safe multi-step command sequences" },
+  engineering: { name: "Engineering Watch", description: "Hardware health and high-load processes" },
+  communications: { name: "Communications", description: "Priority notices and local event traffic" },
+  activity: { name: "Command Activity", description: "Recent LCARS operations and results" },
 };
 const defaultWidgets: WidgetId[] = ["system", "favorites", "operations"];
 const themes = [
@@ -232,13 +287,13 @@ const nav = [
   ["settings", "08", "SETTINGS"],
 ];
 const speedDialChoices: { id: SpeedDialItem; label: string; description: string }[] = [
-  { id:"page:network", label:"NETWORK", description:"Open network operations" },
-  { id:"page:media", label:"MEDIA", description:"Open media and audio controls" },
-  { id:"page:files", label:"FILES", description:"Open the LCARS file browser" },
-  { id:"page:terminal", label:"TERMINAL", description:"Open the embedded terminal" },
-  { id:"page:system", label:"SYSTEMS", description:"Open detailed system telemetry" },
-  { id:"page:updates", label:"UPDATES", description:"Open software and LCARS updates" },
-  { id:"page:settings", label:"SETTINGS", description:"Open interface configuration" },
+  { id:"page:network", label:"NETWORK", description:"Open a compact Network Page Peek" },
+  { id:"page:media", label:"MEDIA", description:"Open a compact Media Page Peek" },
+  { id:"page:files", label:"FILES", description:"Open a compact Files Page Peek" },
+  { id:"page:terminal", label:"TERMINAL", description:"Open a compact Terminal Page Peek" },
+  { id:"page:system", label:"SYSTEMS", description:"Open a compact Engineering Page Peek" },
+  { id:"page:updates", label:"UPDATES", description:"Open a compact Updates Page Peek" },
+  { id:"page:settings", label:"SETTINGS", description:"Open a compact Settings Page Peek" },
   { id:"module:system", label:"SYS MODULE", description:"Open System Information as a focused module" },
   { id:"module:favorites", label:"FAVORITES", description:"Open Favorite Applications as a focused module" },
   { id:"module:operations", label:"OPERATIONS", description:"Open Operations as a focused module" },
@@ -251,6 +306,8 @@ const speedDialChoices: { id: SpeedDialItem; label: string; description: string 
   { id:"action:displays", label:"DISPLAYS", description:"Open monitor routing" },
   { id:"action:tasks", label:"TASKS", description:"Pin or release the Task Rail" },
   { id:"action:tray", label:"TRAY", description:"Open the desktop system tray" },
+  { id:"action:routines", label:"ROUTINES", description:"Open Operations Automation" },
+  { id:"action:communications", label:"COMMS", description:"Open Communications Center" },
 ];
 const defaultPrefs: ShellPrefs = {
   taskHover: true,
@@ -283,14 +340,15 @@ const defaultPrefs: ShellPrefs = {
   quickBootWithoutPassword: false,
   trayPresentation: "rail",
   speedDial: ["page:network","page:media","action:dnd","action:notices","action:displays"],
+  updateChannel: "stable",
 };
 const normalizePrefs = (value: unknown): ShellPrefs => {
   const source=value&&typeof value==="object"?value as Partial<ShellPrefs>:{};
   const pageDensity:PageDensity=source.pageDensity==="compact"||source.pageDensity==="wide"?source.pageDensity:"standard";
   const pageDensities=source.pageDensities&&typeof source.pageDensities==="object"?Object.fromEntries(Object.entries(source.pageDensities).filter(([,density])=>density==="compact"||density==="standard"||density==="wide")) as Record<string,PageDensity>:{};
   const allowedSpeedDial=new Set(speedDialChoices.map((choice)=>choice.id));
-  const speedDial=Array.isArray(source.speedDial)?source.speedDial.filter((item):item is SpeedDialItem=>typeof item==="string"&&(allowedSpeedDial.has(item as SpeedDialItem)||/^module:ext:[a-z0-9-]+$/i.test(item)||/^page:custom:[a-z0-9-]+$/i.test(item))).slice(0,6):defaultPrefs.speedDial;
-  return {...defaultPrefs,...source,pageDensity,pageDensities,pageDensityScope:source.pageDensityScope==="per-page"?"per-page":"global",speedDial:speedDial.length>=2?speedDial:defaultPrefs.speedDial};
+  const speedDial=Array.isArray(source.speedDial)?source.speedDial.filter((item):item is SpeedDialItem=>typeof item==="string"&&(allowedSpeedDial.has(item as SpeedDialItem)||/^module:ext:[a-z0-9-]+$/i.test(item)||/^page:custom:[a-z0-9-]+$/i.test(item)||/^routine:[a-z0-9-]+$/i.test(item))).slice(0,8):defaultPrefs.speedDial;
+  return {...defaultPrefs,...source,pageDensity,pageDensities,pageDensityScope:source.pageDensityScope==="per-page"?"per-page":"global",updateChannel:source.updateChannel==="development"?"development":"stable",speedDial:speedDial.length>=2?speedDial:defaultPrefs.speedDial};
 };
 const normalizeCustomPages = (value: unknown): CustomPage[] => Array.isArray(value) ? value.filter((item):item is CustomPage=>Boolean(item)&&typeof item==="object"&&typeof item.id==="string"&&typeof item.name==="string"&&typeof item.target==="string"&&["app","module","extension"].includes(String(item.kind))).slice(0,6).map((item)=>({...item,id:item.id.replace(/[^a-z0-9-]/gi,"-").slice(0,48),name:item.name.trim().slice(0,24)||"CUSTOM PAGE",target:item.target.slice(0,180)})) : [];
 const normalizeAppDestinations = (value: unknown): Record<string,ApplicationDestination> => value&&typeof value==="object"?Object.fromEntries(Object.entries(value).filter((entry):entry is [string,ApplicationDestination]=>entry[1]==="embedded"||entry[1]==="native").slice(0,512)):{};
@@ -327,11 +385,139 @@ const verifyLockCredential = async (password: string, credential: LockCredential
   return (await deriveLockHash(password, salt, credential.iterations)) === credential.hash;
 };
 
+type RecoverySnapshot = { id:string; created:string; reason:string; values:Record<string,string> };
+const recoveryConfigKeys = [
+  "lcars-theme","lcars-favorites","lcars-overview-widgets","lcars-widget-sizes","lcars-pinned-players",
+  "lcars-shell-prefs","lcars-accessibility","lcars-workspaces","lcars-user-name","lcars-session-restore",
+  "lcars-custom-pages","lcars-app-destinations","lcars-default-workstation","lcars-selected-player",
+  "lcars-routines","lcars-activity-log","lcars-tray-shortcuts","lcars-control-mappings","lcars-disabled-extensions",
+  "lcars-popup-sizes",
+];
+const readRecoveryConfig = () => Object.fromEntries(recoveryConfigKeys.flatMap((key)=>{const value=localStorage.getItem(key);return value===null?[]:[[key,value]];}));
+const readRecoverySnapshots = ():RecoverySnapshot[] => {try{const value=JSON.parse(localStorage.getItem("lcars-config-snapshots")||"[]");return Array.isArray(value)?value.slice(0,5):[];}catch{return[];}};
+const createRecoverySnapshot = (reason:string) => {
+  const values=readRecoveryConfig(),existing=readRecoverySnapshots();
+  if(existing[0]&&JSON.stringify(existing[0].values)===JSON.stringify(values))return existing;
+  const snapshot:RecoverySnapshot={id:`snapshot-${Date.now()}`,created:new Date().toISOString(),reason,values};
+  const snapshots=[snapshot,...existing].slice(0,5);localStorage.setItem("lcars-config-snapshots",JSON.stringify(snapshots));return snapshots;
+};
+const restoreRecoveryValues = (values:Record<string,string>) => {
+  recoveryConfigKeys.forEach((key)=>localStorage.removeItem(key));Object.entries(values).forEach(([key,value])=>{if(recoveryConfigKeys.includes(key)&&typeof value==="string")localStorage.setItem(key,value);});
+};
+
+type PopupSize = { width:number; height:number };
+type ResizablePopupProps = {
+  as?: "section" | "aside";
+  popupKey: string;
+  className?: string;
+  floating?: boolean;
+  minWidth?: number;
+  minHeight?: number;
+  role?: "dialog" | "alertdialog";
+  ariaModal?: boolean;
+  ariaLabel?: string;
+  children: ReactNode;
+};
+
+const popupSizeStorageKey = "lcars-popup-sizes";
+const readPopupSizes = ():Record<string,PopupSize> => {
+  try {
+    const value=JSON.parse(localStorage.getItem(popupSizeStorageKey)||"{}");
+    if(!value||typeof value!=="object"||Array.isArray(value))return {};
+    return Object.fromEntries(Object.entries(value).flatMap(([key,size])=>{
+      const candidate=size as Partial<PopupSize>;
+      return Number.isFinite(candidate?.width)&&Number.isFinite(candidate?.height)?[[key,{width:Number(candidate.width),height:Number(candidate.height)}]]:[];
+    }));
+  } catch { return {}; }
+};
+const shortcutTargetIsEditable = (target:EventTarget|null) => {
+  const element=target instanceof HTMLElement?target:null;
+  return Boolean(element?.closest("input, textarea, select, [contenteditable='true'], [role='textbox']"));
+};
+
+function ResizablePopup({as="section",popupKey,className="",floating=false,minWidth=320,minHeight=220,role="dialog",ariaModal,ariaLabel,children}:ResizablePopupProps){
+  const ref=useRef<HTMLElement|null>(null);
+  useEffect(()=>{
+    const element=ref.current;
+    if(!element)return;
+    let frame=0;
+    const bounds=()=>({maxWidth:Math.max(160,window.innerWidth-24),maxHeight:Math.max(140,window.innerHeight-24)});
+    const fitSize=(width:number,height:number)=>{
+      const {maxWidth,maxHeight}=bounds();
+      return {width:Math.min(maxWidth,Math.max(Math.min(minWidth,maxWidth),width)),height:Math.min(maxHeight,Math.max(Math.min(minHeight,maxHeight),height))};
+    };
+    const captureFloatingPosition=()=>{
+      if(!floating)return;
+      const rect=element.getBoundingClientRect(),parent=element.offsetParent?.getBoundingClientRect();
+      element.style.left=`${rect.left-(parent?.left||0)}px`;
+      element.style.top=`${rect.top-(parent?.top||0)}px`;
+      element.style.right="auto";
+      element.style.bottom="auto";
+    };
+    const clampFloatingPosition=()=>{
+      if(!floating)return;
+      const rect=element.getBoundingClientRect(),parent=element.offsetParent?.getBoundingClientRect();
+      let left=Number.parseFloat(element.style.left)||rect.left-(parent?.left||0),top=Number.parseFloat(element.style.top)||rect.top-(parent?.top||0);
+      if(rect.left<8)left+=8-rect.left;
+      if(rect.top<8)top+=8-rect.top;
+      if(rect.right>window.innerWidth-8)left-=rect.right-(window.innerWidth-8);
+      if(rect.bottom>window.innerHeight-8)top-=rect.bottom-(window.innerHeight-8);
+      element.style.left=`${left}px`;element.style.top=`${top}px`;
+    };
+    const persist=()=>{
+      const rect=element.getBoundingClientRect();
+      if(rect.width<1||rect.height<1)return;
+      const stored=readPopupSizes();
+      stored[popupKey]={width:Math.round(rect.width),height:Math.round(rect.height)};
+      localStorage.setItem(popupSizeStorageKey,JSON.stringify(stored));
+    };
+    const initialize=()=>{
+      const rect=element.getBoundingClientRect(),stored=readPopupSizes()[popupKey];
+      const size=fitSize(stored?.width||rect.width,stored?.height||rect.height);
+      element.style.width=`${size.width}px`;element.style.height=`${size.height}px`;
+      captureFloatingPosition();clampFloatingPosition();
+    };
+    const resizeWindow=()=>{
+      const rect=element.getBoundingClientRect(),size=fitSize(rect.width,rect.height);
+      element.style.width=`${size.width}px`;element.style.height=`${size.height}px`;clampFloatingPosition();
+    };
+    frame=window.requestAnimationFrame(initialize);
+    const observer=typeof ResizeObserver==="undefined"?null:new ResizeObserver(()=>{clampFloatingPosition();persist();});
+    observer?.observe(element);window.addEventListener("resize",resizeWindow);
+    return()=>{window.cancelAnimationFrame(frame);observer?.disconnect();window.removeEventListener("resize",resizeWindow);};
+  },[floating,minHeight,minWidth,popupKey]);
+  const beginResize=(direction:"n"|"ne"|"e"|"se"|"s"|"sw"|"w"|"nw",event:ReactPointerEvent<HTMLSpanElement>)=>{
+    const element=ref.current;
+    if(!element)return;
+    event.preventDefault();event.stopPropagation();
+    const start=element.getBoundingClientRect(),startX=event.clientX,startY=event.clientY;
+    const startLeft=Number.parseFloat(element.style.left)||start.left,startTop=Number.parseFloat(element.style.top)||start.top;
+    const move=(pointer:PointerEvent)=>{
+      const maxWidth=Math.max(160,window.innerWidth-24),maxHeight=Math.max(140,window.innerHeight-24);
+      const west=direction.includes("w"),east=direction.includes("e"),north=direction.includes("n"),south=direction.includes("s");
+      const requestedWidth=west?start.width-(pointer.clientX-startX):east?start.width+pointer.clientX-startX:start.width;
+      const requestedHeight=north?start.height-(pointer.clientY-startY):south?start.height+pointer.clientY-startY:start.height;
+      const width=Math.min(maxWidth,Math.max(Math.min(minWidth,maxWidth),requestedWidth));
+      const height=Math.min(maxHeight,Math.max(Math.min(minHeight,maxHeight),requestedHeight));
+      element.style.width=`${width}px`;element.style.height=`${height}px`;
+      if(floating&&west)element.style.left=`${startLeft+start.width-width}px`;
+      if(floating&&north)element.style.top=`${startTop+start.height-height}px`;
+    };
+    const finish=()=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",finish);window.removeEventListener("pointercancel",finish);};
+    window.addEventListener("pointermove",move);window.addEventListener("pointerup",finish,{once:true});window.addEventListener("pointercancel",finish,{once:true});
+  };
+  const popupClass=`resizable-popup${floating?" resizable-popup-floating":""}${className?` ${className}`:""}`;
+  const contents=<>{children}<span className="popup-resize-edge popup-resize-edge-n" onPointerDown={(event)=>beginResize("n",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-e" onPointerDown={(event)=>beginResize("e",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-s" onPointerDown={(event)=>beginResize("s",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-w" onPointerDown={(event)=>beginResize("w",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-nw" onPointerDown={(event)=>beginResize("nw",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-ne" onPointerDown={(event)=>beginResize("ne",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-sw" onPointerDown={(event)=>beginResize("sw",event)} aria-hidden="true"/><span className="popup-resize-grip" onPointerDown={(event)=>beginResize("se",event)} aria-hidden="true"/></>;
+  if(as==="aside")return <aside ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel}>{contents}</aside>;
+  return <section ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel}>{contents}</section>;
+}
+
 export default function Home() {
   const [theme, setTheme] = useState("classic"),
     [section, setSection] = useState("overview"),
     [sound, setSound] = useState(true);
   const [volume, setVolume] = useState(64),
+    [audioMuted, setAudioMuted] = useState(false),
     [allOpen, setAllOpen] = useState(false),
     [editOpen, setEditOpen] = useState(false);
   const [bayApp, setBayApp] = useState<App | null>(null),
@@ -371,10 +557,13 @@ export default function Home() {
     [drives, setDrives] = useState<Drive[]>([]),
     [systemDetails, setSystemDetails] = useState<SystemDetails>({}),
     [detailOpen, setDetailOpen] = useState<string | null>(null),
-    [speedDialModule,setSpeedDialModule]=useState<WidgetId|null>(null);
+    [speedDialModule,setSpeedDialModule]=useState<WidgetId|null>(null),
+    [speedDialPage,setSpeedDialPage]=useState<string|null>(null),
+    [speedDialPagePinned,setSpeedDialPagePinned]=useState(false);
   const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({ interfaces: [], diagnostics: { gateway: false, dns: false, internet: false, latency: null }, bluetooth: false }),
     [startupVisible, setStartupVisible] = useState(true);
   const [extensions, setExtensions] = useState<ExtensionManifest[]>([]);
+  const [quarantinedExtensions,setQuarantinedExtensions]=useState<string[]>([]);
   const [customPages,setCustomPages]=useState<CustomPage[]>([]),
     [appDestinations,setAppDestinations]=useState<Record<string,ApplicationDestination>>({});
   const [firstRun, setFirstRun] = useState(false),
@@ -406,28 +595,49 @@ export default function Home() {
     [defaultWorkstation, setDefaultWorkstation] = useState("");
   const [lcarsUpdate, setLcarsUpdate] = useState<UpdateInfo | null>(null);
   const [startupAudioStatus,setStartupAudioStatus]=useState("NOT TESTED · SYSTEM DEFAULT OUTPUT");
+  const [safeMode,setSafeMode]=useState(false);
+  const [routines,setRoutines]=useState<Routine[]>([]),
+    [routineCenterOpen,setRoutineCenterOpen]=useState(false),
+    [pendingRoutine,setPendingRoutine]=useState<Routine|null>(null),
+    [runningRoutine,setRunningRoutine]=useState("");
+  const [activityLog,setActivityLog]=useState<ActivityEntry[]>([]),
+    [trayShortcuts,setTrayShortcuts]=useState<TrayShortcut[]>(defaultTrayShortcuts),
+    [controlMappings,setControlMappings]=useState<ControlMapping[]>(defaultControlMappings);
+  const [engineering,setEngineering]=useState<EngineeringData>({processes:[],sensors:[],processControl:false}),
+    [extensionCatalog,setExtensionCatalog]=useState<ExtensionCatalogEntry[]>([]),
+    [disabledExtensions,setDisabledExtensions]=useState<string[]>([]);
+  const routineTriggerGuard=useRef<Set<string>>(new Set()),workstationRestoreGuard=useRef(false);
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get(
       "section",
     );
-    const restore = localStorage.getItem("lcars-session-restore") !== "false";
-    setSessionRestore(restore);
+    const safeBoot=sessionStorage.getItem("lcars-safe-mode")==="1";
+    let restoredQuarantine:string[]=[];
+    if(!safeBoot)try{const quarantine=JSON.parse(localStorage.getItem("lcars-extension-quarantine")||"[]");if(Array.isArray(quarantine))restoredQuarantine=quarantine.filter((item):item is string=>typeof item==="string");}catch{}
+    const restore = !safeBoot && localStorage.getItem("lcars-session-restore") !== "false";
+    queueMicrotask(()=>{setSafeMode(safeBoot);setQuarantinedExtensions(restoredQuarantine);setSessionRestore(restore);});
     if (requested && (nav.some((n) => n[0] === requested)||requested.startsWith("custom:"))) setSection(requested);
     else if (restore && localStorage.getItem("lcars-last-section"))
       setSection(localStorage.getItem("lcars-last-section") || "overview");
-    const t = localStorage.getItem("lcars-theme"),
-      f = localStorage.getItem("lcars-favorites"),
-      w = localStorage.getItem("lcars-overview-widgets"),
-      z = localStorage.getItem("lcars-widget-sizes"),
-      p = localStorage.getItem("lcars-pinned-players"),
-      s = localStorage.getItem("lcars-shell-prefs"),
-      a = localStorage.getItem("lcars-accessibility"),
-      pr = localStorage.getItem("lcars-workspaces"),
+    const t = safeBoot?null:localStorage.getItem("lcars-theme"),
+      f = safeBoot?null:localStorage.getItem("lcars-favorites"),
+      w = safeBoot?null:localStorage.getItem("lcars-overview-widgets"),
+      z = safeBoot?null:localStorage.getItem("lcars-widget-sizes"),
+      p = safeBoot?null:localStorage.getItem("lcars-pinned-players"),
+      s = safeBoot?null:localStorage.getItem("lcars-shell-prefs"),
+      a = safeBoot?null:localStorage.getItem("lcars-accessibility"),
+      pr = safeBoot?null:localStorage.getItem("lcars-workspaces"),
       u = localStorage.getItem("lcars-user-name"),
-      lockData = localStorage.getItem("lcars-lock-credential"),
-      customData = localStorage.getItem("lcars-custom-pages"),
-      destinationData = localStorage.getItem("lcars-app-destinations"),
-      defaultStation = localStorage.getItem("lcars-default-workstation") || "";
+      lockData = safeBoot?null:localStorage.getItem("lcars-lock-credential"),
+      customData = safeBoot?null:localStorage.getItem("lcars-custom-pages"),
+      destinationData = safeBoot?null:localStorage.getItem("lcars-app-destinations"),
+      routineData = safeBoot?null:localStorage.getItem("lcars-routines"),
+      activityData = localStorage.getItem("lcars-activity-log"),
+      noticeData = localStorage.getItem("lcars-notification-history"),
+      trayShortcutData = safeBoot?null:localStorage.getItem("lcars-tray-shortcuts"),
+      mappingData = safeBoot?null:localStorage.getItem("lcars-control-mappings"),
+      disabledExtensionData = safeBoot?null:localStorage.getItem("lcars-disabled-extensions"),
+      defaultStation = safeBoot?"":localStorage.getItem("lcars-default-workstation") || "";
     if (t) setTheme(t);
     if (f)
       try {
@@ -464,9 +674,15 @@ export default function Home() {
     if (lockData) try { setLockCredential(JSON.parse(lockData)); } catch {}
     if (customData) try { setCustomPages(normalizeCustomPages(JSON.parse(customData))); } catch {}
     if (destinationData) try { setAppDestinations(normalizeAppDestinations(JSON.parse(destinationData))); } catch {}
+    if (routineData) try { setRoutines(normalizeRoutines(JSON.parse(routineData))); } catch {}
+    if (activityData) try { setActivityLog(normalizeActivity(JSON.parse(activityData))); } catch {}
+    if (noticeData) try { const parsed=JSON.parse(noticeData);if(Array.isArray(parsed))setNotices(parsed.slice(0,100)); } catch {}
+    if (trayShortcutData) try { setTrayShortcuts(normalizeTrayShortcuts(JSON.parse(trayShortcutData))); } catch {}
+    if (mappingData) try { setControlMappings(normalizeControlMappings(JSON.parse(mappingData))); } catch {}
+    if (disabledExtensionData) try { const parsed=JSON.parse(disabledExtensionData);if(Array.isArray(parsed))setDisabledExtensions(parsed.filter((item):item is string=>typeof item==="string").slice(0,128)); } catch {}
     setDefaultWorkstation(defaultStation);
     const remoteTerminal = requested === "terminal";
-    if (!remoteTerminal && localStorage.getItem("lcars-setup-complete") && restoredPrefs.lockOnLaunch && !(restoredPrefs.quickBootWithoutPassword && !lockData)) setLocked(true);
+    if (!safeBoot && !remoteTerminal && localStorage.getItem("lcars-setup-complete") && restoredPrefs.lockOnLaunch && !(restoredPrefs.quickBootWithoutPassword && !lockData)) setLocked(true);
     if (
       !localStorage.getItem("lcars-setup-complete") &&
       !sessionStorage.getItem("lcars-setup-dismissed")
@@ -512,19 +728,23 @@ export default function Home() {
       .then((r) => r.json())
       .then((d) => {
         if (typeof d.volume === "number") setVolume(d.volume);
+        setAudioMuted(Boolean(d.muted));
       })
       .catch(() => {});
     fetch("http://127.0.0.1:8765/api/config")
       .then((r) => r.json())
       .then((d) => {
-        if (d.shell_prefs) setPrefs(normalizePrefs(d.shell_prefs));
+        if (!safeBoot&&d.shell_prefs) setPrefs(normalizePrefs(d.shell_prefs));
       })
       .catch(() => {});
-    const getExtensions = () =>
-      fetch("http://127.0.0.1:8765/api/extensions")
-        .then((r) => r.json())
-        .then((d) => setExtensions(Array.isArray(d.extensions) ? d.extensions : []))
-        .catch(() => {});
+    const getExtensions = () => safeBoot?Promise.resolve():
+      Promise.all([
+        fetch("http://127.0.0.1:8765/api/extensions").then((r) => r.json()),
+        fetch("http://127.0.0.1:8765/api/extension-catalog").then((r) => r.json()).catch(()=>({catalog:[]})),
+      ]).then(([installed,catalog])=>{
+        setExtensions(Array.isArray(installed.extensions) ? installed.extensions : []);
+        setExtensionCatalog(Array.isArray(catalog.catalog) ? catalog.catalog : []);
+      }).catch(() => {});
     getExtensions();
     const getMedia = () => {
       fetch("http://127.0.0.1:8765/api/media")
@@ -589,6 +809,8 @@ export default function Home() {
       fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => {});
     };
     getDesktop();
+    const getEngineering=()=>fetch("http://127.0.0.1:8765/api/engineering").then((r) => r.json()).then((d)=>setEngineering({processes:Array.isArray(d.processes)?d.processes:[],sensors:Array.isArray(d.sensors)?d.sensors:[],processControl:Boolean(d.processControl),serviceControl:Boolean(d.serviceControl),notes:Array.isArray(d.notes)?d.notes:[]})).catch(() => {});
+    getEngineering();
     let sound = true;
     try {
       sound = JSON.parse(localStorage.getItem("lcars-shell-prefs") || "{}").startupSound !== false;
@@ -609,15 +831,19 @@ export default function Home() {
       systemTimer = setInterval(getSystem, 2000),
       mediaTimer = setInterval(getMedia, 3000),
       desktopTimer = setInterval(getDesktop, 1800),
+      engineeringTimer = setInterval(getEngineering, 6000),
       extensionTimer = setInterval(getExtensions, 5000);
     const startupTimer=setTimeout(()=>setStartupVisible(false),4200);
+    const stableTimer=setTimeout(()=>{if(!safeBoot)window.dispatchEvent(new CustomEvent("lcars-runtime-stable",{detail:readRecoveryConfig()}));},6500);
     return () => {
       clearInterval(timer);
       clearInterval(systemTimer);
       clearInterval(mediaTimer);
       clearInterval(desktopTimer);
+      clearInterval(engineeringTimer);
       clearInterval(extensionTimer);
       clearTimeout(startupTimer);
+      clearTimeout(stableTimer);
       window.removeEventListener("lcars-startup-audio", power);
       window.removeEventListener("lcars-startup-audio-result",reportAudio);
       window.removeEventListener("pointerdown", power);
@@ -625,15 +851,15 @@ export default function Home() {
   }, []);
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      fetch("http://127.0.0.1:8765/api/lcars-update")
+      fetch(`http://127.0.0.1:8765/api/lcars-update?channel=${encodeURIComponent(prefs.updateChannel)}`)
         .then((response) => response.json())
         .then((result: UpdateInfo) => {
-          if (result.ok && result.available) setLcarsUpdate(result);
+          if (result.ok && (result.available || result.rollback?.available)) setLcarsUpdate(result);
         })
         .catch(() => {});
     }, 9000);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [prefs.updateChannel]);
   const favorites = useMemo(
     () =>
       favoriteIds
@@ -647,7 +873,8 @@ export default function Home() {
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       const digit=e.code.match(/^(?:Digit|Numpad)([1-8])$/)?.[1];
-      if (digit && e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+      const pageShortcut=digit&&!e.metaKey&&!e.altKey&&!e.shiftKey&&(e.ctrlKey||!shortcutTargetIsEditable(e.target));
+      if (pageShortcut) {
         e.preventDefault();setSection(nav[Number(digit)-1][0]);setPaletteOpen(false);return;
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -671,6 +898,10 @@ export default function Home() {
     window.addEventListener("keydown", key, true);
     return () => window.removeEventListener("keydown", key, true);
   }, []);
+  useEffect(()=>{
+    const closePeek=(event:KeyboardEvent)=>{if(event.key==="Escape"&&speedDialPage&&!speedDialPagePinned)setSpeedDialPage(null);};
+    window.addEventListener("keydown",closePeek,true);return()=>window.removeEventListener("keydown",closePeek,true);
+  },[speedDialPage,speedDialPagePinned]);
   const filtered = useMemo(
     () =>
       apps
@@ -696,28 +927,46 @@ export default function Home() {
     a.volume = access.soundVolume / 100;
     a.play().catch(() => {});
   };
+  const recordActivity = (
+    title: string,
+    detail: string,
+    status: ActivityEntry["status"] = "success",
+    source: ActivityEntry["source"] = "OPERATOR",
+    reversible = false,
+  ) => {
+    const entry: ActivityEntry = { id:createV25Id("activity"),time:new Date().toISOString(),source,title,detail,status,reversible };
+    setActivityLog((old)=>{const next=[entry,...old].slice(0,200);localStorage.setItem("lcars-activity-log",JSON.stringify(next));return next;});
+    return entry;
+  };
+  const saveRoutines=(next:Routine[])=>{createRecoverySnapshot("Before routine configuration change");const normalized=normalizeRoutines(next.map((routine)=>({...routine,name:routine.name.trim()||"UNTITLED ROUTINE"})));setRoutines(normalized);localStorage.setItem("lcars-routines",JSON.stringify(normalized));};
+  const saveTrayShortcuts=(next:TrayShortcut[])=>{createRecoverySnapshot("Before Tray Command Deck change");const normalized=normalizeTrayShortcuts(next.map((shortcut)=>({...shortcut,label:shortcut.label.trim()||"COMMAND"})));setTrayShortcuts(normalized);localStorage.setItem("lcars-tray-shortcuts",JSON.stringify(normalized));};
+  const saveControlMappings=(next:ControlMapping[])=>{createRecoverySnapshot("Before control mapping change");const normalized=normalizeControlMappings(next);setControlMappings(normalized);localStorage.setItem("lcars-control-mappings",JSON.stringify(normalized));};
+  const saveDisabledExtensions=(next:string[])=>{createRecoverySnapshot("Before Extension Hub change");const normalized=Array.from(new Set(next)).slice(0,128);setDisabledExtensions(normalized);localStorage.setItem("lcars-disabled-extensions",JSON.stringify(normalized));recordActivity("Extension availability changed",normalized.length?`${normalized.length} extension(s) disabled by the operator`:"All installed extensions enabled","success","EXTENSION",true);};
   const choose = (id: string) => {
+    createRecoverySnapshot("Before theme change");
     beep(true);
     setTheme(id);
     localStorage.setItem("lcars-theme", id);
+    recordActivity("Display matrix changed",`Theme ${id.toUpperCase()} activated`,"success","OPERATOR",true);
   };
   const launch = (app: App, requested?: ApplicationDestination) => {
     beep(true);
     setAllOpen(false);
     const embedded=embeddedPageForApp(app),destination=requested||appDestinations[app.id]||(embedded?"embedded":"native");
-    if(destination==="embedded"&&embedded){setSection(embedded);notify(`${app.name} opened in the LCARS ${embedded.toUpperCase()} workspace`);return;}
+    if(destination==="embedded"&&embedded){setSection(embedded);notify(`${app.name} opened in the LCARS ${embedded.toUpperCase()} workspace`);recordActivity("Application opened in LCARS",`${app.name} → ${embedded.toUpperCase()}`);return;}
     if (bridge)
       fetch("http://127.0.0.1:8765/api/launch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: app.id, mode: "window" }),
       })
-        .then(() => notify(app.name + " opened in a native window"))
+        .then(() => {notify(app.name + " opened in a native window");recordActivity("Application launched",app.name);})
         .catch(() => notify("Unable to launch " + app.name, "error"));
     else notify("Local application launching requires the installed desktop edition", "error");
   };
   const chooseAppDestination=(app:App,destination:ApplicationDestination)=>saveAppDestinations({...appDestinations,[app.id]:destination});
-  const toggleFavorite = (id: string) =>
+  const toggleFavorite = (id: string) => {
+    createRecoverySnapshot("Before favorites change");
     setFavoriteIds((old) => {
       const next = old.includes(id)
         ? old.filter((x) => x !== id)
@@ -727,6 +976,7 @@ export default function Home() {
       localStorage.setItem("lcars-favorites", JSON.stringify(next));
       return next;
     });
+  };
   const setSystemVolume = () => {
     if (bridge)
       fetch("http://127.0.0.1:8765/api/audio", {
@@ -735,10 +985,30 @@ export default function Home() {
         body: JSON.stringify({ volume }),
       }).catch(() => {});
   };
+  const toggleMasterMute = () => {
+    const muted = !audioMuted;
+    setAudioMuted(muted);
+    fetch("http://127.0.0.1:8765/api/audio", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ muted }),
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.ok === false) throw new Error(result.error || "Mute unavailable");
+        notify(muted ? "Master audio muted" : "Master audio restored");
+      })
+      .catch(() => {
+        setAudioMuted(!muted);
+        notify("Master mute control is unavailable", "error");
+      });
+  };
   const notify = (
     text: string,
     kind: "info" | "error" = "info",
     playError = true,
+    source = "LCARS CORE",
+    priority: Notice["priority"] = kind === "error" ? "critical" : "routine",
   ) => {
     if (kind === "error" && playError) cue("error");
     const notice = {
@@ -749,25 +1019,29 @@ export default function Home() {
         hour: "2-digit",
         minute: "2-digit",
       }),
+      source,
+      priority,
     };
-    setNotices((old) => [notice, ...old].slice(0, 50));
+    setNotices((old) => {const next=[notice, ...old].slice(0,100);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});
     if (!doNotDisturb)
       setTimeout(
         () =>
-          setNotices((old) =>
-            old.map((x) =>
+          setNotices((old) => {
+            const next=old.map((x) =>
               x.id === notice.id ? { ...x, id: -Math.abs(x.id) } : x,
-            ),
-          ),
+            );localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;
+          }),
         Math.max(1, prefs.notificationSeconds) * 1000,
       );
   };
   const dismissNotice = (id: number) =>
-    setNotices((old) =>
-      old.map((x) =>
+    setNotices((old) => {
+      const next=old.map((x) =>
         Math.abs(x.id) === Math.abs(id) ? { ...x, id: -Math.abs(x.id) } : x,
-      ),
-    );
+      );localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;
+    });
+  const clearNotices=()=>{setNotices([]);localStorage.removeItem("lcars-notification-history");recordActivity("Communications history cleared","Operator removed stored LCARS notices","success","OPERATOR");};
+  const clearActivity=()=>{setActivityLog([]);localStorage.removeItem("lcars-activity-log");};
   const coreAction = (action: string) => {
     beep(true);
     if (bridge)
@@ -784,14 +1058,15 @@ export default function Home() {
               ? "error"
               : "info",
           );
+          recordActivity("System command",`${action.toUpperCase()} · ${d.message||"COMMAND ACCEPTED"}`,String(d.message||"").includes("not installed")?"attention":"success","SYSTEM");
           if (action === "extension-scan")
             fetch("http://127.0.0.1:8765/api/extensions")
               .then((r) => r.json())
               .then((result) => setExtensions(result.extensions || []))
               .catch(() => {});
         })
-        .catch(() => notify("LOCAL CORE UNAVAILABLE", "error"));
-    else notify(action.toUpperCase());
+        .catch(() => {notify("LOCAL CORE UNAVAILABLE", "error");recordActivity("System command failed",action.toUpperCase(),"attention","SYSTEM");});
+    else {notify(action.toUpperCase());recordActivity("Demonstration command",action.toUpperCase(),"attention","SYSTEM");}
   };
   const powerAction = (action: "exit" | "sleep" | "poweroff" | "reboot") => {
     if (action === "exit") {
@@ -805,24 +1080,37 @@ export default function Home() {
   const runSpeedDial = (item: SpeedDialItem) => {
     beep(true);
     if (item.startsWith("page:")) {
-      setSection(item.slice(5));
+      setSpeedDialPage(item.slice(5));
       return;
     }
     if(item.startsWith("module:")){setSpeedDialModule(item.slice(7) as WidgetId);return;}
+    if(item.startsWith("routine:")){const routine=routines.find((candidate)=>candidate.id===item.slice(8));if(routine)setPendingRoutine(routine);else notify("The selected routine is no longer available","error");return;}
     const action=item.slice(7);
     if (action==="dnd") setDoNotDisturb((value)=>!value);
     else if (action==="notices") setHistoryOpen(true);
     else if (action==="displays") setDisplayMenu(true);
     else if (action==="tasks") { setTaskRail(true);setTaskLocked((value)=>!value); }
     else if (action==="tray") setTrayOpen(true);
+    else if (action==="routines") setRoutineCenterOpen(true);
+    else if (action==="communications") setHistoryOpen(true);
+  };
+  const runTrayShortcut=(shortcut:TrayShortcut)=>{
+    if(shortcut.kind==="page")setSection(shortcut.target);
+    else if(shortcut.kind==="app"){
+      const app=apps.find((candidate)=>candidate.id===shortcut.target);if(app)launch(app);else notify(`${shortcut.label} is not installed`,"error");
+    }else{
+      const routine=routines.find((candidate)=>candidate.id===shortcut.target);if(routine)requestRoutine(routine);else notify(`${shortcut.label} routine is unavailable`,"error");
+    }
+    setTrayOpen(false);
   };
   const refreshApps=()=>fetch("http://127.0.0.1:8765/api/apps").then((response)=>response.json()).then((result)=>{if(Array.isArray(result.apps)){setApps(result.apps);notify(`Application inventory refreshed · ${result.apps.length} entries`);}}).catch(()=>notify("Application inventory could not be refreshed","error"));
   const saveWidgets = (next: WidgetId[]) => {
+    createRecoverySnapshot("Before Overview layout change");
     setWidgets(next);
     localStorage.setItem("lcars-overview-widgets", JSON.stringify(next));
   };
-  const saveCustomPages=(next:CustomPage[])=>{const normalized=normalizeCustomPages(next);setCustomPages(normalized);localStorage.setItem("lcars-custom-pages",JSON.stringify(normalized));};
-  const saveAppDestinations=(next:Record<string,ApplicationDestination>)=>{const normalized=normalizeAppDestinations(next);setAppDestinations(normalized);localStorage.setItem("lcars-app-destinations",JSON.stringify(normalized));};
+  const saveCustomPages=(next:CustomPage[])=>{createRecoverySnapshot("Before sidebar page change");const normalized=normalizeCustomPages(next);setCustomPages(normalized);localStorage.setItem("lcars-custom-pages",JSON.stringify(normalized));};
+  const saveAppDestinations=(next:Record<string,ApplicationDestination>)=>{createRecoverySnapshot("Before application destination change");const normalized=normalizeAppDestinations(next);setAppDestinations(normalized);localStorage.setItem("lcars-app-destinations",JSON.stringify(normalized));};
   const moveWidget = (id: WidgetId, direction: number) => {
     const index = widgets.indexOf(id);
     if (index < 0) return;
@@ -840,6 +1128,7 @@ export default function Home() {
     setDragged(null);
   };
   const cycleSize = (id: WidgetId) => {
+    createRecoverySnapshot("Before module size change");
     const values = ["compact", "standard", "wide"],
       current = widgetSizes[id] || "standard",
       next = values[(values.indexOf(current) + 1) % values.length];
@@ -863,6 +1152,50 @@ export default function Home() {
       body: JSON.stringify({ id, volume: value }),
     }).catch(() => {});
   };
+  const streamMute = (id: string, muted: boolean) => {
+    setStreams((old) =>
+      old.map((stream) => (stream.id === id ? { ...stream, muted } : stream)),
+    );
+    fetch("http://127.0.0.1:8765/api/stream-mute", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, muted }),
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.ok === false) throw new Error(result.message || "Mute unavailable");
+      })
+      .catch(() => {
+        setStreams((old) =>
+          old.map((stream) =>
+            stream.id === id ? { ...stream, muted: !muted } : stream,
+          ),
+        );
+        notify("Application mute control is unavailable", "error");
+      });
+  };
+  const refreshMedia = () => {
+    Promise.all([
+      fetch("http://127.0.0.1:8765/api/media").then((response) =>
+        response.json(),
+      ),
+      fetch("http://127.0.0.1:8765/api/audio-devices").then((response) =>
+        response.json(),
+      ),
+      fetch("http://127.0.0.1:8765/api/audio").then((response) =>
+        response.json(),
+      ),
+    ])
+      .then(([media, devices, master]) => {
+        setPlayers(media.players || []);
+        setStreams(media.streams || []);
+        setAudioDevices(devices.devices || []);
+        if (typeof master.volume === "number") setVolume(master.volume);
+        setAudioMuted(Boolean(master.muted));
+        notify("Media and audio buses rescanned");
+      })
+      .catch(() => notify("Media rescan could not reach the local core", "error"));
+  };
   const chooseAudioDevice = (id: string) =>
     fetch("http://127.0.0.1:8765/api/audio-device", {
       method: "POST",
@@ -871,13 +1204,19 @@ export default function Home() {
     })
       .then((r) => r.json())
       .then((d) => {
-        setAudioDevices((old) =>
-          old.map((x) => ({ ...x, default: x.id === id })),
-        );
+        setAudioDevices((old) => {
+          const selected = old.find((device) => device.id === id);
+          return old.map((device) =>
+            selected && device.kind === selected.kind
+              ? { ...device, default: device.id === id }
+              : device,
+          );
+        });
         notify(d.message || "Audio output changed");
       })
       .catch(() => notify("Unable to change audio output", "error"));
   const savePrefs = (next = prefs) => {
+    createRecoverySnapshot("Before interface settings save");
     setPrefs(next);
     localStorage.setItem("lcars-shell-prefs", JSON.stringify(next));
     fetch("http://127.0.0.1:8765/api/config", {
@@ -920,6 +1259,10 @@ export default function Home() {
         notify(`${d.displays?.length || 0} display outputs detected`);
       })
       .catch(() => notify("Unable to refresh display outputs", "error"));
+  const refreshEngineering=()=>fetch("http://127.0.0.1:8765/api/engineering").then((response)=>response.json()).then((data)=>{setEngineering({processes:Array.isArray(data.processes)?data.processes:[],sensors:Array.isArray(data.sensors)?data.sensors:[],processControl:Boolean(data.processControl),serviceControl:Boolean(data.serviceControl),notes:Array.isArray(data.notes)?data.notes:[]});}).catch(()=>notify("Engineering telemetry is unavailable","error"));
+  const processAction=async(pid:number,action:"terminate"|"suspend"|"resume")=>{
+    try{const response=await fetch("http://127.0.0.1:8765/api/process-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pid,action})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Process control failed");notify(result.message||`Process ${action} command accepted`);recordActivity("Engineering process control",`PID ${pid} · ${action.toUpperCase()}`,"success","SYSTEM",true);window.setTimeout(refreshEngineering,500);}catch(error){const detail=error instanceof Error?error.message:"Process control failed";notify(detail,"error");recordActivity("Engineering process control",`PID ${pid} · ${detail}`,"attention","SYSTEM");}
+  };
   const saveLockPassword = async (password: string) => {
     const credential = await createLockCredential(password);
     setLockCredential(credential);
@@ -954,6 +1297,7 @@ export default function Home() {
     });
   };
   const togglePinned = (id: string) => {
+    createRecoverySnapshot("Before media source preference change");
     const next = pinnedPlayers.includes(id)
       ? pinnedPlayers.filter((x) => x !== id)
       : [...pinnedPlayers, id];
@@ -966,10 +1310,12 @@ export default function Home() {
       Number(pinnedPlayers.includes(a.id)),
   );
   const saveProfiles = (next: WorkspaceProfile[]) => {
+    createRecoverySnapshot("Before workstation list change");
     setProfiles(next);
     localStorage.setItem("lcars-workspaces", JSON.stringify(next));
   };
   const chooseDefaultWorkstation = (id: string) => {
+    createRecoverySnapshot("Before default workstation change");
     setDefaultWorkstation(id);
     if (id) localStorage.setItem("lcars-default-workstation", id);
     else localStorage.removeItem("lcars-default-workstation");
@@ -978,6 +1324,10 @@ export default function Home() {
   const createProfile = () => {
     const name = prompt("Workspace profile name")?.trim();
     if (!name) return;
+    const applications:WorkspaceAppState[]=tasks.filter((task)=>!task.app.toLowerCase().includes("lcars")).flatMap((task)=>{
+      const app=apps.find((candidate)=>{const haystack=`${candidate.id} ${candidate.name}`.toLowerCase(),needle=task.app.toLowerCase();return haystack.includes(needle)||needle.includes(candidate.name.toLowerCase());});
+      return app?[{appId:app.id,display:task.monitor,name:app.name}]:[];
+    }).filter((item,index,list)=>list.findIndex((candidate)=>candidate.appId===item.appId)===index);
     const profile = {
       id: Date.now().toString(),
       name,
@@ -985,16 +1335,34 @@ export default function Home() {
       widgets: [...widgets],
       widgetSizes: { ...widgetSizes },
       favoriteIds: [...favoriteIds],
+      section,
+      applications,
+      volume,
+      outputDevice:audioDevices.find((device)=>device.kind==="output"&&device.default)?.id,
+      inputDevice:audioDevices.find((device)=>device.kind==="input"&&device.default)?.id,
+      doNotDisturb,
+      trayShortcuts:[...trayShortcuts],
+      restoreApplications:true,
     };
     saveProfiles([...profiles, profile]);
     setActiveProfile(profile.id);
-    notify(name + " workspace saved");
+    notify(name + " workstation saved");
+    recordActivity("Workstation captured",`${name} · ${applications.length} application(s) · ${widgets.length} modules`,"success","OPERATOR",true);
   };
   const applyProfile = (profile: WorkspaceProfile) => {
+    createRecoverySnapshot("Before workstation profile change");
     setTheme(profile.theme);
     setWidgets(profile.widgets);
     setWidgetSizes(profile.widgetSizes);
     setFavoriteIds(profile.favoriteIds);
+    if(profile.section)setSection(profile.section);
+    if(typeof profile.doNotDisturb==="boolean")setDoNotDisturb(profile.doNotDisturb);
+    if(profile.trayShortcuts?.length)saveTrayShortcuts(profile.trayShortcuts);
+    if(typeof profile.volume==="number"){
+      setVolume(profile.volume);
+      fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:profile.volume})}).catch(()=>{});
+    }
+    [profile.outputDevice,profile.inputDevice].filter(Boolean).forEach((id)=>chooseAudioDevice(String(id)));
     setActiveProfile(profile.id);
     localStorage.setItem("lcars-theme", profile.theme);
     localStorage.setItem(
@@ -1009,20 +1377,111 @@ export default function Home() {
       "lcars-favorites",
       JSON.stringify(profile.favoriteIds),
     );
-    notify(profile.name + " workspace activated");
+    const appStates=profile.restoreApplications===false?[]:profile.applications||[];
+    if(bridge&&appStates.length){
+      appStates.forEach((item,index)=>window.setTimeout(()=>fetch("http://127.0.0.1:8765/api/launch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:item.appId,mode:"window"})}).catch(()=>{}),index*180));
+      window.setTimeout(()=>fetch("http://127.0.0.1:8765/api/windows").then((response)=>response.json()).then((result)=>{const live:WindowTask[]=result.windows||[];appStates.forEach((saved)=>{const app=apps.find((candidate)=>candidate.id===saved.appId),task=live.find((candidate)=>`${candidate.app} ${candidate.name}`.toLowerCase().includes((app?.name||saved.name).toLowerCase()));if(task&&saved.display)windowAction(task.id,"move",saved.display);});}).catch(()=>{}),Math.max(1800,appStates.length*220));
+    }
+    notify(profile.name + " workstation restored");
+    recordActivity(
+      "Workstation restored",
+      `${profile.name} · ${appStates.length} application request(s)`,
+      "success",
+      "ROUTINE",
+      true,
+    );
   };
   const deleteProfile = (id: string) => {
     saveProfiles(profiles.filter((p) => p.id !== id));
     if (activeProfile === id) setActiveProfile("");
     if (defaultWorkstation === id) chooseDefaultWorkstation("");
   };
+  const describeRoutineStep=(step:RoutineStep)=>{
+    if(step.kind==="page")return `Open ${step.target.toUpperCase()}`;
+    if(step.kind==="app")return `Launch ${apps.find((app)=>app.id===step.target)?.name||step.target}`;
+    if(step.kind==="workstation")return `Restore ${profiles.find((profile)=>profile.id===step.target)?.name||"workstation"}`;
+    if(step.kind==="theme")return `Activate ${step.target.toUpperCase()} theme`;
+    if(step.kind==="dnd")return `${String(step.value??step.target)==="true"?"Enable":"Disable"} Do Not Disturb`;
+    if(step.kind==="volume")return `Set master audio to ${Number(step.value??step.target)||0}%`;
+    if(step.kind==="audio-device")return `Select ${audioDevices.find((device)=>device.id===step.target)?.name||step.target}`;
+    if(step.kind==="media")return `Media command ${step.target}`;
+    if(step.kind==="system")return `Protected system action ${step.target}`;
+    if(step.kind==="command")return `Approved local command: ${step.target}`;
+    return `Wait ${Math.max(0,Number(step.value??step.target)||0)} ms`;
+  };
+  const executeRoutine=async(routine:Routine)=>{
+    if(runningRoutine)return;
+    setPendingRoutine(null);setRunningRoutine(routine.id);
+    recordActivity(`Routine ${routine.name}`,`${routine.steps.length} step sequence started`,"running","ROUTINE");
+    try{
+      for(const step of routine.steps){
+        if(step.kind==="page")setSection(step.target);
+        else if(step.kind==="app"){
+          const app=apps.find((candidate)=>candidate.id===step.target);if(!app)throw new Error(`Application ${step.target} is not installed`);
+          await fetch("http://127.0.0.1:8765/api/launch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:app.id,mode:"window"})}).then(async(response)=>{if(!response.ok)throw new Error((await response.json()).error||`Could not launch ${app.name}`);});
+        } else if(step.kind==="workstation"){
+          const profile=profiles.find((candidate)=>candidate.id===step.target);if(!profile)throw new Error("Saved workstation is unavailable");applyProfile(profile);
+        } else if(step.kind==="theme")choose(step.target);
+        else if(step.kind==="dnd")setDoNotDisturb(String(step.value??step.target)==="true");
+        else if(step.kind==="volume"){
+          const next=Math.max(0,Math.min(100,Number(step.value??step.target)||0));setVolume(next);await fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:next})});
+        } else if(step.kind==="audio-device")await fetch("http://127.0.0.1:8765/api/audio-device",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:step.target})});
+        else if(step.kind==="media"){
+          const [playerId,command]=step.target.includes("|")?step.target.split("|",2):[players[0]?.id||"",step.target];if(!playerId)throw new Error("No media player is active");await fetch("http://127.0.0.1:8765/api/media-control",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({player:playerId,command})});
+        } else if(step.kind==="system"){
+          const result=await fetch("http://127.0.0.1:8765/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:step.target})}).then((response)=>response.json());if(result.error)throw new Error(result.error);
+        } else if(step.kind==="command"){
+          const response=await fetch("http://127.0.0.1:8765/api/routine-command",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({command:step.target,approved:true})});const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Approved command was rejected");
+        } else await new Promise((resolve)=>window.setTimeout(resolve,Math.max(0,Math.min(30000,Number(step.value??step.target)||0))));
+        await new Promise((resolve)=>window.setTimeout(resolve,90));
+      }
+      recordActivity(`Routine ${routine.name}`,"All steps completed successfully","success","ROUTINE",true);notify(`${routine.name} routine complete`,"info",true,"OPERATIONS AUTOMATION","priority");
+    }catch(error){const detail=error instanceof Error?error.message:"Routine failed";recordActivity(`Routine ${routine.name}`,detail,"attention","ROUTINE");notify(`${routine.name}: ${detail}`,"error",true,"OPERATIONS AUTOMATION","critical");}
+    finally{setRunningRoutine("");}
+  };
+  const requestRoutine=(routine:Routine)=>{if(!routine.enabled)return notify(`${routine.name} is disabled`,"error");setPendingRoutine(routine);};
+  useEffect(()=>{
+    if(!bridge||locked)return;
+    const now=clock||new Date();
+    routines.filter((routine)=>routine.enabled&&routine.trigger.type!=="manual").forEach((routine)=>{
+      let active=false,key=`${routine.id}:${routine.trigger.type}`;
+      if(routine.trigger.type==="startup"){active=true;key+=":session";}
+      else if(routine.trigger.type==="time"){const minute=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}:${now.getMinutes()}`;active=(routine.trigger.value||"")===`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;key+=`:${minute}`;}
+      else if(routine.trigger.type==="app")active=tasks.some((task)=>`${task.app} ${task.name}`.toLowerCase().includes((routine.trigger.value||"").toLowerCase()));
+      else if(routine.trigger.type==="device")active=audioDevices.some((device)=>`${device.id} ${device.name}`.toLowerCase().includes((routine.trigger.value||"").toLowerCase()));
+      if(!active){if(routine.trigger.type==="app"||routine.trigger.type==="device")routineTriggerGuard.current.delete(key);return;}
+      if(routineTriggerGuard.current.has(key))return;routineTriggerGuard.current.add(key);
+      if(routineNeedsConfirmation(routine)){notify(`${routine.name} requires operator confirmation and was not run automatically`,"info",true,"OPERATIONS AUTOMATION","priority");recordActivity(`Routine ${routine.name}`,"Automatic trigger paused because the sequence contains protected steps","attention","ROUTINE");}
+      else void executeRoutine(routine);
+    });
+  },[bridge,locked,clock,tasks,audioDevices,routines]);
+  useEffect(()=>{
+    if(!bridge||locked||!sessionRestore||workstationRestoreGuard.current||!defaultWorkstation)return;
+    const profile=profiles.find((candidate)=>candidate.id===defaultWorkstation);if(!profile)return;
+    workstationRestoreGuard.current=true;applyProfile(profile);
+  },[bridge,locked,sessionRestore,defaultWorkstation,profiles]);
+  useEffect(()=>{
+    const mapped=(event:KeyboardEvent)=>{
+      const target=event.target as HTMLElement|null;if(target&&(target.matches("input,textarea,select")||target.isContentEditable))return;
+      const shortcut=eventShortcut(event),mapping=controlMappings.find((candidate)=>candidate.enabled&&candidate.shortcut===shortcut);if(!mapping)return;
+      event.preventDefault();event.stopPropagation();
+      if(mapping.target.startsWith("routine:")){const routine=routines.find((candidate)=>candidate.id===mapping.target.slice(8));if(routine)requestRoutine(routine);}
+      else if(mapping.target.startsWith("page:"))setSection(mapping.target.slice(5));
+      else if(mapping.target==="action:routines")setRoutineCenterOpen(true);
+      else if(mapping.target==="action:communications")setHistoryOpen(true);
+      else if(mapping.target==="action:tray")setTrayOpen(true);
+      else if(mapping.target==="action:dnd")setDoNotDisturb((value)=>!value);
+    };
+    window.addEventListener("keydown",mapped,true);return()=>window.removeEventListener("keydown",mapped,true);
+  },[controlMappings,routines]);
   const saveAccess = (next: AccessibilityPrefs) => {
+    createRecoverySnapshot("Before accessibility setting change");
     setAccess(next);
     localStorage.setItem("lcars-accessibility", JSON.stringify(next));
   };
   const exportConfig = () => {
     const data = {
-      version: 24,
+      version: 25,
       theme,
       favoriteIds,
       widgets,
@@ -1035,6 +1494,11 @@ export default function Home() {
       sessionRestore,
       customPages,
       appDestinations,
+      routines,
+      activityLog,
+      trayShortcuts,
+      controlMappings,
+      disabledExtensions,
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: "application/json",
@@ -1052,7 +1516,8 @@ export default function Home() {
     reader.onload = () => {
       try {
         const d = JSON.parse(String(reader.result));
-        if (d.theme) choose(d.theme);
+        createRecoverySnapshot("Before configuration import");
+        if (d.theme) {setTheme(d.theme);localStorage.setItem("lcars-theme",d.theme);}
         if (Array.isArray(d.favoriteIds)) {
           setFavoriteIds(d.favoriteIds);
           localStorage.setItem(
@@ -1060,7 +1525,7 @@ export default function Home() {
             JSON.stringify(d.favoriteIds),
           );
         }
-        if (Array.isArray(d.widgets)) saveWidgets(d.widgets);
+        if (Array.isArray(d.widgets)) {setWidgets(d.widgets);localStorage.setItem("lcars-overview-widgets",JSON.stringify(d.widgets));}
         if (d.widgetSizes) {
           setWidgetSizes(d.widgetSizes);
           localStorage.setItem(
@@ -1072,14 +1537,19 @@ export default function Home() {
           const imported=normalizePrefs(d.prefs);setPrefs(imported);
           localStorage.setItem("lcars-shell-prefs", JSON.stringify(imported));
         }
-        if (d.access) saveAccess({ ...defaultAccess, ...d.access });
-        if (Array.isArray(d.profiles)) saveProfiles(d.profiles);
+        if (d.access) {const importedAccess={...defaultAccess,...d.access};setAccess(importedAccess);localStorage.setItem("lcars-accessibility",JSON.stringify(importedAccess));}
+        if (Array.isArray(d.profiles)) {setProfiles(d.profiles);localStorage.setItem("lcars-workspaces",JSON.stringify(d.profiles));}
         if (d.userName) {
           setUserName(d.userName);
           localStorage.setItem("lcars-user-name", d.userName);
         }
-        if (Array.isArray(d.customPages)) saveCustomPages(normalizeCustomPages(d.customPages));
-        if (d.appDestinations&&typeof d.appDestinations==="object") saveAppDestinations(normalizeAppDestinations(d.appDestinations));
+        if (Array.isArray(d.customPages)) {const importedPages=normalizeCustomPages(d.customPages);setCustomPages(importedPages);localStorage.setItem("lcars-custom-pages",JSON.stringify(importedPages));}
+        if (d.appDestinations&&typeof d.appDestinations==="object") {const importedDestinations=normalizeAppDestinations(d.appDestinations);setAppDestinations(importedDestinations);localStorage.setItem("lcars-app-destinations",JSON.stringify(importedDestinations));}
+        if (Array.isArray(d.routines)) {const importedRoutines=normalizeRoutines(d.routines);setRoutines(importedRoutines);localStorage.setItem("lcars-routines",JSON.stringify(importedRoutines));}
+        if (Array.isArray(d.activityLog)) {const importedActivity=normalizeActivity(d.activityLog);setActivityLog(importedActivity);localStorage.setItem("lcars-activity-log",JSON.stringify(importedActivity));}
+        if (Array.isArray(d.trayShortcuts)) {const importedShortcuts=normalizeTrayShortcuts(d.trayShortcuts);setTrayShortcuts(importedShortcuts);localStorage.setItem("lcars-tray-shortcuts",JSON.stringify(importedShortcuts));}
+        if (Array.isArray(d.controlMappings)) {const importedMappings=normalizeControlMappings(d.controlMappings);setControlMappings(importedMappings);localStorage.setItem("lcars-control-mappings",JSON.stringify(importedMappings));}
+        if (Array.isArray(d.disabledExtensions)) {const importedDisabled=d.disabledExtensions.filter((item:unknown):item is string=>typeof item==="string").slice(0,128);setDisabledExtensions(importedDisabled);localStorage.setItem("lcars-disabled-extensions",JSON.stringify(importedDisabled));}
         notify("Configuration restored");
       } catch {
         notify("Configuration file could not be read", "error");
@@ -1108,6 +1578,7 @@ export default function Home() {
           setPaletteOpen(false);
         },
       })),
+      ...routines.map((routine)=>({id:"routine-"+routine.id,label:"Run "+routine.name,detail:`ROUTINE · ${routine.steps.length} STEPS`,run:()=>{requestRoutine(routine);setPaletteOpen(false);}})),
       ...[
         ["Task Rail settings","hover pinned windows monitor grouping search","settings"],
         ["Voice Control settings","microphone whisper wake phrase command authority","settings"],
@@ -1119,6 +1590,11 @@ export default function Home() {
         ["Accessibility settings","contrast motion color scale sound","settings"],
         ["Storage and drives","disk usb mount unmount removable","system"],
         ["Extensions","module api plugins manifests","updates"],
+        ["Operations Automation","routines workflows triggers command sequences","settings"],
+        ["Engineering Console","processes sensors temperature battery hardware","system"],
+        ["Communications Center","notices activity priorities event history","settings"],
+        ["Tray Command Deck","system tray shortcuts applications routines pages","settings"],
+        ["Speed Dial Page Peeks","pin preview overlay page shortcut","settings"],
       ].map(([label,keywords,page]) => ({ id:"find-"+label, label, detail:"FIND · "+keywords, run:()=>{setSection(page);setPaletteOpen(false);} })),
       {
         id: "lock",
@@ -1158,7 +1634,7 @@ export default function Home() {
         },
       },
     ],
-    [apps,customPages],
+    [apps,customPages,routines],
   );
   const filteredCommands = paletteCommands
     .filter((c) =>
@@ -1177,8 +1653,10 @@ export default function Home() {
   );
   const extensionFor = (id: WidgetId) =>
     id.startsWith("ext:")
-      ? extensions.find((extension) => `ext:${extension.id}` === id)
+      ? extensions.find((extension) => `ext:${extension.id}` === id&&!quarantinedExtensions.includes(extension.id)&&!disabledExtensions.includes(extension.id))
       : undefined;
+  const recordExtensionFailure=(id:string)=>{const key=`lcars-extension-failures:${id}`,failures=Number(localStorage.getItem(key)||"0")+1;localStorage.setItem(key,String(failures));if(failures>=2){setQuarantinedExtensions((old)=>{const next=old.includes(id)?old:[...old,id];localStorage.setItem("lcars-extension-quarantine",JSON.stringify(next));return next;});notify(`Extension ${id} was quarantined after repeated render failures`,"error");}};
+  const clearExtensionQuarantine=()=>{quarantinedExtensions.forEach((id)=>localStorage.removeItem(`lcars-extension-failures:${id}`));localStorage.removeItem("lcars-extension-quarantine");setQuarantinedExtensions([]);notify("Extension quarantine cleared; modules will be retried");};
   const activePageDensity:PageDensity=prefs.pageDensityScope==="per-page"?(prefs.pageDensities[section]||prefs.pageDensity):prefs.pageDensity;
   const widgetMeta = (id: WidgetId) => {
     const extension = extensionFor(id);
@@ -1192,7 +1670,7 @@ export default function Home() {
     if (id.startsWith("ext:")) {
       const extension = extensionFor(id);
       return extension ? (
-        extension.apiVersion===1?<ChecklistExtension extension={extension} />:<DeclarativeExtension extension={extension} placement={extension.placements.find((placement)=>placement.type==="overview")||extension.placements[0]} />
+        <ExtensionBoundary id={extension.id} name={extension.name} onFailure={recordExtensionFailure}>{extension.apiVersion===1?<ChecklistExtension extension={extension} />:<DeclarativeExtension extension={extension} placement={extension.placements.find((placement)=>placement.type==="overview")||extension.placements[0]} />}</ExtensionBoundary>
       ) : (
         <section className="overview-widget extension-widget">
           <h3>EXTENSION OFFLINE <small>MODULE API</small></h3>
@@ -1274,6 +1752,10 @@ export default function Home() {
           </div>
         </section>
       );
+    if(id==="routines")return <section className="overview-widget v25-widget routine-widget"><h3>OPERATIONS ROUTINES <small>AUTO-25</small></h3><div className="v25-widget-list">{routines.filter((routine)=>routine.enabled).slice(0,4).map((routine)=><button key={routine.id} onClick={()=>requestRoutine(routine)}><i>▶</i><span><b>{routine.name}</b><small>{routine.steps.length} STEPS · {routine.trigger.type.toUpperCase()}</small></span></button>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</div><button className="widget-launch" onClick={()=>setRoutineCenterOpen(true)}>OPEN AUTOMATION CENTER</button></section>;
+    if(id==="engineering")return <section className="overview-widget v25-widget engineering-widget"><h3>ENGINEERING WATCH <small>ENG-25</small></h3><div className="engineering-glance">{engineering.sensors.filter((sensor)=>sensor.status!=="unavailable").slice(0,4).map((sensor)=><span key={sensor.id}><small>{sensor.name}</small><b>{sensor.value}</b></span>)}</div><div className="v25-widget-list">{engineering.processes.slice(0,3).map((process)=><span key={process.pid}><b>{process.name}</b><small>CPU {process.cpu.toFixed(1)}% · MEM {process.memory.toFixed(1)}%</small></span>)}</div><button className="widget-launch" onClick={()=>setSection("system")}>OPEN ENGINEERING CONSOLE</button></section>;
+    if(id==="communications")return <section className="overview-widget v25-widget communications-widget"><h3>COMMUNICATIONS <small>COM-25</small></h3><div className="v25-widget-list">{notices.slice(0,4).map((notice)=><span key={Math.abs(notice.id)}><b>{notice.source||"LCARS CORE"}</b><small>{notice.text}</small></span>)}{!notices.length&&<p>NO COMMUNICATION TRAFFIC</p>}</div><button className="widget-launch" onClick={()=>setHistoryOpen(true)}>OPEN COMMUNICATIONS CENTER</button></section>;
+    if(id==="activity")return <section className="overview-widget v25-widget activity-widget"><h3>COMMAND ACTIVITY <small>LOG-25</small></h3><div className="v25-widget-list">{activityLog.slice(0,4).map((entry)=><span key={entry.id}><b>{entry.title}</b><small>{entry.source} · {entry.status.toUpperCase()}</small></span>)}{!activityLog.length&&<p>NO COMMANDS RECORDED</p>}</div><button className="widget-launch" onClick={()=>setHistoryOpen(true)}>OPEN ACTIVITY LOG</button></section>;
     if (id === "media")
       return (
         <section className="overview-widget wide-widget">
@@ -1360,7 +1842,7 @@ export default function Home() {
     if(activeCustomPage.kind==="module")return <section className="detail-view custom-page-view"><header className="custom-page-cap"><small>USER-ASSIGNED MODULE</small><h3>{activeCustomPage.name}</h3></header><div className="custom-module-host">{renderWidget(activeCustomPage.target as WidgetId)}</div></section>;
     if(activeCustomPage.kind==="extension"){
       const [extensionId,placementId]=activeCustomPage.target.split("::"),extension=extensions.find((item)=>item.id===extensionId),placement=extension?.placements.find((item)=>item.id===placementId);
-      return <section className="detail-view custom-page-view"><header className="custom-page-cap"><small>LCARS EXTENSION PAGE</small><h3>{activeCustomPage.name}</h3></header>{extension?(extension.apiVersion===1?<ChecklistExtension extension={extension}/>:placement?<DeclarativeExtension extension={extension} placement={placement}/>:<p>THE SELECTED EXTENSION PLACEMENT IS NO LONGER AVAILABLE</p>):<p>EXTENSION OFFLINE · RESCAN OR REINSTALL IT FROM UPDATES</p>}</section>;
+      return <section className="detail-view custom-page-view"><header className="custom-page-cap"><small>LCARS EXTENSION PAGE</small><h3>{activeCustomPage.name}</h3></header>{extension&&!quarantinedExtensions.includes(extension.id)&&!disabledExtensions.includes(extension.id)?<ExtensionBoundary id={extension.id} name={extension.name} onFailure={recordExtensionFailure}>{extension.apiVersion===1?<ChecklistExtension extension={extension}/>:placement?<DeclarativeExtension extension={extension} placement={placement}/>:<p>THE SELECTED EXTENSION PLACEMENT IS NO LONGER AVAILABLE</p>}</ExtensionBoundary>:<p>EXTENSION OFFLINE, DISABLED, OR QUARANTINED · REVIEW THE EXTENSION HUB</p>}</section>;
     }
     const app=apps.find((item)=>item.id===activeCustomPage.target);
     return <CustomApplicationPage page={activeCustomPage} app={app} embedded={app?embeddedPageForApp(app):null} launch={()=>app&&launch(app)} navigate={setSection}/>;
@@ -1376,7 +1858,7 @@ export default function Home() {
         (overviewEdit && section === "overview" ? " overview-editing" : "") +
         (access.highContrast ? " accessibility-contrast" : "") +
         (access.reducedMotion ? " reduced-motion" : "") +
-        (access.colorSafe ? " color-safe" : "") + " density-" + prefs.interfaceDensity + " page-density-" + activePageDensity
+        (access.colorSafe ? " color-safe" : "") + (safeMode ? " safe-mode" : "") + " density-" + prefs.interfaceDensity + " page-density-" + activePageDensity
       }
     >
       <header className="top">
@@ -1391,7 +1873,7 @@ export default function Home() {
             INTERFACE
           </h1>
         </div>
-        {extensions.flatMap((extension)=>extension.placements.filter((placement)=>placement.type==="header").map((placement)=><ExtensionHeader key={`${extension.id}:${placement.id}`} extension={extension} placement={placement} now={clock||new Date()}/>))}
+        {extensions.filter((extension)=>!quarantinedExtensions.includes(extension.id)&&!disabledExtensions.includes(extension.id)).flatMap((extension)=>extension.placements.filter((placement)=>placement.type==="header").map((placement)=><ExtensionBoundary key={`${extension.id}:${placement.id}`} id={extension.id} name={extension.name} onFailure={recordExtensionFailure}><ExtensionHeader extension={extension} placement={placement} now={clock||new Date()}/></ExtensionBoundary>))}
         <div className="clock">
           <b>
             {clock
@@ -1417,9 +1899,10 @@ export default function Home() {
               : "MUTED"}
         </button>
       </header>
+      {safeMode&&<button className="safe-mode-banner" onClick={()=>setSection("settings")}><b>SAFE STARTUP ACTIVE</b><span>SAVED VISUAL SETTINGS AND EXTENSIONS ARE TEMPORARILY BYPASSED · OPEN RECOVERY</span></button>}
       <div className="shell">
         <aside>
-          {prefs.trayPresentation==="header"?<button className="elbow header-tray-trigger" aria-expanded={trayOpen} onClick={()=>setTrayOpen((value)=>!value)}><span>TRAY</span><small>{trayItems.length.toString().padStart(2,"0")}</small></button>:<div className="elbow"><span>SYS</span><small>47</small></div>}
+          {prefs.trayPresentation==="header"?<button className="elbow header-tray-trigger" aria-expanded={trayOpen} onClick={()=>setTrayOpen((value)=>!value)}><span>TRAY</span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small></button>:<div className="elbow"><span>SYS</span><small>47</small></div>}
           <div className="nav-gap" />
           {nav.map((n, i) => (
             <button
@@ -1444,7 +1927,7 @@ export default function Home() {
             onMouseEnter={taskEnter}
             onMouseLeave={taskLeave}
           >
-            {prefs.trayPresentation==="rail"&&<button className="tray-strip-trigger" aria-label="Open system tray" title="System Tray" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><span aria-hidden="true"><i/><i/><i/></span><small>{trayItems.length.toString().padStart(2,"0")}</small><b aria-hidden="true">›</b></button>}
+            {prefs.trayPresentation==="rail"&&<button className="tray-strip-trigger" aria-label="Open system tray" title="Tray Command Deck" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><span aria-hidden="true"><i/><i/><i/></span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small><b aria-hidden="true">›</b></button>}
             <button className="task-trigger" onClick={toggleTaskLock}>
               <i>
                 {compat?.capabilities?.windowControl === false
@@ -1569,12 +2052,12 @@ export default function Home() {
               </div>
               <div className="overview-toolbar">
                 <span>{widgets.length} MODULES ACTIVE</span>
-                <button
+                <nav><button onClick={()=>setRoutineCenterOpen(true)}>OPERATIONS AUTOMATION</button><button
                   className={overviewEdit ? "editing" : ""}
                   onClick={() => setOverviewEdit(!overviewEdit)}
                 >
                   {overviewEdit ? "FINISH EDITING" : "CONFIGURE OVERVIEW"}
-                </button>
+                </button></nav>
               </div>
               {overviewEdit && (
                 <OverviewEditor
@@ -1678,92 +2161,39 @@ export default function Home() {
               </div>
               <HardwareTelemetry details={systemDetails} open={setDetailOpen}/>
               <StorageMatrix drives={drives} notify={notify} refresh={() => fetch("http://127.0.0.1:8765/api/storage").then((r) => r.json()).then((d) => setDrives(d.drives || []))} />
+              <EngineeringConsole data={engineering} refresh={refreshEngineering} processAction={processAction}/>
             </section>
           )}
           {section === "media" && (
-            <section className="detail-view media-view scroll-page">
+            <section className="detail-view media-view media-console-view">
               <h3>MEDIA & AUDIO CONTROL</h3>
-              <MediaSources
+              <MediaConsole
                 players={sortedPlayers}
                 pinned={pinnedPlayers}
                 togglePinned={togglePinned}
                 control={mediaControl}
+                volume={volume}
+                muted={audioMuted}
+                setVolume={setVolume}
+                commitVolume={setSystemVolume}
+                toggleMute={toggleMasterMute}
+                devices={audioDevices}
+                chooseDevice={chooseAudioDevice}
+                streams={streams}
+                setStreamVolume={streamVolume}
+                setStreamMute={streamMute}
+                platform={platform}
+                openMedia={() => coreAction("media-player")}
+                openDevices={() => coreAction("audio-settings")}
+                refresh={refreshMedia}
               />
-              <div className="volume-console">
-                <span>MASTER AUDIO OUTPUT</span>
-                <strong>{volume}%</strong>
-                <input
-                  aria-label="Master audio"
-                  type="range"
-                  value={volume}
-                  onChange={(e) => setVolume(+e.target.value)}
-                  onPointerUp={setSystemVolume}
-                />
-                <div className="audio-routing">
-                  {(["output", "input"] as const).map((kind) => {
-                    const devices = audioDevices.filter((d) => d.kind === kind);
-                    return (
-                      <label className="audio-device-select" key={kind}>
-                        <span>
-                          {kind === "output"
-                            ? "OUTPUT DEVICE"
-                            : "INPUT / MICROPHONE"}
-                        </span>
-                        <select
-                          aria-label={
-                            kind === "output"
-                              ? "Audio output device"
-                              : "Audio input device"
-                          }
-                          value={devices.find((d) => d.default)?.id || ""}
-                          onChange={(e) => chooseAudioDevice(e.target.value)}
-                        >
-                          <option value="" disabled>
-                            {devices.length
-                              ? "SELECT DEVICE"
-                              : "NO PIPEWIRE DEVICES DETECTED"}
-                          </option>
-                          {devices.map((d) => (
-                            <option value={d.id} key={d.id}>
-                              {d.default ? "● " : ""}
-                              {d.name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    );
-                  })}
-                </div>
-                <div>
-                  <button
-                    onClick={() => {
-                      setVolume(0);
-                      if (bridge)
-                        fetch("http://127.0.0.1:8765/api/audio", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ volume: 0 }),
-                        });
-                    }}
-                  >
-                    MUTE
-                  </button>
-                  <button onClick={() => coreAction("media-player")}>
-                    OPEN MEDIA PLAYER
-                  </button>
-                  <button onClick={() => coreAction("audio-settings")}>
-                    AUDIO DEVICES
-                  </button>
-                </div>
-              </div>
-              <StreamVolumes streams={streams} setVolume={streamVolume} />
             </section>
           )}
           {section === "network" && (
             <NetworkConsole info={networkInfo} action={coreAction} refresh={() => fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => notify("Network telemetry unavailable","error"))} />
           )}
           {section === "updates" && (
-            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => setSection("settings")} update={lcarsUpdate} setUpdate={setLcarsUpdate} notify={notify} />
+            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => setSection("settings")} update={lcarsUpdate} setUpdate={setLcarsUpdate} notify={notify} extensions={extensions} catalog={extensionCatalog} disabled={disabledExtensions} setDisabled={saveDisabledExtensions} refreshExtensions={()=>fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()).then((result)=>setExtensions(result.extensions||[])).catch(()=>notify("Extension inventory could not be refreshed","error"))} />
           )}
           {section.startsWith("custom:") && renderCustomPage()}
           {section === "settings" && (
@@ -1802,11 +2232,13 @@ export default function Home() {
                 setDoNotDisturb={setDoNotDisturb}
                 sessionRestore={sessionRestore}
                 setSessionRestore={(v) => {
+                  createRecoverySnapshot("Before session restore change");
                   setSessionRestore(v);
                   localStorage.setItem("lcars-session-restore", String(v));
                 }}
                 userName={userName}
                 setUserName={(v) => {
+                  createRecoverySnapshot("Before operator name change");
                   setUserName(v);
                   localStorage.setItem("lcars-user-name", v);
                 }}
@@ -1824,6 +2256,7 @@ export default function Home() {
                 prefs={prefs}
                 extensions={extensions}
                 customPages={customPages}
+                routines={routines}
                 setPrefs={setPrefs}
                 save={() => savePrefs()}
                 saved={configSaved}
@@ -1831,10 +2264,17 @@ export default function Home() {
                 recheck={() => coreAction("integration-recheck")}
                 startupAudioStatus={startupAudioStatus}
                 testStartupAudio={async()=>{const result=await window.__lcarsPlayStartupSound?.(true);if(result)setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);}}
+                safeMode={safeMode}
+                quarantinedExtensions={quarantinedExtensions}
+                clearExtensionQuarantine={clearExtensionQuarantine}
               />
+              <TrayCommandDeckEditor shortcuts={trayShortcuts} apps={apps} routines={routines} customPages={customPages} change={saveTrayShortcuts}/>
+              <ControlMappingEditor mappings={controlMappings} routines={routines} change={saveControlMappings}/>
               <CustomPageManager pages={customPages} apps={apps} extensions={extensions} change={saveCustomPages}/>
               <ExtensionSettings extensions={extensions}/>
               <div className="settings-grid">
+                <button onClick={()=>setRoutineCenterOpen(true)}><b>OPERATIONS AUTOMATION</b><small>BUILD, PREVIEW, AND RUN MULTI-STEP ROUTINES</small></button>
+                <button onClick={()=>setHistoryOpen(true)}><b>COMMUNICATIONS CENTER</b><small>NOTICES, PRIORITIES, AND COMMAND ACTIVITY</small></button>
                 <button onClick={() => setEditOpen(true)}>
                   <b>FAVORITE APPLICATIONS</b>
                   <small>CHOOSE UP TO 20 RESPONSIVE LAUNCHERS</small>
@@ -1903,19 +2343,23 @@ export default function Home() {
         items={prefs.speedDial}
         extensions={extensions}
         customPages={customPages}
+        routines={routines}
         players={players.length}
         notices={notices.length}
         displays={displays.length}
-        trayItems={trayItems.length}
+        trayItems={trayItems.length+trayShortcuts.length}
         bridge={bridge}
         doNotDisturb={doNotDisturb}
         taskPinned={taskLocked || prefs.taskPinned}
         execute={runSpeedDial}
       />
-      <TrayDrawer open={trayOpen} items={trayItems} close={() => setTrayOpen(false)} openNetwork={() => { setSection("network");setTrayOpen(false); }} openMedia={() => { setSection("media");setTrayOpen(false); }} />
-      {speedDialModule&&<div className="backdrop module-spotlight" onMouseDown={(event)=>event.target===event.currentTarget&&setSpeedDialModule(null)}><section role="dialog" aria-modal="true"><header><div><small>SPEED DIAL MODULE</small><h3>{widgetMeta(speedDialModule).name}</h3></div><button onClick={()=>setSpeedDialModule(null)}>CLOSE ×</button></header>{renderWidget(speedDialModule)}</section></div>}
+      <TrayDrawer open={trayOpen} items={trayItems} shortcuts={trayShortcuts} close={() => setTrayOpen(false)} execute={runTrayShortcut} />
+      {speedDialModule&&<div className="backdrop module-spotlight" onMouseDown={(event)=>event.target===event.currentTarget&&setSpeedDialModule(null)}><ResizablePopup popupKey="speed-dial-module" ariaModal={true}><header><div><small>SPEED DIAL MODULE</small><h3>{widgetMeta(speedDialModule).name}</h3></div><button onClick={()=>setSpeedDialModule(null)}>CLOSE ×</button></header>{renderWidget(speedDialModule)}</ResizablePopup></div>}
+      {speedDialPage&&<SpeedDialPagePeek page={speedDialPage} pinned={speedDialPagePinned} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>setSpeedDialPagePinned((value)=>!value)} close={()=>{setSpeedDialPage(null);setSpeedDialPagePinned(false);}} openFull={(page)=>{setSpeedDialPage(null);setSpeedDialPagePinned(false);setSection(page);}} />}
+      {routineCenterOpen&&<RoutineCenter routines={routines} apps={apps} profiles={profiles} devices={audioDevices} players={players} running={runningRoutine} save={saveRoutines} request={requestRoutine} close={()=>setRoutineCenterOpen(false)}/>}
+      {pendingRoutine&&<RoutinePreview routine={pendingRoutine} describe={describeRoutineStep} running={runningRoutine===pendingRoutine.id} cancel={()=>setPendingRoutine(null)} run={()=>void executeRoutine(pendingRoutine)}/>}
       {startupVisible && prefs.startupSequence && <StartupTelemetry bridge={bridge} reduced={access.reducedMotion} />}
-      <VoiceControl prefs={prefs} apps={apps} extensions={extensions} navigate={setSection} launch={launch} action={coreAction} notify={notify} />
+      <VoiceControl prefs={prefs} apps={apps} extensions={extensions} routines={routines} navigate={setSection} launch={launch} requestRoutine={requestRoutine} action={coreAction} notify={notify} />
       {detailOpen && <SystemDetail kind={detailOpen} details={systemDetails} close={() => setDetailOpen(null)} />}
       {firstRun && (
         <FirstRun
@@ -1953,10 +2397,12 @@ export default function Home() {
       )}
       <NotificationCenter
         notices={notices}
+        activity={activityLog}
         historyOpen={historyOpen}
         close={() => setHistoryOpen(false)}
         dismiss={dismissNotice}
-        clear={() => setNotices([])}
+        clear={clearNotices}
+        clearActivity={clearActivity}
         doNotDisturb={doNotDisturb}
         toggleDnd={() => setDoNotDisturb((v) => !v)}
       />
@@ -2199,7 +2645,11 @@ function NetworkConsole({info,action,refresh}:{info:NetworkInfo;action:(value:st
   return <section className="detail-view lcars-console network-console"><header className="console-cap"><div><small>NET / SUBSPACE OPERATIONS</small><h3>NETWORK OPERATIONS</h3></div><strong>{info.interfaces.length.toString().padStart(2,'0')}</strong></header><div className="network-grid">{info.interfaces.length?info.interfaces.map((link,index)=><article className="network-tile" key={link.id}><i>{String(index+1).padStart(2,'0')}</i><header><small>{link.kind.toUpperCase()} INTERFACE</small><b>{link.name}</b><em className={link.state==='connected'?'online':''}>{link.state.toUpperCase()}</em></header><div className="network-address"><span><small>ADDRESS</small><b>{link.address||'UNASSIGNED'}</b></span><span><small>GATEWAY</small><b>{link.gateway||'LOCAL ONLY'}</b></span></div><div className="network-flow"><span>RX {amount(link.received)}</span><i><em style={{width:Math.min(100,(link.received%100000000)/1000000)+'%'}} /></i><span>TX {amount(link.sent)}</span></div><footer><span>{link.speed||'LINK SPEED UNKNOWN'}</span>{typeof link.signal==='number'&&<b>SIGNAL {link.signal}%</b>}</footer></article>):<div className="adaptive-empty"><b>NO NETWORK INTERFACES REPORTED</b><small>The platform adapter did not return an active data link.</small></div>}</div><section className="network-diagnostics"><header><small>CONNECTION DIAGNOSTICS</small><b>{info.diagnostics.latency===null?'NO LATENCY':info.diagnostics.latency+' MS'}</b></header>{diagnostics.map(([name,ok],index)=><article key={name}><i>{String(index+1).padStart(2,'0')}</i><span>{name}</span><b className={ok?'ok':'bad'}>{ok?'ONLINE':'OFFLINE'}</b></article>)}<article><i>04</i><span>BLUETOOTH</span><b className={info.bluetooth?'ok':'bad'}>{info.bluetooth?'ACTIVE':'INACTIVE'}</b></article></section><nav className="network-actions"><button onClick={()=>action('network-settings')}>NETWORK SETTINGS</button><button onClick={()=>action('wifi')}>WI-FI CONTROL</button><button onClick={()=>action('bluetooth')}>BLUETOOTH CONTROL</button><button onClick={refresh}>REFRESH & TEST</button></nav></section>;
 }
 
-function TrayDrawer({open,items,close,openNetwork,openMedia}:{open:boolean;items:TrayItem[];close:()=>void;openNetwork:()=>void;openMedia:()=>void}) { if(!open)return null;const activate=(id:string)=>fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})}).catch(()=>{});return <aside className="tray-drawer"><header><div><small>LOCAL STATUSNOTIFIER MATRIX</small><h3>SYSTEM TRAY</h3></div><button onClick={close}>CLOSE ×</button></header><nav><button onClick={openNetwork}>NETWORK</button><button onClick={openMedia}>MEDIA & AUDIO</button></nav><div>{items.length?items.map((item)=><button key={item.id} onClick={()=>activate(item.id)} title={item.name}><i>{item.icon?<img src={item.icon} alt=""/>:<b>{item.name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TR"}</b>}</i><span><b>{item.name}</b><small>{item.status||"ACTIVE"}</small></span><em>›</em></button>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</div></aside>; }
+function TrayDrawer({open,items,shortcuts,close,execute}:{open:boolean;items:TrayItem[];shortcuts:TrayShortcut[];close:()=>void;execute:(shortcut:TrayShortcut)=>void}) {
+  if(!open)return null;
+  const activate=(id:string)=>fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id})}).catch(()=>{});
+  return <ResizablePopup as="aside" popupKey="tray-command-deck" className="tray-drawer tray-command-deck" floating minWidth={340} minHeight={300} ariaModal={false} ariaLabel="Tray Command Deck"><header><div><small>LOCAL STATUSNOTIFIER & COMMAND MATRIX</small><h3>TRAY COMMAND DECK</h3></div><button onClick={close}>CLOSE ×</button></header><div className="tray-scroll-region" tabIndex={0}><section className="tray-shortcut-grid" aria-label="Configured tray shortcuts">{shortcuts.map((shortcut,index)=><button className={`tray-shortcut tray-kind-${shortcut.kind}`} key={shortcut.id} onClick={()=>execute(shortcut)} title={`${shortcut.kind}: ${shortcut.label}`}><i>{String(index+1).padStart(2,"0")}</i><span><b>{shortcut.label}</b><small>{shortcut.kind.toUpperCase()}</small></span><em>›</em></button>)}{!shortcuts.length&&<p>NO COMMAND BUTTONS ASSIGNED · ADD THEM IN SETTINGS</p>}</section><section className="tray-service-list" aria-label="Desktop tray services"><header><b>DESKTOP SERVICES</b><small>{items.length} ACTIVE</small></header>{items.length?items.map((item)=><button key={item.id} onClick={()=>activate(item.id)} title={item.name}><i>{item.icon?<img src={item.icon} alt=""/>:<b>{item.name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TR"}</b>}</i><span><b>{item.name}</b><small>{item.status||"ACTIVE"}</small></span><em>›</em></button>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</section></div><footer><span>SCROLL MATRIX</span><small>{shortcuts.length} COMMANDS · {items.length} SERVICES</small></footer></ResizablePopup>;
+}
 
 function StartupTelemetry({bridge,reduced}:{bridge:boolean;reduced:boolean}) { return <aside className={'startup-telemetry '+(reduced?'instant':'')} aria-live="polite"><i /><span><small>LCARS INITIALIZATION</small><b>{bridge?'LOCAL CORE SYNCHRONIZED':'LOCAL CORE LINK PENDING'}</b></span><em>SYS 47 · DISPLAY MATRIX · AUDIO BUS</em></aside>; }
 
@@ -2222,6 +2672,13 @@ function HardwareTelemetry({details,open}:{details:SystemDetails;open:(kind:stri
 function SystemDetail({ kind, details, close }: { kind: string; details: SystemDetails; close: () => void }) {
   const memory=details.memory,graphics=details.graphics||[];
   return <div className="backdrop"><section className="system-detail" role="dialog" aria-modal="true"><header><div><small>EXPANDED TELEMETRY</small><h2>{kind} DIAGNOSTIC</h2></div><button onClick={close}>CLOSE ×</button></header>{kind === "CPU" && <><p>{details.cpu?.logical || 0} LOGICAL PROCESSORS · LOAD {details.cpu?.load?.join(" / ") || "UNKNOWN"}</p><div className="core-grid">{details.cpu?.cores?.map((core) => <article key={core.name}><span><b>{core.name}</b><strong>{core.usage}%</strong></span><i><em style={{ width: core.usage + "%" }} /></i></article>)}</div></>}{kind === "MEM"&&<div className="memory-detail"><div><span><small>TOTAL</small><b>{formatBytes(memory?.total||0)}</b></span><span><small>IN USE</small><b>{formatBytes(memory?.used||0)}</b></span><span><small>AVAILABLE</small><b>{formatBytes(memory?.available||0)}</b></span><span><small>SWAP IN USE</small><b>{formatBytes(memory?.swapUsed||0)}</b></span></div>{memory?.modules?.length?<section>{memory.modules.map((module,index)=><article key={`${module.bank}:${index}`}><i>{String(index+1).padStart(2,"0")}</i><span><b>{module.bank||`MEMORY MODULE ${index+1}`}</b><small>{formatBytes(module.capacity)} · {module.speed?module.speed+" MT/S · ":""}{module.manufacturer||"MANUFACTURER UNKNOWN"} {module.part||""}</small></span></article>)}</section>:<p>Individual memory-module information is not exposed by this platform without elevated hardware access.</p>}</div>}{kind === "GPU"&&<div className="graphics-detail">{graphics.length?graphics.map((adapter,index)=><article key={`${adapter.name}:${index}`}><i>{String(index+1).padStart(2,"0")}</i><header><small>{adapter.vendor||"GRAPHICS"}</small><b>{adapter.name}</b></header><p><span>UTILIZATION <b>{adapter.usage??0}%</b></span><span>VIDEO MEMORY <b>{formatBytes(adapter.memoryUsed||0)} / {formatBytes(adapter.memoryTotal||0)}</b></span><span>TEMPERATURE <b>{adapter.temperature==null?"NOT REPORTED":adapter.temperature+"°C"}</b></span><span>DRIVER <b>{adapter.driver||"NOT REPORTED"}</b></span><span>DISPLAY MODE <b>{adapter.resolution||"DESKTOP MANAGED"}</b></span></p></article>):<p>Detailed graphics telemetry is unavailable from the current platform adapter.</p>}</div>}{kind === "DISK" && <div className="detail-drives">{details.storage?.map((drive) => <p key={drive.id}><b>{drive.name}</b><small>{(drive.size / 1073741824).toFixed(1)} GB · {drive.mounted ? drive.mountpoints.join(", ") : "NOT MOUNTED"}</small></p>)}</div>}<footer>KERNEL {details.kernel || "PLATFORM MANAGED"}</footer></section></div>;
+}
+
+function EngineeringConsole({data,refresh,processAction}:{data:EngineeringData;refresh:()=>void;processAction:(pid:number,action:"terminate"|"suspend"|"resume")=>void}){
+  const [query,setQuery]=useState(""),[expanded,setExpanded]=useState(true);
+  const processes=data.processes.filter((process)=>`${process.name} ${process.pid} ${process.user||""}`.toLowerCase().includes(query.toLowerCase())).slice(0,40);
+  const command=(process:EngineeringData["processes"][number],action:"terminate"|"suspend"|"resume")=>{if(action==="terminate"&&!window.confirm(`Terminate ${process.name} (PID ${process.pid})? Unsaved work in that application may be lost.`))return;processAction(process.pid,action);};
+  return <section className="engineering-console"><header><div><small>VERSION 25 ENGINEERING OPERATIONS</small><h4>ENGINEERING CONSOLE</h4><p>Hardware health, power sources, storage status, and guarded process control remain local to this computer.</p></div><strong>{String(data.sensors.filter((sensor)=>sensor.status==="ready").length).padStart(2,"0")}<small> SYSTEMS READY</small></strong></header><div className="engineering-sensors">{data.sensors.length?data.sensors.map((sensor)=><article className={sensor.status} key={sensor.id}><i>{sensor.kind.slice(0,3).toUpperCase()}</i><span><b>{sensor.name}</b><small>{sensor.detail||sensor.kind.toUpperCase()}</small></span><strong>{sensor.value}</strong></article>):<p>NO OPTIONAL SENSOR ADAPTERS REPORTED · CORE TELEMETRY REMAINS AVAILABLE ABOVE</p>}</div><nav><button onClick={refresh}>REFRESH ENGINEERING</button><button onClick={()=>setExpanded(!expanded)}>{expanded?"HIDE PROCESS MATRIX":"SHOW PROCESS MATRIX"}</button><input aria-label="Search engineering processes" placeholder="SEARCH PROCESSES…" value={query} onChange={(event)=>setQuery(event.target.value)}/></nav>{expanded&&<div className="engineering-processes"><header><span>PROCESS</span><span>CPU</span><span>MEMORY</span><span>CONTROL</span></header>{processes.map((process)=><article key={process.pid}><span><b>{process.name}</b><small>PID {process.pid}{process.user?` · ${process.user}`:""}</small></span><strong>{process.cpu.toFixed(1)}%</strong><strong>{process.memory.toFixed(1)}%</strong><nav>{process.protected||!data.processControl?<small>PROTECTED</small>:<><button onClick={()=>command(process,process.state==="stopped"?"resume":"suspend")}>{process.state==="stopped"?"RESUME":"PAUSE"}</button><button className="danger" onClick={()=>command(process,"terminate")}>END</button></>}</nav></article>)}{!processes.length&&<p>NO MATCHING USER PROCESSES</p>}</div>}{data.notes?.length?<footer>{data.notes.join(" · ")}</footer>:null}</section>;
 }
 
 function TaskRail({
@@ -2366,6 +2823,11 @@ function UpdateCenter({
   update,
   setUpdate,
   notify,
+  extensions,
+  catalog,
+  disabled,
+  setDisabled,
+  refreshExtensions,
 }: {
   platform: string;
   action: (value: string) => void;
@@ -2375,13 +2837,18 @@ function UpdateCenter({
   update: UpdateInfo | null;
   setUpdate: (update: UpdateInfo | null) => void;
   notify: (text: string, kind?: "info" | "error") => void;
+  extensions: ExtensionManifest[];
+  catalog: ExtensionCatalogEntry[];
+  disabled: string[];
+  setDisabled: (ids: string[]) => void;
+  refreshExtensions: () => void;
 }) {
   const windows = platform.includes("WINDOWS");
-  const [updateBusy,setUpdateBusy]=useState<""|"check"|"download"|"install">("");
-  const updateOperation=async(operation:"check"|"download"|"install")=>{
+  const [updateBusy,setUpdateBusy]=useState<""|"check"|"download"|"install"|"rollback">("");
+  const updateOperation=async(operation:"check"|"download"|"install"|"rollback")=>{
     setUpdateBusy(operation);
     try{
-      const response=await fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,path:update?.path||""})});
+      const response=await fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,path:update?.path||"",channel:prefs.updateChannel})});
       const result:UpdateInfo=await response.json();
       setUpdate(result);
       if(!response.ok||!result.ok)notify(result.error||"GitHub update service could not be reached","error");
@@ -2426,13 +2893,13 @@ function UpdateCenter({
           number="02"
           eyebrow="LCARS RELEASE CHANNEL"
           title="LCARS INTERFACE"
-          status={updateBusy?updateBusy.toUpperCase()+"…":update?.downloaded?"VERIFIED / READY":update?.available?`V${update.version} AVAILABLE`:"V24 CHANNEL"}
+          status={updateBusy?updateBusy.toUpperCase()+"…":update?.downloaded?"VERIFIED / READY":update?.available?`V${update.version} AVAILABLE`:`V25 ${prefs.updateChannel.toUpperCase()} CHANNEL`}
           description={update?.available?`A newer signed release is available from GitHub${update.asset?.name?`: ${update.asset.name}`:""}.`:"Background checks stay silent when offline. Manual checks report useful connection and verification details here."}
           primary={update?.downloaded?"INSTALL VERIFIED UPDATE":update?.available?"DOWNLOAD & VERIFY":"CHECK FOR LCARS UPDATE"}
-          secondary="ROLL BACK RELEASE"
+          secondary={update?.rollback?.available?"RESTORE PREVIOUS RELEASE":"ROLLBACK STATUS"}
           primaryAction={() => updateOperation(update?.downloaded?"install":update?.available?"download":"check")}
-          secondaryAction={() => action("lcars-rollback")}
-          stamp={update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"AUTOMATIC GITHUB RELEASE CHANNEL · BACKGROUND ERRORS SILENT"}
+          secondaryAction={() => updateOperation("rollback")}
+          stamp={update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:update?.rollback?.available?`ROLLBACK ${update.rollback.sha256?.slice(0,12).toUpperCase()||"ARCHIVED"}… · PREVIOUS LINUX RELEASE READY`:"AUTOMATIC GITHUB RELEASE CHANNEL · BACKGROUND ERRORS SILENT"}
         />
         <UpdatePanel
           number="03"
@@ -2465,8 +2932,32 @@ function UpdateCenter({
           <article><i className="ready">E</i><span><b>LCARS EXTENSIONS</b><small>DECLARATIVE MODULE BAY · MANUALLY INSTALLED</small></span><button onClick={() => action("extension-folder")}>OPEN BAY</button></article>
         </div>
       </aside>
+      <ExtensionHub installed={extensions} catalog={catalog} disabled={disabled} setDisabled={setDisabled} refresh={refreshExtensions} notify={notify} openFolder={()=>action("extension-folder")}/>
+      {update?.notes && <details className="release-notes"><summary>RELEASE NOTES · VERSION {update.version}</summary><pre>{update.notes}</pre></details>}
+      <DiagnosticsCenter health={health} notify={notify} action={action} />
     </section>
   );
+}
+
+function ExtensionHub({installed,catalog,disabled,setDisabled,refresh,notify,openFolder}:{installed:ExtensionManifest[];catalog:ExtensionCatalogEntry[];disabled:string[];setDisabled:(ids:string[])=>void;refresh:()=>void;notify:(text:string,kind?:"info"|"error")=>void;openFolder:()=>void}){
+  const [query,setQuery]=useState(""),[busy,setBusy]=useState(""),[expanded,setExpanded]=useState(true);
+  const inventory=useMemo(()=>{const known=new Map<string,ExtensionCatalogEntry>();catalog.forEach((entry)=>known.set(entry.id,entry));installed.forEach((extension)=>{if(!known.has(extension.id))known.set(extension.id,{id:extension.id,name:extension.name,version:extension.version,description:extension.description,author:extension.author,capabilities:extension.capabilities,installed:true});});return Array.from(known.values()).filter((entry)=>`${entry.name} ${entry.description} ${entry.author} ${entry.capabilities.join(" ")}`.toLowerCase().includes(query.toLowerCase()));},[catalog,installed,query]);
+  const operate=async(entry:ExtensionCatalogEntry,operation:"install"|"remove")=>{setBusy(entry.id);try{const response=await fetch("http://127.0.0.1:8765/api/extension-install",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:entry.id,operation,manifestUrl:entry.manifestUrl||""})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Extension operation failed");notify(result.message||`${entry.name} ${operation} complete`);window.setTimeout(refresh,250);}catch(error){notify(error instanceof Error?error.message:"Extension operation failed","error");}finally{setBusy("");}};
+  const isInstalled=(id:string)=>installed.some((extension)=>extension.id===id);
+  return <section className="extension-hub"><header><div><small>DECLARATIVE MODULE CONTROL · API V2</small><h4>EXTENSION HUB</h4><p>Browse bundled and locally installed modules, inspect requested capabilities, and disable or remove them without deleting the rest of your configuration.</p></div><strong>{String(installed.length).padStart(2,"0")}<small> INSTALLED</small></strong></header><nav><input aria-label="Search Extension Hub" placeholder="SEARCH EXTENSIONS…" value={query} onChange={(event)=>setQuery(event.target.value)}/><button onClick={refresh}>RESCAN</button><button onClick={openFolder}>OPEN MODULE FOLDER</button><button onClick={()=>setExpanded(!expanded)}>{expanded?"COLLAPSE HUB":"OPEN HUB"}</button></nav>{expanded&&<div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id);return <article className={disabledNow?"disabled":""} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{entry.bundled?"BUNDLED CATALOG":"LOCAL / CATALOG MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · V{manifest?.version||entry.version} · {(manifest?.capabilities||entry.capabilities).join(" · ")||"NO PRIVILEGED CAPABILITIES"}</em></span><nav>{installedNow?<><button onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</button>{!entry.bundled&&<button className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</button>}</>:<button disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"INSTALLING…":"INSTALL"}</button>}</nav></article>;})}{!inventory.length&&<p>NO MATCHING EXTENSIONS</p>}</div>}<footer>Extensions are host-rendered from validated manifests. Executable plug-in code is not loaded into the LCARS renderer.</footer></section>;
+}
+
+function DiagnosticsCenter({health,notify,action}:{health:Health;notify:(text:string,kind?:"info"|"error")=>void;action:(value:string)=>void}) {
+  const [report,setReport]=useState<DiagnosticsReport|null>(null),[busy,setBusy]=useState(false),[expanded,setExpanded]=useState(true);
+  const scan=async()=>{setBusy(true);try{const response=await fetch("http://127.0.0.1:8765/api/diagnostics");const data=await response.json();if(!response.ok)throw new Error(data.error||"Diagnostic scan failed");setReport(data);notify("Full local diagnostic scan complete");}catch(error){notify(error instanceof Error?error.message:"Diagnostic scan failed","error");}finally{setBusy(false);}};
+  const exportReport=async()=>{setBusy(true);try{const response=await fetch("http://127.0.0.1:8765/api/diagnostics-export",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});const data=await response.json();if(!response.ok)throw new Error(data.error||"Support export failed");notify(data.message||"Privacy-safe support report exported");}catch(error){notify(error instanceof Error?error.message:"Support export failed","error");}finally{setBusy(false);}};
+  const matrix=report?.health||health, ready=Object.values(matrix).filter((item)=>item.available).length,total=Object.keys(matrix).length;
+  return <aside className="diagnostics-center">
+    <header><div><small>OPERATIONS & RECOVERY</small><h4>DIAGNOSTICS CENTER</h4><p>Checks local adapters and creates a privacy-scrubbed support file without collecting personal content.</p></div><strong>{String(ready).padStart(2,"0")}<small>/ {String(total).padStart(2,"0")} READY</small></strong></header>
+    <nav><button disabled={busy} onClick={scan}>{busy?"SCANNING…":"RUN FULL CHECK"}</button><button disabled={busy} onClick={exportReport}>EXPORT SAFE SUPPORT REPORT</button><button onClick={()=>action("repair-installation")}>REPAIR INSTALLATION</button><button onClick={()=>setExpanded(!expanded)}>{expanded?"COLLAPSE MATRIX":"SHOW MATRIX"}</button></nav>
+    {expanded&&<div className="diagnostic-matrix">{Object.entries(matrix).map(([name,item],index)=><article className={item.available?"ready":"attention"} key={name}><i>{String(index+1).padStart(2,"0")}</i><span><b>{name.replaceAll("_"," ").toUpperCase()}</b><small>{item.detail}</small>{!item.available&&item.remedy&&<em>{item.remedy}</em>}</span><strong>{item.available?"READY":"ACTION"}</strong></article>)}</div>}
+    <footer><b>PRIVACY FILTER ACTIVE</b><span>{report?.privacy||"The export excludes usernames, home paths, file names, credentials, terminal history, window titles, and media titles."}</span>{report?.generatedUtc&&<small>LAST FULL CHECK · {new Date(report.generatedUtc).toLocaleString()}</small>}</footer>
+  </aside>;
 }
 
 function UpdatePanel({
@@ -2535,11 +3026,7 @@ function PowerDialog({
           if (e.target === e.currentTarget) setConfirmPower(null);
         }}
       >
-        <section
-          className="power-dialog confirm"
-          role="alertdialog"
-          aria-modal="true"
-        >
+        <ResizablePopup popupKey="power-confirmation" className="power-dialog confirm" role="alertdialog" ariaModal={true} minWidth={420} minHeight={260}>
           <header>
             <small>SYSTEM POWER CONFIRMATION</small>
             <h2>
@@ -2563,7 +3050,7 @@ function PowerDialog({
             </button>
             <button onClick={() => setConfirmPower(null)}>GO BACK</button>
           </div>
-        </section>
+        </ResizablePopup>
       </div>
     );
   return (
@@ -2573,7 +3060,7 @@ function PowerDialog({
         if (e.target === e.currentTarget) close();
       }}
     >
-      <section className="power-dialog" role="dialog" aria-modal="true">
+      <ResizablePopup popupKey="power-control" className="power-dialog" ariaModal={true} minWidth={480} minHeight={420}>
         <header>
           <small>LCARS POWER CONTROL</small>
           <h2>SELECT SHUTDOWN MODE</h2>
@@ -2618,7 +3105,7 @@ function PowerDialog({
             </span>
           </button>
         </div>
-      </section>
+      </ResizablePopup>
     </div>
   );
 }
@@ -2650,7 +3137,7 @@ function DisplayMenu({
       ?.writeText("LCARS DISPLAY DIAGNOSTICS\n" + report)
       .catch(() => {});
   return (
-    <section className="display-menu">
+    <ResizablePopup popupKey="display-routing" className="display-menu" floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel="Display Routing">
       <header>
         <b>DISPLAY ROUTING</b>
         <small>KSCREEN / KDE OUTPUTS</small>
@@ -2716,7 +3203,7 @@ function DisplayMenu({
         <button onClick={identify}>IDENTIFY</button>
         <button onClick={configure}>CONFIGURE</button>
       </footer>
-    </section>
+    </ResizablePopup>
   );
 }
 
@@ -2748,7 +3235,7 @@ function CompatibilityCenter({
 }) {
   return (
     <div className="backdrop">
-      <section className="compat-center">
+      <ResizablePopup popupKey="compatibility-center" className="compat-center" minWidth={520} minHeight={420} ariaModal={true} ariaLabel="Compatibility Report">
         <header>
           <div>
             <small>UNIVERSAL LINUX ADAPTER</small>
@@ -2807,7 +3294,7 @@ function CompatibilityCenter({
             available.
           </span>
         </footer>
-      </section>
+      </ResizablePopup>
     </div>
   );
 }
@@ -3041,11 +3528,7 @@ function CommandPalette({
         if (e.target === e.currentTarget) close();
       }}
     >
-      <section
-        className="command-palette"
-        role="dialog"
-        aria-label="LCARS command palette"
-      >
+      <ResizablePopup popupKey="command-palette" className="command-palette" minWidth={440} minHeight={340} ariaLabel="LCARS command palette">
         <header>
           <small>UNIVERSAL COMPUTER ACCESS</small>
           <b>{findMode ? "FIND IN LCARS" : "COMMAND PALETTE"}</b>
@@ -3090,7 +3573,7 @@ function CommandPalette({
           <span>ENTER EXECUTE</span>
           <span>ESC CLOSE</span>
         </footer>
-      </section>
+      </ResizablePopup>
     </div>
   );
 }
@@ -3123,6 +3606,7 @@ function ShellSettings({
   prefs,
   extensions,
   customPages,
+  routines,
   setPrefs,
   save,
   saved,
@@ -3130,11 +3614,15 @@ function ShellSettings({
   recheck,
   startupAudioStatus,
   testStartupAudio,
+  safeMode,
+  quarantinedExtensions,
+  clearExtensionQuarantine,
 }: {
   platform: string;
   prefs: ShellPrefs;
   extensions: ExtensionManifest[];
   customPages: CustomPage[];
+  routines: Routine[];
   setPrefs: (p: ShellPrefs) => void;
   save: () => void;
   saved: boolean;
@@ -3142,6 +3630,9 @@ function ShellSettings({
   recheck: () => void;
   startupAudioStatus: string;
   testStartupAudio: () => void | Promise<void>;
+  safeMode: boolean;
+  quarantinedExtensions: string[];
+  clearExtensionQuarantine: () => void;
 }) {
   const set = <K extends keyof ShellPrefs>(key: K, value: ShellPrefs[K]) =>
     setPrefs({ ...prefs, [key]: value });
@@ -3163,7 +3654,8 @@ function ShellSettings({
           <div className="startup-audio-diagnostic"><button onClick={testStartupAudio}>TEST POWER-UP AUDIO</button><small>{startupAudioStatus}</small><em>ASSET: LCARS BUNDLED MP3 · OUTPUT: OPERATING-SYSTEM DEFAULT</em></div>
           <Toggle label="Show background startup telemetry" description="Shows a small nonblocking system-check strip while LCARS connects to local services." checked={prefs.startupSequence} change={(v) => set("startupSequence", v)} />
           <label>SYSTEM TRAY PRESENTATION<small>Places the same tray drawer trigger in the side rail or the compact SYS 47 header position.</small><select value={prefs.trayPresentation} onChange={(event)=>set("trayPresentation",event.target.value as ShellPrefs["trayPresentation"])}><option value="rail">SIDE RAIL</option><option value="header">HEADER / SYS 47</option></select></label>
-          <SpeedDialEditor items={prefs.speedDial} extensions={extensions} customPages={customPages} change={(items)=>set("speedDial",items)} />
+          <SpeedDialEditor items={prefs.speedDial} extensions={extensions} customPages={customPages} routines={routines} change={(items)=>set("speedDial",items)} />
+          <label>LCARS UPDATE CHANNEL<small>Stable receives whole-number public releases. Development opts into dot-number test builds for the next major release.</small><select value={prefs.updateChannel} onChange={(event)=>set("updateChannel",event.target.value as ShellPrefs["updateChannel"])}><option value="stable">STABLE · WHOLE-NUMBER RELEASES</option><option value="development">DEVELOPMENT · TEST BUILDS</option></select></label>
           <Toggle label="Show lock screen on startup" description="Opens normal LCARS windows at the themed authorization screen. Remote Terminal windows always bypass it." checked={prefs.lockOnLaunch} change={(v) => set("lockOnLaunch", v)} />
           {prefs.lockOnLaunch && <div className="subordinate-setting"><Toggle label="Quick boot when no password is set" description="Enters LCARS directly only when no local lock password exists." checked={prefs.quickBootWithoutPassword} change={(v) => set("quickBootWithoutPassword", v)} /></div>}
           <Toggle
@@ -3328,6 +3820,7 @@ function ShellSettings({
             <small>RECOVERY LINK</small>
             <b>ARMED</b>
           </div>
+          <RecoveryControls safeMode={safeMode} quarantinedExtensions={quarantinedExtensions} clearExtensionQuarantine={clearExtensionQuarantine} />
           <h4>INTEGRATION HEALTH</h4>
           <p>Shows whether each local service needed by LCARS is available.</p>
           <div className="health-grid">
@@ -3335,7 +3828,7 @@ function ShellSettings({
               <p key={name}>
                 <i className={item.available ? "ok" : "bad"} />
                 <span>
-                  <b>{name.toUpperCase()}</b>
+                  <b>{name.replaceAll("_", " ").toUpperCase()}</b>
                   <small>{item.detail}</small>
                 </span>
               </p>
@@ -3353,12 +3846,91 @@ function ShellSettings({
   );
 }
 
-function SpeedDialEditor({items,extensions,customPages,change}:{items:SpeedDialItem[];extensions:ExtensionManifest[];customPages:CustomPage[];change:(items:SpeedDialItem[])=>void}) {
-  const choices=[...speedDialChoices,...extensions.map((extension)=>({id:`module:ext:${extension.id}` as SpeedDialItem,label:`${extension.name.toUpperCase()} MODULE`,description:"Open extension in a focused module"})),...customPages.map((page)=>({id:`page:custom:${page.id}` as SpeedDialItem,label:page.name.toUpperCase(),description:"Open custom sidebar page"}))];
+function RecoveryControls({safeMode,quarantinedExtensions,clearExtensionQuarantine}:{safeMode:boolean;quarantinedExtensions:string[];clearExtensionQuarantine:()=>void}) {
+  const [snapshots,setSnapshots]=useState<RecoverySnapshot[]>(()=>typeof window==="undefined"?[]:readRecoverySnapshots()),[status,setStatus]=useState(safeMode?"SAFE MODE ACTIVE · EXTENSIONS AND SAVED VISUAL SETTINGS ARE BYPASSED":"NORMAL STARTUP MODE");
+  const snapshot=()=>{setSnapshots(createRecoverySnapshot("Manual recovery point"));setStatus("RECOVERY POINT CREATED");};
+  const restoreAndReload=async(values:Record<string,string>)=>{restoreRecoveryValues(values);sessionStorage.removeItem("lcars-safe-mode");try{const shellPrefs=JSON.parse(values["lcars-shell-prefs"]||"{}");await fetch("http://127.0.0.1:8765/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({shell_prefs:shellPrefs})});}catch{}location.reload();};
+  const restore=(item:RecoverySnapshot)=>{createRecoverySnapshot("Before recovery restore");void restoreAndReload(item.values);};
+  const startSafe=()=>{sessionStorage.setItem("lcars-safe-mode","1");location.reload();};
+  const leaveSafe=()=>{sessionStorage.removeItem("lcars-safe-mode");location.reload();};
+  const restoreLastGood=()=>{try{const value=JSON.parse(localStorage.getItem("lcars-last-known-good")||"null");if(!value?.values)throw new Error();createRecoverySnapshot("Before last-known-good restore");void restoreAndReload(value.values);}catch{setStatus("NO LAST-KNOWN-GOOD CONFIGURATION IS AVAILABLE");}};
+  return <section className="recovery-controls">
+    <header><span><b>SAFE STARTUP</b><small>{status}</small></span><i className={safeMode?"attention":"ready"}>{safeMode?"SAFE":"READY"}</i></header>
+    <p>Safe Mode starts with the built-in theme, default layout, and no extensions. Your saved configuration remains untouched.</p>
+    <nav>{safeMode?<button onClick={leaveSafe}>RETURN TO NORMAL MODE</button>:<button onClick={startSafe}>RESTART IN SAFE MODE</button>}<button onClick={restoreLastGood}>RESTORE LAST KNOWN GOOD</button><button onClick={snapshot}>CREATE RECOVERY POINT</button></nav>
+    <div className="recovery-snapshots"><small>AUTOMATIC CONFIGURATION SNAPSHOTS · MAXIMUM 5</small>{snapshots.length?snapshots.map((item)=><article key={item.id}><span><b>{item.reason}</b><small>{new Date(item.created).toLocaleString()}</small></span><button onClick={()=>restore(item)}>RESTORE</button></article>):<p>NO SNAPSHOTS YET · ONE IS CREATED BEFORE SAVES, IMPORTS, AND WORKSTATION CHANGES</p>}</div>
+    <div className="extension-quarantine"><span><b>EXTENSION QUARANTINE</b><small>{quarantinedExtensions.length?`${quarantinedExtensions.length} MODULE(S) ISOLATED · ${quarantinedExtensions.join(", ")}`:"NO EXTENSION FAILURES ISOLATED"}</small></span><button disabled={!quarantinedExtensions.length} onClick={clearExtensionQuarantine}>RETRY MODULES</button></div>
+  </section>;
+}
+
+function SpeedDialEditor({items,extensions,customPages,routines,change}:{items:SpeedDialItem[];extensions:ExtensionManifest[];customPages:CustomPage[];routines:Routine[];change:(items:SpeedDialItem[])=>void}) {
+  const choices=[...speedDialChoices,...extensions.map((extension)=>({id:`module:ext:${extension.id}` as SpeedDialItem,label:`${extension.name.toUpperCase()} MODULE`,description:"Open extension in a focused module"})),...customPages.map((page)=>({id:`page:custom:${page.id}` as SpeedDialItem,label:page.name.toUpperCase(),description:"Open custom sidebar Page Peek"})),...routines.map((routine)=>({id:`routine:${routine.id}` as SpeedDialItem,label:routine.name.toUpperCase(),description:`Preview and run ${routine.steps.length}-step routine`}))];
   const replace=(index:number,value:SpeedDialItem)=>change(items.map((item,itemIndex)=>itemIndex===index?value:item));
   const move=(index:number,direction:number)=>{const target=index+direction;if(target<0||target>=items.length)return;const next=[...items];[next[index],next[target]]=[next[target],next[index]];change(next);};
-  const add=()=>{const unused=choices.find((choice)=>!items.includes(choice.id))?.id||"page:settings";change([...items,unused].slice(0,6));};
-  return <section className="speed-dial-editor"><header><span><b>SPEED DIAL MODULES</b><small>Choose two to six pages, focused modules, or actions for the bottom-right control strip and arrange their order.</small></span><em>{items.length}/6</em></header><div>{items.map((item,index)=><article key={`${index}:${item}`}><i>{String(index+1).padStart(2,"0")}</i><label><span>SLOT {index+1}</span><select aria-label={`Speed Dial slot ${index+1}`} value={item} onChange={(event)=>replace(index,event.target.value as SpeedDialItem)}>{choices.map((choice)=><option value={choice.id} key={choice.id}>{choice.label} — {choice.description}</option>)}</select></label><nav><button aria-label="Move shortcut left" disabled={index===0} onClick={()=>move(index,-1)}>‹</button><button aria-label="Move shortcut right" disabled={index===items.length-1} onClick={()=>move(index,1)}>›</button><button aria-label="Remove shortcut" disabled={items.length<=2} onClick={()=>change(items.filter((_,itemIndex)=>itemIndex!==index))}>×</button></nav></article>)}</div><button disabled={items.length>=6} onClick={add}>+ ADD SPEED DIAL SLOT</button></section>;
+  const add=()=>{const unused=choices.find((choice)=>!items.includes(choice.id))?.id||"page:settings";change([...items,unused].slice(0,8));};
+  return <section className="speed-dial-editor"><header><span><b>SPEED DIAL MODULES</b><small>Choose two to eight Page Peeks, focused modules, routines, or actions for the bottom-right control strip and arrange their order.</small></span><em>{items.length}/8</em></header><div>{items.map((item,index)=><article key={`${index}:${item}`}><i>{String(index+1).padStart(2,"0")}</i><label><span>SLOT {index+1}</span><select aria-label={`Speed Dial slot ${index+1}`} value={item} onChange={(event)=>replace(index,event.target.value as SpeedDialItem)}>{choices.map((choice)=><option value={choice.id} key={choice.id}>{choice.label} — {choice.description}</option>)}</select></label><nav><button aria-label="Move shortcut left" disabled={index===0} onClick={()=>move(index,-1)}>‹</button><button aria-label="Move shortcut right" disabled={index===items.length-1} onClick={()=>move(index,1)}>›</button><button aria-label="Remove shortcut" disabled={items.length<=2} onClick={()=>change(items.filter((_,itemIndex)=>itemIndex!==index))}>×</button></nav></article>)}</div><button disabled={items.length>=8} onClick={add}>+ ADD SPEED DIAL SLOT</button></section>;
+}
+
+function TrayCommandDeckEditor({shortcuts,apps,routines,customPages,change}:{shortcuts:TrayShortcut[];apps:App[];routines:Routine[];customPages:CustomPage[];change:(items:TrayShortcut[])=>void}){
+  const [kind,setKind]=useState<TrayShortcut["kind"]>("page"),[target,setTarget]=useState("overview"),[label,setLabel]=useState("STATUS");
+  const choices=(selected:TrayShortcut["kind"])=>selected==="app"?apps.map((app)=>({value:app.id,label:app.name})):selected==="routine"?routines.map((routine)=>({value:routine.id,label:routine.name})):[...nav.map((page)=>({value:page[0],label:page[2]})),...customPages.map((page)=>({value:`custom:${page.id}`,label:page.name}))];
+  const setSource=(nextKind:TrayShortcut["kind"])=>{const first=choices(nextKind)[0];setKind(nextKind);setTarget(first?.value||"");setLabel((first?.label||nextKind).slice(0,24).toUpperCase());};
+  const add=()=>{if(shortcuts.length>=24||!target)return;change([...shortcuts,{id:createV25Id("tray"),kind,target,label:(label.trim()||choices(kind).find((item)=>item.value===target)?.label||"COMMAND").slice(0,24)}]);};
+  const update=(id:string,patch:Partial<TrayShortcut>)=>change(shortcuts.map((item)=>item.id===id?{...item,...patch}:item));
+  const move=(index:number,direction:number)=>{const destination=index+direction;if(destination<0||destination>=shortcuts.length)return;const next=[...shortcuts];[next[index],next[destination]]=[next[destination],next[index]];change(next);};
+  return <section className="tray-command-editor v25-settings-panel"><header><div><small>STATUSNOTIFIER + OPERATOR COMMANDS</small><h4>TRAY COMMAND DECK</h4><p>Mix desktop tray services with up to 24 application, routine, and LCARS page buttons. The live deck scrolls whenever the combined list exceeds its bay.</p></div><b>{shortcuts.length}/24</b></header><div className="tray-command-create"><label>COMMAND TYPE<select value={kind} onChange={(event)=>setSource(event.target.value as TrayShortcut["kind"])}><option value="page">LCARS PAGE</option><option value="app">APPLICATION</option><option value="routine">ROUTINE</option></select></label><label>DESTINATION<select value={target} onChange={(event)=>{setTarget(event.target.value);const match=choices(kind).find((item)=>item.value===event.target.value);if(match)setLabel(match.label.toUpperCase().slice(0,24));}}>{choices(kind).map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</select></label><label>BUTTON LABEL<input maxLength={24} value={label} onChange={(event)=>setLabel(event.target.value)}/></label><button disabled={!target||shortcuts.length>=24} onClick={add}>ADD COMMAND</button></div><div className="tray-command-list">{shortcuts.map((shortcut,index)=>{const options=choices(shortcut.kind),targetPresent=options.some((item)=>item.value===shortcut.target);return <article key={shortcut.id}><i>{String(index+1).padStart(2,"0")}</i><input aria-label={`Label for tray command ${index+1}`} maxLength={24} value={shortcut.label} onChange={(event)=>update(shortcut.id,{label:event.target.value})}/><select aria-label={`Type for tray command ${index+1}`} value={shortcut.kind} onChange={(event)=>{const nextKind=event.target.value as TrayShortcut["kind"],first=choices(nextKind)[0];update(shortcut.id,{kind:nextKind,target:first?.value||"",label:(first?.label||nextKind).toUpperCase().slice(0,24)});}}><option value="page">PAGE</option><option value="app">APP</option><option value="routine">ROUTINE</option></select><select aria-label={`Destination for tray command ${index+1}`} value={shortcut.target} onChange={(event)=>update(shortcut.id,{target:event.target.value})}>{!targetPresent&&<option value={shortcut.target}>UNAVAILABLE · {shortcut.target}</option>}{options.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</select><nav><button disabled={index===0} onClick={()=>move(index,-1)}>↑</button><button disabled={index===shortcuts.length-1} onClick={()=>move(index,1)}>↓</button><button onClick={()=>change(shortcuts.filter((item)=>item.id!==shortcut.id))}>REMOVE</button></nav></article>;})}{!shortcuts.length&&<p>NO OPERATOR COMMANDS ASSIGNED · DESKTOP SERVICES WILL STILL APPEAR</p>}</div></section>;
+}
+
+function ControlMappingEditor({mappings,routines,change}:{mappings:ControlMapping[];routines:Routine[];change:(items:ControlMapping[])=>void}){
+  const targets=[...nav.map((page)=>({value:`page:${page[0]}`,label:`OPEN ${page[2]}`})),{value:"action:routines",label:"OPERATIONS AUTOMATION"},{value:"action:communications",label:"COMMUNICATIONS CENTER"},{value:"action:tray",label:"TRAY COMMAND DECK"},{value:"action:dnd",label:"TOGGLE DO NOT DISTURB"},...routines.map((routine)=>({value:`routine:${routine.id}`,label:`RUN ${routine.name}`}))];
+  const update=(id:string,patch:Partial<ControlMapping>)=>change(mappings.map((item)=>item.id===id?{...item,...patch}:item));
+  const add=()=>{if(mappings.length>=24)return;change([...mappings,{id:createV25Id("mapping"),shortcut:`CTRL+ALT+${Math.min(9,mappings.length+1)}`,target:"action:routines",label:"OPERATIONS AUTOMATION",enabled:true}]);};
+  return <section className="control-mapping-editor v25-settings-panel"><header><div><small>KEYBOARD / CONTROL SURFACE ADAPTER</small><h4>CONTROL MAPPINGS</h4><p>Assign keyboard combinations to pages, routines, and command centers. Select a key field, then press the complete combination you want to use.</p></div><b>{mappings.length}/24</b></header><div>{mappings.map((mapping,index)=><article key={mapping.id}><label className="mapping-enabled"><input type="checkbox" checked={mapping.enabled} onChange={(event)=>update(mapping.id,{enabled:event.target.checked})}/><span>{String(index+1).padStart(2,"0")}</span></label><input className="mapping-shortcut" readOnly value={mapping.shortcut} aria-label={`Keyboard mapping ${index+1}`} onKeyDown={(event)=>{event.preventDefault();event.stopPropagation();const shortcut=eventShortcut(event.nativeEvent);if(shortcut&&!shortcut.endsWith("CTRL")&&!shortcut.endsWith("ALT")&&!shortcut.endsWith("SHIFT")&&!shortcut.endsWith("META"))update(mapping.id,{shortcut});}}/><select value={mapping.target} onChange={(event)=>{const selected=targets.find((item)=>item.value===event.target.value);update(mapping.id,{target:event.target.value,label:selected?.label||mapping.label});}}>{!targets.some((item)=>item.value===mapping.target)&&<option value={mapping.target}>UNAVAILABLE · {mapping.label}</option>}{targets.map((target)=><option value={target.value} key={target.value}>{target.label}</option>)}</select><button onClick={()=>change(mappings.filter((item)=>item.id!==mapping.id))}>REMOVE</button></article>)}</div><button disabled={mappings.length>=24} onClick={add}>+ ADD CONTROL MAPPING</button></section>;
+}
+
+function RoutineCenter({routines,apps,profiles,devices,players,running,save,request,close}:{routines:Routine[];apps:App[];profiles:WorkspaceProfile[];devices:AudioDevice[];players:Player[];running:string;save:(items:Routine[])=>void;request:(routine:Routine)=>void;close:()=>void}){
+  const [selected,setSelected]=useState(routines[0]?.id||"");
+  const routine=routines.find((item)=>item.id===selected)||null;
+  useEffect(()=>{if(selected&&!routines.some((item)=>item.id===selected))setSelected(routines[0]?.id||"");},[routines,selected]);
+  const update=(patch:Partial<Routine>)=>{if(!routine)return;save(routines.map((item)=>item.id===routine.id?{...item,...patch}:item));};
+  const add=()=>{const item:Routine={id:createV25Id("routine"),name:`ROUTINE ${routines.length+1}`,description:"Operator-defined LCARS command sequence",color:"orange",enabled:true,trigger:{type:"manual"},steps:[{id:createV25Id("step"),kind:"page",target:"overview"}]};save([...routines,item]);setSelected(item.id);};
+  const stepChoices=(kind:RoutineStepKind)=>kind==="page"?nav.map((page)=>({value:page[0],label:page[2]})):kind==="app"?apps.map((app)=>({value:app.id,label:app.name})):kind==="workstation"?profiles.map((profile)=>({value:profile.id,label:profile.name})):kind==="theme"?themes.map((theme)=>({value:theme[0],label:theme[1]})):kind==="dnd"?[{value:"true",label:"ENABLE"},{value:"false",label:"DISABLE"}]:kind==="audio-device"?devices.map((device)=>({value:device.id,label:`${device.kind.toUpperCase()} · ${device.name}`})):kind==="media"?[...players.flatMap((player)=>["play-pause","previous","next","stop"].map((command)=>({value:`${player.id}|${command}`,label:`${player.name} · ${command.toUpperCase()}`}))),{value:"play-pause",label:"ACTIVE PLAYER · PLAY/PAUSE"}]:kind==="system"?[{value:"sleep",label:"SLEEP COMPUTER"},{value:"reboot",label:"RESTART COMPUTER"},{value:"poweroff",label:"SHUT DOWN COMPUTER"}]:kind==="command"?[{value:"refresh-applications",label:"REFRESH APPLICATION INVENTORY"},{value:"integration-recheck",label:"RECHECK LOCAL INTEGRATIONS"},{value:"open-system-monitor",label:"OPEN SYSTEM MONITOR"},{value:"open-software-center",label:"OPEN SOFTWARE CENTER"}]:[];
+  const addStep=()=>{if(!routine||routine.steps.length>=24)return;update({steps:[...routine.steps,{id:createV25Id("step"),kind:"page",target:"overview"}]});};
+  const updateStep=(id:string,patch:Partial<RoutineStep>)=>routine&&update({steps:routine.steps.map((step)=>step.id===id?{...step,...patch}:step)});
+  const moveStep=(index:number,direction:number)=>{if(!routine)return;const target=index+direction;if(target<0||target>=routine.steps.length)return;const steps=[...routine.steps];[steps[index],steps[target]]=[steps[target],steps[index]];update({steps});};
+  const triggerNeedsValue=routine?.trigger.type!=="manual"&&routine?.trigger.type!=="startup";
+  return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><section className="routine-center" role="dialog" aria-modal="true"><header><div><small>VERSION 25 OPERATIONS AUTOMATION</small><h2>ROUTINE COMMAND CENTER</h2><p>Compose multi-step local workflows. Every run opens a readable preview, and power or approved-command steps require explicit operator confirmation.</p></div><button onClick={close}>CLOSE ×</button></header><div className="routine-center-layout"><aside><button onClick={add}>+ NEW ROUTINE</button>{routines.map((item,index)=><button className={item.id===selected?"active":""} key={item.id} onClick={()=>setSelected(item.id)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</aside>{routine?<main><div className="routine-fields"><label>ROUTINE NAME<input maxLength={40} value={routine.name} onChange={(event)=>update({name:event.target.value})}/></label><label>DESCRIPTION<input maxLength={160} value={routine.description} onChange={(event)=>update({description:event.target.value})}/></label><label>COLOR<select value={routine.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></select></label><label>TRIGGER<select value={routine.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option></select></label>{triggerNeedsValue&&<label>TRIGGER VALUE<input type={routine.trigger.type==="time"?"time":"text"} value={routine.trigger.value||""} placeholder={routine.trigger.type==="app"?"APPLICATION NAME":"DEVICE NAME"} onChange={(event)=>update({trigger:{...routine.trigger,value:event.target.value}})}/></label>}<Toggle label="Routine enabled" checked={routine.enabled} change={(enabled)=>update({enabled})}/></div><section className="routine-steps"><header><div><small>EXECUTION ORDER</small><h3>ROUTINE STEPS</h3></div><b>{routine.steps.length}/24</b></header>{routine.steps.map((step,index)=>{const choices=stepChoices(step.kind),selectable=choices.length>0;return <article key={step.id}><i>{String(index+1).padStart(2,"0")}</i><select value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=stepChoices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></select>{selectable?<select value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!choices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{choices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</select>:<label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label>}<nav><button disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</button><button disabled={index===routine.steps.length-1} onClick={()=>moveStep(index,1)}>↓</button><button disabled={routine.steps.length<=1} onClick={()=>update({steps:routine.steps.filter((item)=>item.id!==step.id)})}>×</button></nav></article>;})}<button disabled={routine.steps.length>=24} onClick={addStep}>+ ADD STEP</button></section><footer><button className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==routine.id));setSelected("");}}>DELETE ROUTINE</button><button disabled={!routine.steps.length||running===routine.id} onClick={()=>request(routine)}>{running===routine.id?"ROUTINE RUNNING…":"PREVIEW ROUTINE"}</button></footer></main>:<div className="adaptive-empty"><b>CREATE AN OPERATIONS ROUTINE</b><small>Start with a page change, then add applications, audio controls, workstation restore, or guarded system actions.</small></div>}</div></section></div>;
+}
+
+function RoutinePreview({routine,describe,running,cancel,run}:{routine:Routine;describe:(step:RoutineStep)=>string;running:boolean;cancel:()=>void;run:()=>void}){
+  const protectedSteps=routineNeedsConfirmation(routine);
+  return <div className="backdrop routine-preview-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&!running&&cancel()}><section className="routine-preview" role="alertdialog" aria-modal="true"><header><div><small>{protectedSteps?"PROTECTED OPERATOR CONFIRMATION":"ROUTINE EXECUTION PREVIEW"}</small><h2>{routine.name}</h2><p>{routine.description||"Operator-defined LCARS routine"}</p></div><i className={protectedSteps?"protected":"ready"}>{protectedSteps?"CONFIRM":"READY"}</i></header><ol>{routine.steps.map((step,index)=><li key={step.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{describe(step)}</b><small>{step.kind.toUpperCase()}{step.kind==="system"||step.kind==="command"?" · PROTECTED":""}</small></span></li>)}</ol><footer><button disabled={running} onClick={cancel}>CANCEL</button><button className={protectedSteps?"protected":""} disabled={running} onClick={run}>{running?"EXECUTING…":protectedSteps?"CONFIRM & RUN":"RUN ROUTINE"}</button></footer></section></div>;
+}
+
+function SpeedDialMediaPeek({players,streams,volume,muted,control,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute}:{players:Player[];streams:Stream[];volume:number;muted:boolean;control:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void}){
+  const selected=players.find((player)=>player.status.toLowerCase()==="playing")||players[0],others=players.filter((player)=>player.id!==selected?.id).slice(0,2);
+  const ordinary=streams.filter((stream)=>!stream.advanced),sourceStreams=ordinary.length?ordinary:streams;
+  const groups=Array.from(new Set(sourceStreams.map((stream)=>stream.group||stream.name))).slice(0,4).map((name)=>({name,items:sourceStreams.filter((stream)=>(stream.group||stream.name)===name)}));
+  const initials=(name="MEDIA")=>name.split(/\s+/).map((part)=>part[0]).join("").slice(0,2).toUpperCase();
+  return <div className="peek-media">
+    {selected?<>
+      <article className="peek-media-now">
+        <i className="peek-media-art">{selected.artUrl?<img src={selected.artUrl} alt={`${selected.title||selected.name} artwork`}/>:selected.icon?<img src={selected.icon} alt=""/>:initials(selected.name)}</i>
+        <span><small>{selected.name.toUpperCase()} · {selected.status.toUpperCase()}</small><b>{selected.title||"NO MEDIA TITLE"}</b><em>{selected.artist||"UNKNOWN ARTIST"}{selected.album?` · ${selected.album}`:""}</em></span>
+        <nav className="peek-media-transport" aria-label={`${selected.name} playback controls`}><button aria-label="Previous" onClick={()=>control(selected.id,"previous")}>PREV</button><button className="primary" aria-label="Play or pause" onClick={()=>control(selected.id,"play-pause")}>{selected.status==="Playing"?"PAUSE":"PLAY"}</button><button aria-label="Next" onClick={()=>control(selected.id,"next")}>NEXT</button></nav>
+      </article>
+      {others.length>0&&<div className="peek-media-sources">{others.map((player)=>{const playing=player.status==="Playing";return <article key={player.id}><i>{player.icon?<img src={player.icon} alt=""/>:initials(player.name)}</i><span><b>{player.title||player.name}</b><small>{player.artist||player.status}</small></span><button className={playing?"is-pause":"is-play"} aria-label={`Play or pause ${player.name}`} onClick={()=>control(player.id,"play-pause")}><span aria-hidden="true">{playing?"Ⅱ":""}</span></button></article>;})}</div>}
+    </>:<div className="peek-media-empty"><b>NO ACTIVE MEDIA SOURCES</b><small>MASTER AND APPLICATION AUDIO CONTROLS REMAIN AVAILABLE</small></div>}
+    <section className={`peek-master-audio ${muted?"muted":""}`}><header><span><small>SYSTEM DEFAULT BUS</small><b>MASTER AUDIO</b></span><strong>{muted?"MUTED":`${volume}%`}</strong></header><div><input aria-label="Master audio volume" type="range" min="0" max="100" value={volume} onChange={(event)=>setMasterVolume(+event.target.value)} onPointerUp={commitMasterVolume} onKeyUp={commitMasterVolume} onBlur={commitMasterVolume}/><button className={muted?"active":""} onClick={toggleMasterMute}>{muted?"RESTORE":"MUTE"}</button></div></section>
+    <section className="peek-app-audio"><header><span><small>LIVE AUDIO SESSIONS</small><b>APPLICATION AUDIO</b></span><strong>{String(groups.length).padStart(2,"0")}</strong></header>{groups.length?groups.map((group)=>{const main=group.items[0],isMuted=group.items.every((stream)=>Boolean(stream.muted));return <label className={isMuted?"muted":""} key={group.name}><i>{main.icon?<img src={main.icon} alt=""/>:initials(group.name)}</i><span><b>{group.name}</b><small>{group.items.length===1?"APPLICATION BUS":`${group.items.length} LINKED STREAMS`}</small></span><strong>{main.volume}%</strong><input aria-label={`${group.name} volume`} type="range" min="0" max="100" value={main.volume} onChange={(event)=>group.items.forEach((stream)=>setStreamVolume(stream.id,+event.target.value))}/><button className={isMuted?"active":""} aria-label={`${isMuted?"Unmute":"Mute"} ${group.name}`} onClick={()=>group.items.forEach((stream)=>setStreamMute(stream.id,!isMuted))}>{isMuted?"U":"M"}</button></label>}):<p>NO APPLICATION AUDIO STREAMS</p>}</section>
+  </div>;
+}
+
+function SpeedDialPagePeek({page,pinned,customPages,apps,players,streams,network,meters,update,notices,bridge,volume,muted,doNotDisturb,mediaControl,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute,launch,togglePinned,close,openFull}:{page:string;pinned:boolean;customPages:CustomPage[];apps:App[];players:Player[];streams:Stream[];network:NetworkInfo;meters:(string|number)[][];update:UpdateInfo|null;notices:Notice[];bridge:boolean;volume:number;muted:boolean;doNotDisturb:boolean;mediaControl:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void;launch:(app:App)=>void;togglePinned:()=>void;close:()=>void;openFull:(page:string)=>void}){
+  const custom=page.startsWith("custom:")?customPages.find((item)=>item.id===page.slice(7)):undefined;
+  const title=custom?.name||nav.find((item)=>item[0]===page)?.[2]||page.replace(/^custom:/,"").toUpperCase();
+  const content=page==="overview"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="system"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="media"?<SpeedDialMediaPeek players={players} streams={streams} volume={volume} muted={muted} control={mediaControl} setMasterVolume={setMasterVolume} commitMasterVolume={commitMasterVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={setStreamVolume} setStreamMute={setStreamMute}/>:page==="network"?<div className="peek-network">{network.interfaces.slice(0,4).map((item)=><article key={item.id}><i className={item.state==="connected"?"ready":""}>●</i><span><b>{item.name}</b><small>{item.address||item.state.toUpperCase()}</small></span><em>{item.speed||"LOCAL"}</em></article>)}{!network.interfaces.length&&<p>{bridge?"NO ACTIVE NETWORK INTERFACES":"LOCAL CORE LINK PENDING"}</p>}</div>:page==="updates"?<div className="peek-update"><strong>{update?.available?`V${update.version} AVAILABLE`:"RELEASE CHANNEL READY"}</strong><p>{update?.available?"A verified release can be downloaded from the full Updates page.":"Background checks remain silent when offline."}</p><small>{update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"STABLE / DEVELOPMENT CHANNEL AWARE"}</small></div>:page==="terminal"?<div className="peek-terminal"><pre>LCARS LOCAL COMMAND LINK{`\n`}{bridge?"PTY CORE READY":"LOCAL CORE STANDBY"}{`\n\n`}terminal@lcars:~$ <i>█</i></pre><small>OPEN THE FULL TERMINAL TO TYPE COMMANDS</small></div>:page==="files"?<div className="peek-files"><i><FileGlyph kind="folder"/></i><span><b>LOCAL FILE SYSTEM</b><small>HOME · DOCUMENTS · DOWNLOADS</small><p>Use the full File Browser for previews, transfers, and document editing.</p></span></div>:page==="settings"?<div className="peek-settings"><article><b>LOCAL CORE</b><span>{bridge?"CONNECTED":"STANDBY"}</span></article><article><b>DO NOT DISTURB</b><span>{doNotDisturb?"ACTIVE":"OFF"}</span></article><article><b>NOTICES</b><span>{notices.length}</span></article><p>Open the full page to change themes, workstations, routines, accessibility, and shell behavior.</p></div>:custom?<div className="peek-custom"><i>{custom.kind.toUpperCase()}</i><span><b>{custom.name}</b><small>{custom.target}</small>{custom.kind==="app"&&apps.find((app)=>app.id===custom.target)&&<button onClick={()=>launch(apps.find((app)=>app.id===custom.target)!)}>OPEN APPLICATION ↗</button>}</span></div>:<p>PAGE PREVIEW IS UNAVAILABLE</p>;
+  return <ResizablePopup as="aside" popupKey="speed-dial-page-peek" className={`speed-dial-page-peek ${pinned?"pinned":"floating"}`} floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}><header><div><small>{pinned?"PINNED PAGE PEEK · ALWAYS ABOVE LCARS":"SPEED DIAL PAGE PEEK"}</small><h3>{title}</h3></div><nav><button className={pinned?"active":""} onClick={togglePinned}>{pinned?"RELEASE":"PIN"}</button><button onClick={close}>×</button></nav></header><main>{content}</main><footer><span>{pinned?"PIN LOCK ACTIVE":"FLOATING PREVIEW"}</span><button onClick={()=>openFull(page)}>OPEN FULL PAGE ›</button></footer></ResizablePopup>;
 }
 
 function CustomPageManager({pages,apps,extensions,change}:{pages:CustomPage[];apps:App[];extensions:ExtensionManifest[];change:(pages:CustomPage[])=>void}) {
@@ -3404,7 +3976,7 @@ function ExtensionSettings({extensions}:{extensions:ExtensionManifest[]}){const 
 function ExtensionSettingGroup({extension}:{extension:ExtensionManifest}){const key=`lcars-extension-state:${extension.id}`,[values,setValues]=useState<Record<string,unknown>>(()=>{try{return JSON.parse(localStorage.getItem(key)||"{}");}catch{return{};}});const save=(name:string,value:unknown)=>{const next={...values,[name]:value};setValues(next);localStorage.setItem(key,JSON.stringify(next));fetch("http://127.0.0.1:8765/api/extension-state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:extension.id,state:next})}).catch(()=>{});};return <article><h4>{extension.name.toUpperCase()} <small>API {extension.apiVersion}</small></h4>{extension.settings.map((setting)=>{const value=values[setting.key]??setting.default??"";return <label key={setting.key}>{setting.label}<small>{setting.description}</small>{setting.type==="toggle"?<input type="checkbox" checked={Boolean(value)} onChange={(event)=>save(setting.key,event.target.checked)}/>:setting.type==="select"?<select value={String(value)} onChange={(event)=>save(setting.key,event.target.value)}>{setting.options?.map((option)=><option key={option}>{option}</option>)}</select>:<input type={setting.type==="number"?"number":"text"} value={String(value)} onChange={(event)=>save(setting.key,setting.type==="number"?Number(event.target.value):event.target.value)}/>}</label>;})}</article>;}
 function VoiceDeviceSelect({value,change}:{value:string;change:(value:string)=>void}) { const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);useEffect(()=>{navigator.mediaDevices?.enumerateDevices().then((items)=>setDevices(items.filter((item)=>item.kind==="audioinput"))).catch(()=>{});},[]);return <label>VOICE MICROPHONE<small>Select the input used by push-to-talk. Grant microphone permission once to reveal device names.</small><select value={value} onChange={(event)=>change(event.target.value)}><option value="">SYSTEM DEFAULT</option>{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`MICROPHONE ${index+1}`}</option>)}</select></label>; }
 
-function VoiceControl({ prefs, apps, extensions, navigate, launch, action, notify }: { prefs: ShellPrefs; apps: App[]; extensions: ExtensionManifest[]; navigate: (page: string) => void; launch: (app: App) => void; action: (value: string) => void; notify: (text: string, kind?: "info" | "error") => void }) {
+function VoiceControl({ prefs, apps, extensions, routines, navigate, launch, requestRoutine, action, notify }: { prefs: ShellPrefs; apps: App[]; extensions: ExtensionManifest[]; routines: Routine[]; navigate: (page: string) => void; launch: (app: App) => void; requestRoutine: (routine: Routine) => void; action: (value: string) => void; notify: (text: string, kind?: "info" | "error") => void }) {
   const [listening, setListening] = useState(false), [busy, setBusy] = useState(false), [history, setHistory] = useState<string[]>([]);
   const recorder = useRef<MediaRecorder | null>(null), chunks = useRef<Blob[]>([]);
   if (!prefs.voiceEnabled) return null;
@@ -3417,6 +3989,8 @@ function VoiceControl({ prefs, apps, extensions, navigate, launch, action, notif
     if (page) { affirmative();navigate(pages[page]);return notify("Voice command: "+page.toUpperCase()); }
     const extensionCommand=extensions.flatMap((extension)=>extension.voiceCommands||[]).find((command)=>text.includes(command.phrase.toLowerCase()));
     if (extensionCommand && nav.some((item)=>item[0]===extensionCommand.page)) { affirmative();navigate(extensionCommand.page);return notify(extensionCommand.response||"Extension voice command accepted"); }
+    const routine=routines.find((candidate)=>text.includes(`run ${candidate.name.toLowerCase()}`)||text.includes(`start ${candidate.name.toLowerCase()}`));
+    if(routine){affirmative();requestRoutine(routine);return notify(`Routine preview ready: ${routine.name}`);}
     if (prefs.voiceSecurity !== "navigation") {
       const app=apps.find((candidate) => text.includes("open "+candidate.name.toLowerCase()) || text.includes("launch "+candidate.name.toLowerCase()));
       if (app) { affirmative();launch(app);return; }
@@ -3438,6 +4012,7 @@ function SpeedDial({
   items,
   extensions,
   customPages,
+  routines,
   players,
   notices,
   displays,
@@ -3450,6 +4025,7 @@ function SpeedDial({
   items: SpeedDialItem[];
   extensions: ExtensionManifest[];
   customPages: CustomPage[];
+  routines: Routine[];
   players: number;
   notices: number;
   displays: number;
@@ -3459,8 +4035,8 @@ function SpeedDial({
   taskPinned: boolean;
   execute: (item: SpeedDialItem) => void;
 }) {
-  const choices=[...speedDialChoices,...extensions.map((extension)=>({id:`module:ext:${extension.id}` as SpeedDialItem,label:extension.name.toUpperCase().slice(0,14),description:`Open ${extension.name} as a focused module`})),...customPages.map((page)=>({id:`page:custom:${page.id}` as SpeedDialItem,label:page.name.toUpperCase().slice(0,14),description:`Open custom page ${page.name}`}))];
-  const suffix=(item:SpeedDialItem)=>item==="page:network"?(bridge?"●":"○"):item==="page:media"?String(players):item==="action:dnd"?(doNotDisturb?"ON":"OFF"):item==="action:notices"?String(notices):item==="action:displays"?String(displays):item==="action:tasks"?(taskPinned?"PIN":"OPEN"):item==="action:tray"?String(trayItems):item.startsWith("module:")?"MOD":"";
+  const choices=[...speedDialChoices,...extensions.map((extension)=>({id:`module:ext:${extension.id}` as SpeedDialItem,label:extension.name.toUpperCase().slice(0,14),description:`Open ${extension.name} as a focused module`})),...customPages.map((page)=>({id:`page:custom:${page.id}` as SpeedDialItem,label:page.name.toUpperCase().slice(0,14),description:`Open custom Page Peek ${page.name}`})),...routines.map((routine)=>({id:`routine:${routine.id}` as SpeedDialItem,label:routine.name.toUpperCase().slice(0,14),description:`Preview and run ${routine.name}`}))];
+  const suffix=(item:SpeedDialItem)=>item==="page:network"?(bridge?"●":"○"):item==="page:media"?String(players):item==="action:dnd"?(doNotDisturb?"ON":"OFF"):item==="action:notices"?String(notices):item==="action:displays"?String(displays):item==="action:tasks"?(taskPinned?"PIN":"OPEN"):item==="action:tray"?String(trayItems):item.startsWith("module:")?"MOD":item.startsWith("routine:")?"RUN":"";
   return (
     <nav className="system-tray speed-dial" aria-label="LCARS Speed Dial">
       {items.map((item,index)=>{const choice=choices.find((candidate)=>candidate.id===item);if(!choice)return null;return <button className={item==="action:dnd"&&doNotDisturb?"active":""} key={`${item}:${index}`} onClick={()=>execute(item)} title={choice.description}><i>{String(index+1).padStart(2,"0")}</i><span>{choice.label}</span><b>{suffix(item)}</b></button>;})}
@@ -3493,7 +4069,7 @@ function FirstRun({
         : "Start LCARS locally to enable desktop integration.",
       ok: bridge,
     },
-    { code:"02", title:"NAVIGATION", text:"Press Ctrl plus the number shown on a sidebar control to open that page—even while Terminal has focus. Ctrl+K opens commands and Ctrl+F finds pages, settings, apps, and modules.", ok:true },
+    { code:"02", title:"NAVIGATION", text:"Press the number shown on a sidebar control to open that page. Number keys remain normal while typing; Ctrl plus the number works even when Terminal has focus. Ctrl+K opens commands and Ctrl+F finds pages, settings, apps, and modules.", ok:true },
     { code:"03", title:"MODULAR OVERVIEW", text:"Choose Configure Overview to add, remove, resize, and reorder built-in or extension modules.", ok:true },
     { code:"04", title:"TASKS & VOICE", text:"The Task Rail manages desktop windows. Optional push-to-talk voice control stays local when whisper.cpp is configured.", ok:true },
     { code:"05", title:"FILES & DETACHABLE TOOLS", text:"Files and supported documents open inside LCARS. Use the compact detach control when you want a separate native window.", ok:true },
@@ -3502,7 +4078,7 @@ function FirstRun({
   const item = cards[step];
   return (
     <div className="backdrop setup-backdrop">
-      <section className="first-run">
+      <ResizablePopup popupKey="first-run-setup" className="first-run" minWidth={520} minHeight={460} ariaModal={true} ariaLabel="LCARS Shell Setup">
         <header>
           <div>
             <small>FIRST-RUN SYSTEM ALIGNMENT</small>
@@ -3539,7 +4115,7 @@ function FirstRun({
             {step < cards.length - 1 ? "CONTINUE" : "ENTER LCARS"}
           </button>
         </footer>
-      </section>
+      </ResizablePopup>
     </div>
   );
 }
@@ -3633,6 +4209,12 @@ function OverviewEditor({
 }
 
 type ChecklistItem = { id: string; text: string; done: boolean };
+class ExtensionBoundary extends Component<{id:string;name:string;onFailure:(id:string)=>void;children:ReactNode},{failed:boolean}> {
+  state={failed:false};
+  static getDerivedStateFromError(){return{failed:true};}
+  componentDidCatch(error:unknown){console.error(`LCARS extension ${this.props.id} was isolated`,error);this.props.onFailure(this.props.id);}
+  render(){return this.state.failed?<section className="overview-widget extension-widget extension-isolated"><h3>EXTENSION ISOLATED <small>SAFE RENDERER</small></h3><b>{this.props.name}</b><p>This module failed inside its protected renderer. LCARS remains operational; retry or inspect it in Settings → Recovery.</p></section>:this.props.children;}
+}
 function ChecklistExtension({ extension }: { extension: ExtensionManifest }) {
   const storageKey = `lcars-extension-state:${extension.id}`;
   const defaults = (extension.placements[0]?.ui.find((node)=>node.type==="list")?.items || []).map((text, index) => ({
@@ -3711,6 +4293,306 @@ function DeclarativeExtension({extension,placement}:{extension:ExtensionManifest
   return <section className="overview-widget extension-widget declarative-extension"><h3>{placement.title.toUpperCase()} <small>EXT API {extension.apiVersion} · {extension.version}</small></h3><div className="extension-primitives">{placement.ui.map(render)}</div></section>;
 }
 function ExtensionHeader({extension,placement,now}:{extension:ExtensionManifest;placement:ExtensionPlacement;now:Date}){const node=placement.ui.find((item)=>item.type==="clock"||item.type==="text");let value=node?.text||extension.name;if(node?.type==="clock")value=node.source==="stardate"?`${now.getUTCFullYear()}.${Math.floor(((now.getTime()-Date.UTC(now.getUTCFullYear(),0,1))/(Date.UTC(now.getUTCFullYear()+1,0,1)-Date.UTC(now.getUTCFullYear(),0,1)))*1000).toString().padStart(3,"0")}`:now.toLocaleTimeString();return <div className="extension-header-item" title={`${extension.name} · Extension API ${extension.apiVersion}`}><small>{node?.label||placement.title}</small><b>{value}</b></div>;}
+const formatMediaTime = (seconds = 0) => {
+  const safe = Math.max(0, Math.floor(seconds));
+  return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, "0")}`;
+};
+
+function MediaConsole({
+  players,
+  pinned,
+  togglePinned,
+  control,
+  volume,
+  muted,
+  setVolume,
+  commitVolume,
+  toggleMute,
+  devices,
+  chooseDevice,
+  streams,
+  setStreamVolume,
+  setStreamMute,
+  platform,
+  openMedia,
+  openDevices,
+  refresh,
+}: {
+  players: Player[];
+  pinned: string[];
+  togglePinned: (id: string) => void;
+  control: (player: string, command: string) => void;
+  volume: number;
+  muted: boolean;
+  setVolume: (value: number) => void;
+  commitVolume: () => void;
+  toggleMute: () => void;
+  devices: AudioDevice[];
+  chooseDevice: (id: string) => void;
+  streams: Stream[];
+  setStreamVolume: (id: string, value: number) => void;
+  setStreamMute: (id: string, muted: boolean) => void;
+  platform: string;
+  openMedia: () => void;
+  openDevices: () => void;
+  refresh: () => void;
+}) {
+  const [pane, setPane] = useState<"players" | "master" | "mixer">("players"),
+    [selectedId, setSelectedId] = useState(() =>
+      typeof window === "undefined"
+        ? ""
+        : localStorage.getItem("lcars-selected-player") || "",
+    );
+  useEffect(() => {
+    if (players.some((player) => player.id === selectedId)) return;
+    const next =
+      players.find((player) => player.status.toLowerCase() === "playing") ||
+      players.find((player) => pinned.includes(player.id)) ||
+      players[0];
+    setSelectedId(next?.id || "");
+  }, [players, pinned, selectedId]);
+  const selectPlayer = (id: string) => {
+      setSelectedId(id);
+      localStorage.setItem("lcars-selected-player", id);
+    },
+    selected = players.find((player) => player.id === selectedId) || players[0],
+    otherPlayers = players.filter((player) => player.id !== selected?.id),
+    outputs = devices.filter((device) => device.kind === "output"),
+    inputs = devices.filter((device) => device.kind === "input"),
+    output = outputs.find((device) => device.default),
+    input = inputs.find((device) => device.default);
+  const initials = (name = "MEDIA") =>
+    name
+      .split(/\s+/)
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  return (
+    <>
+      <nav className="media-console-tabs" aria-label="Media console sections">
+        {([
+          ["players", "NOW PLAYING"],
+          ["master", "MASTER AUDIO"],
+          ["mixer", "APP MIXER"],
+        ] as const).map(([id, label]) => (
+          <button
+            className={pane === id ? "active" : ""}
+            aria-pressed={pane === id}
+            onClick={() => setPane(id)}
+            key={id}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+      <div className="media-console">
+        <section
+          className={`media-zone media-player-zone ${pane === "players" ? "active-pane" : ""}`}
+        >
+          <header>
+            <span>
+              <small>MEDIA SOURCE CONTROL</small>
+              <b>NOW PLAYING</b>
+            </span>
+            <i>{String(players.length).padStart(2, "0")}</i>
+          </header>
+          {selected ? (
+            <div className="media-player-stack">
+              <article className="selected-media-player">
+                <i className="selected-media-art">
+                  {selected.artUrl ? (
+                    <img src={selected.artUrl} alt={`${selected.title} artwork`} />
+                  ) : selected.icon ? (
+                    <img src={selected.icon} alt="" />
+                  ) : (
+                    initials(selected.name)
+                  )}
+                </i>
+                <span className="selected-media-title">
+                  <small>
+                    {selected.name.toUpperCase()} · {selected.status.toUpperCase()}
+                  </small>
+                  <strong>{selected.title || "NO MEDIA TITLE"}</strong>
+                  <small>
+                    {selected.artist || "UNKNOWN ARTIST"}
+                    {selected.album ? ` · ${selected.album}` : ""}
+                  </small>
+                </span>
+                <button
+                  className={`selected-media-pin ${pinned.includes(selected.id) ? "pinned" : ""}`}
+                  onClick={() => togglePinned(selected.id)}
+                  aria-label={`${pinned.includes(selected.id) ? "Unpin" : "Pin"} ${selected.name}`}
+                  title="Keep this source at the top"
+                >
+                  {pinned.includes(selected.id) ? "★" : "☆"}
+                </button>
+                <div className="selected-media-progress">
+                  <span>{formatMediaTime(selected.position)}</span>
+                  <i>
+                    <b
+                      style={{
+                        width: `${selected.length ? Math.min(100, ((selected.position || 0) / selected.length) * 100) : 0}%`,
+                      }}
+                    />
+                  </i>
+                  <span>{selected.length ? formatMediaTime(selected.length) : "--:--"}</span>
+                </div>
+                <nav className="selected-media-transport" aria-label={`${selected.name} playback controls`}>
+                  <button title="Previous" aria-label="Previous" onClick={() => control(selected.id, "previous")}>◀◀</button>
+                  <button className="primary" title="Play or pause" aria-label="Play or pause" onClick={() => control(selected.id, "play-pause")}>{selected.status === "Playing" ? "Ⅱ" : "▶"}</button>
+                  <button title="Next" aria-label="Next" onClick={() => control(selected.id, "next")}>▶▶</button>
+                  <button title="Shuffle" aria-label="Shuffle" onClick={() => control(selected.id, "shuffle")}>SHUF</button>
+                  <button title="Stop" aria-label="Stop" onClick={() => control(selected.id, "stop")}>■</button>
+                </nav>
+              </article>
+              <div className="media-source-list">
+                {otherPlayers.length ? (
+                  otherPlayers.map((player) => (
+                    <article className="media-source-row" key={player.id}>
+                      <button className="media-source-select" onClick={() => selectPlayer(player.id)} aria-label={`Show ${player.name}`}>
+                        <i>{player.icon ? <img src={player.icon} alt="" /> : initials(player.name)}</i>
+                        <span><b>{player.name}</b><small>{player.title || "NO MEDIA"}</small></span>
+                        <em className={player.status === "Playing" ? "playing" : ""}>{player.status.toUpperCase()}</em>
+                      </button>
+                      <button className="media-source-quick" title={`Play or pause ${player.name}`} aria-label={`Play or pause ${player.name}`} onClick={() => control(player.id, "play-pause")}>{player.status === "Playing" ? "Ⅱ" : "▶"}</button>
+                    </article>
+                  ))
+                ) : (
+                  <div className="media-compact-empty"><b>PRIMARY SOURCE LINKED</b><small>Additional players appear here as compact sources.</small></div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="media-compact-empty"><b>NO ACTIVE MEDIA SOURCES</b><small>Start playback in a compatible application. LCARS will detect it automatically.</small></div>
+          )}
+        </section>
+
+        <section className={`media-zone media-master-zone ${pane === "master" ? "active-pane" : ""}`}>
+          <header>
+            <span><small>SYSTEM DEFAULT BUS</small><b>MASTER AUDIO</b></span>
+            <i>{muted ? "M" : "01"}</i>
+          </header>
+          <div className="media-master-body">
+            <div className="media-master-level">
+              <strong>{volume}%</strong>
+              <small>{muted ? "OUTPUT MUTED" : "OUTPUT ACTIVE"}</small>
+            </div>
+            <input
+              className="media-master-slider"
+              aria-label="Master audio volume"
+              type="range"
+              min="0"
+              max="100"
+              value={volume}
+              onChange={(event) => setVolume(+event.target.value)}
+              onPointerUp={commitVolume}
+              onKeyUp={commitVolume}
+            />
+            <div className="media-device-routing">
+              <label htmlFor="media-output-device">
+                OUTPUT
+                <select id="media-output-device" aria-label="Audio output device" value={output?.id || ""} onChange={(event) => chooseDevice(event.target.value)}>
+                  <option value="" disabled>{outputs.length ? "SELECT OUTPUT" : platform.includes("WINDOWS") ? "NO WINDOWS OUTPUTS DETECTED" : "NO PIPEWIRE OUTPUTS DETECTED"}</option>
+                  {outputs.map((device) => <option value={device.id} key={device.id}>{device.default ? "● " : ""}{device.name}</option>)}
+                </select>
+              </label>
+              <label htmlFor="media-input-device">
+                INPUT
+                <select id="media-input-device" aria-label="Audio input or microphone device" value={input?.id || ""} onChange={(event) => chooseDevice(event.target.value)}>
+                  <option value="" disabled>{inputs.length ? "SELECT MICROPHONE" : platform.includes("WINDOWS") ? "NO WINDOWS INPUTS DETECTED" : "NO PIPEWIRE INPUTS DETECTED"}</option>
+                  {inputs.map((device) => <option value={device.id} key={device.id}>{device.default ? "● " : ""}{device.name}</option>)}
+                </select>
+              </label>
+            </div>
+            <nav className="media-master-actions">
+              <button className={muted ? "active" : ""} onClick={toggleMute}>{muted ? "RESTORE AUDIO" : "MUTE OUTPUT"}</button>
+              <button onClick={openDevices}>DEVICE DETAILS</button>
+            </nav>
+          </div>
+        </section>
+
+        <ApplicationMixer
+          streams={streams}
+          setVolume={setStreamVolume}
+          setMuted={setStreamMute}
+          openRouting={openDevices}
+          platform={platform}
+          active={pane === "mixer"}
+        />
+
+        <nav className="media-quick-strip" aria-label="Media quick controls">
+          <button onClick={openMedia}>OPEN MEDIA PLAYER</button>
+          <button onClick={openDevices}>AUDIO DEVICES</button>
+          <button onClick={refresh}>REFRESH / RESCAN</button>
+          <button disabled={!output} onClick={() => document.getElementById("media-output-device")?.focus()} title={output?.name || "No default output"}>DEFAULT OUTPUT</button>
+          <button disabled={!input} onClick={() => document.getElementById("media-input-device")?.focus()} title={input?.name || "No default input"}>DEFAULT INPUT</button>
+        </nav>
+      </div>
+    </>
+  );
+}
+
+function ApplicationMixer({
+  streams,
+  setVolume,
+  setMuted,
+  openRouting,
+  platform,
+  active,
+}: {
+  streams: Stream[];
+  setVolume: (id: string, value: number) => void;
+  setMuted: (id: string, muted: boolean) => void;
+  openRouting: () => void;
+  platform: string;
+  active: boolean;
+}) {
+  const [advanced, setAdvanced] = useState(false),
+    [expanded, setExpanded] = useState<string[]>([]);
+  const groups = Array.from(new Set(streams.map((stream) => stream.group || stream.name))).map((name) => ({
+      name,
+      items: streams.filter((stream) => (stream.group || stream.name) === name),
+    })),
+    visible = advanced ? groups : groups.filter((group) => group.items.some((stream) => !stream.advanced)),
+    hasAdvanced = groups.some((group) => group.items.some((stream) => stream.advanced));
+  const toggleExpanded = (name: string) =>
+      setExpanded((old) => old.includes(name) ? old.filter((item) => item !== name) : [...old, name]),
+    initials = (name: string) => name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
+  return (
+    <section className={`media-zone media-mixer-zone ${active ? "active-pane" : ""}`}>
+      <header>
+        <span><small>{platform.includes("WINDOWS") ? "WINDOWS CORE AUDIO" : "PIPEWIRE APPLICATION BUS"}</small><b>APPLICATION MIXER</b></span>
+        <button className="media-mixer-header-button" disabled={!hasAdvanced} onClick={() => setAdvanced(!advanced)}>{advanced ? "APPLICATIONS ONLY" : "SHOW ALL STREAMS"}</button>
+      </header>
+      <div className="media-mixer-list">
+        {visible.length ? visible.map((group) => {
+          const main = group.items.find((stream) => !stream.advanced) || group.items[0],
+            isMuted = group.items.every((stream) => Boolean(stream.muted)),
+            open = expanded.includes(group.name),
+            routeAvailable = group.items.some((stream) => stream.routeAvailable);
+          return (
+            <article className={`media-mixer-group ${isMuted ? "muted" : ""} ${main.volume > 0 ? "active" : ""}`} key={group.name}>
+              <div className="media-mixer-row">
+                <i>{main.icon ? <img src={main.icon} alt="" /> : initials(group.name)}</i>
+                <span><b>{group.name}</b><small>{group.items.length} {group.items.length === 1 ? "STREAM" : "STREAMS"}</small></span>
+                <strong>{main.volume}%</strong>
+                <input aria-label={`${group.name} volume`} type="range" min="0" max="100" value={main.volume} onChange={(event) => group.items.forEach((stream) => setVolume(stream.id, +event.target.value))} />
+                <nav className="media-mixer-actions">
+                  <button className={isMuted ? "active" : ""} aria-label={`${isMuted ? "Unmute" : "Mute"} ${group.name}`} onClick={() => group.items.forEach((stream) => setMuted(stream.id, !isMuted))}>{isMuted ? "U" : "M"}</button>
+                  <button disabled={!routeAvailable} aria-label={`Route ${group.name}`} title={routeAvailable?"Open application routing controls":"Per-application routing is unavailable on this platform"} onClick={openRouting}>ROUTE</button>
+                  <button disabled={group.items.length < 2} aria-label={`${open ? "Collapse" : "Expand"} ${group.name} streams`} onClick={() => toggleExpanded(group.name)}>{open ? "−" : "+"}</button>
+                </nav>
+              </div>
+              {open && <div className="media-stream-details">{group.items.map((stream) => <label className="media-stream-detail" key={stream.id}><span>{stream.name}</span><strong>{stream.volume}%</strong><input aria-label={`${stream.name} stream volume`} type="range" min="0" max="100" value={stream.volume} onChange={(event) => setVolume(stream.id, +event.target.value)} /><button className={stream.muted ? "active" : ""} onClick={() => setMuted(stream.id, !stream.muted)}>{stream.muted ? "U" : "M"}</button></label>)}</div>}
+            </article>
+          );
+        }) : <div className="media-compact-empty"><b>NO APPLICATION AUDIO STREAMS</b><small>Applications producing audio will appear here automatically.</small></div>}
+      </div>
+    </section>
+  );
+}
+
 function MediaSources({
   players,
   control,
@@ -3817,125 +4699,43 @@ function MediaSources({
     </div>
   );
 }
-function StreamVolumes({
-  streams,
-  setVolume,
-}: {
-  streams: Stream[];
-  setVolume: (id: string, value: number) => void;
-}) {
-  const [advanced, setAdvanced] = useState(false),
-    [expanded, setExpanded] = useState<string[]>([]);
-  const groups = Array.from(new Set(streams.map((s) => s.group || s.name))).map(
-    (name) => ({
-      name,
-      items: streams.filter((s) => (s.group || s.name) === name),
-    }),
-  );
-  const visible = advanced
-    ? groups
-    : groups.filter((g) => g.items.some((s) => !s.advanced));
-  const toggle = (name: string) =>
-    setExpanded((old) =>
-      old.includes(name) ? old.filter((x) => x !== name) : [...old, name],
-    );
-  return (
-    <section className="stream-volumes">
-      <h4>
-        <span>
-          APPLICATION AUDIO STREAMS <small>PIPEWIRE</small>
-        </span>
-        <button onClick={() => setAdvanced(!advanced)}>
-          {advanced ? "APPLICATIONS ONLY" : "SHOW ALL PIPEWIRE STREAMS"}
-        </button>
-      </h4>
-      {visible.length ? (
-        visible.map((group) => {
-          const main = group.items.find((s) => !s.advanced) || group.items[0],
-            open = expanded.includes(group.name);
-          return (
-            <article className="audio-group" key={group.name}>
-              <label>
-                <span>
-                  <b>{group.name}</b>
-                  <small>
-                    {main.volume}% · {group.items.length}{" "}
-                    {group.items.length === 1 ? "STREAM" : "STREAMS"}
-                  </small>
-                </span>
-                <input
-                  aria-label={group.name + " volume"}
-                  type="range"
-                  value={main.volume}
-                  onChange={(e) => setVolume(main.id, +e.target.value)}
-                />
-                <button
-                  aria-label={
-                    open ? "Collapse " + group.name : "Expand " + group.name
-                  }
-                  onClick={() => toggle(group.name)}
-                >
-                  {open ? "−" : "+"}
-                </button>
-              </label>
-              {open && (
-                <div>
-                  {group.items.map((stream) => (
-                    <label key={stream.id}>
-                      <span>
-                        <b>{stream.name}</b>
-                        <small>{stream.volume}%</small>
-                      </span>
-                      <input
-                        aria-label={stream.name + " volume"}
-                        type="range"
-                        value={stream.volume}
-                        onChange={(e) => setVolume(stream.id, +e.target.value)}
-                      />
-                    </label>
-                  ))}
-                </div>
-              )}
-            </article>
-          );
-        })
-      ) : (
-        <p>NO APPLICATION AUDIO STREAMS ARE CURRENTLY ACTIVE</p>
-      )}
-    </section>
-  );
-}
 function NotificationCenter({
   notices,
+  activity,
   historyOpen,
   close,
   dismiss,
   clear,
+  clearActivity,
   doNotDisturb,
   toggleDnd,
 }: {
   notices: Notice[];
+  activity: ActivityEntry[];
   historyOpen: boolean;
   close: () => void;
   dismiss: (id: number) => void;
   clear: () => void;
+  clearActivity: () => void;
   doNotDisturb: boolean;
   toggleDnd: () => void;
 }) {
   const [query, setQuery] = useState(""),
+    [tab,setTab]=useState<"notices"|"activity">("notices"),
     live = notices.filter((n) => n.id > 0).slice(0, 3),
     visible = notices.filter((n) =>
-      n.text.toLowerCase().includes(query.toLowerCase()),
-    );
+      `${n.text} ${n.source||""} ${n.priority||""}`.toLowerCase().includes(query.toLowerCase()),
+    ),
+    visibleActivity=activity.filter((entry)=>`${entry.title} ${entry.detail} ${entry.source} ${entry.status}`.toLowerCase().includes(query.toLowerCase()));
   return (
     <>
       <div className="toast-stack">
         {live.map((n) => (
-          <div className={"toast " + n.kind} key={n.id}>
+          <div className={`toast ${n.kind} priority-${n.priority||"routine"}`} key={n.id}>
             <i>●</i>
             <span>
               <b>{n.text}</b>
-              <small>{n.time}</small>
+              <small>{n.source||"LCARS CORE"} · {n.priority?.toUpperCase()||"ROUTINE"} · {n.time}</small>
             </span>
             <button
               title="Close notification"
@@ -3948,43 +4748,46 @@ function NotificationCenter({
         ))}
       </div>
       {historyOpen && (
-        <aside className="notice-history">
+        <ResizablePopup as="aside" popupKey="communications-center" className="notice-history" floating minWidth={380} minHeight={360} ariaModal={false} ariaLabel="Communications Center">
           <header>
             <div>
-              <small>LCARS EVENT LOG</small>
-              <h3>NOTIFICATIONS</h3>
+              <small>VERSION 25 COMMUNICATIONS MATRIX</small>
+              <h3>COMMUNICATIONS CENTER</h3>
             </div>
             <button onClick={close}>CLOSE ×</button>
           </header>
-          <nav>
+          <nav className="communications-tabs">
+            <button className={tab==="notices"?"active":""} onClick={()=>setTab("notices")}>NOTICES <b>{notices.length}</b></button>
+            <button className={tab==="activity"?"active":""} onClick={()=>setTab("activity")}>COMMAND ACTIVITY <b>{activity.length}</b></button>
             <button
               className={doNotDisturb ? "active" : ""}
               onClick={toggleDnd}
             >
               {doNotDisturb ? "DO NOT DISTURB ON" : "DO NOT DISTURB OFF"}
             </button>
-            <button onClick={clear}>CLEAR HISTORY</button>
+            <button onClick={tab==="notices"?clear:clearActivity}>CLEAR {tab==="notices"?"NOTICES":"ACTIVITY"}</button>
           </nav>
           <input
-            aria-label="Search notification history"
-            placeholder="SEARCH EVENT LOG…"
+            aria-label="Search communications history"
+            placeholder={`SEARCH ${tab==="notices"?"NOTICES":"COMMAND ACTIVITY"}…`}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          {visible.length ? (
+          {tab==="notices"&&(visible.length ? (
             visible.map((n) => (
-              <article key={Math.abs(n.id)}>
+              <article className={`communication-entry priority-${n.priority||"routine"}`} key={Math.abs(n.id)}>
                 <i>●</i>
                 <span>
                   <b>{n.text}</b>
-                  <small>{n.time}</small>
+                  <small>{n.source||"LCARS CORE"} · {n.priority?.toUpperCase()||"ROUTINE"} · {n.time}</small>
                 </span>
               </article>
             ))
           ) : (
             <p>NO MATCHING NOTIFICATIONS</p>
-          )}
-        </aside>
+          ))}
+          {tab==="activity"&&(visibleActivity.length?visibleActivity.map((entry)=><article className={`communication-entry activity-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{entry.source} · {entry.status.toUpperCase()} · {new Date(entry.time).toLocaleString()}</small><em>{entry.detail}</em></span></article>):<p>NO MATCHING COMMAND ACTIVITY</p>)}
+        </ResizablePopup>
       )}
     </>
   );
@@ -4016,7 +4819,7 @@ function AppDrawer({
 }) {
   return (
     <div className="backdrop">
-      <section className="drawer" role="dialog">
+      <ResizablePopup popupKey="application-drawer" className="drawer" minWidth={520} minHeight={480} ariaModal={true} ariaLabel={title}>
         <header>
           <div>
             <small>COMPUTER LIBRARY ACCESS</small>
@@ -4052,7 +4855,7 @@ function AppDrawer({
             </button>{!selectionMode&&(embedded&&setDestination?<button className="drawer-destination" onClick={()=>setDestination(a,destination==="embedded"?"native":"embedded")}><b>{destination==="embedded"?"LCARS":"WINDOW"}</b><small>{destination==="embedded"?`OPEN ${embedded.toUpperCase()} WORKSPACE`:"OPEN NATIVE APP"}</small></button>:<span className="drawer-native-only">NATIVE WINDOW ONLY</span>)}</article>
           );})}
         </div>
-      </section>
+      </ResizablePopup>
     </div>
   );
 }

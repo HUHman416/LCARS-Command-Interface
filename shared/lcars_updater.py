@@ -17,7 +17,8 @@ from pathlib import Path
 
 REPOSITORY = "HUHman416/LCARS-Command-Interface"
 API_URL = f"https://api.github.com/repos/{REPOSITORY}/releases/latest"
-USER_AGENT = "LCARS-Command-Interface-Updater/24.0"
+RELEASES_URL = f"https://api.github.com/repos/{REPOSITORY}/releases?per_page=30"
+USER_AGENT = "LCARS-Command-Interface-Updater/25"
 
 
 def _request(url: str, binary: bool = False, timeout: int = 12):
@@ -41,9 +42,34 @@ def _platform_asset(assets: list[dict], system: str):
     return candidates[0] if candidates else None
 
 
-def check_update(current_version: str, system: str | None = None):
+def _release_for_channel(channel: str):
+    channel = "development" if channel == "development" else "stable"
+    if channel == "stable":
+        candidates = json.loads(_request(RELEASES_URL))
+        if not isinstance(candidates, list):
+            candidates = []
+        whole = []
+        for release in candidates:
+            tag = str(release.get("tag_name", ""))
+            parts = _version(tag)
+            if not release.get("draft") and not release.get("prerelease") and parts[1:] == (0, 0):
+                whole.append(release)
+        if whole:
+            return max(whole, key=lambda item: _version(str(item.get("tag_name", ""))))
+        return json.loads(_request(API_URL))
+    candidates = json.loads(_request(RELEASES_URL))
+    if not isinstance(candidates, list):
+        candidates = []
+    candidates = [item for item in candidates if not item.get("draft")]
+    if not candidates:
+        return json.loads(_request(API_URL))
+    return max(candidates, key=lambda item: _version(str(item.get("tag_name", ""))))
+
+
+def check_update(current_version: str, system: str | None = None, channel: str = "stable"):
     system = (system or platform.system()).lower()
-    release = json.loads(_request(API_URL))
+    channel = "development" if channel == "development" else "stable"
+    release = _release_for_channel(channel)
     tag = str(release.get("tag_name", "")).strip()
     assets = release.get("assets") if isinstance(release.get("assets"), list) else []
     asset = _platform_asset(assets, system)
@@ -51,6 +77,7 @@ def check_update(current_version: str, system: str | None = None):
     available = bool(tag and _version(tag) > _version(current_version))
     return {
         "ok": True,
+        "channel": channel,
         "available": available,
         "current": current_version,
         "version": tag.lstrip("vV"),
@@ -72,8 +99,8 @@ def _expected_hash(checksums_url: str, asset_name: str):
     return ""
 
 
-def download_update(current_version: str, system: str, update_dir: Path):
-    info = check_update(current_version, system)
+def download_update(current_version: str, system: str, update_dir: Path, channel: str = "stable"):
+    info = check_update(current_version, system, channel)
     if not info["available"]:
         return {**info, "message": "LCARS is already on the newest public release"}
     asset = info.get("asset")
@@ -105,7 +132,24 @@ def download_update(current_version: str, system: str, update_dir: Path):
     return {**info, "downloaded": True, "path": str(destination), "sha256": actual, "message": f"Version {info['version']} downloaded and verified"}
 
 
-def schedule_install(path: str, system: str, parent_pid: int, executable: str = ""):
+def _sha256(path: Path):
+    digest=hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda:handle.read(1024*1024),b""):digest.update(chunk)
+    return digest.hexdigest()
+
+
+def rollback_status(system: str, executable: str = "", archive_dir: Path | None = None):
+    if system=="windows":
+        return {"available":False,"message":"Windows rollback uses the previous verified setup file; reinstall the desired GitHub release or rerun Setup to repair the current release"}
+    target=Path(executable).resolve() if executable else None
+    directory=Path(archive_dir) if archive_dir else (target.parent/"previous-release" if target else None)
+    previous=directory/(target.name+".previous") if directory and target else None
+    available=bool(previous and previous.is_file() and previous.stat().st_size>1024*1024)
+    return {"available":available,"path":str(previous) if available else "","sha256":_sha256(previous) if available else "","message":"Previous verified Linux AppImage is ready" if available else "No previous Linux release has been archived yet"}
+
+
+def schedule_install(path: str, system: str, parent_pid: int, executable: str = "", archive_dir: Path | None = None):
     installer = Path(path).resolve()
     if not installer.is_file():
         raise RuntimeError("The verified update installer is no longer available")
@@ -117,10 +161,21 @@ def schedule_install(path: str, system: str, parent_pid: int, executable: str = 
     target = Path(executable).resolve() if executable else None
     if target and target.is_file() and os.access(target, os.W_OK):
         helper = Path(tempfile.gettempdir()) / f"lcars-update-{int(time.time())}.sh"
-        source_arg=shlex.quote(str(installer));target_arg=shlex.quote(str(target))
-        helper.write_text(f'''#!/bin/sh\nwhile kill -0 {int(parent_pid)} 2>/dev/null; do sleep 1; done\ncp {source_arg} {target_arg}\nchmod +x {target_arg}\nexec {target_arg}\n''', encoding="utf-8")
+        previous_dir=Path(archive_dir) if archive_dir else target.parent/"previous-release";previous=previous_dir/(target.name+".previous")
+        source_arg=shlex.quote(str(installer));target_arg=shlex.quote(str(target));previous_dir_arg=shlex.quote(str(previous_dir));previous_arg=shlex.quote(str(previous))
+        helper.write_text(f'''#!/bin/sh\nset -eu\nwhile kill -0 {int(parent_pid)} 2>/dev/null; do sleep 1; done\nmkdir -p {previous_dir_arg}\ncp {target_arg} {previous_arg}.part\nmv {previous_arg}.part {previous_arg}\ncp {source_arg} {target_arg}\nchmod +x {target_arg}\nexec {target_arg}\n''', encoding="utf-8")
         helper.chmod(0o700)
         subprocess.Popen([str(helper)], start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return {"ok": True, "message": "Verified Linux update will replace and restart LCARS after it closes", "closeApp": True}
     subprocess.Popen([str(installer)], start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     return {"ok": True, "message": "Verified Linux installer opened; close LCARS when prompted", "closeApp": False}
+
+
+def schedule_rollback(system: str, parent_pid: int, executable: str = "", archive_dir: Path | None = None):
+    status=rollback_status(system,executable,archive_dir)
+    if not status["available"]:raise RuntimeError(status["message"])
+    target=Path(executable).resolve();previous=Path(status["path"]);helper=Path(tempfile.gettempdir())/f"lcars-rollback-{int(time.time())}.sh"
+    target_arg=shlex.quote(str(target));previous_arg=shlex.quote(str(previous));swap_arg=shlex.quote(str(previous.with_suffix(".swap")))
+    helper.write_text(f'''#!/bin/sh\nset -eu\nwhile kill -0 {int(parent_pid)} 2>/dev/null; do sleep 1; done\ncp {target_arg} {swap_arg}\ncp {previous_arg} {target_arg}\nchmod +x {target_arg}\nmv {swap_arg} {previous_arg}\nexec {target_arg}\n''',encoding="utf-8");helper.chmod(0o700)
+    subprocess.Popen([str(helper)],start_new_session=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    return {"ok":True,"message":"LCARS will restore the previous Linux release and restart","closeApp":True}

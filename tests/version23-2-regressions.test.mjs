@@ -48,10 +48,10 @@ test("Extension API v2 is declarative, permissioned, namespaced, and backward co
   assert.match(page, /api\/extension-state/);
 });
 
-test("Ctrl+Number is captured before terminal input while plain numbers remain untouched", () => {
-  assert.match(page, /digit && e\.ctrlKey/);
+test("Ctrl+Number is captured before terminal input while plain numbers navigate outside editors", () => {
+  assert.match(page, /e\.ctrlKey\|\|!shortcutTargetIsEditable\(e\.target\)/);
   assert.match(page, /addEventListener\("keydown", key, true\)/);
-  assert.doesNotMatch(page, /digit && !editing && !e\.ctrlKey/);
+  assert.match(page, /input, textarea, select/);
 });
 
 test("background update failures are silent while manual checks report errors", () => {

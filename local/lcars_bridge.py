@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """Local-only, allowlisted universal Linux system bridge for LCARS."""
-import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re, base64, mimetypes, tempfile, socket, sys
+import json, os, shutil, subprocess, pty, select, threading, time, uuid, signal, re, base64, mimetypes, tempfile, socket, sys, hashlib
 from configparser import ConfigParser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
-from lcars_updater import check_update, download_update, schedule_install
-from lcars_extensions import load_extensions, extension_state, save_extension_state
+from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
+from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation
 from lcars_documents import read_document, write_document
 
 PORT=8765
-LCARS_VERSION="24.0.0"
+LCARS_VERSION="25.2.0"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -24,6 +24,8 @@ TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
 ICON_CACHE={}
 ICON_INDEX=None
+MEDIA_ICON_CACHE={}
+MEDIA_ART_PATHS={}
 NETWORK_CACHE={"at":0,"value":None}
 TRAY_CACHE={"at":0,"value":None}
 GRAPHICS_CACHE={"at":0,"value":None}
@@ -349,6 +351,25 @@ def icon_data(value):
         result="data:"+mime+";base64,"+base64.b64encode(path.read_bytes()).decode();ICON_CACHE[value]=result;return result
     except Exception:ICON_CACHE[value]="";return ""
 
+def application_icon_for(name):
+    """Resolve an exact desktop-entry identity; an absent icon is safer than a wrong one."""
+    key=re.sub(r"[^a-z0-9]+","",str(name).casefold())
+    if not key:return ""
+    if key in MEDIA_ICON_CACHE:return MEDIA_ICON_CACHE[key]
+    for folder in APP_DIRS:
+        if not folder.exists():continue
+        for path in folder.glob("*.desktop"):
+            try:
+                config=ConfigParser(interpolation=None,strict=False);config.read(path,encoding="utf-8")
+                entry=config["Desktop Entry"]
+                executable=entry.get("Exec","").split()[0] if entry.get("Exec") else ""
+                aliases=(entry.get("Name",""),entry.get("StartupWMClass",""),path.stem,Path(executable).name)
+                if key in {re.sub(r"[^a-z0-9]+","",str(alias).casefold()) for alias in aliases if alias}:
+                    result=icon_data(entry.get("Icon",""));MEDIA_ICON_CACHE[key]=result;return result
+            except Exception:pass
+    MEDIA_ICON_CACHE[key]=""
+    return ""
+
 def storage_data():
     if not shutil.which("lsblk"):return []
     try:
@@ -564,6 +585,22 @@ def audio_devices_data():
             devices.append({"id":ident,"name":name.strip(),"default":bool(marker),"kind":section})
     return devices
 
+def media_art_source(value):
+    raw=str(value or "").strip()
+    if raw.startswith(("https://","http://")):return raw
+    if not raw.startswith("file://"):return ""
+    try:
+        parsed=urlparse(raw)
+        path=Path(unquote(parsed.path)).resolve()
+        mime=mimetypes.guess_type(path.name)[0] or ""
+        stat=path.stat()
+        if not path.is_file() or not mime.startswith("image/") or stat.st_size>8388608:return ""
+        token=hashlib.sha256(f"{path}:{stat.st_mtime_ns}:{stat.st_size}".encode()).hexdigest()[:24]
+        if len(MEDIA_ART_PATHS)>=64 and token not in MEDIA_ART_PATHS:MEDIA_ART_PATHS.pop(next(iter(MEDIA_ART_PATHS)))
+        MEDIA_ART_PATHS[token]=path
+        return f"http://127.0.0.1:{PORT}/api/media-art?id={token}"
+    except Exception:return ""
+
 def media_data():
     players_by_name={}
     if shutil.which("playerctl"):
@@ -581,8 +618,8 @@ def media_data():
             try: volume=round(float(vol.stdout.strip())*100)
             except Exception: volume=0
             display_name=name.split(".")[0].replace("-"," ").title()
-            art=values[4] if values[4].startswith(("https://","http://")) else ""
-            player={"id":name,"name":display_name,"status":values[0] or "Stopped","artist":values[1],"title":values[2] or "No media","album":values[3],"artUrl":art,"position":position,"length":length,"volume":volume}
+            art=media_art_source(values[4])
+            player={"id":name,"name":display_name,"status":values[0] or "Stopped","artist":values[1],"title":values[2] or "No media","album":values[3],"artUrl":art,"position":position,"length":length,"volume":volume,"icon":application_icon_for(display_name)}
             key=display_name.casefold()
             status_rank={"Playing":2,"Paused":1,"Stopped":0}
             previous=players_by_name.get(key)
@@ -604,12 +641,13 @@ def media_data():
                     vol=subprocess.run(["wpctl","get-volume",ident],capture_output=True,text=True,timeout=1)
                     try: value=round(float(vol.stdout.split()[1])*100)
                     except Exception: value=0
+                    muted="MUTED" in vol.stdout.upper()
                     clean=name.strip()
                     advanced=bool(re.search(r"(?i)(monitor|capture|playback|input_[A-Z0-9]+|output_[A-Z0-9]+|[_ .-](FL|FR|FC|LFE|RL|RR|MONO)(?:\b|$))",clean))
                     group=re.sub(r"(?i)\b(input|output)_(FL|FR|FC|LFE|RL|RR|MONO)\b","",clean)
                     group=re.sub(r"(?i)[:._ -]*(monitor|capture|playback)[._ -]*(FL|FR|FC|LFE|RL|RR|MONO)?$","",group)
                     group=re.sub(r"\s+"," ",group).strip(" .:_-") or clean
-                    streams.append({"id":ident,"name":clean,"group":group,"advanced":advanced,"volume":value})
+                    streams.append({"id":ident,"name":clean,"group":group,"advanced":advanced,"volume":value,"muted":muted,"icon":application_icon_for(group),"routeAvailable":bool(shutil.which("pavucontrol"))})
     return {"players":list(players_by_name.values()),"streams":streams}
 
 def start_first(candidates):
@@ -622,16 +660,95 @@ def start_first(candidates):
 def integration_health():
     displays=displays_data()
     env=linux_environment()
+    try:extension_result=extension_manifests()
+    except Exception as exc:extension_result={"extensions":[],"errors":[{"error":type(exc).__name__}]}
+    config_ready=CONFIG_DIR.exists() or os.access(CONFIG_DIR.parent,os.W_OK)
+    power_ready=bool(shutil.which("systemctl"))
     return {
-        "windows":{"available":env["capabilities"]["windowControl"],"detail":f'{env["desktop"]} / {env["session"]} window adapter'},
-        "displays":{"available":env["capabilities"]["displayControl"],"detail":f'{len(displays)} display output(s) detected'},
-        "audio":{"available":bool(shutil.which("wpctl")),"detail":"PipeWire controls ready" if shutil.which("wpctl") else "wpctl missing; install wireplumber"},
-        "media":{"available":bool(shutil.which("playerctl")),"detail":"MPRIS controls ready" if shutil.which("playerctl") else "playerctl missing"},
-        "terminal":{"available":Path(os.environ.get("SHELL","/bin/bash")).is_file(),"detail":os.environ.get("SHELL","/bin/bash")},
-        "storage":{"available":bool(shutil.which("udisksctl")),"detail":f'{len(storage_data())} block device(s); UDisks2 '+("ready" if shutil.which("udisksctl") else "missing")},
-        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Offline whisper.cpp and FFmpeg ready"},
-        "tray":{"available":tray_data()["supported"],"detail":tray_data()["reason"] or f'{len(tray_data()["items"])} StatusNotifier service(s)'},
+        "window_control":{"available":env["capabilities"]["windowControl"],"detail":f'{env["desktop"]} / {env["session"]} window adapter',"remedy":"Install the supported desktop window-control adapter, then recheck."},
+        "displays":{"available":env["capabilities"]["displayControl"],"detail":f'{len(displays)} display output(s) detected',"remedy":"Install your desktop display utility (KScreen on KDE) and reconnect the display."},
+        "audio":{"available":bool(shutil.which("wpctl")),"detail":"PipeWire controls ready" if shutil.which("wpctl") else "wpctl missing; install wireplumber","remedy":"Install WirePlumber/PipeWire tools to enable audio routing."},
+        "media":{"available":bool(shutil.which("playerctl")),"detail":"MPRIS controls ready" if shutil.which("playerctl") else "playerctl missing","remedy":"Install playerctl to control MPRIS-compatible players."},
+        "terminal":{"available":Path(os.environ.get("SHELL","/bin/bash")).is_file(),"detail":os.environ.get("SHELL","/bin/bash"),"remedy":"Choose an installed shell in Settings → Embedded Terminal."},
+        "storage":{"available":bool(shutil.which("udisksctl")),"detail":f'{len(storage_data())} block device(s); UDisks2 '+("ready" if shutil.which("udisksctl") else "missing"),"remedy":"Install UDisks2 for safe removable-drive mount controls."},
+        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Offline whisper.cpp and FFmpeg ready","remedy":"Install whisper.cpp and FFmpeg, then select a local model in Settings."},
+        "tray":{"available":tray_data()["supported"],"detail":tray_data()["reason"] or f'{len(tray_data()["items"])} StatusNotifier service(s)',"remedy":"Use a KDE StatusNotifier-compatible desktop session for re-hosted tray items."},
+        "extensions":{"available":not bool(extension_result.get("errors")),"detail":f'{len(extension_result.get("extensions",[]))} module(s), {len(extension_result.get("errors",[]))} rejected',"remedy":"Remove or update rejected manifests shown in the extension bay."},
+        "configuration":{"available":config_ready,"detail":"Local settings storage ready" if config_ready else "Settings directory is not writable","remedy":"Restore write access to the LCARS configuration directory."},
+        "updater":{"available":True,"detail":"Verified GitHub release channel configured","remedy":"Connect to GitHub and use the manual update check for detailed errors."},
+        "power":{"available":power_ready,"detail":"systemd-logind power controls ready" if power_ready else "systemctl unavailable","remedy":"Use a systemd-logind compatible session or the operating system power menu."},
     }
+
+def engineering_data():
+    processes=[];sensors=[];current_uid=os.getuid();protected_names={"systemd","init","kthreadd","plasmashell","kwin_wayland","kwin_x11","lcars_bridge.py","lcars-command-interface"}
+    try:
+        raw=subprocess.run(["ps","-eo","pid=,comm=,%cpu=,%mem=,user=,stat=","--sort=-%cpu"],capture_output=True,text=True,timeout=3).stdout
+        for line in raw.splitlines()[:120]:
+            parts=line.split(None,5)
+            if len(parts)<6:continue
+            pid_text,name,cpu,memory,user,state=parts
+            try:pid=int(pid_text);owner=Path(f"/proc/{pid}").stat().st_uid
+            except Exception:continue
+            if owner!=current_uid:continue
+            protected=pid in {1,os.getpid(),os.getppid()} or name.casefold() in protected_names or "lcars" in name.casefold()
+            processes.append({"pid":pid,"name":name[:80],"cpu":round(float(cpu),1),"memory":round(float(memory),1),"user":user[:48],"state":"stopped" if "T" in state else "running","protected":protected})
+    except Exception:pass
+    for path in sorted(Path("/sys/class/thermal").glob("thermal_zone*"))[:8]:
+        try:
+            value=float((path/"temp").read_text().strip())/1000;name=(path/"type").read_text().strip().replace("_"," ").upper()
+            sensors.append({"id":f"temp-{path.name}","name":name or "THERMAL ZONE","kind":"temperature","value":f"{value:.1f}°C","status":"attention" if value>=85 else "ready","detail":"KERNEL THERMAL SENSOR"})
+        except Exception:pass
+    for path in sorted(Path("/sys/class/hwmon").glob("hwmon*/fan*_input"))[:8]:
+        try:
+            value=int(path.read_text().strip());name=(path.parent/"name").read_text().strip().replace("_"," ").upper()
+            sensors.append({"id":f"fan-{path.parent.name}-{path.stem}","name":name+" FAN","kind":"fan","value":f"{value} RPM","status":"ready" if value>0 else "attention","detail":"HARDWARE MONITOR"})
+        except Exception:pass
+    for path in sorted(Path("/sys/class/power_supply").glob("*")):
+        try:
+            kind=(path/"type").read_text().strip().casefold()
+            if kind not in ("battery","ups"):continue
+            capacity=int((path/"capacity").read_text().strip());state=(path/"status").read_text().strip() if (path/"status").exists() else ""
+            sensors.append({"id":f"power-{path.name}","name":path.name.upper(),"kind":"ups" if kind=="ups" else "battery","value":f"{capacity}%","status":"attention" if capacity<20 and state.casefold()!="charging" else "ready","detail":state.upper() or kind.upper()})
+        except Exception:pass
+    removable=sum(1 for drive in storage_data() if drive.get("removable"));sensors.append({"id":"storage-matrix","name":"STORAGE MATRIX","kind":"drive","value":f"{len(storage_data())} DRIVES","status":"ready","detail":f"{removable} REMOVABLE DEVICE(S)"})
+    return {"generated":int(time.time()),"processes":processes[:80],"sensors":sensors[:24],"processControl":True,"serviceControl":False,"notes":["Only processes owned by the current user can be controlled","LCARS and critical desktop processes remain protected"]}
+
+def process_action(pid,action):
+    if action not in ("terminate","suspend","resume"):raise ValueError("unsupported process action")
+    pid=int(pid);target=Path(f"/proc/{pid}")
+    if pid<=1 or pid in (os.getpid(),os.getppid()) or not target.exists():raise ValueError("process is unavailable or protected")
+    if target.stat().st_uid!=os.getuid():raise PermissionError("LCARS only controls processes owned by the current user")
+    try:name=(target/"comm").read_text().strip().casefold()
+    except Exception:name=""
+    if "lcars" in name or name in {"systemd","plasmashell","kwin_wayland","kwin_x11"}:raise PermissionError("this desktop process is protected")
+    os.kill(pid,{"terminate":signal.SIGTERM,"suspend":signal.SIGSTOP,"resume":signal.SIGCONT}[action])
+    return {"ok":True,"message":f"Process {pid} {action} command accepted"}
+
+def routine_command(command):
+    commands={"refresh-applications":lambda:"Application inventory refreshed","integration-recheck":lambda:protected_action("integration-recheck"),"open-system-monitor":lambda:protected_action("system-monitor"),"open-software-center":lambda:protected_action("software-center")}
+    if command not in commands:raise PermissionError("routine command is not on the LCARS allowlist")
+    return {"ok":True,"message":commands[command]()}
+
+def diagnostics_report():
+    """Return support facts without usernames, paths, files, credentials or history."""
+    environment=linux_environment();media=media_data()
+    try:extensions=extension_manifests()
+    except Exception as exc:extensions={"extensions":[],"errors":[{"error":type(exc).__name__}]}
+    return {
+        "schema":1,
+        "generatedUtc":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),
+        "lcarsVersion":LCARS_VERSION,
+        "platform":{"family":"Linux","distribution":environment.get("distro","Linux"),"desktop":environment.get("desktop","Unknown"),"session":environment.get("session","unknown")},
+        "health":integration_health(),
+        "inventory":{"displays":len(displays_data()),"applications":sum(len(list(folder.glob("*.desktop"))) for folder in APP_DIRS if folder.exists()),"drives":len(storage_data()),"mediaPlayers":len(media.get("players",[])),"audioStreams":len(media.get("streams",[])),"extensions":len(extensions.get("extensions",[])),"rejectedExtensions":len(extensions.get("errors",[]))},
+        "configuration":{"settingsFilePresent":CONFIG_FILE.is_file(),"extensionStateDirectoryPresent":EXTENSION_STATE_DIR.is_dir(),"updateDirectoryPresent":UPDATE_DIR.is_dir()},
+        "privacy":"Sanitized report: no usernames, home paths, file names, credentials, terminal history, window titles, or media titles are included.",
+    }
+
+def export_diagnostics():
+    report=diagnostics_report();destination=Path.home()/"Downloads"/f"LCARS-Diagnostics-{time.strftime('%Y%m%d-%H%M%S')}.json"
+    destination.parent.mkdir(parents=True,exist_ok=True);destination.write_text(json.dumps(report,indent=2),encoding="utf-8")
+    return {"ok":True,"message":"Privacy-safe diagnostics report exported to Downloads","path":str(destination)}
 
 def protected_action(action):
     mappings={
@@ -670,6 +787,13 @@ def protected_action(action):
     if action=="integration-recheck":
         health=integration_health(); ready=sum(1 for item in health.values() if item["available"])
         return f"Integration check complete — {ready}/{len(health)} systems ready"
+    if action=="repair-installation":
+        helper=Path(__file__).resolve().parent.parent/"recovery"/"register-app.sh"
+        if not helper.is_file():helper=Path.home()/".local/opt/lcars-command-interface"/"install-autostart.sh"
+        if not helper.is_file():return "Repair helper is unavailable; reinstall the current Linux package without removing settings"
+        repair_env={**os.environ,"LCARS_APPLICATION_PATH":os.environ.get("LCARS_EXECUTABLE",""),"LCARS_ICON_PATH":str(Path(__file__).resolve().parent.parent/"icons"/"lcars-command-interface.png")}
+        result=subprocess.run(["bash",str(helper),"--register"],capture_output=True,text=True,timeout=20,env=repair_env)
+        return "Application launcher, icon registration, and desktop recovery link repaired" if result.returncode==0 else "Repair could not refresh desktop integration: "+(result.stderr.strip()[:180] or "unknown error")
     if action=="lcars-update-check":
         return "Use Updates → LCARS Interface to check the verified GitHub release channel"
     if action=="lcars-rollback":
@@ -701,6 +825,13 @@ class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         origin=self.headers.get("Origin","");allowed=origin if origin in ("lcars://app","http://127.0.0.1:8764") else "lcars://app"
         self.send_response(204);self.send_header("Access-Control-Allow-Origin",allowed);self.send_header("Access-Control-Allow-Methods","GET,POST,OPTIONS");self.send_header("Access-Control-Allow-Headers","Content-Type");self.end_headers()
+    def send_media_art(self,path):
+        try:
+            mime=mimetypes.guess_type(path.name)[0] or ""
+            if not path.is_file() or not mime.startswith("image/") or path.stat().st_size>8388608:return self.send_json({"error":"media artwork unavailable"},404)
+            body=path.read_bytes();origin=self.headers.get("Origin","");allowed=origin if origin in ("lcars://app","http://127.0.0.1:8764") else "lcars://app"
+            self.send_response(200);self.send_header("Content-Type",mime);self.send_header("Content-Length",str(len(body)));self.send_header("Cache-Control","private, max-age=3600");self.send_header("Access-Control-Allow-Origin",allowed);self.end_headers();self.wfile.write(body)
+        except Exception:self.send_json({"error":"media artwork unavailable"},404)
     def do_GET(self):
         route=urlparse(self.path).path
         if route=="/api/apps": self.send_json({"apps":applications()})
@@ -727,17 +858,26 @@ class Handler(BaseHTTPRequestHandler):
                 else:self.send_json({"kind":"","content":""})
             except Exception as exc:self.send_json({"error":str(exc)},400)
         elif route=="/api/media": self.send_json(media_data())
+        elif route=="/api/media-art":
+            token=parse_qs(urlparse(self.path).query).get("id",[""])[0]
+            path=MEDIA_ART_PATHS.get(token) if re.fullmatch(r"[0-9a-f]{24}",token) else None
+            self.send_media_art(path) if path else self.send_json({"error":"media artwork unavailable"},404)
         elif route=="/api/windows": self.send_json({"windows":windows_data(),"kwin":bool(command_path("kdotool"))})
         elif route=="/api/displays": self.send_json({"displays":displays_data()})
         elif route=="/api/health-check": self.send_json({"health":integration_health()})
+        elif route=="/api/diagnostics": self.send_json(diagnostics_report())
         elif route=="/api/config": self.send_json(load_config())
         elif route=="/api/extensions": self.send_json(extension_manifests())
+        elif route=="/api/extension-catalog": self.send_json(build_extension_catalog(EXTENSION_DIR,BUILTIN_EXTENSION_DIR))
+        elif route=="/api/engineering": self.send_json(engineering_data())
         elif route=="/api/extension-state":
             from urllib.parse import parse_qs
             try:self.send_json({"state":extension_state(EXTENSION_STATE_DIR,parse_qs(urlparse(self.path).query).get("id",[""])[0])})
             except Exception as exc:self.send_json({"error":str(exc)},400)
         elif route=="/api/lcars-update":
-            try:self.send_json(check_update(LCARS_VERSION,"linux"))
+            try:
+                channel=parse_qs(urlparse(self.path).query).get("channel",["stable"])[0]
+                self.send_json({**check_update(LCARS_VERSION,"linux",channel),"rollback":rollback_status("linux",os.environ.get("LCARS_EXECUTABLE",""),CONFIG_DIR/"previous-release")})
             except Exception as exc:self.send_json({"ok":False,"silent":True,"error":str(exc)},503)
         elif route=="/api/document":
             from urllib.parse import parse_qs
@@ -755,21 +895,41 @@ class Handler(BaseHTTPRequestHandler):
             route=urlparse(self.path).path
             if route=="/api/lcars-update":
                 operation=str(data.get("operation","check"))
+                channel="development" if str(data.get("channel","stable"))=="development" else "stable"
                 try:
-                    if operation=="check":return self.send_json(check_update(LCARS_VERSION,"linux"))
-                    if operation=="download":return self.send_json(download_update(LCARS_VERSION,"linux",UPDATE_DIR))
-                    if operation=="install":return self.send_json(schedule_install(str(data.get("path","")),"linux",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),os.environ.get("LCARS_EXECUTABLE","")))
+                    executable=os.environ.get("LCARS_EXECUTABLE","");archive=CONFIG_DIR/"previous-release"
+                    if operation=="check":return self.send_json({**check_update(LCARS_VERSION,"linux",channel),"rollback":rollback_status("linux",executable,archive)})
+                    if operation=="download":return self.send_json({**download_update(LCARS_VERSION,"linux",UPDATE_DIR,channel),"rollback":rollback_status("linux",executable,archive)})
+                    if operation=="install":return self.send_json(schedule_install(str(data.get("path","")),"linux",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
+                    if operation=="rollback":return self.send_json(schedule_rollback("linux",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
+                    if operation=="status":return self.send_json({"ok":True,"rollback":rollback_status("linux",executable,archive)})
                     return self.send_json({"ok":False,"error":"Unknown update operation"},400)
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},503)
+            if route=="/api/diagnostics-export":
+                try:return self.send_json(export_diagnostics())
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},500)
             if route=="/api/extension-state":
                 try:return self.send_json({"ok":True,"state":save_extension_state(EXTENSION_STATE_DIR,str(data.get("id","")),data.get("state",{}))})
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/extension-install":
+                try:return self.send_json(extension_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,str(data.get("id","")),str(data.get("operation","install"))))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/process-action":
+                try:return self.send_json(process_action(data.get("pid",0),str(data.get("action",""))))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+            if route=="/api/routine-command":
+                if not bool(data.get("approved")):return self.send_json({"ok":False,"error":"operator approval is required"},403)
+                try:return self.send_json(routine_command(str(data.get("command",""))))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
             if route=="/api/document":
                 try:return self.send_json(write_document(str(data.get("path","")),str(data.get("content",""))))
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
             if route=="/api/audio":
-                volume=max(0,min(100,int(data.get("volume",0))))
                 if not shutil.which("wpctl"): return self.send_json({"error":"wpctl unavailable"},503)
+                if "muted" in data:
+                    muted=bool(data.get("muted"));result=subprocess.run(["wpctl","set-mute","@DEFAULT_AUDIO_SINK@","1" if muted else "0"],capture_output=True,text=True,timeout=3)
+                    return self.send_json({"ok":result.returncode==0,"muted":muted},200 if result.returncode==0 else 503)
+                volume=max(0,min(100,int(data.get("volume",0))))
                 subprocess.run(["wpctl","set-volume","@DEFAULT_AUDIO_SINK@",f"{volume}%"],timeout=3)
                 return self.send_json({"volume":volume})
             if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action",""))))
@@ -820,6 +980,11 @@ class Handler(BaseHTTPRequestHandler):
                 if not ident.isdigit(): return self.send_json({"error":"invalid stream"},400)
                 result=subprocess.run(["wpctl","set-volume",ident,f"{volume}%"],capture_output=True,text=True,timeout=3)
                 return self.send_json({"ok":result.returncode==0,"volume":volume})
+            if route=="/api/stream-mute":
+                ident=str(data.get("id","")); muted=bool(data.get("muted"))
+                if not ident.isdigit(): return self.send_json({"error":"invalid stream"},400)
+                result=subprocess.run(["wpctl","set-mute",ident,"1" if muted else "0"],capture_output=True,text=True,timeout=3)
+                return self.send_json({"ok":result.returncode==0,"muted":muted},200 if result.returncode==0 else 503)
             if route=="/api/action":
                 action=str(data.get("action",""))
                 return self.send_json({"message":protected_action(action)})

@@ -7,12 +7,12 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
-from lcars_updater import check_update, download_update, schedule_install
-from lcars_extensions import load_extensions, extension_state, save_extension_state
+from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
+from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation
 from lcars_documents import read_document, write_document
 
 PORT=8765
-LCARS_VERSION="24.0.0"
+LCARS_VERSION="25.2.0"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -104,6 +104,14 @@ def application_icons(shortcuts):
         if list_file:
             try:Path(list_file).unlink()
             except Exception:pass
+
+def executable_icon(path):
+    key=str(path or "")
+    if not key:return ""
+    if key in WINDOWS_ICON_CACHE:return WINDOWS_ICON_CACHE[key]
+    escaped=key.replace("'","''")
+    script=f'''Add-Type -AssemblyName System.Drawing;try{{$icon=[System.Drawing.Icon]::ExtractAssociatedIcon('{escaped}');$stream=New-Object IO.MemoryStream;$icon.ToBitmap().Save($stream,[Drawing.Imaging.ImageFormat]::Png);[Convert]::ToBase64String($stream.ToArray());$stream.Dispose();$icon.Dispose()}}catch{{''}}'''
+    raw=run_ps(script,8);WINDOWS_ICON_CACHE[key]="data:image/png;base64,"+raw if raw else "";return WINDOWS_ICON_CACHE[key]
 
 def windows_system_fallback():
     script=r'''$cpu=(Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average;$os=Get-CimInstance Win32_OperatingSystem;$drive=Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='$env:SystemDrive'";$gpu=Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | Select-Object -First 1 -ExpandProperty Name;$gpuUsage=0;try{$samples=(Get-Counter '\\GPU Engine(*)\\Utilization Percentage' -ErrorAction Stop).CounterSamples|ForEach-Object{[double]$_.CookedValue};if($samples){$gpuUsage=[math]::Round(($samples|Measure-Object -Maximum).Maximum)}}catch{};[pscustomobject]@{cpu=[int]$cpu;memTotal=[int64]([double]$os.TotalVisibleMemorySize*1024);memFree=[int64]([double]$os.FreePhysicalMemory*1024);diskTotal=[int64]$drive.Size;diskFree=[int64]$drive.FreeSpace;gpuName=[string]$gpu;gpuUsage=[int]$gpuUsage}|ConvertTo-Json -Compress'''
@@ -290,9 +298,9 @@ def audio_data():
         from ctypes import POINTER, cast
         from comtypes import CLSCTX_ALL
         from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
-        endpoint=AudioUtilities.GetSpeakers();interface=endpoint.Activate(IAudioEndpointVolume._iid_,CLSCTX_ALL,None);volume=cast(interface,POINTER(IAudioEndpointVolume)).GetMasterVolumeLevelScalar()
-        return {"volume":round(volume*100)}
-    except Exception:return {"volume":50}
+        endpoint=AudioUtilities.GetSpeakers();interface=endpoint.Activate(IAudioEndpointVolume._iid_,CLSCTX_ALL,None);control=cast(interface,POINTER(IAudioEndpointVolume));volume=control.GetMasterVolumeLevelScalar()
+        return {"volume":round(volume*100),"muted":bool(control.GetMute()),"available":True}
+    except Exception:return {"volume":50,"muted":False,"available":False}
 
 def audio_devices():
     raw=run_ps("if(Get-Module -ListAvailable AudioDeviceCmdlets){Import-Module AudioDeviceCmdlets;Get-AudioDevice -List|Select-Object ID,Name,Type,Default|ConvertTo-Json -Compress}")
@@ -307,11 +315,26 @@ def stream_data():
     try:
         from pycaw.pycaw import AudioUtilities
         result=[]
-        for session in AudioUtilities.GetAllSessions():
+        for index,session in enumerate(AudioUtilities.GetAllSessions()):
             if not session.Process:continue
-            vol=session.SimpleAudioVolume.GetMasterVolume();result.append({"id":str(session.Process.pid),"name":session.Process.name().removesuffix(".exe"),"group":session.Process.name().removesuffix(".exe"),"volume":round(vol*100)})
+            name=session.Process.name().removesuffix(".exe");vol=session.SimpleAudioVolume.GetMasterVolume()
+            try:icon=executable_icon(session.Process.exe())
+            except Exception:icon=""
+            result.append({"id":f"{session.Process.pid}:{index}","name":name,"group":name,"volume":round(vol*100),"muted":bool(session.SimpleAudioVolume.GetMute()),"advanced":False,"routeAvailable":True,"icon":icon})
         return result
     except:return []
+
+def set_stream_audio(ident,volume=None,muted=None):
+    try:
+        from pycaw.pycaw import AudioUtilities
+        pid=int(str(ident).split(":",1)[0]);changed=False
+        for session in AudioUtilities.GetAllSessions():
+            if not session.Process or session.Process.pid!=pid:continue
+            if volume is not None:session.SimpleAudioVolume.SetMasterVolume(max(0,min(100,int(volume)))/100,None)
+            if muted is not None:session.SimpleAudioVolume.SetMute(bool(muted),None)
+            changed=True
+        return changed
+    except:return False
 
 def media_data():
     players=[]
@@ -319,7 +342,10 @@ def media_data():
         known={"spotify":"Spotify","vlc":"VLC","music.ui":"Media Player","wmplayer":"Windows Media Player","foobar2000":"foobar2000"}
         for p in psutil.process_iter(["pid","name"]):
             key=(p.info["name"] or "").lower().removesuffix(".exe")
-            if key in known:players.append({"id":key,"name":known[key],"status":"Active","artist":"Windows Media Session","title":known[key],"album":"","volume":100})
+            if key in known:
+                try:icon=executable_icon(p.exe())
+                except Exception:icon=""
+                players.append({"id":key,"name":known[key],"status":"Active","artist":"Windows Media Session","title":known[key],"album":"","volume":100,"icon":icon})
     return {"players":players,"streams":stream_data()}
 
 def media_key(command):
@@ -341,7 +367,7 @@ def files_data(path):
     return {"path":str(target),"parent":str(target.parent) if target.parent!=target else "","items":sorted(items,key=lambda x:(not x["directory"],x["name"].lower()))}
 
 def protected_action(action):
-    commands={"system-monitor":["taskmgr.exe"],"processes":["taskmgr.exe"],"storage":["explorer.exe","shell:MyComputerFolder"],"audio-settings":["ms-settings:sound"],"network-settings":["ms-settings:network-status"],"wifi":["ms-settings:network-wifi"],"bluetooth":["ms-settings:bluetooth"],"software-center":["ms-windows-store://downloadsandupdates"],"check-updates":["ms-settings:windowsupdate"],"display-settings":["ms-settings:display"]}
+    commands={"system-monitor":["taskmgr.exe"],"processes":["taskmgr.exe"],"storage":["explorer.exe","shell:MyComputerFolder"],"audio-settings":["ms-settings:apps-volume"],"network-settings":["ms-settings:network-status"],"wifi":["ms-settings:network-wifi"],"bluetooth":["ms-settings:bluetooth"],"software-center":["ms-windows-store://downloadsandupdates"],"check-updates":["ms-settings:windowsupdate"],"display-settings":["ms-settings:display"]}
     if action in commands:
         subprocess.Popen(commands[action],shell=True);return action.replace("-"," ").title()+" opened"
     if action=="poweroff":subprocess.Popen(["shutdown.exe","/s","/t","0"],creationflags=0x08000000);return "Computer shutdown requested"
@@ -355,12 +381,92 @@ def protected_action(action):
     if action=="shell-mode-off":subprocess.Popen(["explorer.exe"]);return "Windows Explorer restored"
     if action in ("startup-console-on","startup-console-off"):return "Windows launches LCARS without a separate console"
     if action=="integration-recheck":return "Windows integration check complete"
+    if action=="repair-installation":
+        executable=os.environ.get("LCARS_EXECUTABLE","")
+        if not executable or not Path(executable).is_file():return "Repair could not locate the installed LCARS executable; rerun Windows Setup and keep settings"
+        escaped=executable.replace("'","''")
+        script=f"$w=New-Object -ComObject WScript.Shell;$p=Join-Path $env:APPDATA 'Microsoft\\Windows\\Start Menu\\Programs\\LCARS Command Interface.lnk';$s=$w.CreateShortcut($p);$s.TargetPath='{escaped}';$s.WorkingDirectory=(Split-Path '{escaped}');$s.Save()"
+        result=subprocess.run(["powershell.exe","-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",script],capture_output=True,text=True,timeout=10,creationflags=0x08000000)
+        return "Windows application search shortcut repaired; rerun Setup to refresh optional runtimes" if result.returncode==0 else "Windows shortcut repair failed; rerun Setup in Repair mode"
     if action=="lcars-update-check":return "Use Updates → LCARS Interface to check the verified GitHub release channel"
     if action=="lcars-rollback":return "No previous Windows release has been archived yet"
     if action=="extension-scan":EXTENSION_DIR.mkdir(parents=True,exist_ok=True);return f"Extension scan complete — {len(list(EXTENSION_DIR.glob('**/lcars-module.json')))} manifest(s) found"
     if action=="extension-folder":EXTENSION_DIR.mkdir(parents=True,exist_ok=True);os.startfile(EXTENSION_DIR);return "Extensions folder opened"
     if action in ("refresh-system","network-refresh","close-bay-app","minimize-bay-app"):return action.replace("-"," ").title()
     return "This Windows integration is not available yet"
+
+def integration_health():
+    try:extensions=extension_manifests()
+    except Exception as exc:extensions={"extensions":[],"errors":[{"error":type(exc).__name__}]}
+    voice=voice_status();devices=audio_devices()
+    return {
+        "window_control":{"available":True,"detail":"Win32 bridge ready","remedy":"Restart LCARS to restart its local Win32 bridge."},
+        "displays":{"available":True,"detail":f"{len(displays_data())} display(s)","remedy":"Open Windows Display Settings and select Detect."},
+        "audio":{"available":bool(devices),"detail":"Windows Core Audio" if devices else "No Core Audio devices reported","remedy":"Reconnect the device or restart Windows Audio."},
+        "media":{"available":True,"detail":"Windows media keys ready","remedy":"The media application must support Windows media controls."},
+        "terminal":{"available":True,"detail":"PowerShell","remedy":"Choose powershell.exe or another installed shell in Settings."},
+        "storage":{"available":bool(psutil),"detail":f"{len(storage_data())} volume(s)","remedy":"Repair the optional psutil component from the installer."},
+        "voice":{"available":voice["available"],"detail":voice["reason"] or "Offline whisper.cpp and FFmpeg ready","remedy":"Install the optional voice components and choose a local model."},
+        "tray":{"available":False,"detail":"Windows cannot safely re-host every third-party notification icon","remedy":"Use LCARS quick controls or the native Windows notification area."},
+        "extensions":{"available":not bool(extensions.get("errors")),"detail":f"{len(extensions.get('extensions',[]))} module(s), {len(extensions.get('errors',[]))} rejected","remedy":"Remove or update rejected manifests shown in the extension bay."},
+        "configuration":{"available":True,"detail":"Local AppData settings storage ready","remedy":"Repair write access to the LCARS AppData directory."},
+        "updater":{"available":True,"detail":"Verified GitHub release channel configured","remedy":"Connect to GitHub and use the manual update check for detailed errors."},
+        "power":{"available":True,"detail":"Windows power APIs ready","remedy":"Use the native Windows power menu if system policy blocks the request."},
+    }
+
+def engineering_data():
+    processes=[];sensors=[];critical={"system","registry","smss.exe","csrss.exe","wininit.exe","services.exe","lsass.exe","winlogon.exe","dwm.exe","explorer.exe","lcars-command-interface.exe","python.exe","pythonw.exe"}
+    if psutil:
+        try:current_user=psutil.Process().username()
+        except Exception:current_user=""
+        for process in psutil.process_iter(["pid","name","cpu_percent","memory_percent","username","status"]):
+            try:
+                info=process.info;name=str(info.get("name") or "PROCESS");owner=str(info.get("username") or "")
+                if current_user and owner and owner.casefold()!=current_user.casefold():continue
+                protected=process.pid in (0,4,os.getpid(),os.getppid()) or name.casefold() in critical or "lcars" in name.casefold()
+                processes.append({"pid":process.pid,"name":name[:80],"cpu":round(float(info.get("cpu_percent") or 0),1),"memory":round(float(info.get("memory_percent") or 0),1),"user":owner.split("\\")[-1][:48],"state":"stopped" if str(info.get("status"))==getattr(psutil,"STATUS_STOPPED","stopped") else "running","protected":protected})
+            except Exception:pass
+        processes.sort(key=lambda item:(item["cpu"],item["memory"]),reverse=True)
+        try:
+            battery=psutil.sensors_battery()
+            if battery:sensors.append({"id":"windows-battery","name":"SYSTEM BATTERY","kind":"battery","value":f"{round(battery.percent)}%","status":"attention" if battery.percent<20 and not battery.power_plugged else "ready","detail":"AC POWER" if battery.power_plugged else "DISCHARGING"})
+        except Exception:pass
+    sensors.append({"id":"windows-storage","name":"STORAGE MATRIX","kind":"drive","value":f"{len(storage_data())} VOLUMES","status":"ready","detail":"WINDOWS VOLUME INVENTORY"})
+    sensors.append({"id":"windows-thermal","name":"THERMAL ADAPTER","kind":"temperature","value":"OS MANAGED","status":"unavailable","detail":"WINDOWS DOES NOT EXPOSE A UNIVERSAL NON-ADMIN SENSOR API"})
+    return {"generated":int(time.time()),"processes":processes[:80],"sensors":sensors,"processControl":bool(psutil),"serviceControl":False,"notes":["Only current-user processes are offered for control","Windows and LCARS processes remain protected"]}
+
+def process_action(pid,action):
+    if not psutil:raise RuntimeError("the optional psutil component is not installed")
+    if action not in ("terminate","suspend","resume"):raise ValueError("unsupported process action")
+    process=psutil.Process(int(pid));name=process.name().casefold()
+    if process.pid in (0,4,os.getpid(),os.getppid()) or name in {"system","registry","smss.exe","csrss.exe","wininit.exe","services.exe","lsass.exe","winlogon.exe","dwm.exe","explorer.exe"} or "lcars" in name:raise PermissionError("this Windows or LCARS process is protected")
+    try:
+        if process.username().casefold()!=psutil.Process().username().casefold():raise PermissionError("LCARS only controls processes owned by the current user")
+    except psutil.AccessDenied:raise PermissionError("Windows protected this process")
+    {"terminate":process.terminate,"suspend":process.suspend,"resume":process.resume}[action]()
+    return {"ok":True,"message":f"Process {pid} {action} command accepted"}
+
+def routine_command(command):
+    commands={"refresh-applications":lambda:"Application inventory refreshed","integration-recheck":lambda:protected_action("integration-recheck"),"open-system-monitor":lambda:protected_action("system-monitor"),"open-software-center":lambda:protected_action("software-center")}
+    if command not in commands:raise PermissionError("routine command is not on the LCARS allowlist")
+    return {"ok":True,"message":commands[command]()}
+
+def diagnostics_report():
+    try:extensions=extension_manifests()
+    except Exception as exc:extensions={"extensions":[],"errors":[{"error":type(exc).__name__}]}
+    media=media_data()
+    return {
+        "schema":1,"generatedUtc":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"lcarsVersion":LCARS_VERSION,
+        "platform":{"family":"Windows","release":os.environ.get("OS","Windows NT")},
+        "health":integration_health(),
+        "inventory":{"displays":len(displays_data()),"applications":sum(len(list(root.rglob("*.lnk"))) for root in [Path(os.environ.get("PROGRAMDATA","C:/ProgramData"))/"Microsoft/Windows/Start Menu/Programs",Path(os.environ.get("APPDATA",HOME))/"Microsoft/Windows/Start Menu/Programs"] if root.exists()),"drives":len(storage_data()),"mediaPlayers":len(media.get("players",[])),"audioStreams":len(media.get("streams",[])),"extensions":len(extensions.get("extensions",[])),"rejectedExtensions":len(extensions.get("errors",[]))},
+        "configuration":{"settingsFilePresent":CONFIG_FILE.is_file(),"extensionStateDirectoryPresent":EXTENSION_STATE_DIR.is_dir(),"updateDirectoryPresent":UPDATE_DIR.is_dir()},
+        "privacy":"Sanitized report: no usernames, home paths, file names, credentials, terminal history, window titles, or media titles are included.",
+    }
+
+def export_diagnostics():
+    destination=HOME/"Downloads"/f"LCARS-Diagnostics-{time.strftime('%Y%m%d-%H%M%S')}.json";destination.parent.mkdir(parents=True,exist_ok=True);destination.write_text(json.dumps(diagnostics_report(),indent=2),encoding="utf-8")
+    return {"ok":True,"message":"Privacy-safe diagnostics report exported to Downloads","path":str(destination)}
 
 class Handler(BaseHTTPRequestHandler):
     def send_json(self,data,status=200):
@@ -381,13 +487,18 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/media":return self.send_json(media_data())
         if route=="/api/windows":return self.send_json({"windows":window_list(),"kwin":True})
         if route=="/api/displays":return self.send_json({"displays":displays_data()})
-        if route=="/api/health-check":return self.send_json({"health":{"windows":{"available":True,"detail":"Win32 bridge ready"},"displays":{"available":True,"detail":f"{len(displays_data())} display(s)"},"audio":{"available":bool(audio_devices()),"detail":"Windows Core Audio"},"media":{"available":True,"detail":"Windows media keys ready"},"terminal":{"available":True,"detail":"PowerShell"},"storage":{"available":bool(psutil),"detail":f"{len(storage_data())} volume(s)"},"voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Offline whisper.cpp and FFmpeg ready"},"tray":{"available":False,"detail":"Windows does not support re-hosting all third-party notification icons"}}})
+        if route=="/api/health-check":return self.send_json({"health":integration_health()})
+        if route=="/api/diagnostics":return self.send_json(diagnostics_report())
         if route=="/api/extensions":return self.send_json(extension_manifests())
+        if route=="/api/extension-catalog":return self.send_json(build_extension_catalog(EXTENSION_DIR,BUILTIN_EXTENSION_DIR))
+        if route=="/api/engineering":return self.send_json(engineering_data())
         if route=="/api/extension-state":
             try:return self.send_json({"state":extension_state(EXTENSION_STATE_DIR,parse_qs(parsed.query).get("id",[""])[0])})
             except Exception as exc:return self.send_json({"error":str(exc)},400)
         if route=="/api/lcars-update":
-            try:return self.send_json(check_update(LCARS_VERSION,"windows"))
+            try:
+                channel=parse_qs(parsed.query).get("channel",["stable"])[0]
+                return self.send_json({**check_update(LCARS_VERSION,"windows",channel),"rollback":rollback_status("windows",os.environ.get("LCARS_EXECUTABLE",""),CONFIG_DIR/"previous-release")})
             except Exception as exc:return self.send_json({"ok":False,"silent":True,"error":str(exc)},503)
         if route=="/api/document":
             try:return self.send_json(read_document(parse_qs(parsed.query).get("path",[""])[0]))
@@ -412,15 +523,32 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         if route=="/api/lcars-update":
             operation=str(data.get("operation","check"))
+            channel="development" if str(data.get("channel","stable"))=="development" else "stable"
             try:
-                if operation=="check":return self.send_json(check_update(LCARS_VERSION,"windows"))
-                if operation=="download":return self.send_json(download_update(LCARS_VERSION,"windows",UPDATE_DIR))
-                if operation=="install":return self.send_json(schedule_install(str(data.get("path","")),"windows",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),os.environ.get("LCARS_EXECUTABLE","")))
+                executable=os.environ.get("LCARS_EXECUTABLE","");archive=CONFIG_DIR/"previous-release"
+                if operation=="check":return self.send_json({**check_update(LCARS_VERSION,"windows",channel),"rollback":rollback_status("windows",executable,archive)})
+                if operation=="download":return self.send_json({**download_update(LCARS_VERSION,"windows",UPDATE_DIR,channel),"rollback":rollback_status("windows",executable,archive)})
+                if operation=="install":return self.send_json(schedule_install(str(data.get("path","")),"windows",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
+                if operation=="rollback":return self.send_json(schedule_rollback("windows",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
+                if operation=="status":return self.send_json({"ok":True,"rollback":rollback_status("windows",executable,archive)})
                 return self.send_json({"ok":False,"error":"Unknown update operation"},400)
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},503)
+        if route=="/api/diagnostics-export":
+            try:return self.send_json(export_diagnostics())
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},500)
         if route=="/api/extension-state":
             try:return self.send_json({"ok":True,"state":save_extension_state(EXTENSION_STATE_DIR,str(data.get("id","")),data.get("state",{}))})
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/extension-install":
+            try:return self.send_json(extension_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,str(data.get("id","")),str(data.get("operation","install"))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/process-action":
+            try:return self.send_json(process_action(data.get("pid",0),str(data.get("action",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+        if route=="/api/routine-command":
+            if not bool(data.get("approved")):return self.send_json({"ok":False,"error":"operator approval is required"},403)
+            try:return self.send_json(routine_command(str(data.get("command",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
         if route=="/api/document":
             try:return self.send_json(write_document(str(data.get("path","")),str(data.get("content",""))))
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
@@ -442,11 +570,16 @@ class Handler(BaseHTTPRequestHandler):
                 from ctypes import POINTER, cast
                 from comtypes import CLSCTX_ALL
                 from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
-                endpoint=AudioUtilities.GetSpeakers();interface=endpoint.Activate(IAudioEndpointVolume._iid_,CLSCTX_ALL,None);cast(interface,POINTER(IAudioEndpointVolume)).SetMasterVolumeLevelScalar(max(0,min(100,int(data.get("volume",0))))/100,None);return self.send_json({"ok":True})
+                endpoint=AudioUtilities.GetSpeakers();interface=endpoint.Activate(IAudioEndpointVolume._iid_,CLSCTX_ALL,None);control=cast(interface,POINTER(IAudioEndpointVolume))
+                if "muted" in data:control.SetMute(bool(data.get("muted")),None);return self.send_json({"ok":True,"muted":bool(data.get("muted"))})
+                control.SetMasterVolumeLevelScalar(max(0,min(100,int(data.get("volume",0))))/100,None);return self.send_json({"ok":True})
             except:return self.send_json({"error":"Windows Core Audio component unavailable"},503)
         if route=="/api/audio-device":
             ident=str(data.get("id","")).replace("'","''");run_ps(f"Import-Module AudioDeviceCmdlets;Set-AudioDevice -ID '{ident}'");return self.send_json({"message":"Windows audio device changed"})
-        if route=="/api/stream-volume":return self.send_json({"ok":False,"message":"Per-application volume changes require the Windows audio companion"})
+        if route=="/api/stream-volume":
+            volume=max(0,min(100,int(data.get("volume",0))));ok=set_stream_audio(str(data.get("id","")),volume=volume);return self.send_json({"ok":ok,"volume":volume,"message":"Application volume changed" if ok else "Windows audio session is no longer active"},200 if ok else 404)
+        if route=="/api/stream-mute":
+            muted=bool(data.get("muted"));ok=set_stream_audio(str(data.get("id","")),muted=muted);return self.send_json({"ok":ok,"muted":muted,"message":"Application mute changed" if ok else "Windows audio session is no longer active"},200 if ok else 404)
         if route=="/api/config":CONFIG_DIR.mkdir(parents=True,exist_ok=True);CONFIG_FILE.write_text(json.dumps(data,indent=2));return self.send_json({"ok":True})
         if route=="/api/file-open":os.startfile(str(data.get("path","")));return self.send_json({"ok":True})
         if route=="/api/file-folder":Path(str(data.get("path","~"))).expanduser().joinpath(str(data.get("name","New Folder"))).mkdir();return self.send_json({"ok":True})

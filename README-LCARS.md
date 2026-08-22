@@ -21,8 +21,8 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - KDE/Wayland-compatible Application Bay with switch, minimize, close, full-screen, and return controls
 - Modular System Overview with addable, removable, reorderable built-in and local extension modules
 - Safe Module API v1 support with the Mission Checklist test extension
-- Per-source MPRIS media cards with previous, play/pause, next, and shuffle controls
-- Per-application PipeWire stream volume controls
+- Responsive three-zone Media console with a detailed selected player, compact secondary sources, master audio, output/microphone switching, and an application mixer
+- Grouped per-application audio volume, mute, expandable stream details, icons where available, and platform-aware routing controls
 - Terminal shell, directory, font, cursor, scrollback, history, and display routing settings
 - Direct multi-tab terminal sessions inside the LCARS console
 - Drag-and-drop modules with Compact, Standard, and Wide sizes
@@ -42,9 +42,26 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Guided eight-step desktop tour
 - LCARS power panel with separate Exit LCARS, Sleep Computer, Shut Down Computer, and Restart Computer controls; system power actions require confirmation
 - Configurable Speed Dial, per-page sizing, custom sidebar destinations, and rich graphics/RAM telemetry
-- Local extension-manifest discovery and update/rollback control groundwork
+- Protected extension rendering with automatic quarantine after repeated module failures
+- Diagnostics Center with guided remedies and a privacy-scrubbed support-report export
+- Safe Startup, last-known-good recovery, and five automatic configuration snapshots
+- Verified GitHub updates with release notes and automatic previous-AppImage archiving for Linux rollback
+- Non-destructive installation repair for Linux desktop registration and Windows application search
+- Version 25 Operations Automation with editable, preview-first routines and guarded system steps
+- Workstation profiles that restore layout, audio, applications, and supported display destinations
+- Engineering Console with cross-platform sensors and protected current-user process controls
+- Communications Center with priority notices and persistent command activity
+- Extension Hub with declarative catalog, enable/disable controls, and guarded local removal
+- Configurable Tray Command Deck for applications, routines, LCARS pages, and desktop tray services
+- Pin-capable Speed Dial Page Peeks that stay visible while working elsewhere in LCARS
+- Stable and development update channels with quiet background checks
+- Version 25.1 Speed Dial media controls with artwork, master audio, and per-application audio
+- Resizable popup surfaces with persistent, viewport-safe sizes
+- Plain number-key page navigation outside Terminal and other editable controls
 
 ## Current stage
+
+Version 25.1 is the development-channel maintenance update for the Version 25 Operations line. It rebuilds the Speed Dial media Peek, adds resizable popup surfaces, restores plain number-key page navigation outside editable controls, and ships through an updater-visible prerelease for end-to-end testing. Version 25 introduced user-built routines, fuller Workstation restoration, Engineering and Communications centers, a declarative Extension Hub, configurable control mappings, and the scrollable Tray Command Deck. Protected commands, process termination, and computer power steps remain confirmation-gated.
 
 For one-click Linux installation, open `Install-LCARS-Linux.desktop` or run `Install-LCARS-Linux.run`. Your file manager may ask you to mark the desktop launcher as trusted the first time it is opened. The installer places the standalone application in `~/.local/opt/lcars-command-interface`; Node.js, npm, and an external browser are not required to run it.
 
