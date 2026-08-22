@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "branch": "Modules",
+  "updated": "2026-08-22",
+  "modules": [
+    {
+      "id": "engineering-watch-advanced",
+      "name": "Engineering Watch Advanced",
+      "version": "1.0.0",
+      "description": "A richer declarative engineering status board with readiness checks, timers, progress tracks, operator notes, and configurable watch toggles.",
+      "author": "LCARS Command Interface Project",
+      "capabilities": ["system-read", "notifications"],
+      "minimumLcarsVersion": "26.1.0",
+      "manifestUrl": "https://raw.githubusercontent.com/HUHman416/LCARS-Command-Interface/Modules/modules/engineering-watch-advanced/lcars-module.json",
+      "sha256": "5244230cf938f9b6272e184f6238767a5810ac08e426d3b080c16ba9a898d6eb",
+      "featured": true,
+      "category": "Engineering"
+    }
+  ]
+}
