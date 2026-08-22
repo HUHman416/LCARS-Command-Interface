@@ -1,0 +1,40 @@
+name: Version 26.1 Module Repository Test
+
+on:
+  push:
+    branches: [26.1]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run 26.1 module repository regression tests
+        run: node --test tests/version26-1-module-repository.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
+      - name: Validate shared module API syntax
+        run: python3 -m py_compile shared/lcars_extensions.py local/lcars_bridge.py windows/lcars_bridge_windows.py
+      - name: Validate Electron main process syntax
+        run: node --check desktop/main.cjs
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run 26.1 module repository regression tests
+        run: node --test tests/version26-1-module-repository.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
+      - name: Validate Windows bridge and shared module API syntax
+        run: python -m py_compile shared/lcars_extensions.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_documents.py
