@@ -1,0 +1,193 @@
+{
+  "apiVersion": 2,
+  "id": "engineering-watch-advanced",
+  "name": "Engineering Watch Advanced",
+  "version": "1.0.0",
+  "description": "A richer declarative engineering status board with readiness checks, timers, progress tracks, operator notes, and configurable watch toggles.",
+  "author": "LCARS Command Interface Project",
+  "capabilities": [
+    "system-read",
+    "notifications"
+  ],
+  "settings": [
+    {
+      "key": "watchName",
+      "type": "text",
+      "label": "WATCH LABEL",
+      "description": "Name shown for the current engineering watch.",
+      "default": "ALPHA WATCH"
+    },
+    {
+      "key": "alertThreshold",
+      "type": "number",
+      "label": "ALERT THRESHOLD",
+      "description": "Operator-defined caution threshold.",
+      "default": 75
+    },
+    {
+      "key": "showChecklist",
+      "type": "toggle",
+      "label": "SHOW CHECKLIST",
+      "description": "Show the standard readiness checklist.",
+      "default": true
+    }
+  ],
+  "placements": [
+    {
+      "id": "engineering-overview",
+      "type": "overview",
+      "title": "ENGINEERING WATCH ADVANCED",
+      "defaultSize": "wide",
+      "ui": [
+        {
+          "type": "grid",
+          "id": "status-grid",
+          "children": [
+            {
+              "type": "clock",
+              "id": "ship-time",
+              "label": "LOCAL SHIP TIME"
+            },
+            {
+              "type": "timer",
+              "id": "elapsed",
+              "label": "WATCH ELAPSED"
+            },
+            {
+              "type": "toggle",
+              "id": "epsStable",
+              "label": "EPS GRID STABLE",
+              "value": true
+            },
+            {
+              "type": "toggle",
+              "id": "thermalNominal",
+              "label": "THERMAL CONTROL NOMINAL",
+              "value": true
+            },
+            {
+              "type": "toggle",
+              "id": "backupReady",
+              "label": "BACKUP POWER READY",
+              "value": false
+            },
+            {
+              "type": "progress",
+              "id": "powerReserve",
+              "label": "POWER RESERVE",
+              "value": 82
+            },
+            {
+              "type": "progress",
+              "id": "coolantReserve",
+              "label": "COOLANT RESERVE",
+              "value": 68
+            }
+          ]
+        },
+        {
+          "type": "input",
+          "id": "watchOfficer",
+          "label": "WATCH OFFICER",
+          "placeholder": "ENTER OFFICER NAME"
+        },
+        {
+          "type": "input",
+          "id": "operatorNote",
+          "label": "ENGINEERING NOTE",
+          "placeholder": "LOG CURRENT CONDITION"
+        },
+        {
+          "type": "list",
+          "id": "readiness",
+          "items": [
+            "Verify primary power distribution",
+            "Review thermal-control status",
+            "Confirm backup power availability",
+            "Inspect storage and memory alerts",
+            "Log anomalies before watch transfer"
+          ]
+        },
+        {
+          "type": "grid",
+          "id": "watch-controls",
+          "children": [
+            {
+              "type": "button",
+              "id": "start-watch",
+              "label": "START WATCH",
+              "action": "timer:start"
+            },
+            {
+              "type": "button",
+              "id": "pause-watch",
+              "label": "PAUSE WATCH",
+              "action": "timer:pause"
+            },
+            {
+              "type": "button",
+              "id": "reset-watch",
+              "label": "RESET WATCH",
+              "action": "timer:reset"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "engineering-page",
+      "type": "page",
+      "title": "ENGINEERING READINESS",
+      "defaultSize": "wide",
+      "ui": [
+        {
+          "type": "text",
+          "text": "Use this board for pre-flight, maintenance-window, or long-duration engineering watches."
+        },
+        {
+          "type": "grid",
+          "children": [
+            {
+              "type": "toggle",
+              "id": "propulsionReady",
+              "label": "PROPULSION READY"
+            },
+            {
+              "type": "toggle",
+              "id": "networkReady",
+              "label": "NETWORK READY"
+            },
+            {
+              "type": "toggle",
+              "id": "storageReady",
+              "label": "STORAGE READY"
+            },
+            {
+              "type": "toggle",
+              "id": "recoveryReady",
+              "label": "RECOVERY PATH READY"
+            }
+          ]
+        },
+        {
+          "type": "progress",
+          "id": "missionReadiness",
+          "label": "MISSION READINESS",
+          "value": 75
+        },
+        {
+          "type": "list",
+          "items": [
+            "Power distribution",
+            "Thermal management",
+            "Compute resources",
+            "Storage health",
+            "Network transport",
+            "Recovery path"
+          ]
+        }
+      ]
+    }
+  ],
+  "tickSeconds": 1
+}
