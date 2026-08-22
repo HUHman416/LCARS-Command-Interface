@@ -19,7 +19,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs
+      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
       - run: npm run desktop:package:linux -- --publish never
       - name: Assemble universal Linux package
         shell: bash
@@ -58,15 +58,25 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs
-      - run: npm run desktop:package:windows -- --publish never
-      - name: Prepare Windows installer
+      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
+      - name: Use verified Version 25.2 Windows hotfix installer
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          New-Item -ItemType Directory -Force release | Out-Null
-          $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
-          if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName release/LCARS-Windows-Setup-v25.exe
+          New-Item -ItemType Directory -Force release, hotfix | Out-Null
+          $tag = 'v25.2-windows-hotfix1'
+          $name = 'LCARS-Windows-Setup-v25.2-Hotfix-1.exe'
+          $checksumName = "$name.sha256"
+          gh release download $tag --pattern $name --pattern $checksumName --dir hotfix
+          $installer = Join-Path hotfix $name
+          $checksumFile = Join-Path hotfix $checksumName
+          if (-not (Test-Path $installer)) { throw "Required Windows hotfix installer $name was not found in release $tag." }
+          if (-not (Test-Path $checksumFile)) { throw "Required Windows hotfix checksum $checksumName was not found in release $tag." }
+          $expected = ((Get-Content $checksumFile -Raw).Trim() -split '\s+')[0].ToLower()
+          $actual = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLower()
+          if ($actual -ne $expected) { throw "Windows hotfix checksum mismatch: expected $expected, got $actual." }
+          Copy-Item $installer release/LCARS-Windows-Setup-v25.exe
       - uses: actions/upload-artifact@v4
         with:
           name: windows-release
@@ -104,4 +114,4 @@ jobs:
           gh release create v25 release/* \
             --target "$GITHUB_SHA" \
             --title "LCARS Command Interface Version 25" \
-            --notes "Version 25 adds preview-first Operations Automation, fuller Workstation restore, Engineering and Communications centers, a declarative Extension Hub, configurable control mappings, a mixed scrollable Tray Command Deck, and pin-capable Speed Dial Page Peeks. Protected system steps remain confirmation-gated. Download SHA256SUMS.txt to verify every release file."
+            --notes "Version 25 adds preview-first Operations Automation, fuller Workstation restore, Engineering and Communications centers, a declarative Extension Hub, configurable control mappings, a mixed scrollable Tray Command Deck, and pin-capable Speed Dial Page Peeks. The Windows installer incorporates the tested v25.2 Python bridge hotfix. Protected system steps remain confirmation-gated. Download SHA256SUMS.txt to verify every release file."
