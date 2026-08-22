@@ -2893,7 +2893,7 @@ function UpdateCenter({
           number="02"
           eyebrow="LCARS RELEASE CHANNEL"
           title="LCARS INTERFACE"
-          status={updateBusy?updateBusy.toUpperCase()+"…":update?.downloaded?"VERIFIED / READY":update?.available?`V${update.version} AVAILABLE`:`V25 ${prefs.updateChannel.toUpperCase()} CHANNEL`}
+          status={updateBusy?updateBusy.toUpperCase()+"…":update?.downloaded?"VERIFIED / READY":update?.available?`V${update.version} AVAILABLE`:`V26.1 DEV · ${prefs.updateChannel.toUpperCase()} CHANNEL`}
           description={update?.available?`A newer signed release is available from GitHub${update.asset?.name?`: ${update.asset.name}`:""}.`:"Background checks stay silent when offline. Manual checks report useful connection and verification details here."}
           primary={update?.downloaded?"INSTALL VERIFIED UPDATE":update?.available?"DOWNLOAD & VERIFY":"CHECK FOR LCARS UPDATE"}
           secondary={update?.rollback?.available?"RESTORE PREVIOUS RELEASE":"ROLLBACK STATUS"}
@@ -2901,17 +2901,7 @@ function UpdateCenter({
           secondaryAction={() => updateOperation("rollback")}
           stamp={update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:update?.rollback?.available?`ROLLBACK ${update.rollback.sha256?.slice(0,12).toUpperCase()||"ARCHIVED"}… · PREVIOUS LINUX RELEASE READY`:"AUTOMATIC GITHUB RELEASE CHANNEL · BACKGROUND ERRORS SILENT"}
         />
-        <UpdatePanel
-          number="03"
-          eyebrow="DECLARATIVE MODULE API"
-          title="EXTENSIONS"
-          status="V2"
-          description="Rescan isolated declarative modules with placements, settings, permissions, and persistent state. Version 1 checklist modules remain compatible."
-          primary="SCAN EXTENSIONS"
-          secondary="OPEN MODULE FOLDER"
-          primaryAction={() => action("extension-scan")}
-          secondaryAction={() => action("extension-folder")}
-        />
+        <ExtensionHub installed={extensions} catalog={catalog} disabled={disabled} setDisabled={setDisabled} refresh={refreshExtensions} notify={notify} openFolder={()=>action("extension-folder")}/>
         <UpdatePanel
           number="04"
           eyebrow="DESKTOP ADAPTERS"
@@ -2932,7 +2922,6 @@ function UpdateCenter({
           <article><i className="ready">E</i><span><b>LCARS EXTENSIONS</b><small>DECLARATIVE MODULE BAY · MANUALLY INSTALLED</small></span><button onClick={() => action("extension-folder")}>OPEN BAY</button></article>
         </div>
       </aside>
-      <ExtensionHub installed={extensions} catalog={catalog} disabled={disabled} setDisabled={setDisabled} refresh={refreshExtensions} notify={notify} openFolder={()=>action("extension-folder")}/>
       {update?.notes && <details className="release-notes"><summary>RELEASE NOTES · VERSION {update.version}</summary><pre>{update.notes}</pre></details>}
       <DiagnosticsCenter health={health} notify={notify} action={action} />
     </section>
@@ -2940,11 +2929,26 @@ function UpdateCenter({
 }
 
 function ExtensionHub({installed,catalog,disabled,setDisabled,refresh,notify,openFolder}:{installed:ExtensionManifest[];catalog:ExtensionCatalogEntry[];disabled:string[];setDisabled:(ids:string[])=>void;refresh:()=>void;notify:(text:string,kind?:"info"|"error")=>void;openFolder:()=>void}){
-  const [query,setQuery]=useState(""),[busy,setBusy]=useState(""),[expanded,setExpanded]=useState(true);
+  const [query,setQuery]=useState(""),[busy,setBusy]=useState(""),[expanded,setExpanded]=useState(false),[details,setDetails]=useState("");
   const inventory=useMemo(()=>{const known=new Map<string,ExtensionCatalogEntry>();catalog.forEach((entry)=>known.set(entry.id,entry));installed.forEach((extension)=>{if(!known.has(extension.id))known.set(extension.id,{id:extension.id,name:extension.name,version:extension.version,description:extension.description,author:extension.author,capabilities:extension.capabilities,installed:true});});return Array.from(known.values()).filter((entry)=>`${entry.name} ${entry.description} ${entry.author} ${entry.capabilities.join(" ")}`.toLowerCase().includes(query.toLowerCase()));},[catalog,installed,query]);
-  const operate=async(entry:ExtensionCatalogEntry,operation:"install"|"remove")=>{setBusy(entry.id);try{const response=await fetch("http://127.0.0.1:8765/api/extension-install",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:entry.id,operation,manifestUrl:entry.manifestUrl||""})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Extension operation failed");notify(result.message||`${entry.name} ${operation} complete`);window.setTimeout(refresh,250);}catch(error){notify(error instanceof Error?error.message:"Extension operation failed","error");}finally{setBusy("");}};
+  const repositoryEntries=catalog.filter((entry)=>Boolean((entry as ExtensionCatalogEntry&{repository?:boolean}).repository));
+  const updateCount=repositoryEntries.filter((entry)=>Boolean((entry as ExtensionCatalogEntry&{updateAvailable?:boolean}).updateAvailable)).length;
+  const operate=async(entry:ExtensionCatalogEntry,operation:"install"|"update"|"remove")=>{setBusy(entry.id);try{const response=await fetch("http://127.0.0.1:8765/api/extension-install",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:entry.id,operation})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Module operation failed");notify(result.message||`${entry.name} ${operation} complete`);window.setTimeout(refresh,250);}catch(error){notify(error instanceof Error?error.message:"Module operation failed","error");}finally{setBusy("");}};
   const isInstalled=(id:string)=>installed.some((extension)=>extension.id===id);
-  return <section className="extension-hub"><header><div><small>DECLARATIVE MODULE CONTROL · API V2</small><h4>EXTENSION HUB</h4><p>Browse bundled and locally installed modules, inspect requested capabilities, and disable or remove them without deleting the rest of your configuration.</p></div><strong>{String(installed.length).padStart(2,"0")}<small> INSTALLED</small></strong></header><nav><input aria-label="Search Extension Hub" placeholder="SEARCH EXTENSIONS…" value={query} onChange={(event)=>setQuery(event.target.value)}/><button onClick={refresh}>RESCAN</button><button onClick={openFolder}>OPEN MODULE FOLDER</button><button onClick={()=>setExpanded(!expanded)}>{expanded?"COLLAPSE HUB":"OPEN HUB"}</button></nav>{expanded&&<div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id);return <article className={disabledNow?"disabled":""} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{entry.bundled?"BUNDLED CATALOG":"LOCAL / CATALOG MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · V{manifest?.version||entry.version} · {(manifest?.capabilities||entry.capabilities).join(" · ")||"NO PRIVILEGED CAPABILITIES"}</em></span><nav>{installedNow?<><button onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</button>{!entry.bundled&&<button className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</button>}</>:<button disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"INSTALLING…":"INSTALL"}</button>}</nav></article>;})}{!inventory.length&&<p>NO MATCHING EXTENSIONS</p>}</div>}<footer>Extensions are host-rendered from validated manifests. Executable plug-in code is not loaded into the LCARS renderer.</footer></section>;
+  return <section className={`extension-hub module-repository-panel ${expanded?"repository-open":"repository-closed"}`}>
+    <button className="module-repository-toggle" onClick={()=>setExpanded(!expanded)} aria-expanded={expanded}>
+      <i>03</i>
+      <span><small>DECLARATIVE MODULE API · TRUSTED MODULES BRANCH</small><b>MODULE REPOSITORY</b><p>Browse, install, update, disable, and remove validated declarative LCARS modules without leaving Updates.</p></span>
+      <strong>{String(repositoryEntries.length).padStart(2,"0")}<small> AVAILABLE</small>{updateCount>0&&<em>{updateCount} UPDATE{updateCount===1?"":"S"}</em>}</strong>
+      <u>{expanded?"CLOSE MODULES":"BROWSE MODULES"}</u>
+    </button>
+    {expanded&&<>
+      <nav><input aria-label="Search Module Repository" placeholder="SEARCH MODULE REPOSITORY…" value={query} onChange={(event)=>setQuery(event.target.value)}/><button onClick={refresh}>RESCAN LOCAL</button><button onClick={openFolder}>OPEN MODULE FOLDER</button><button onClick={()=>setQuery("")}>CLEAR SEARCH</button></nav>
+      <div className="module-repository-status"><b>TRUSTED SOURCE</b><span>HUHman416 / LCARS-Command-Interface / Modules</span><em>{String(installed.length).padStart(2,"0")} INSTALLED · {String(updateCount).padStart(2,"0")} UPDATE{updateCount===1?"":"S"}</em></div>
+      <div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id),remote=entry as ExtensionCatalogEntry&{repository?:boolean;updateAvailable?:boolean;installedVersion?:string;minimumLcarsVersion?:string;category?:string;sha256?:string;featured?:boolean};const showDetails=details===entry.id;return <article className={`${disabledNow?"disabled":""} ${remote.repository?"repository-module":"local-module"}`} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{remote.repository?(remote.featured?"FEATURED · TRUSTED REPOSITORY":"TRUSTED REPOSITORY MODULE"):entry.bundled?"BUNDLED MODULE":"LOCAL MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · REPOSITORY V{entry.version}{installedNow?` · INSTALLED V${manifest?.version||remote.installedVersion||entry.version}`:""} · {(manifest?.capabilities||entry.capabilities).join(" · ")||"NO PRIVILEGED CAPABILITIES"}</em>{showDetails&&<div className="module-detail-strip"><span><b>CATEGORY</b>{remote.category||"GENERAL"}</span><span><b>MINIMUM LCARS</b>{remote.minimumLcarsVersion||"COMPATIBLE"}</span><span><b>PACKAGE</b>{remote.sha256?`SHA-256 ${remote.sha256.slice(0,16).toUpperCase()}…`:"LOCAL MANIFEST"}</span></div>}</span><nav><button onClick={()=>setDetails(showDetails?"":entry.id)}>{showDetails?"LESS":"DETAILS"}</button>{installedNow?<><button onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</button>{remote.updateAvailable&&<button className="update" disabled={busy===entry.id} onClick={()=>operate(entry,"update")}>{busy===entry.id?"VERIFYING…":"UPDATE"}</button>}{!entry.bundled&&<button className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</button>}</>:remote.repository?<button className="install" disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"VERIFYING…":"INSTALL"}</button>:null}</nav></article>;})}{!inventory.length&&<p className="extension-empty">NO MATCHING MODULES</p>}</div>
+      <footer><b>DECLARATIVE SAFETY MODEL</b> · Repository manifests are downloaded only from the trusted Modules branch, checksum verified, validated by Extension API v2, and installed without executable plug-in code.</footer>
+    </>}
+  </section>;
 }
 
 function DiagnosticsCenter({health,notify,action}:{health:Health;notify:(text:string,kind?:"info"|"error")=>void;action:(value:string)=>void}) {

@@ -12,7 +12,7 @@ from lcars_extensions import load_extensions, extension_state, save_extension_st
 from lcars_documents import read_document, write_document
 
 PORT=8765
-LCARS_VERSION="25.2.0"
+LCARS_VERSION="26.1.0-dev.1"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"

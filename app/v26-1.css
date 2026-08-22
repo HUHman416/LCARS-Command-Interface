@@ -1,0 +1,23 @@
+/* Version 26.1: trusted downloadable declarative module repository. */
+.module-repository-panel { grid-column: 1 / -1; margin-top: 0; overflow: hidden; border-left-color: var(--pink); }
+.module-repository-toggle { display: grid; grid-template-columns: 42px minmax(0,1fr) auto auto; align-items: center; gap: 10px; width: 100%; border: 0; border-radius: 0 !important; border-bottom: 8px solid var(--pink) !important; background: #070708 !important; color: #f7f2ff !important; padding: 0 !important; text-align: left; }
+.module-repository-toggle > i { display: grid; place-items: center; align-self: stretch; min-height: 92px; background: var(--pink); color: #080709; font-style: normal; font-size: 18px; }
+.module-repository-toggle > span { display: grid; align-content: center; padding: 11px 0; }
+.module-repository-toggle > span > small { color: var(--orange); letter-spacing: .08em; }
+.module-repository-toggle > span > b { margin-top: 2px; font-size: 24px; }
+.module-repository-toggle > span > p { margin: 3px 0 0; color: #98919d; font: 10px/1.35 Arial,sans-serif; }
+.module-repository-toggle > strong { display: grid; color: var(--gold); font-size: 26px; text-align: right; }
+.module-repository-toggle > strong small { color: #8d8691; font-size: 8px; }
+.module-repository-toggle > strong em { margin-top: 2px; color: var(--orange); font: normal 9px/1.2 Arial,sans-serif; }
+.module-repository-toggle > u { min-width: 132px; margin-right: 10px; border-radius: 18px 2px 18px 18px; background: var(--gold); color: #070708; padding: 9px 12px; text-align: center; text-decoration: none; }
+.module-repository-panel.repository-open .module-repository-toggle > u { background: var(--pink); }
+.module-repository-status { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 8px; align-items: center; margin: 0 8px 8px; border-left: 9px solid var(--blue); background: #111015; padding: 7px 9px; font: 9px/1.3 Arial,sans-serif; }
+.module-repository-status b { color: var(--blue); }.module-repository-status span { color: #aaa3af; }.module-repository-status em { color: var(--gold); font-style: normal; }
+.repository-module { border-bottom-color: var(--gold) !important; }.repository-module > i { background: var(--gold) !important; }
+.module-detail-strip { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 3px; margin-top: 7px; }
+.module-detail-strip > span { display: grid; gap: 2px; border-left: 5px solid var(--blue); background: #151218; color: #aaa3af; padding: 5px 7px; font: 8px/1.25 Arial,sans-serif; }
+.module-detail-strip > span b { color: var(--blue); }
+.extension-catalog button.install { background: var(--gold); }.extension-catalog button.update { background: var(--orange); }
+.extension-empty { margin: 0; border-left: 9px solid var(--violet); background: #0d0c0f; color: #98919d; padding: 14px; }
+@media (max-width: 900px) { .module-repository-toggle { grid-template-columns: 38px minmax(0,1fr) auto; }.module-repository-toggle > strong { display: none; }.module-repository-toggle > u { min-width: 110px; }.module-detail-strip { grid-template-columns: 1fr; } }
+@media (max-width: 650px) { .module-repository-toggle { grid-template-columns: 34px minmax(0,1fr); }.module-repository-toggle > i { min-height: 82px; }.module-repository-toggle > u { grid-column: 2; width: 100%; margin: 0 8px 8px 0; }.module-repository-status { grid-template-columns: 1fr; }.extension-catalog article { grid-template-columns: 32px minmax(0,1fr); }.extension-catalog article > nav { grid-column: 2; flex-wrap: wrap; padding: 0 7px 7px 0; } }
