@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 const css=readFileSync("app/v25-b-compact.css","utf8");
 const patcher=readFileSync("scripts/apply-v25-b-compact.mjs","utf8");
 const renderer=readFileSync("desktop/renderer.tsx","utf8");
+const updater=readFileSync("shared/lcars_updater.py","utf8");
 const pkg=JSON.parse(readFileSync("package.json","utf8"));
 
 test("Version 25-B compact layer loads after the proven hotfix",()=>{
@@ -40,4 +41,13 @@ test("Version 25-B is the public runtime label without invalidating package semv
   assert.match(patcher,/LCARS_VERSION=\"25-B\"/);
   assert.match(patcher,/local\/lcars_bridge\.py/);
   assert.match(patcher,/windows\/lcars_bridge_windows\.py/);
+});
+
+test("stable updater treats letter releases as newer than legacy internal Version 25 semver",()=>{
+  assert.match(updater,/def _stable_release_key\(value: str\):/);
+  assert.match(updater,/def _stable_current_key\(value: str\):/);
+  assert.match(updater,/return _version\(value\)\[0\], 0/);
+  assert.match(updater,/release_key > _stable_current_key\(current_version\)/);
+  assert.match(updater,/stable\.append\(\(key, release\)\)/);
+  assert.match(updater,/return max\(stable, key=lambda item: item\[0\]\)\[1\]/);
 });
