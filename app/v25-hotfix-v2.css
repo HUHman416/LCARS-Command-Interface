@@ -7,7 +7,7 @@
      still bounds the dragged edge to the visible viewport. */
   max-height: calc(100vh - 16px) !important;
 }
-.speed-dial-page-peek { --lcars-popup-min-width: 360px; --lcars-popup-min-height: 300px; }
+.speed-dial-page-peek { --lcars-popup-min-width: 360px; --lcars-popup-min-height: 180px; }
 .tray-drawer { --lcars-popup-min-width: 340px; --lcars-popup-min-height: 300px; }
 .notice-history { --lcars-popup-min-width: 380px; --lcars-popup-min-height: 360px; }
 .display-menu { --lcars-popup-min-width: 360px; --lcars-popup-min-height: 300px; }
