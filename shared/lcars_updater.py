@@ -33,6 +33,41 @@ def _version(value: str):
     return tuple(int(part) for part in parts + ["0"] * (3 - len(parts)))
 
 
+def _letter_revision(value: str):
+    revision = 0
+    for character in value.upper():
+        if not ("A" <= character <= "Z"):
+            return None
+        revision = revision * 26 + (ord(character) - ord("A") + 1)
+    return revision
+
+
+def _stable_release_key(value: str):
+    """Order public stable labels like 25 < 25-A < 25-B < 26.
+
+    Dotted package/build versions are intentionally not stable release labels. Version
+    25 historically exposed 25.2.0 internally, so stable comparisons map such legacy
+    values to the whole-number baseline of their major release.
+    """
+    text = str(value).strip().lstrip("vV")
+    match = re.fullmatch(r"(\d+)(?:-([A-Za-z]+))?", text)
+    if not match:
+        return None
+    revision = _letter_revision(match.group(2) or "") if match.group(2) else 0
+    if revision is None:
+        return None
+    return int(match.group(1)), revision
+
+
+def _stable_current_key(value: str):
+    public = _stable_release_key(value)
+    if public is not None:
+        return public
+    # Compatibility with older Version 25 builds that reported package semver 25.2.0
+    # instead of their public whole-number release label.
+    return _version(value)[0], 0
+
+
 def _platform_asset(assets: list[dict], system: str):
     if system == "windows":
         candidates = [asset for asset in assets if str(asset.get("name", "")).lower().endswith(".exe")]
@@ -48,14 +83,14 @@ def _release_for_channel(channel: str):
         candidates = json.loads(_request(RELEASES_URL))
         if not isinstance(candidates, list):
             candidates = []
-        whole = []
+        stable = []
         for release in candidates:
             tag = str(release.get("tag_name", ""))
-            parts = _version(tag)
-            if not release.get("draft") and not release.get("prerelease") and parts[1:] == (0, 0):
-                whole.append(release)
-        if whole:
-            return max(whole, key=lambda item: _version(str(item.get("tag_name", ""))))
+            key = _stable_release_key(tag)
+            if not release.get("draft") and not release.get("prerelease") and key is not None:
+                stable.append((key, release))
+        if stable:
+            return max(stable, key=lambda item: item[0])[1]
         return json.loads(_request(API_URL))
     candidates = json.loads(_request(RELEASES_URL))
     if not isinstance(candidates, list):
@@ -74,7 +109,11 @@ def check_update(current_version: str, system: str | None = None, channel: str =
     assets = release.get("assets") if isinstance(release.get("assets"), list) else []
     asset = _platform_asset(assets, system)
     checksums = next((item for item in assets if str(item.get("name", "")).lower() in {"sha256sums.txt", "checksums-sha256.txt"}), None)
-    available = bool(tag and _version(tag) > _version(current_version))
+    if channel == "stable":
+        release_key = _stable_release_key(tag)
+        available = bool(tag and release_key is not None and release_key > _stable_current_key(current_version))
+    else:
+        available = bool(tag and _version(tag) > _version(current_version))
     return {
         "ok": True,
         "channel": channel,
