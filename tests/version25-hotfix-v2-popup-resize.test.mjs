@@ -18,13 +18,19 @@ test("each popup edge has independent source-level resize geometry",()=>{
   assert.match(patcher,/requestedHeight=north\?start\.height-dy:south\?start\.height\+dy:start\.height/);
   assert.match(patcher,/availableWidth=west\?start\.right-8:east\?window\.innerWidth-start\.left-8/);
   assert.match(patcher,/availableHeight=north\?start\.bottom-8:south\?window\.innerHeight-start\.top-8/);
-  assert.match(patcher,/nextLeft=west\?startLeft\+start\.width-width:startLeft/);
-  assert.match(patcher,/nextTop=north\?startTop\+start\.height-height:startTop/);
+  assert.match(patcher,/nextLeft=west\?baseLeft\+start\.width-width:baseLeft/);
+  assert.match(patcher,/nextTop=north\?baseTop\+start\.height-height:baseTop/);
+});
+
+test("vertical resizing uses viewport coordinates for fixed dialogs and pauses observer clamping",()=>{
+  assert.match(patcher,/baseLeft=floating\?startLeft:start\.left,baseTop=floating\?startTop:start\.top/);
+  assert.match(patcher,/element\.dataset\.lcarsResizing="1"/);
+  assert.match(patcher,/element\.dataset\.lcarsResizing!=="1"/);
+  assert.match(patcher,/delete element\.dataset\.lcarsResizing/);
 });
 
 test("centered dialogs are frozen before resize instead of being re-centered",()=>{
-  assert.match(patcher,/if\(!floating\)/);
-  assert.match(patcher,/element\.style\.position="fixed"/);
+  assert.match(patcher,/if\(!floating\)element\.style\.position="fixed"/);
   assert.match(patcher,/element\.style\.right="auto"/);
   assert.match(patcher,/element\.style\.bottom="auto"/);
 });
