@@ -19,7 +19,12 @@ test("each popup edge has independent source-level resize geometry",()=>{
   assert.match(patcher,/availableWidth=west\?start\.right-8:east\?window\.innerWidth-start\.left-8/);
   assert.match(patcher,/availableHeight=north\?start\.bottom-8:south\?window\.innerHeight-start\.top-8/);
   assert.match(patcher,/nextLeft=west\?baseLeft\+start\.width-width:baseLeft/);
-  assert.match(patcher,/nextTop=north\?baseTop\+start\.height-height:baseTop/);
+});
+
+test("north resize anchors from actual rendered height",()=>{
+  assert.match(patcher,/renderedHeight=element\.getBoundingClientRect\(\)\.height/);
+  assert.match(patcher,/nextTop=north\?baseTop\+start\.height-renderedHeight:baseTop/);
+  assert.doesNotMatch(patcher,/nextTop=north\?baseTop\+start\.height-height:baseTop/);
 });
 
 test("vertical resizing uses viewport coordinates for fixed dialogs and pauses observer clamping",()=>{
