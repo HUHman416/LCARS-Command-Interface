@@ -25,8 +25,9 @@ test("stored and dragged heights use the CSS minimum instead of component defaul
   assert.match(patcher,/fitSize=\(width:number,height:number\)/);
   assert.match(patcher,/getPropertyValue\("--lcars-popup-min-height"\)/);
   assert.match(patcher,/Math\.min\(effectiveMinHeight,maxHeight\),height/);
-  assert.match(patcher,/effectiveMinHeight=Number\.isFinite\(computedCssMinHeight\)\?computedCssMinHeight:minHeight/);
-  assert.doesNotMatch(patcher,/Math\.max\(minHeight,cssMinHeight\)/);
+  assert.match(patcher,/const resizeOriginal = '    const effectiveMinHeight=Math\.max\(minHeight,cssMinHeight\);'/);
+  assert.match(patcher,/const resizePatched = '    const effectiveMinHeight=Number\.isFinite\(computedCssMinHeight\)\?computedCssMinHeight:minHeight;'/);
+  assert.match(patcher,/source\.replace\(resizeOriginal, resizePatched\)/);
 });
 
 test("compact content regions can yield vertical space to the shell",()=>{
