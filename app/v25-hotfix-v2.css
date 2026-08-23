@@ -26,6 +26,31 @@
 .popup-resize-edge-n { top: 0 !important; }
 .popup-resize-edge-s { bottom: 0 !important; }
 
+/* Communications keeps its shell stationary; only the history body scrolls. This
+   prevents the south resize handle from scrolling away with notification content. */
+.notice-history.resizable-popup {
+  display: grid !important;
+  grid-template-rows: auto auto minmax(0, 1fr) !important;
+  overflow: hidden !important;
+}
+.notice-history > .communications-scroll {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 24px;
+}
+.notice-history > .popup-resize-edge-s {
+  bottom: 0 !important;
+  height: 24px !important;
+  z-index: 80 !important;
+}
+.notice-history > .popup-resize-corner-sw,
+.notice-history > .popup-resize-grip {
+  width: 28px !important;
+  height: 28px !important;
+  z-index: 81 !important;
+}
+
 /* Give the lower corners a little more reliable pointer area without changing visuals. */
 .popup-resize-corner-sw,
 .popup-resize-grip {
