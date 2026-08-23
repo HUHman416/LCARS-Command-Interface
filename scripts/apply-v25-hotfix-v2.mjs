@@ -49,8 +49,6 @@ const replacement = [
   '',
   '    const move=(pointer:PointerEvent)=>{',
   '      const dx=pointer.clientX-startX,dy=pointer.clientY-startY;',
-  '      // Bound the dragged edge itself to the viewport. The ResizeObserver clamp',
-  '      // is suspended during the drag so it cannot fight north/south geometry.',
   '      const availableWidth=west?start.right-8:east?window.innerWidth-start.left-8:window.innerWidth-16;',
   '      const availableHeight=north?start.bottom-8:south?window.innerHeight-start.top-8:window.innerHeight-16;',
   '      const maxWidth=Math.max(80,Math.min(window.innerWidth-16,availableWidth));',
@@ -61,10 +59,14 @@ const replacement = [
   '      const width=Math.min(maxWidth,Math.max(Math.min(minWidth,maxWidth),requestedWidth));',
   '      const height=Math.min(maxHeight,Math.max(Math.min(effectiveMinHeight,maxHeight),requestedHeight));',
   '      const nextLeft=west?baseLeft+start.width-width:baseLeft;',
-  '      const nextTop=north?baseTop+start.height-height:baseTop;',
   '      element.style.width=`${width}px`;',
   '      element.style.height=`${height}px`;',
   '      element.style.left=`${nextLeft}px`;',
+  '      // The browser may impose an intrinsic content minimum taller than the',
+  '      // requested height. Anchor north resize from the actual rendered height so',
+  '      // the whole popup cannot be translated downward after height stops shrinking.',
+  '      const renderedHeight=element.getBoundingClientRect().height;',
+  '      const nextTop=north?baseTop+start.height-renderedHeight:baseTop;',
   '      element.style.top=`${nextTop}px`;',
   '    };',
   '    const finish=()=>{',
@@ -82,4 +84,4 @@ const replacement = [
 
 source = source.slice(0, start) + replacement + source.slice(end);
 fs.writeFileSync(path, source);
-console.log("Applied V25 Hotfix v2 source-level popup resize geometry fix (Page Peek minimum synchronized).");
+console.log("Applied V25 Hotfix v2 source-level popup resize geometry fix (rendered-height north anchoring enabled).");
