@@ -50,3 +50,5 @@ jobs:
           git add ci-diagnostic-linux.log
           git commit -m "Record Version 25-B clean CI diagnostic" || exit 0
           git push origin HEAD:agent/v25-b-ci-diagnostic
+
+# Trigger revision 2: workflow already exists before this push.
