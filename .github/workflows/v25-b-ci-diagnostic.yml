@@ -1,0 +1,52 @@
+name: V25-B Clean CI Diagnostic
+
+on:
+  push:
+    branches: [agent/v25-b-ci-diagnostic]
+    paths: [.github/workflows/v25-b-ci-diagnostic.yml]
+
+permissions:
+  contents: write
+
+jobs:
+  linux-diagnostic:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Capture exact clean CI failure
+        shell: bash
+        run: |
+          set +e
+          log=ci-diagnostic-linux.log
+          : > "$log"
+          echo "HEAD=$GITHUB_SHA" >> "$log"
+          echo "=== npm ci ===" >> "$log"
+          npm ci >> "$log" 2>&1
+          rc=$?
+          echo "npm_ci_exit=$rc" >> "$log"
+          if [ "$rc" -eq 0 ]; then
+            echo "=== regression suite ===" >> "$log"
+            node --test tests/version25-hotfix-v2-popup-resize.test.mjs tests/version25-b-compact.test.mjs tests/version25-1-regressions.test.mjs tests/version25-features.test.mjs >> "$log" 2>&1
+            rc=$?
+            echo "tests_exit=$rc" >> "$log"
+          fi
+          if [ "$rc" -eq 0 ]; then
+            echo "=== Linux package ===" >> "$log"
+            npm run desktop:package:linux -- --publish never >> "$log" 2>&1
+            rc=$?
+            echo "package_exit=$rc" >> "$log"
+          fi
+          echo "FINAL_EXIT=$rc" >> "$log"
+          exit 0
+      - name: Commit diagnostic log to diagnostic branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ci-diagnostic-linux.log
+          git commit -m "Record Version 25-B clean CI diagnostic" || exit 0
+          git push origin HEAD:agent/v25-b-ci-diagnostic
