@@ -29,6 +29,13 @@ test("vertical resizing uses viewport coordinates for fixed dialogs and pauses o
   assert.match(patcher,/delete element\.dataset\.lcarsResizing/);
 });
 
+test("vertical resize math and CSS share the same effective maximum height",()=>{
+  assert.match(css,/\.resizable-popup\s*\{[^}]*max-height:\s*calc\(100vh - 16px\)\s*!important/s);
+  assert.match(patcher,/computedMaxHeight=Number\.parseFloat\(getComputedStyle\(element\)\.maxHeight\)/);
+  assert.match(patcher,/cssMaxHeight=Number\.isFinite\(computedMaxHeight\)\?computedMaxHeight:window\.innerHeight-16/);
+  assert.match(patcher,/Math\.min\(window\.innerHeight-16,availableHeight,cssMaxHeight\)/);
+});
+
 test("centered dialogs are frozen before resize instead of being re-centered",()=>{
   assert.match(patcher,/if\(!floating\)element\.style\.position="fixed"/);
   assert.match(patcher,/element\.style\.right="auto"/);
