@@ -47,8 +47,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ci-diagnostic-linux.log
+          git add -f ci-diagnostic-linux.log
           git commit -m "Record Version 25-B clean CI diagnostic" || exit 0
           git push origin HEAD:agent/v25-b-ci-diagnostic
 
-# Trigger revision 2: workflow already exists before this push.
+# Trigger revision 3: force-add ignored diagnostic log.
