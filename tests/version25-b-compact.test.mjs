@@ -9,7 +9,8 @@ const pkg=JSON.parse(readFileSync("package.json","utf8"));
 
 test("Version 25-B compact layer loads after the proven hotfix",()=>{
   assert.match(renderer,/v25-hotfix-v2\.css";\s*import "\.\.\/app\/v25-b-compact\.css";/s);
-  assert.equal(pkg.scripts["predesktop:build"],"node scripts/apply-v25-hotfix-v2.mjs && node scripts/apply-v25-b-compact.mjs");
+  assert.equal(pkg.scripts["predesktop:build"],"node scripts/apply-v25-hotfix-v2.mjs");
+  assert.equal(pkg.scripts["desktop:build"],"node scripts/apply-v25-b-compact.mjs && vite build --config desktop/vite.config.ts");
 });
 
 test("default opening height is no longer the resize floor",()=>{
