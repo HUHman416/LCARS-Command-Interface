@@ -34,10 +34,28 @@ test("vertical resizing uses viewport coordinates for fixed dialogs and pauses o
   assert.match(patcher,/delete element\.dataset\.lcarsResizing/);
 });
 
-test("Page Peek minimum height does not exceed its compact natural layout",()=>{
-  assert.match(css,/\.speed-dial-page-peek\s*\{[^}]*--lcars-popup-min-height:\s*180px/s);
-  assert.match(patcher,/pagePeekMinOriginal = 'floating minWidth=\{360\} minHeight=\{300\} ariaModal=\{false\}'/);
-  assert.match(patcher,/pagePeekMinPatched = 'floating minWidth=\{360\} minHeight=\{180\} ariaModal=\{false\}'/);
+test("popouts use lower synchronized vertical minimums",()=>{
+  assert.match(css,/\.resizable-popup\s*\{[^}]*--lcars-popup-min-height:\s*140px/s);
+  assert.match(css,/\.speed-dial-page-peek\s*\{[^}]*--lcars-popup-min-height:\s*120px/s);
+  assert.match(css,/\.tray-drawer\s*\{[^}]*--lcars-popup-min-height:\s*160px/s);
+  assert.match(css,/\.notice-history\s*\{[^}]*--lcars-popup-min-height:\s*150px/s);
+  assert.match(css,/\.display-menu\s*\{[^}]*--lcars-popup-min-height:\s*160px/s);
+  assert.match(css,/\.drawer\s*\{[^}]*--lcars-popup-min-height:\s*180px/s);
+  assert.match(css,/\.command-palette\s*\{[^}]*--lcars-popup-min-height:\s*150px/s);
+  assert.match(css,/\.compat-center\s*\{[^}]*--lcars-popup-min-height:\s*180px/s);
+  assert.match(css,/\.first-run\s*\{[^}]*--lcars-popup-min-height:\s*200px/s);
+  assert.match(css,/\.power-dialog\s*\{[^}]*--lcars-popup-min-height:\s*180px/s);
+  assert.match(css,/\.power-dialog\.confirm\s*\{[^}]*--lcars-popup-min-height:\s*140px/s);
+  assert.match(patcher,/floating=false,minWidth=320,minHeight=140,role="dialog"/);
+  assert.match(patcher,/floating minWidth=\{360\} minHeight=\{120\} ariaModal=\{false\}/);
+  assert.match(patcher,/floating minWidth=\{380\} minHeight=\{150\} ariaModal=\{false\}/);
+  assert.match(patcher,/className="drawer" minWidth=\{520\} minHeight=\{180\}/);
+  assert.match(patcher,/className="command-palette" minWidth=\{440\} minHeight=\{150\}/);
+});
+
+test("Page Peek body no longer imposes the old 110px internal floor",()=>{
+  assert.match(css,/\.speed-dial-page-peek > main\s*\{[^}]*min-height:\s*0\s*!important/s);
+  assert.match(css,/\.speed-dial-page-peek > main\s*\{[^}]*overflow:\s*auto/s);
 });
 
 test("Communications Center does not keep an important fixed width",()=>{
@@ -58,6 +76,21 @@ test("Communications Center keeps resize handles outside the scrolling history",
 test("Communications source patch is Windows CRLF safe",()=>{
   assert.ok(patcher.includes('const communicationsContentPattern = /          <input\\r?\\n            aria-label="Search communications history"/;'));
   assert.ok(patcher.includes('const eol = source.includes("\\r\\n") ? "\\r\\n" : "\\n";'));
+});
+
+test("narrow Communications controls wrap and scale instead of clipping",()=>{
+  assert.match(css,/@container \(max-width: 520px\)[\s\S]*\.communications-tabs\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)\s*!important/s);
+  assert.match(css,/@container \(max-width: 520px\)[\s\S]*\.communications-tabs button\s*\{[^}]*white-space|@container \(max-width: 520px\)[\s\S]*\.resizable-popup button\s*\{[^}]*white-space:\s*normal\s*!important/s);
+  assert.match(css,/\.communications-tabs button\s*\{[^}]*font-size:\s*9px\s*!important/s);
+  assert.match(css,/\.communication-entry span b,[\s\S]*\.communication-entry span em\s*\{[^}]*white-space:\s*normal\s*!important/s);
+  assert.match(css,/\.communication-entry span small,[\s\S]*\.communication-entry span em\s*\{[^}]*font-size:\s*8px\s*!important/s);
+});
+
+test("narrow Page Peeks adapt headers footers and content to their container",()=>{
+  assert.match(css,/@container \(max-width: 520px\)[\s\S]*\.speed-dial-page-peek h3\s*\{[^}]*font-size:\s*clamp\(/s);
+  assert.match(css,/@container \(max-width: 400px\)[\s\S]*\.speed-dial-page-peek > footer\s*\{[^}]*flex-direction:\s*column/s);
+  assert.match(css,/@container \(max-width: 400px\)[\s\S]*\.peek-network article,[\s\S]*\.peek-settings article\s*\{[^}]*grid-template-columns:\s*auto minmax\(0, 1fr\)\s*!important/s);
+  assert.match(css,/@container \(max-width: 400px\)[\s\S]*\.peek-media-art\s*\{[^}]*width:\s*56px\s*!important[^}]*height:\s*56px\s*!important/s);
 });
 
 test("vertical resize math and CSS share effective height limits",()=>{
