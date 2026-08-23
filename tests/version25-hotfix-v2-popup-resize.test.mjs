@@ -53,6 +53,12 @@ test("popouts use lower synchronized vertical minimums",()=>{
   assert.match(patcher,/className="command-palette" minWidth=\{440\} minHeight=\{150\}/);
 });
 
+test("Page Peek compact height patch cannot consume Display Routing",()=>{
+  assert.ok(patcher.includes('floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}'));
+  assert.ok(patcher.includes('floating minWidth={360} minHeight={120} ariaModal={false} ariaLabel={`${title} Page Peek`}'));
+  assert.ok(patcher.includes('floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel="Display Routing"'));
+});
+
 test("Page Peek body no longer imposes the old 110px internal floor",()=>{
   assert.match(css,/\.speed-dial-page-peek > main\s*\{[^}]*min-height:\s*0\s*!important/s);
   assert.match(css,/\.speed-dial-page-peek > main\s*\{[^}]*overflow:\s*auto/s);
