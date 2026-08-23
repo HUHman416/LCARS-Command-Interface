@@ -40,6 +40,12 @@ test("Page Peek minimum height does not exceed its compact natural layout",()=>{
   assert.match(patcher,/pagePeekMinPatched = 'floating minWidth=\{360\} minHeight=\{180\} ariaModal=\{false\}'/);
 });
 
+test("Communications Center does not keep an important fixed width",()=>{
+  assert.match(patcher,/communicationsWidthOriginal = '\.notice-history \{ width: min\(660px,94vw\) !important;/);
+  assert.match(patcher,/communicationsWidthPatched = '\.notice-history \{ width: min\(660px,94vw\); max-height:/);
+  assert.match(patcher,/V25 Communications Center width override was not found/);
+});
+
 test("vertical resize math and CSS share effective height limits",()=>{
   assert.match(css,/\.resizable-popup\s*\{[^}]*max-height:\s*calc\(100vh - 16px\)\s*!important/s);
   assert.match(patcher,/computedMaxHeight=Number\.parseFloat\(computedStyle\.maxHeight\)/);
