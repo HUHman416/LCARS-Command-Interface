@@ -27,4 +27,17 @@ if (source.includes(resizeOriginal)) source = source.replace(resizeOriginal, res
 else if (!source.includes(resizePatched)) throw new Error("V25-B resize minimum layout was not found; refusing to patch an unknown source layout.");
 
 fs.writeFileSync(path, source);
-console.log("Applied Version 25-B below-default vertical popup sizing.");
+
+/* Keep package.json on its existing valid semver for Electron/npm compatibility,
+   while exposing the public release label exactly as Version 25-B at runtime. */
+for (const relative of ["../local/lcars_bridge.py", "../windows/lcars_bridge_windows.py"]) {
+  const bridgePath = new URL(relative, import.meta.url);
+  let bridge = fs.readFileSync(bridgePath, "utf8");
+  const oldVersion = 'LCARS_VERSION="25.2.0"';
+  const releaseVersion = 'LCARS_VERSION="25-B"';
+  if (bridge.includes(oldVersion)) bridge = bridge.replace(oldVersion, releaseVersion);
+  else if (!bridge.includes(releaseVersion)) throw new Error(`V25-B runtime version marker was not found in ${relative}.`);
+  fs.writeFileSync(bridgePath, bridge);
+}
+
+console.log("Applied Version 25-B below-default vertical popup sizing and runtime version label.");
