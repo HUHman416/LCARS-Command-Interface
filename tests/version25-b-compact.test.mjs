@@ -32,3 +32,11 @@ test("stored and dragged heights use the CSS minimum instead of component defaul
 test("compact content regions can yield vertical space to the shell",()=>{
   assert.match(css,/\.speed-dial-page-peek > main,[\s\S]*\.tray-scroll-region\s*\{[^}]*min-height:\s*0\s*!important/s);
 });
+
+test("Version 25-B is the public runtime label without invalidating package semver",()=>{
+  assert.equal(pkg.version,"25.2.0");
+  assert.match(patcher,/LCARS_VERSION=\"25\.2\.0\"/);
+  assert.match(patcher,/LCARS_VERSION=\"25-B\"/);
+  assert.match(patcher,/local\/lcars_bridge\.py/);
+  assert.match(patcher,/windows\/lcars_bridge_windows\.py/);
+});
