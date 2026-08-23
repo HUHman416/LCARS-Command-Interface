@@ -27,6 +27,11 @@ const replacement = [
   '    const startLeft=start.left-parentLeft,startTop=start.top-parentTop;',
   '    const baseLeft=floating?startLeft:start.left,baseTop=floating?startTop:start.top;',
   '    const west=direction.includes("w"),east=direction.includes("e"),north=direction.includes("n"),south=direction.includes("s");',
+  '    const computedStyle=getComputedStyle(element);',
+  '    const computedMaxHeight=Number.parseFloat(computedStyle.maxHeight);',
+  '    const computedCssMinHeight=Number.parseFloat(computedStyle.getPropertyValue("--lcars-popup-min-height"));',
+  '    const cssMinHeight=Number.isFinite(computedCssMinHeight)?computedCssMinHeight:minHeight;',
+  '    const effectiveMinHeight=Math.max(minHeight,cssMinHeight);',
   '    element.dataset.lcarsResizing="1";',
   '',
   '    // Centered dialogs otherwise re-center while their size changes, which makes',
@@ -44,13 +49,12 @@ const replacement = [
   '      const availableWidth=west?start.right-8:east?window.innerWidth-start.left-8:window.innerWidth-16;',
   '      const availableHeight=north?start.bottom-8:south?window.innerHeight-start.top-8:window.innerHeight-16;',
   '      const maxWidth=Math.max(80,Math.min(window.innerWidth-16,availableWidth));',
-  '      const computedMaxHeight=Number.parseFloat(getComputedStyle(element).maxHeight);',
   '      const cssMaxHeight=Number.isFinite(computedMaxHeight)?computedMaxHeight:window.innerHeight-16;',
   '      const maxHeight=Math.max(80,Math.min(window.innerHeight-16,availableHeight,cssMaxHeight));',
   '      const requestedWidth=west?start.width-dx:east?start.width+dx:start.width;',
   '      const requestedHeight=north?start.height-dy:south?start.height+dy:start.height;',
   '      const width=Math.min(maxWidth,Math.max(Math.min(minWidth,maxWidth),requestedWidth));',
-  '      const height=Math.min(maxHeight,Math.max(Math.min(minHeight,maxHeight),requestedHeight));',
+  '      const height=Math.min(maxHeight,Math.max(Math.min(effectiveMinHeight,maxHeight),requestedHeight));',
   '      const nextLeft=west?baseLeft+start.width-width:baseLeft;',
   '      const nextTop=north?baseTop+start.height-height:baseTop;',
   '      element.style.width=`${width}px`;',
@@ -73,4 +77,4 @@ const replacement = [
 
 source = source.slice(0, start) + replacement + source.slice(end);
 fs.writeFileSync(path, source);
-console.log("Applied V25 Hotfix v2 source-level popup resize geometry fix (CSS max-height synchronized).");
+console.log("Applied V25 Hotfix v2 source-level popup resize geometry fix (CSS min/max height synchronized).");
