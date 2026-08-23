@@ -19,11 +19,20 @@ test("each popup edge has independent source-level resize geometry",()=>{
   assert.match(patcher,/availableWidth=west\?start\.right-8:east\?window\.innerWidth-start\.left-8/);
   assert.match(patcher,/availableHeight=north\?start\.bottom-8:south\?window\.innerHeight-start\.top-8/);
   assert.match(patcher,/nextLeft=west\?baseLeft\+start\.width-width:baseLeft/);
-  assert.match(patcher,/nextTop=north\?baseTop\+start\.height-height:baseTop/);
 });
 
-test("vertical resizing uses viewport coordinates for fixed dialogs and pauses observer clamping",()=>{
-  assert.match(patcher,/baseLeft=floating\?startLeft:start\.left,baseTop=floating\?startTop:start\.top/);
+test("north and south resize anchor to the opposite vertical edge",()=>{
+  assert.match(patcher,/verticalBottom=wasFixed\?window\.innerHeight-start\.bottom/);
+  assert.match(patcher,/if\(north\)\{/);
+  assert.match(patcher,/element\.style\.top="auto"/);
+  assert.match(patcher,/element\.style\.bottom=`\$\{verticalBottom\}px`/);
+  assert.match(patcher,/element\.style\.top=`\$\{baseTop\}px`/);
+  assert.doesNotMatch(patcher,/nextTop=north/);
+  assert.match(patcher,/const finalTop=wasFixed\?finalRect\.top/);
+  assert.match(patcher,/element\.style\.bottom="auto"/);
+});
+
+test("vertical resizing pauses observer clamping",()=>{
   assert.match(patcher,/element\.dataset\.lcarsResizing="1"/);
   assert.match(patcher,/element\.dataset\.lcarsResizing!=="1"/);
   assert.match(patcher,/delete element\.dataset\.lcarsResizing/);
@@ -42,7 +51,6 @@ test("vertical resize math and CSS share effective height limits",()=>{
 test("centered dialogs are frozen before resize instead of being re-centered",()=>{
   assert.match(patcher,/if\(!floating\)element\.style\.position="fixed"/);
   assert.match(patcher,/element\.style\.right="auto"/);
-  assert.match(patcher,/element\.style\.bottom="auto"/);
 });
 
 test("hotfix keeps usable top and bottom resize targets",()=>{
