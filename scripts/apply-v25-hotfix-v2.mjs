@@ -16,10 +16,78 @@ const observerPatched = '    const observer=typeof ResizeObserver==="undefined"?
 if (source.includes(observerOriginal)) source = source.replace(observerOriginal, observerPatched);
 else if (!source.includes(observerPatched)) throw new Error("V25 popup ResizeObserver layout was not found; refusing to patch an unknown source layout.");
 
-const pagePeekMinOriginal = 'floating minWidth={360} minHeight={300} ariaModal={false}';
-const pagePeekMinPatched = 'floating minWidth={360} minHeight={180} ariaModal={false}';
-if (source.includes(pagePeekMinOriginal)) source = source.replace(pagePeekMinOriginal, pagePeekMinPatched);
-else if (!source.includes(pagePeekMinPatched)) throw new Error("V25 Page Peek minimum-height layout was not found; refusing to patch an unknown source layout.");
+const patchSourceAny = (label, originals, patched) => {
+  if (source.includes(patched)) return;
+  const original = originals.find((candidate) => source.includes(candidate));
+  if (!original) throw new Error(`${label} was not found; refusing to patch an unknown source layout.`);
+  source = source.replace(original, patched);
+};
+
+/* Lower both the ResizablePopup default and the explicit per-surface limits. The
+   hotfix stylesheet uses matching --lcars-popup-min-height values, so JavaScript and
+   CSS agree on how far each popup may collapse vertically. Older hotfix values are
+   accepted as inputs to keep repeated local builds idempotent. */
+const compactHeightPatches = [
+  [
+    "V25 ResizablePopup default minimum height",
+    ['floating=false,minWidth=320,minHeight=220,role="dialog"'],
+    'floating=false,minWidth=320,minHeight=140,role="dialog"',
+  ],
+  [
+    "V25 Page Peek minimum height",
+    [
+      'floating minWidth={360} minHeight={300} ariaModal={false}',
+      'floating minWidth={360} minHeight={180} ariaModal={false}',
+    ],
+    'floating minWidth={360} minHeight={120} ariaModal={false}',
+  ],
+  [
+    "V25 Tray Command Deck minimum height",
+    ['floating minWidth={340} minHeight={300} ariaModal={false}'],
+    'floating minWidth={340} minHeight={160} ariaModal={false}',
+  ],
+  [
+    "V25 Communications Center minimum height",
+    ['floating minWidth={380} minHeight={360} ariaModal={false}'],
+    'floating minWidth={380} minHeight={150} ariaModal={false}',
+  ],
+  [
+    "V25 Display Routing minimum height",
+    ['floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel="Display Routing"'],
+    'floating minWidth={360} minHeight={160} ariaModal={false} ariaLabel="Display Routing"',
+  ],
+  [
+    "V25 Application Drawer minimum height",
+    ['className="drawer" minWidth={520} minHeight={480} ariaModal={true}'],
+    'className="drawer" minWidth={520} minHeight={180} ariaModal={true}',
+  ],
+  [
+    "V25 Command Palette minimum height",
+    ['className="command-palette" minWidth={440} minHeight={340} ariaLabel="LCARS command palette"'],
+    'className="command-palette" minWidth={440} minHeight={150} ariaLabel="LCARS command palette"',
+  ],
+  [
+    "V25 Compatibility Center minimum height",
+    ['className="compat-center" minWidth={520} minHeight={420} ariaModal={true}'],
+    'className="compat-center" minWidth={520} minHeight={180} ariaModal={true}',
+  ],
+  [
+    "V25 First Run minimum height",
+    ['className="first-run" minWidth={520} minHeight={460} ariaModal={true}'],
+    'className="first-run" minWidth={520} minHeight={200} ariaModal={true}',
+  ],
+  [
+    "V25 Power Control minimum height",
+    ['className="power-dialog" ariaModal={true} minWidth={480} minHeight={420}'],
+    'className="power-dialog" ariaModal={true} minWidth={480} minHeight={180}',
+  ],
+  [
+    "V25 Power Confirmation minimum height",
+    ['className="power-dialog confirm" role="alertdialog" ariaModal={true} minWidth={420} minHeight={260}'],
+    'className="power-dialog confirm" role="alertdialog" ariaModal={true} minWidth={420} minHeight={140}',
+  ],
+];
+for (const [label, originals, patched] of compactHeightPatches) patchSourceAny(label, originals, patched);
 
 // Communications Center used to scroll the ResizablePopup element itself. That also
 // scrolls its absolutely positioned resize handles, which can move the south handle
@@ -112,4 +180,4 @@ const replacement = [
 
 source = source.slice(0, start) + replacement + source.slice(end);
 fs.writeFileSync(path, source);
-console.log("Applied V25 Hotfix v2 popup resize fixes (rendered-height anchoring + Communications resize handles fixed, Windows-safe).");
+console.log("Applied V25 Hotfix v2 popup resize fixes (compact heights + responsive popouts + Windows-safe Communications handling).");
