@@ -3,6 +3,14 @@ import fs from "node:fs";
 const path = new URL("../app/page.tsx", import.meta.url);
 let source = fs.readFileSync(path, "utf8");
 
+const cssPath = new URL("../app/v25.css", import.meta.url);
+let v25Css = fs.readFileSync(cssPath, "utf8");
+const communicationsWidthOriginal = '.notice-history { width: min(660px,94vw) !important; max-height: 82vh !important; overflow: auto !important; }';
+const communicationsWidthPatched = '.notice-history { width: min(660px,94vw); max-height: 82vh !important; overflow: auto !important; }';
+if (v25Css.includes(communicationsWidthOriginal)) v25Css = v25Css.replace(communicationsWidthOriginal, communicationsWidthPatched);
+else if (!v25Css.includes(communicationsWidthPatched)) throw new Error("V25 Communications Center width override was not found; refusing to patch an unknown source layout.");
+fs.writeFileSync(cssPath, v25Css);
+
 const observerOriginal = '    const observer=typeof ResizeObserver==="undefined"?null:new ResizeObserver(()=>{clampFloatingPosition();persist();});';
 const observerPatched = '    const observer=typeof ResizeObserver==="undefined"?null:new ResizeObserver(()=>{if(element.dataset.lcarsResizing!=="1")clampFloatingPosition();persist();});';
 if (source.includes(observerOriginal)) source = source.replace(observerOriginal, observerPatched);
@@ -84,4 +92,4 @@ const replacement = [
 
 source = source.slice(0, start) + replacement + source.slice(end);
 fs.writeFileSync(path, source);
-console.log("Applied V25 Hotfix v2 source-level popup resize geometry fix (rendered-height north anchoring enabled).");
+console.log("Applied V25 Hotfix v2 popup resize fixes (rendered-height north anchoring + Communications width override removed).");
