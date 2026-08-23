@@ -44,7 +44,9 @@ const replacement = [
   '      const availableWidth=west?start.right-8:east?window.innerWidth-start.left-8:window.innerWidth-16;',
   '      const availableHeight=north?start.bottom-8:south?window.innerHeight-start.top-8:window.innerHeight-16;',
   '      const maxWidth=Math.max(80,Math.min(window.innerWidth-16,availableWidth));',
-  '      const maxHeight=Math.max(80,Math.min(window.innerHeight-16,availableHeight));',
+  '      const computedMaxHeight=Number.parseFloat(getComputedStyle(element).maxHeight);',
+  '      const cssMaxHeight=Number.isFinite(computedMaxHeight)?computedMaxHeight:window.innerHeight-16;',
+  '      const maxHeight=Math.max(80,Math.min(window.innerHeight-16,availableHeight,cssMaxHeight));',
   '      const requestedWidth=west?start.width-dx:east?start.width+dx:start.width;',
   '      const requestedHeight=north?start.height-dy:south?start.height+dy:start.height;',
   '      const width=Math.min(maxWidth,Math.max(Math.min(minWidth,maxWidth),requestedWidth));',
@@ -71,4 +73,4 @@ const replacement = [
 
 source = source.slice(0, start) + replacement + source.slice(end);
 fs.writeFileSync(path, source);
-console.log("Applied V25 Hotfix v2 source-level popup resize geometry fix (vertical clamp isolation enabled).");
+console.log("Applied V25 Hotfix v2 source-level popup resize geometry fix (CSS max-height synchronized).");
