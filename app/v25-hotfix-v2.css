@@ -1,5 +1,12 @@
 /* V25 Hotfix v2: desktop popup resize geometry and edge hit targets. */
-.resizable-popup { --lcars-popup-min-width: 320px; --lcars-popup-min-height: 220px; }
+.resizable-popup {
+  --lcars-popup-min-width: 320px;
+  --lcars-popup-min-height: 220px;
+  /* Once a surface is explicitly resizable, old per-component presentation caps
+     must not silently override the operator-selected height. The resize handler
+     still bounds the dragged edge to the visible viewport. */
+  max-height: calc(100vh - 16px) !important;
+}
 .speed-dial-page-peek { --lcars-popup-min-width: 360px; --lcars-popup-min-height: 300px; }
 .tray-drawer { --lcars-popup-min-width: 340px; --lcars-popup-min-height: 300px; }
 .notice-history { --lcars-popup-min-width: 380px; --lcars-popup-min-height: 360px; }
