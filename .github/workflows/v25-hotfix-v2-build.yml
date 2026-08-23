@@ -1,0 +1,79 @@
+name: V25 Hotfix v2 Popup Resize Test Builds
+
+on:
+  push:
+    branches: [agent/v25-hotfix-v2-popup-resize]
+    paths:
+      - desktop/renderer.tsx
+      - app/v25-hotfix-v2.css
+      - tests/version25-hotfix-v2-popup-resize.test.mjs
+      - .github/workflows/v25-hotfix-v2-build.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: Linux AppImage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run V25 resize and regression tests
+        run: node --test tests/version25-hotfix-v2-popup-resize.test.mjs tests/version25-1-regressions.test.mjs tests/version25-features.test.mjs
+      - name: Build Linux AppImage
+        run: npm run desktop:package:linux -- --publish never
+      - name: Prepare Linux test package
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p hotfix-linux
+          appimage="$(find release-desktop -maxdepth 1 -type f -name '*.AppImage' -print -quit)"
+          if [[ -z "$appimage" ]]; then
+            echo 'Linux AppImage was not produced.' >&2
+            exit 1
+          fi
+          cp "$appimage" hotfix-linux/LCARS-Command-Interface-v25-Hotfix-v2-x86_64.AppImage
+          sha256sum hotfix-linux/LCARS-Command-Interface-v25-Hotfix-v2-x86_64.AppImage > hotfix-linux/SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-V25-Hotfix-v2-Linux
+          path: hotfix-linux/*
+          retention-days: 7
+
+  windows:
+    name: Windows Installer
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run V25 resize and regression tests
+        run: node --test tests/version25-hotfix-v2-popup-resize.test.mjs tests/version25-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
+      - name: Build Windows installer
+        run: npm run desktop:package:windows -- --publish never
+      - name: Prepare Windows test package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force hotfix-windows | Out-Null
+          $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
+          if (-not $installer) { throw 'Windows installer was not produced.' }
+          Copy-Item $installer.FullName hotfix-windows/LCARS-Windows-Setup-v25-Hotfix-v2.exe
+          (Get-FileHash hotfix-windows/LCARS-Windows-Setup-v25-Hotfix-v2.exe -Algorithm SHA256).Hash.ToLower() | Set-Content hotfix-windows/SHA256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-V25-Hotfix-v2-Windows
+          path: hotfix-windows/*
+          retention-days: 7
+
+# Branch-only test workflow. Nothing here publishes a release or updates main.
