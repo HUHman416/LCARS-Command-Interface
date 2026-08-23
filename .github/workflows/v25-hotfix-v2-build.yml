@@ -5,8 +5,13 @@ on:
     branches: [agent/v25-hotfix-v2-popup-resize]
     paths:
       - desktop/renderer.tsx
+      - app/v25.css
       - app/v25-hotfix-v2.css
+      - scripts/apply-v25-hotfix-v2.mjs
       - tests/version25-hotfix-v2-popup-resize.test.mjs
+      - package.json
+      - package-lock.json
+      - electron-builder.yml
       - .github/workflows/v25-hotfix-v2-build.yml
   workflow_dispatch:
 
