@@ -1,0 +1,27 @@
+/* V25 Hotfix v2: desktop popup resize geometry and edge hit targets. */
+.resizable-popup { --lcars-popup-min-width: 320px; --lcars-popup-min-height: 220px; }
+.speed-dial-page-peek { --lcars-popup-min-width: 360px; --lcars-popup-min-height: 300px; }
+.tray-drawer { --lcars-popup-min-width: 340px; --lcars-popup-min-height: 300px; }
+.notice-history { --lcars-popup-min-width: 380px; --lcars-popup-min-height: 360px; }
+.display-menu { --lcars-popup-min-width: 360px; --lcars-popup-min-height: 300px; }
+.drawer { --lcars-popup-min-width: 520px; --lcars-popup-min-height: 480px; }
+.command-palette { --lcars-popup-min-width: 440px; --lcars-popup-min-height: 340px; }
+.compat-center { --lcars-popup-min-width: 520px; --lcars-popup-min-height: 420px; }
+.first-run { --lcars-popup-min-width: 520px; --lcars-popup-min-height: 460px; }
+.power-dialog { --lcars-popup-min-width: 480px; --lcars-popup-min-height: 420px; }
+.power-dialog.confirm { --lcars-popup-min-width: 420px; --lcars-popup-min-height: 260px; }
+
+/* Keep the north/south resize zones inside overflow-clipped LCARS surfaces. */
+.popup-resize-edge-n,
+.popup-resize-edge-s {
+  height: 14px !important;
+}
+.popup-resize-edge-n { top: 0 !important; }
+.popup-resize-edge-s { bottom: 0 !important; }
+
+/* Give the lower corners a little more reliable pointer area without changing visuals. */
+.popup-resize-corner-sw,
+.popup-resize-grip {
+  width: 24px !important;
+  height: 24px !important;
+}
