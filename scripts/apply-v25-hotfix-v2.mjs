@@ -36,10 +36,10 @@ const compactHeightPatches = [
   [
     "V25 Page Peek minimum height",
     [
-      'floating minWidth={360} minHeight={300} ariaModal={false}',
-      'floating minWidth={360} minHeight={180} ariaModal={false}',
+      'floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}',
+      'floating minWidth={360} minHeight={180} ariaModal={false} ariaLabel={`${title} Page Peek`}',
     ],
-    'floating minWidth={360} minHeight={120} ariaModal={false}',
+    'floating minWidth={360} minHeight={120} ariaModal={false} ariaLabel={`${title} Page Peek`}',
   ],
   [
     "V25 Tray Command Deck minimum height",
