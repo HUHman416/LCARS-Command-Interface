@@ -24,16 +24,20 @@ else if (!source.includes(pagePeekMinPatched)) throw new Error("V25 Page Peek mi
 // Communications Center used to scroll the ResizablePopup element itself. That also
 // scrolls its absolutely positioned resize handles, which can move the south handle
 // away from the visible border. Put the history content in its own scrolling region.
+// Use a CRLF/LF-safe marker because GitHub's Windows runners may check files out with
+// Windows line endings while Linux runners keep LF.
 const communicationsScrollMarker = 'className="communications-scroll"';
 if (!source.includes(communicationsScrollMarker)) {
-  const communicationsContentMarker = '          <input\n            aria-label="Search communications history"';
-  const communicationsStart = source.indexOf(communicationsContentMarker);
-  const communicationsEnd = source.indexOf('        </ResizablePopup>', communicationsStart);
+  const communicationsContentPattern = /          <input\r?\n            aria-label="Search communications history"/;
+  const communicationsMatch = communicationsContentPattern.exec(source);
+  const communicationsStart = communicationsMatch?.index ?? -1;
+  const communicationsEnd = source.indexOf('        </ResizablePopup>', communicationsStart >= 0 ? communicationsStart : 0);
   if (communicationsStart < 0 || communicationsEnd < 0) throw new Error("V25 Communications Center content layout was not found; refusing to patch an unknown source layout.");
+  const eol = source.includes("\r\n") ? "\r\n" : "\n";
   source = source.slice(0, communicationsStart)
-    + '          <div className="communications-scroll">\n'
+    + `          <div className="communications-scroll">${eol}`
     + source.slice(communicationsStart, communicationsEnd)
-    + '          </div>\n'
+    + `          </div>${eol}`
     + source.slice(communicationsEnd);
 }
 
@@ -108,4 +112,4 @@ const replacement = [
 
 source = source.slice(0, start) + replacement + source.slice(end);
 fs.writeFileSync(path, source);
-console.log("Applied V25 Hotfix v2 popup resize fixes (rendered-height anchoring + Communications resize handles fixed).");
+console.log("Applied V25 Hotfix v2 popup resize fixes (rendered-height anchoring + Communications resize handles fixed, Windows-safe).");
