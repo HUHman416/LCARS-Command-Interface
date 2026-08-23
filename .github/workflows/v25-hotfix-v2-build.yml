@@ -1,4 +1,4 @@
-name: V25 Hotfix v2 Popup Resize Test Builds
+name: V25 Hotfix v2 / 25-B Test Builds
 
 on:
   push:
@@ -7,8 +7,11 @@ on:
       - desktop/renderer.tsx
       - app/v25.css
       - app/v25-hotfix-v2.css
+      - app/v25-b-compact.css
       - scripts/apply-v25-hotfix-v2.mjs
+      - scripts/apply-v25-b-compact.mjs
       - tests/version25-hotfix-v2-popup-resize.test.mjs
+      - tests/version25-b-compact.test.mjs
       - package.json
       - package-lock.json
       - electron-builder.yml
@@ -30,8 +33,8 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
-      - name: Run V25 resize and regression tests
-        run: node --test tests/version25-hotfix-v2-popup-resize.test.mjs tests/version25-1-regressions.test.mjs tests/version25-features.test.mjs
+      - name: Run V25 resize and 25-B regression tests
+        run: node --test tests/version25-hotfix-v2-popup-resize.test.mjs tests/version25-b-compact.test.mjs tests/version25-1-regressions.test.mjs tests/version25-features.test.mjs
       - name: Build Linux AppImage
         run: npm run desktop:package:linux -- --publish never
       - name: Prepare Linux test package
@@ -44,11 +47,11 @@ jobs:
             echo 'Linux AppImage was not produced.' >&2
             exit 1
           fi
-          cp "$appimage" hotfix-linux/LCARS-Command-Interface-v25-Hotfix-v2-x86_64.AppImage
-          sha256sum hotfix-linux/LCARS-Command-Interface-v25-Hotfix-v2-x86_64.AppImage > hotfix-linux/SHA256.txt
+          cp "$appimage" hotfix-linux/LCARS-Command-Interface-v25-B-x86_64.AppImage
+          sha256sum hotfix-linux/LCARS-Command-Interface-v25-B-x86_64.AppImage > hotfix-linux/SHA256.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-V25-Hotfix-v2-Linux
+          name: LCARS-V25-B-Linux
           path: hotfix-linux/*
           retention-days: 7
 
@@ -63,8 +66,8 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
-      - name: Run V25 resize and regression tests
-        run: node --test tests/version25-hotfix-v2-popup-resize.test.mjs tests/version25-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
+      - name: Run V25 resize and 25-B regression tests
+        run: node --test tests/version25-hotfix-v2-popup-resize.test.mjs tests/version25-b-compact.test.mjs tests/version25-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
       - name: Build Windows installer
         run: npm run desktop:package:windows -- --publish never
       - name: Prepare Windows test package
@@ -73,11 +76,11 @@ jobs:
           New-Item -ItemType Directory -Force hotfix-windows | Out-Null
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName hotfix-windows/LCARS-Windows-Setup-v25-Hotfix-v2.exe
-          (Get-FileHash hotfix-windows/LCARS-Windows-Setup-v25-Hotfix-v2.exe -Algorithm SHA256).Hash.ToLower() | Set-Content hotfix-windows/SHA256.txt
+          Copy-Item $installer.FullName hotfix-windows/LCARS-Windows-Setup-v25-B.exe
+          (Get-FileHash hotfix-windows/LCARS-Windows-Setup-v25-B.exe -Algorithm SHA256).Hash.ToLower() | Set-Content hotfix-windows/SHA256.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-V25-Hotfix-v2-Windows
+          name: LCARS-V25-B-Windows
           path: hotfix-windows/*
           retention-days: 7
 
