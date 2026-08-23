@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 
 const extensions = readFileSync('shared/lcars_extensions.py','utf8');
 const page = readFileSync('app/page.tsx','utf8');
+const renderer = readFileSync('desktop/renderer.tsx','utf8');
 const packageJson = JSON.parse(readFileSync('package.json','utf8'));
 
 test('26.1 trusts only the dedicated Modules branch',()=>{
@@ -25,6 +26,13 @@ test('integrated Module Repository is the Updates slot 03 browser',()=>{
   assert.match(page,/SEARCH MODULE REPOSITORY/);
   assert.match(page,/operate\(entry,"update"\)/);
   assert.equal((page.match(/<ExtensionHub installed=\{extensions\}/g)||[]).length,1);
+});
+
+test('desktop renderer loads Version 26.1 styling after Version 25',()=>{
+  const v25 = renderer.indexOf('import "../app/v25.css"');
+  const v261 = renderer.indexOf('import "../app/v26-1.css"');
+  assert.notEqual(v25,-1);
+  assert.ok(v261 > v25);
 });
 
 test('26.1 development builds identify themselves correctly',()=>{
