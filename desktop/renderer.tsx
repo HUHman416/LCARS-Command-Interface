@@ -8,6 +8,7 @@ import "../app/v24.css";
 import "../app/v24-1.css";
 import "../app/v25.css";
 import "../app/v25-hotfix-v2.css";
+import "../app/v25-b-compact.css";
 
 const nativeFetch: typeof window.fetch = window.fetch.bind(window);
 const compatFallback = {
