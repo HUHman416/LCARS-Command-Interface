@@ -29,9 +29,14 @@ test("vertical resizing uses viewport coordinates for fixed dialogs and pauses o
   assert.match(patcher,/delete element\.dataset\.lcarsResizing/);
 });
 
+test("Page Peek minimum height does not exceed its compact natural layout",()=>{
+  assert.match(css,/\.speed-dial-page-peek\s*\{[^}]*--lcars-popup-min-height:\s*180px/s);
+  assert.match(patcher,/pagePeekMinOriginal = 'floating minWidth=\{360\} minHeight=\{300\} ariaModal=\{false\}'/);
+  assert.match(patcher,/pagePeekMinPatched = 'floating minWidth=\{360\} minHeight=\{180\} ariaModal=\{false\}'/);
+});
+
 test("vertical resize math and CSS share effective height limits",()=>{
   assert.match(css,/\.resizable-popup\s*\{[^}]*max-height:\s*calc\(100vh - 16px\)\s*!important/s);
-  assert.match(css,/\.speed-dial-page-peek\s*\{[^}]*--lcars-popup-min-height:\s*300px/s);
   assert.match(patcher,/computedMaxHeight=Number\.parseFloat\(computedStyle\.maxHeight\)/);
   assert.match(patcher,/computedCssMinHeight=Number\.parseFloat\(computedStyle\.getPropertyValue\("--lcars-popup-min-height"\)\)/);
   assert.match(patcher,/effectiveMinHeight=Math\.max\(minHeight,cssMinHeight\)/);
