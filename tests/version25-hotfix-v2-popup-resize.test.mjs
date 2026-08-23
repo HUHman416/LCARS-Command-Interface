@@ -55,6 +55,11 @@ test("Communications Center keeps resize handles outside the scrolling history",
   assert.match(css,/\.notice-history > \.popup-resize-edge-s\s*\{[^}]*z-index:\s*80\s*!important/s);
 });
 
+test("Communications source patch is Windows CRLF safe",()=>{
+  assert.ok(patcher.includes('const communicationsContentPattern = /          <input\\r?\\n            aria-label="Search communications history"/;'));
+  assert.ok(patcher.includes('const eol = source.includes("\\r\\n") ? "\\r\\n" : "\\n";'));
+});
+
 test("vertical resize math and CSS share effective height limits",()=>{
   assert.match(css,/\.resizable-popup\s*\{[^}]*max-height:\s*calc\(100vh - 16px\)\s*!important/s);
   assert.match(patcher,/computedMaxHeight=Number\.parseFloat\(computedStyle\.maxHeight\)/);
