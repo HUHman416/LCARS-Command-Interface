@@ -46,6 +46,15 @@ test("Communications Center does not keep an important fixed width",()=>{
   assert.match(patcher,/V25 Communications Center width override was not found/);
 });
 
+test("Communications Center keeps resize handles outside the scrolling history",()=>{
+  assert.match(patcher,/communicationsScrollMarker = 'className="communications-scroll"'/);
+  assert.match(patcher,/aria-label="Search communications history"/);
+  assert.match(css,/\.notice-history\.resizable-popup\s*\{[^}]*overflow:\s*hidden\s*!important/s);
+  assert.match(css,/\.notice-history > \.communications-scroll\s*\{[^}]*overflow:\s*auto/s);
+  assert.match(css,/\.notice-history > \.popup-resize-edge-s\s*\{[^}]*height:\s*24px\s*!important/s);
+  assert.match(css,/\.notice-history > \.popup-resize-edge-s\s*\{[^}]*z-index:\s*80\s*!important/s);
+});
+
 test("vertical resize math and CSS share effective height limits",()=>{
   assert.match(css,/\.resizable-popup\s*\{[^}]*max-height:\s*calc\(100vh - 16px\)\s*!important/s);
   assert.match(patcher,/computedMaxHeight=Number\.parseFloat\(computedStyle\.maxHeight\)/);
