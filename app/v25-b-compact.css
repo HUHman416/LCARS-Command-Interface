@@ -1,0 +1,25 @@
+/* Version 25-B test layer: allow popouts to shrink below their natural/default height. */
+.resizable-popup {
+  --lcars-popup-min-height: 96px;
+  min-height: 0 !important;
+}
+
+.speed-dial-page-peek { --lcars-popup-min-height: 96px; min-height: 0 !important; }
+.tray-drawer { --lcars-popup-min-height: 112px; min-height: 0 !important; }
+.notice-history { --lcars-popup-min-height: 120px; min-height: 0 !important; }
+.display-menu { --lcars-popup-min-height: 112px; min-height: 0 !important; }
+.drawer { --lcars-popup-min-height: 128px; min-height: 0 !important; }
+.command-palette { --lcars-popup-min-height: 112px; min-height: 0 !important; }
+.compat-center { --lcars-popup-min-height: 128px; min-height: 0 !important; }
+.first-run { --lcars-popup-min-height: 150px; min-height: 0 !important; }
+.power-dialog { --lcars-popup-min-height: 128px; min-height: 0 !important; }
+.power-dialog.confirm { --lcars-popup-min-height: 104px; min-height: 0 !important; }
+
+/* The default rendered size remains the opening size. Once the operator drags an
+   edge, internal content is allowed to scroll/clip instead of imposing a content-
+   driven minimum on the outer shell. */
+.speed-dial-page-peek > main,
+.notice-history > .communications-scroll,
+.tray-scroll-region {
+  min-height: 0 !important;
+}
