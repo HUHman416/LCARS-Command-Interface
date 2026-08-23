@@ -1,0 +1,341 @@
+HEAD=3c2ecb07d7f08575713f60026db78ba736db438e
+=== npm ci ===
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+npm warn deprecated rimraf@2.6.3: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+
+added 735 packages, and audited 736 packages in 18s
+
+193 packages are looking for funding
+  run `npm fund` for details
+
+21 vulnerabilities (1 low, 6 moderate, 14 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+npm_ci_exit=0
+=== regression suite ===
+TAP version 13
+# Subtest: Speed Dial Media Page Peek has artwork and live master and application audio controls
+ok 1 - Speed Dial Media Page Peek has artwork and live master and application audio controls
+  ---
+  duration_ms: 1.956792
+  type: 'test'
+  ...
+# Subtest: Popup surfaces expose persistent viewport-safe resizing
+ok 2 - Popup surfaces expose persistent viewport-safe resizing
+  ---
+  duration_ms: 2.103695
+  type: 'test'
+  ...
+# Subtest: Page Peek play controls are geometrically centered and media icons require exact app identities
+ok 3 - Page Peek play controls are geometrically centered and media icons require exact app identities
+  ---
+  duration_ms: 0.377675
+  type: 'test'
+  ...
+# Subtest: Plain number keys navigate unless the operator is typing
+ok 4 - Plain number keys navigate unless the operator is typing
+  ---
+  duration_ms: 0.405778
+  type: 'test'
+  ...
+# Subtest: Version 25.2 development builds publish an updater-visible prerelease
+ok 5 - Version 25.2 development builds publish an updater-visible prerelease
+  ---
+  duration_ms: 0.367546
+  type: 'test'
+  ...
+# Subtest: Version 25-B compact layer loads after the proven hotfix
+ok 6 - Version 25-B compact layer loads after the proven hotfix
+  ---
+  duration_ms: 1.136722
+  type: 'test'
+  ...
+# Subtest: default opening height is no longer the resize floor
+ok 7 - default opening height is no longer the resize floor
+  ---
+  duration_ms: 0.30512
+  type: 'test'
+  ...
+# Subtest: stored and dragged heights use the CSS minimum instead of component default minHeight
+not ok 8 - stored and dragged heights use the CSS minimum instead of component default minHeight
+  ---
+  duration_ms: 2.616603
+  type: 'test'
+  location: '/home/runner/work/LCARS-Command-Interface/LCARS-Command-Interface/tests/version25-b-compact.test.mjs:24:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input was expected to not match the regular expression /Math\.max\(minHeight,cssMinHeight\)/. Input:
+    
+    'import fs from "node:fs";\n' +
+      '\n' +
+      'const path = new URL("../app/page.tsx", import.meta.url);\n' +
+      'let source = fs.readFileSync(path, "utf8");\n' +
+      '\n' +
+      "/* Version 25-B keeps each surface's natural/default opening size, but makes the\n" +
+      '   CSS custom minimum authoritative once the user resizes it. That lets saved sizes\n' +
+      '   remain below the old component minHeight props without changing the default size. */\n' +
+      'const fitOriginal = /    const fitSize=\\(width:number,height:number\\)=>\\{\\r?\\n      const \\{maxWidth,maxHeight\\}=bounds\\(\\);\\r?\\n      return \\{width:Math\\.min\\(maxWidth,Math\\.max\\(Math\\.min\\(minWidth,maxWidth\\),width\\)\\),height:Math\\.min\\(maxHeight,Math\\.max\\(Math\\.min\\(minHeight,maxHeight\\),height\\)\\)\\};\\r?\\n    \\};/;\n' +
+      'const fitPatched = [\n' +
+      "  '    const fitSize=(width:number,height:number)=>{',\n" +
+      "  '      const {maxWidth,maxHeight}=bounds();',\n" +
+      `  '      const computedCssMinHeight=Number.parseFloat(getComputedStyle(element).getPropertyValue("--lcars-popup-min-height"));',\n` +
+      "  '      const effectiveMinHeight=Number.isFinite(computedCssMinHeight)?computedCssMinHeight:minHeight;',\n" +
+      "  '      return {width:Math.min(maxWidth,Math.max(Math.min(minWidth,maxWidth),width)),height:Math.min(maxHeight,Math.max(Math.min(effectiveMinHeight,maxHeight),height))};',\n" +
+      "  '    };',\n" +
+      '].join(source.includes("\\r\\n")?"\\r\\n":"\\n");\n' +
+      '\n' +
+      "if (!source.includes('Math.min(effectiveMinHeight,maxHeight),height')) {\n" +
+      '  if (!fitOriginal.test(source)) throw new Error("V25-B fitSize layout was not found; refusing to patch an unknown source layout.");\n' +
+      '  source = source.replace(fitOriginal, fitPatched);\n' +
+      '}\n' +
+      '\n' +
+      "const resizeOriginal = '    const effectiveMinHeight=Math.max(minHeight,cssMinHeight);';\n" +
+      "const resizePatched = '    const effectiveMinHeight=Number.isFinite(computedCssMinHeight)?computedCssMinHeight:minHeight;';\n" +
+      'if (source.includes(resizeOriginal)) source = source.replace(resizeOriginal, resizePatched);\n' +
+      'else if (!source.includes(resizePatched)) throw new Error("V25-B resize minimum layout was not found; refusing to patch an unknown source layout.");\n' +
+      '\n' +
+      'fs.writeFileSync(path, source);\n' +
+      '\n' +
+      '/* Keep package.json on its existing valid semver for Electron/npm compatibility,\n' +
+      '   while exposing the public release label exactly as Version 25-B at runtime. */\n' +
+      'for (const relative of ["../local/lcars_bridge.py", "../windows/lcars_bridge_windows.py"]) {\n' +
+      '  const bridgePath = new URL(relative, import.meta.url);\n' +
+      '  let bridge = fs.readFileSync(bridgePath, "utf8");\n' +
+      `  const oldVersion = 'LCARS_VERSION="25.2.0"';\n` +
+      `  const releaseVersion = 'LCARS_VERSION="25-B"';\n` +
+      '  if (bridge.includes(oldVersion)) bridge = bridge.replace(oldVersion, releaseVersion);\n' +
+      '  else if (!bridge.includes(releaseVersion)) throw new Error(`V25-B runtime version marker was not found in ${relative}.`);\n' +
+      '  fs.writeFileSync(bridgePath, bridge);\n' +
+      '}\n' +
+      '\n' +
+      'console.log("Applied Version 25-B below-default vertical popup sizing and runtime version label.");\n'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: |-
+    import fs from "node:fs";
+    
+    const path = new URL("../app/page.tsx", import.meta.url);
+    let source = fs.readFileSync(path, "utf8");
+    
+    /* Version 25-B keeps each surface's natural/default opening size, but makes the
+       CSS custom minimum authoritative once the user resizes it. That lets saved sizes
+       remain below the old component minHeight props without changing the default size. */
+    const fitOriginal = /    const fitSize=\(width:number,height:number\)=>\{\r?\n      const \{maxWidth,maxHeight\}=bounds\(\);\r?\n      return \{width:Math\.min\(maxWidth,Math\.max\(Math\.min\(minWidth,maxWidth\),width\)\),height:Math\.min\(maxHeight,Math\.max\(Math\.min\(minHeight,maxHeight\),height\)\)\};\r?\n    \};/;
+    const fitPatched = [
+      '    const fitSize=(width:number,height:number)=>{',
+      '      const {maxWidth,maxHeight}=bounds();',
+      '      const computedCssMinHeight=Number.parseFloat(getComputedStyle(element).getPropertyValue("--lcars-popup-min-height"));',
+      '      const effectiveMinHeight=Number.isFinite(computedCssMinHeight)?computedCssMinHeight:minHeight;',
+      '      return {width:Math.min(maxWidth,Math.max(Math.min(minWidth,maxWidth),width)),height:Math.min(maxHeight,Math.max(Math.min(effectiveMinHeight,maxHeight),height))};',
+      '    };',
+    ].join(source.includes("\r\n")?"\r\n":"\n");
+    
+    if (!source.includes('Math.min(effectiveMinHeight,maxHeight),height')) {
+      if (!fitOriginal.test(source)) throw new Error("V25-B fitSize layout was not found; refusing to patch an unknown source layout.");
+      source = source.replace(fitOriginal, fitPatched);
+    }
+    
+    const resizeOriginal = '    const effectiveMinHeight=Math.max(minHeight,cssMinHeight);';
+    const resizePatched = '    const effectiveMinHeight=Number.isFinite(computedCssMinHeight)?computedCssMinHeight:minHeight;';
+    if (source.includes(resizeOriginal)) source = source.replace(resizeOriginal, resizePatched);
+    else if (!source.includes(resizePatched)) throw new Error("V25-B resize minimum layout was not found; refusing to patch an unknown source layout.");
+    
+    fs.writeFileSync(path, source);
+    
+    /* Keep package.json on its existing valid semver for Electron/npm compatibility,
+       while exposing the public release label exactly as Version 25-B at runtime. */
+    for (const relative of ["../local/lcars_bridge.py", "../windows/lcars_bridge_windows.py"]) {
+      const bridgePath = new URL(relative, import.meta.url);
+      let bridge = fs.readFileSync(bridgePath, "utf8");
+      const oldVersion = 'LCARS_VERSION="25.2.0"';
+      const releaseVersion = 'LCARS_VERSION="25-B"';
+      if (bridge.includes(oldVersion)) bridge = bridge.replace(oldVersion, releaseVersion);
+      else if (!bridge.includes(releaseVersion)) throw new Error(`V25-B runtime version marker was not found in ${relative}.`);
+      fs.writeFileSync(bridgePath, bridge);
+    }
+    
+    console.log("Applied Version 25-B below-default vertical popup sizing and runtime version label.");
+    
+  operator: 'doesNotMatch'
+  stack: |-
+    TestContext.<anonymous> (file:///home/runner/work/LCARS-Command-Interface/LCARS-Command-Interface/tests/version25-b-compact.test.mjs:29:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: compact content regions can yield vertical space to the shell
+ok 9 - compact content regions can yield vertical space to the shell
+  ---
+  duration_ms: 0.255056
+  type: 'test'
+  ...
+# Subtest: Version 25-B is the public runtime label without invalidating package semver
+ok 10 - Version 25-B is the public runtime label without invalidating package semver
+  ---
+  duration_ms: 0.161572
+  type: 'test'
+  ...
+# Subtest: Version 25 exposes editable, guarded Operations Automation
+ok 11 - Version 25 exposes editable, guarded Operations Automation
+  ---
+  duration_ms: 1.947925
+  type: 'test'
+  ...
+# Subtest: Speed Dial pages render pin-capable Page Peeks above ordinary LCARS overlays
+ok 12 - Speed Dial pages render pin-capable Page Peeks above ordinary LCARS overlays
+  ---
+  duration_ms: 0.717499
+  type: 'test'
+  ...
+# Subtest: Tray Command Deck mixes configurable commands and named services in one scroll region
+ok 13 - Tray Command Deck mixes configurable commands and named services in one scroll region
+  ---
+  duration_ms: 0.48768
+  type: 'test'
+  ...
+# Subtest: Engineering is cross-platform and protects elevated or LCARS processes
+ok 14 - Engineering is cross-platform and protects elevated or LCARS processes
+  ---
+  duration_ms: 0.51442
+  type: 'test'
+  ...
+# Subtest: Communications combines notice priorities with persistent command activity
+ok 15 - Communications combines notice priorities with persistent command activity
+  ---
+  duration_ms: 0.312223
+  type: 'test'
+  ...
+# Subtest: Extension Hub remains declarative and supports local enable, disable, and guarded removal
+ok 16 - Extension Hub remains declarative and supports local enable, disable, and guarded removal
+  ---
+  duration_ms: 0.34235
+  type: 'test'
+  ...
+# Subtest: Stable and development update channels are explicit and stay silent in the background
+ok 17 - Stable and development update channels are explicit and stay silent in the background
+  ---
+  duration_ms: 0.244637
+  type: 'test'
+  ...
+# Subtest: Version metadata and desktop recovery include Version 25 state
+ok 18 - Version metadata and desktop recovery include Version 25 state
+  ---
+  duration_ms: 0.300611
+  type: 'test'
+  ...
+# Subtest: V25 hotfix v2 patches ResizablePopup before every desktop build
+ok 19 - V25 hotfix v2 patches ResizablePopup before every desktop build
+  ---
+  duration_ms: 1.962182
+  type: 'test'
+  ...
+# Subtest: each popup edge has independent source-level resize geometry
+ok 20 - each popup edge has independent source-level resize geometry
+  ---
+  duration_ms: 0.282598
+  type: 'test'
+  ...
+# Subtest: north resize anchors from actual rendered height
+ok 21 - north resize anchors from actual rendered height
+  ---
+  duration_ms: 0.15587
+  type: 'test'
+  ...
+# Subtest: vertical resizing uses viewport coordinates for fixed dialogs and pauses observer clamping
+ok 22 - vertical resizing uses viewport coordinates for fixed dialogs and pauses observer clamping
+  ---
+  duration_ms: 0.243124
+  type: 'test'
+  ...
+# Subtest: popouts use lower synchronized vertical minimums
+ok 23 - popouts use lower synchronized vertical minimums
+  ---
+  duration_ms: 0.41245
+  type: 'test'
+  ...
+# Subtest: Page Peek compact height patch cannot consume Display Routing
+ok 24 - Page Peek compact height patch cannot consume Display Routing
+  ---
+  duration_ms: 0.189634
+  type: 'test'
+  ...
+# Subtest: Page Peek body no longer imposes the old 110px internal floor
+ok 25 - Page Peek body no longer imposes the old 110px internal floor
+  ---
+  duration_ms: 0.277939
+  type: 'test'
+  ...
+# Subtest: Communications Center does not keep an important fixed width
+ok 26 - Communications Center does not keep an important fixed width
+  ---
+  duration_ms: 0.143238
+  type: 'test'
+  ...
+# Subtest: Communications Center keeps resize handles outside the scrolling history
+ok 27 - Communications Center keeps resize handles outside the scrolling history
+  ---
+  duration_ms: 0.494402
+  type: 'test'
+  ...
+# Subtest: Communications source patch is Windows CRLF safe
+ok 28 - Communications source patch is Windows CRLF safe
+  ---
+  duration_ms: 0.407932
+  type: 'test'
+  ...
+# Subtest: narrow Communications controls wrap and scale instead of clipping
+ok 29 - narrow Communications controls wrap and scale instead of clipping
+  ---
+  duration_ms: 0.375982
+  type: 'test'
+  ...
+# Subtest: narrow Page Peeks adapt headers footers and content to their container
+ok 30 - narrow Page Peeks adapt headers footers and content to their container
+  ---
+  duration_ms: 0.302304
+  type: 'test'
+  ...
+# Subtest: vertical resize math and CSS share effective height limits
+ok 31 - vertical resize math and CSS share effective height limits
+  ---
+  duration_ms: 0.174596
+  type: 'test'
+  ...
+# Subtest: centered dialogs are frozen before resize instead of being re-centered
+ok 32 - centered dialogs are frozen before resize instead of being re-centered
+  ---
+  duration_ms: 0.120695
+  type: 'test'
+  ...
+# Subtest: hotfix keeps usable top and bottom resize targets
+ok 33 - hotfix keeps usable top and bottom resize targets
+  ---
+  duration_ms: 0.164287
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 32
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 144.292239
+tests_exit=1
+FINAL_EXIT=1
