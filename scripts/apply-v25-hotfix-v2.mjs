@@ -8,6 +8,11 @@ const observerPatched = '    const observer=typeof ResizeObserver==="undefined"?
 if (source.includes(observerOriginal)) source = source.replace(observerOriginal, observerPatched);
 else if (!source.includes(observerPatched)) throw new Error("V25 popup ResizeObserver layout was not found; refusing to patch an unknown source layout.");
 
+const pagePeekMinOriginal = 'floating minWidth={360} minHeight={300} ariaModal={false}';
+const pagePeekMinPatched = 'floating minWidth={360} minHeight={180} ariaModal={false}';
+if (source.includes(pagePeekMinOriginal)) source = source.replace(pagePeekMinOriginal, pagePeekMinPatched);
+else if (!source.includes(pagePeekMinPatched)) throw new Error("V25 Page Peek minimum-height layout was not found; refusing to patch an unknown source layout.");
+
 const startMarker = '  const beginResize=(direction:"n"|"ne"|"e"|"se"|"s"|"sw"|"w"|"nw",event:ReactPointerEvent<HTMLSpanElement>)=>{';
 const endMarker = '  const popupClass=`resizable-popup${floating?" resizable-popup-floating":""}${className?` ${className}`:""}`;';
 const start = source.indexOf(startMarker);
@@ -77,4 +82,4 @@ const replacement = [
 
 source = source.slice(0, start) + replacement + source.slice(end);
 fs.writeFileSync(path, source);
-console.log("Applied V25 Hotfix v2 source-level popup resize geometry fix (CSS min/max height synchronized).");
+console.log("Applied V25 Hotfix v2 source-level popup resize geometry fix (Page Peek minimum synchronized).");
