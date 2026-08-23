@@ -29,11 +29,14 @@ test("vertical resizing uses viewport coordinates for fixed dialogs and pauses o
   assert.match(patcher,/delete element\.dataset\.lcarsResizing/);
 });
 
-test("vertical resize math and CSS share the same effective maximum height",()=>{
+test("vertical resize math and CSS share effective height limits",()=>{
   assert.match(css,/\.resizable-popup\s*\{[^}]*max-height:\s*calc\(100vh - 16px\)\s*!important/s);
-  assert.match(patcher,/computedMaxHeight=Number\.parseFloat\(getComputedStyle\(element\)\.maxHeight\)/);
-  assert.match(patcher,/cssMaxHeight=Number\.isFinite\(computedMaxHeight\)\?computedMaxHeight:window\.innerHeight-16/);
+  assert.match(css,/\.speed-dial-page-peek\s*\{[^}]*--lcars-popup-min-height:\s*300px/s);
+  assert.match(patcher,/computedMaxHeight=Number\.parseFloat\(computedStyle\.maxHeight\)/);
+  assert.match(patcher,/computedCssMinHeight=Number\.parseFloat\(computedStyle\.getPropertyValue\("--lcars-popup-min-height"\)\)/);
+  assert.match(patcher,/effectiveMinHeight=Math\.max\(minHeight,cssMinHeight\)/);
   assert.match(patcher,/Math\.min\(window\.innerHeight-16,availableHeight,cssMaxHeight\)/);
+  assert.match(patcher,/Math\.min\(effectiveMinHeight,maxHeight\)/);
 });
 
 test("centered dialogs are frozen before resize instead of being re-centered",()=>{
