@@ -21,6 +21,22 @@ const pagePeekMinPatched = 'floating minWidth={360} minHeight={180} ariaModal={f
 if (source.includes(pagePeekMinOriginal)) source = source.replace(pagePeekMinOriginal, pagePeekMinPatched);
 else if (!source.includes(pagePeekMinPatched)) throw new Error("V25 Page Peek minimum-height layout was not found; refusing to patch an unknown source layout.");
 
+// Communications Center used to scroll the ResizablePopup element itself. That also
+// scrolls its absolutely positioned resize handles, which can move the south handle
+// away from the visible border. Put the history content in its own scrolling region.
+const communicationsScrollMarker = 'className="communications-scroll"';
+if (!source.includes(communicationsScrollMarker)) {
+  const communicationsContentMarker = '          <input\n            aria-label="Search communications history"';
+  const communicationsStart = source.indexOf(communicationsContentMarker);
+  const communicationsEnd = source.indexOf('        </ResizablePopup>', communicationsStart);
+  if (communicationsStart < 0 || communicationsEnd < 0) throw new Error("V25 Communications Center content layout was not found; refusing to patch an unknown source layout.");
+  source = source.slice(0, communicationsStart)
+    + '          <div className="communications-scroll">\n'
+    + source.slice(communicationsStart, communicationsEnd)
+    + '          </div>\n'
+    + source.slice(communicationsEnd);
+}
+
 const startMarker = '  const beginResize=(direction:"n"|"ne"|"e"|"se"|"s"|"sw"|"w"|"nw",event:ReactPointerEvent<HTMLSpanElement>)=>{';
 const endMarker = '  const popupClass=`resizable-popup${floating?" resizable-popup-floating":""}${className?` ${className}`:""}`;';
 const start = source.indexOf(startMarker);
@@ -92,4 +108,4 @@ const replacement = [
 
 source = source.slice(0, start) + replacement + source.slice(end);
 fs.writeFileSync(path, source);
-console.log("Applied V25 Hotfix v2 popup resize fixes (rendered-height north anchoring + Communications width override removed).");
+console.log("Applied V25 Hotfix v2 popup resize fixes (rendered-height anchoring + Communications resize handles fixed).");
