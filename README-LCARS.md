@@ -69,7 +69,7 @@ Windows is distributed separately and is not included in the Universal Linux ins
 
 ## Current stage
 
-Version 26.2 is the current development-channel candidate. It expands the v26 multi-window and PADD foundations with Workstations 3.0, Operations Automation 2.0, the Communications Action Center, native detachable Page Peeks, and public GitHub community catalogs in Module Repository 2.0. Version 25 remains the stable line. Protected commands, process termination, computer power steps, and every module permission boundary remain confirmation-gated or host-controlled.
+Version 26.3 is the final release candidate. It expands the v26 multi-window and PADD foundations with Workstations 3.0, Operations Automation 2.0, the Communications Action Center, native detachable Page Peeks, public GitHub community catalogs, complete v26 configuration portability, and a one-time major-release orientation. Version 25 remains the stable line until this candidate is promoted. Protected commands, process termination, computer power steps, and every module permission boundary remain confirmation-gated or host-controlled.
 
 For one-click Linux installation, open `Install-LCARS-Linux.desktop` or run `Install-LCARS-Linux.run`. Your file manager may ask you to mark the desktop launcher as trusted the first time it is opened. The installer places the standalone application in `~/.local/opt/lcars-command-interface`; Node.js, npm, and an external browser are not required to run it.
 

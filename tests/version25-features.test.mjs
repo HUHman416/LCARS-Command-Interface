@@ -79,10 +79,10 @@ test("Stable and development update channels are explicit and stay silent in the
   assert.match(page,/api\/lcars-update\?channel=/);
 });
 
-test("Version metadata advances for 26.2 while desktop recovery retains Version 25 state",()=>{
-  assert.equal(pkg.version,"26.2.0-dev.1");
-  assert.match(linux,/LCARS_VERSION="26\.2\.0-dev\.1"/);
-  assert.match(windows,/LCARS_VERSION="26\.2\.0-dev\.1"/);
+test("Version metadata advances for Version 26 while desktop recovery retains Version 25 state",()=>{
+  assert.ok(["26.3.0-dev.1","26.0.0"].includes(pkg.version));
+  assert.match(linux,/LCARS_VERSION="26\.(?:3\.0-dev\.1|0\.0)"/);
+  assert.match(windows,/LCARS_VERSION="26\.(?:3\.0-dev\.1|0\.0)"/);
   assert.match(renderer,/lcars-routines/);
   assert.match(renderer,/lcars-tray-shortcuts/);
 });

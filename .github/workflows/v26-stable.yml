@@ -1,0 +1,131 @@
+name: Version 26 Cross-Platform Stable Release
+
+on:
+  push:
+    branches: [26-stable]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build hosted renderer
+        run: npm run build
+      - name: Regression suite
+        run: |
+          node --test 'tests/*.test.mjs'
+          python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Bridge and script validation
+        run: |
+          python3 -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/*.py
+          bash -n install.sh install-autostart.sh uninstall-linux.sh start-local.sh local/lcars-recovery.sh
+          node --check desktop/main.cjs
+      - name: Build Linux AppImage
+        run: npm run desktop:package:linux -- --publish never
+      - name: Assemble Linux stable package
+        run: |
+          set -euo pipefail
+          appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
+          test -n "$appimage"
+          checksum="$(sha256sum "$appimage" | awk '{print $1}')"
+          stage="release/LCARS-Universal-Linux-Desktop-v26"
+          mkdir -p "$stage/local"
+          cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
+          cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
+          cp desktop/icons/512x512.png "$stage/lcars-command-interface.png"
+          cp local/lcars-recovery.sh "$stage/local/"
+          sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
+          sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
+          chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh"
+          cp "$appimage" release/LCARS-Command-Interface-v26-x86_64.AppImage
+          cp install-autostart.sh release/LCARS-Linux-Integration-v26.sh
+          chmod +x release/LCARS-Linux-Integration-v26.sh
+          (cd release && zip -qr LCARS-Universal-Linux-Desktop-v26.zip LCARS-Universal-Linux-Desktop-v26)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v26-linux
+          path: |
+            release/LCARS-Command-Interface-v26-x86_64.AppImage
+            release/LCARS-Universal-Linux-Desktop-v26.zip
+            release/LCARS-Linux-Integration-v26.sh
+          retention-days: 14
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Regression suite
+        run: |
+          node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs tests/version25-windows-bridge-hotfix.test.mjs tests/version26-1-module-repository.test.mjs tests/version26-workspace.test.mjs tests/version26-2-regressions.test.mjs tests/version26-3-stable-readiness.test.mjs
+          python -m unittest discover -s tests -p 'test_*.py'
+      - name: Validate Windows bridge and shared Python syntax
+        run: python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py
+      - name: Validate Electron main process syntax
+        run: node --check desktop/main.cjs
+      - name: Build Windows installer
+        run: npm run desktop:package:windows -- --publish never
+      - name: Prepare Windows stable installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
+          if (-not $installer) { throw 'Windows installer was not produced.' }
+          Copy-Item $installer.FullName release/LCARS-Windows-Setup-v26.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v26-windows
+          path: release/LCARS-Windows-Setup-v26.exe
+          retention-days: 14
+
+  publish-stable-release:
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+      - name: Create source archive and updater checksums
+        run: |
+          set -euo pipefail
+          git archive --format=zip --output=release/LCARS-Command-Interface-v26-Source.zip HEAD
+          (cd release && sha256sum LCARS-Command-Interface-v26-x86_64.AppImage LCARS-Universal-Linux-Desktop-v26.zip LCARS-Linux-Integration-v26.sh LCARS-Windows-Setup-v26.exe LCARS-Command-Interface-v26-Source.zip > SHA256SUMS.txt)
+      - name: Verify stable assets
+        run: |
+          set -euo pipefail
+          cd release
+          test -s LCARS-Command-Interface-v26-x86_64.AppImage
+          test -s LCARS-Universal-Linux-Desktop-v26.zip
+          test -s LCARS-Linux-Integration-v26.sh
+          test -s LCARS-Windows-Setup-v26.exe
+          test -s LCARS-Command-Interface-v26-Source.zip
+          sha256sum --check SHA256SUMS.txt
+      - name: Publish updater-visible Version 26 stable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          notes='Version 26 is the stable LCARS workspace release for Linux and Windows. It adds a touch-first adaptive PADD interface, multi-window Page Peeks with edge/corner resizing, snapping, minimizing and native detachment, complete Workstations, conditional Operations Automation, the Communications Action Center, expanded media/audio control, and a checksum-verified Module Repository with constrained public GitHub community sources and a declarative Module Publisher. Configuration backup now preserves Version 26 workspace and repository state. This release includes the tested Windows Python-launcher, compact-popup, and resize hotfix behavior carried forward from Version 25.'
+          if gh release view v26 >/dev/null 2>&1; then
+            gh release upload v26 release/* --clobber
+            gh release edit v26 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 26" --notes "$notes" --latest
+          else
+            gh release create v26 release/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 26" --notes "$notes" --latest
+          fi

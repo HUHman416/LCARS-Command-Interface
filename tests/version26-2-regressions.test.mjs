@@ -36,12 +36,12 @@ test("Module Repository 2.0 accepts constrained public GitHub sources and genera
   assert.doesNotMatch(extensions,/github\.com.*token/i);
 });
 
-test("Development builds can explicitly transition to the stable major release",()=>{
-  assert.equal(packageJson.version,"26.2.0-dev.1");
+test("Version 26 release candidates can explicitly transition to the stable major release",()=>{
+  assert.ok(["26.3.0-dev.1","26.0.0"].includes(packageJson.version));
   assert.match(page,/CHECK FOR VERSION 26 STABLE/);
   assert.match(updater,/stableTransition/);
   assert.match(updater,/channel=="stable-release"/);
-  assert.match(renderer,/v26-2\.css/);
+  assert.match(renderer,/v26-3\.css/);
 });
 
 test("supported Page Peeks detach through the guarded native Electron route",()=>{

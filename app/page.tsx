@@ -37,7 +37,7 @@ import {
 import type { PagePeekState, PopupGeometry, PopupLayoutMap, PopupSnap } from "./v26-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="26.2.0-dev.1";
+const LCARS_VERSION="26.3.0-dev.1";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -622,6 +622,7 @@ export default function Home() {
   const [customPages,setCustomPages]=useState<CustomPage[]>([]),
     [appDestinations,setAppDestinations]=useState<Record<string,ApplicationDestination>>({});
   const [firstRun, setFirstRun] = useState(false),
+    [whatsNewOpen,setWhatsNewOpen]=useState(false),
     [setupStep, setSetupStep] = useState(0),
     hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [apps, setApps] = useState<App[]>(fallback),
@@ -665,9 +666,7 @@ export default function Home() {
   const routineTriggerGuard=useRef<Set<string>>(new Set()),workstationRestoreGuard=useRef(false);
   useEffect(()=>{const update=(event:Event)=>setWorkspaceWindows((event as CustomEvent<{active?:string[]}>).detail?.active||[]);window.addEventListener(workspaceStateEvent,update);return()=>window.removeEventListener(workspaceStateEvent,update);},[]);
   useEffect(() => {
-    const requested = new URLSearchParams(window.location.search).get(
-      "section",
-    );
+    const launchParams=new URLSearchParams(window.location.search),requested=launchParams.get("section");
     const safeBoot=sessionStorage.getItem("lcars-safe-mode")==="1";
     let restoredQuarantine:string[]=[];
     if(!safeBoot)try{const quarantine=JSON.parse(localStorage.getItem("lcars-extension-quarantine")||"[]");if(Array.isArray(quarantine))restoredQuarantine=quarantine.filter((item):item is string=>typeof item==="string");}catch{}
@@ -742,11 +741,13 @@ export default function Home() {
     setDefaultWorkstation(defaultStation);
     const remoteTerminal = requested === "terminal";
     if (!safeBoot && !remoteTerminal && localStorage.getItem("lcars-setup-complete") && restoredPrefs.lockOnLaunch && !(restoredPrefs.quickBootWithoutPassword && !lockData)) setLocked(true);
+    const setupComplete=Boolean(localStorage.getItem("lcars-setup-complete"));
     if (
-      !localStorage.getItem("lcars-setup-complete") &&
+      !setupComplete &&
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v26"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1603,9 +1604,32 @@ export default function Home() {
     setAccess(next);
     localStorage.setItem("lcars-accessibility", JSON.stringify(next));
   };
+  const restoreModuleSources=async(value:unknown)=>{
+    if(!Array.isArray(value))return;
+    const incoming=value.slice(0,24).flatMap((item):{repositoryUrl:string;enabled:boolean}[]=>{
+      if(!item||typeof item!=="object")return[];
+      const source=item as Partial<ModuleRepositorySource>,repositoryUrl=String(source.repositoryUrl||"").trim();
+      return repositoryUrl?[{repositoryUrl,enabled:source.enabled!==false}]:[];
+    });
+    const known=[...extensionSources];
+    const operate=async(operation:"add"|"enable"|"disable",source:{repositoryUrl?:string;id?:string})=>{
+      const response=await fetch("http://127.0.0.1:8765/api/module-source",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,url:source.repositoryUrl||"",id:source.id||""})}),result=await response.json();
+      if(!response.ok||!result.ok)throw new Error(result.error||"Community repository could not be restored");
+      return result;
+    };
+    for(const item of incoming){
+      let configured=known.find((source)=>source.repositoryUrl?.toLowerCase()===item.repositoryUrl.toLowerCase());
+      if(!configured){const result=await operate("add",item);configured=result.source as ModuleRepositorySource;known.push(configured);}
+      if(configured.enabled!==item.enabled){await operate(item.enabled?"enable":"disable",configured);configured.enabled=item.enabled;}
+    }
+    const response=await fetch("http://127.0.0.1:8765/api/extension-catalog"),result=await response.json();
+    if(!response.ok)throw new Error(result.error||"Module repositories could not be refreshed");
+    setExtensionCatalog(result.catalog||[]);setExtensionSources(result.sources||[]);
+  };
   const exportConfig = () => {
     const data = {
-      version: 25,
+      schema: 26,
+      version: LCARS_VERSION,
       theme,
       favoriteIds,
       widgets,
@@ -1616,6 +1640,8 @@ export default function Home() {
       profiles,
       userName,
       sessionRestore,
+      defaultWorkstation,
+      selectedPlayer:localStorage.getItem("lcars-selected-player")||"",
       customPages,
       appDestinations,
       routines,
@@ -1623,6 +1649,9 @@ export default function Home() {
       trayShortcuts,
       controlMappings,
       disabledExtensions,
+      popupLayout:readPopupLayouts(),
+      pagePeeks:speedDialPages,
+      moduleSources:extensionSources.filter((source)=>!source.official&&source.repositoryUrl).map((source)=>({repositoryUrl:source.repositoryUrl,enabled:source.enabled})),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], {
         type: "application/json",
@@ -1637,7 +1666,7 @@ export default function Home() {
   };
   const importConfig = (file: File) => {
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       try {
         const d = JSON.parse(String(reader.result));
         createRecoverySnapshot("Before configuration import");
@@ -1667,6 +1696,9 @@ export default function Home() {
           setUserName(d.userName);
           localStorage.setItem("lcars-user-name", d.userName);
         }
+        if(typeof d.sessionRestore==="boolean"){setSessionRestore(d.sessionRestore);localStorage.setItem("lcars-session-restore",String(d.sessionRestore));}
+        if(typeof d.defaultWorkstation==="string"){setDefaultWorkstation(d.defaultWorkstation);if(d.defaultWorkstation)localStorage.setItem("lcars-default-workstation",d.defaultWorkstation);else localStorage.removeItem("lcars-default-workstation");}
+        if(typeof d.selectedPlayer==="string"){if(d.selectedPlayer)localStorage.setItem("lcars-selected-player",d.selectedPlayer);else localStorage.removeItem("lcars-selected-player");}
         if (Array.isArray(d.customPages)) {const importedPages=normalizeCustomPages(d.customPages);setCustomPages(importedPages);localStorage.setItem("lcars-custom-pages",JSON.stringify(importedPages));}
         if (d.appDestinations&&typeof d.appDestinations==="object") {const importedDestinations=normalizeAppDestinations(d.appDestinations);setAppDestinations(importedDestinations);localStorage.setItem("lcars-app-destinations",JSON.stringify(importedDestinations));}
         if (Array.isArray(d.routines)) {const importedRoutines=normalizeRoutines(d.routines);setRoutines(importedRoutines);localStorage.setItem("lcars-routines",JSON.stringify(importedRoutines));}
@@ -1674,6 +1706,9 @@ export default function Home() {
         if (Array.isArray(d.trayShortcuts)) {const importedShortcuts=normalizeTrayShortcuts(d.trayShortcuts);setTrayShortcuts(importedShortcuts);localStorage.setItem("lcars-tray-shortcuts",JSON.stringify(importedShortcuts));}
         if (Array.isArray(d.controlMappings)) {const importedMappings=normalizeControlMappings(d.controlMappings);setControlMappings(importedMappings);localStorage.setItem("lcars-control-mappings",JSON.stringify(importedMappings));}
         if (Array.isArray(d.disabledExtensions)) {const importedDisabled=d.disabledExtensions.filter((item:unknown):item is string=>typeof item==="string").slice(0,128);setDisabledExtensions(importedDisabled);localStorage.setItem("lcars-disabled-extensions",JSON.stringify(importedDisabled));}
+        if(d.popupLayout&&typeof d.popupLayout==="object"){const importedLayouts=normalizePopupLayouts(d.popupLayout);localStorage.setItem(popupLayoutStorageKey,JSON.stringify(importedLayouts));window.dispatchEvent(new CustomEvent(workspaceCommandEvent,{detail:{command:"restore",layouts:importedLayouts}}));}
+        if(Array.isArray(d.pagePeeks))savePagePeeks(d.pagePeeks);
+        if(Array.isArray(d.moduleSources))await restoreModuleSources(d.moduleSources);
         notify("Configuration restored");
       } catch {
         notify("Configuration file could not be read", "error");
@@ -1876,10 +1911,10 @@ export default function Home() {
           </div>
         </section>
       );
-    if(id==="routines")return <section className="overview-widget v25-widget routine-widget"><h3>OPERATIONS ROUTINES <small>AUTO-25</small></h3><div className="v25-widget-list">{routines.filter((routine)=>routine.enabled).slice(0,4).map((routine)=><button key={routine.id} onClick={()=>requestRoutine(routine)}><i>▶</i><span><b>{routine.name}</b><small>{routine.steps.length} STEPS · {routine.trigger.type.toUpperCase()}</small></span></button>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</div><button className="widget-launch" onClick={()=>setRoutineCenterOpen(true)}>OPEN AUTOMATION CENTER</button></section>;
-    if(id==="engineering")return <section className="overview-widget v25-widget engineering-widget"><h3>ENGINEERING WATCH <small>ENG-25</small></h3><div className="engineering-glance">{engineering.sensors.filter((sensor)=>sensor.status!=="unavailable").slice(0,4).map((sensor)=><span key={sensor.id}><small>{sensor.name}</small><b>{sensor.value}</b></span>)}</div><div className="v25-widget-list">{engineering.processes.slice(0,3).map((process)=><span key={process.pid}><b>{process.name}</b><small>CPU {process.cpu.toFixed(1)}% · MEM {process.memory.toFixed(1)}%</small></span>)}</div><button className="widget-launch" onClick={()=>setSection("system")}>OPEN ENGINEERING CONSOLE</button></section>;
-    if(id==="communications")return <section className="overview-widget v25-widget communications-widget"><h3>COMMUNICATIONS <small>COM-25</small></h3><div className="v25-widget-list">{notices.slice(0,4).map((notice)=><span key={Math.abs(notice.id)}><b>{notice.source||"LCARS CORE"}</b><small>{notice.text}</small></span>)}{!notices.length&&<p>NO COMMUNICATION TRAFFIC</p>}</div><button className="widget-launch" onClick={()=>setHistoryOpen(true)}>OPEN COMMUNICATIONS CENTER</button></section>;
-    if(id==="activity")return <section className="overview-widget v25-widget activity-widget"><h3>COMMAND ACTIVITY <small>LOG-25</small></h3><div className="v25-widget-list">{activityLog.slice(0,4).map((entry)=><span key={entry.id}><b>{entry.title}</b><small>{entry.source} · {entry.status.toUpperCase()}</small></span>)}{!activityLog.length&&<p>NO COMMANDS RECORDED</p>}</div><button className="widget-launch" onClick={()=>setHistoryOpen(true)}>OPEN ACTIVITY LOG</button></section>;
+    if(id==="routines")return <section className="overview-widget v25-widget routine-widget"><h3>OPERATIONS ROUTINES <small>AUTO-26</small></h3><div className="v25-widget-list">{routines.filter((routine)=>routine.enabled).slice(0,4).map((routine)=><button key={routine.id} onClick={()=>requestRoutine(routine)}><i>▶</i><span><b>{routine.name}</b><small>{routine.steps.length} STEPS · {routine.trigger.type.toUpperCase()}</small></span></button>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</div><button className="widget-launch" onClick={()=>setRoutineCenterOpen(true)}>OPEN AUTOMATION CENTER</button></section>;
+    if(id==="engineering")return <section className="overview-widget v25-widget engineering-widget"><h3>ENGINEERING WATCH <small>ENG-26</small></h3><div className="engineering-glance">{engineering.sensors.filter((sensor)=>sensor.status!=="unavailable").slice(0,4).map((sensor)=><span key={sensor.id}><small>{sensor.name}</small><b>{sensor.value}</b></span>)}</div><div className="v25-widget-list">{engineering.processes.slice(0,3).map((process)=><span key={process.pid}><b>{process.name}</b><small>CPU {process.cpu.toFixed(1)}% · MEM {process.memory.toFixed(1)}%</small></span>)}</div><button className="widget-launch" onClick={()=>setSection("system")}>OPEN ENGINEERING CONSOLE</button></section>;
+    if(id==="communications")return <section className="overview-widget v25-widget communications-widget"><h3>COMMUNICATIONS <small>COM-26</small></h3><div className="v25-widget-list">{notices.slice(0,4).map((notice)=><span key={Math.abs(notice.id)}><b>{notice.source||"LCARS CORE"}</b><small>{notice.text}</small></span>)}{!notices.length&&<p>NO COMMUNICATION TRAFFIC</p>}</div><button className="widget-launch" onClick={()=>setHistoryOpen(true)}>OPEN COMMUNICATIONS CENTER</button></section>;
+    if(id==="activity")return <section className="overview-widget v25-widget activity-widget"><h3>COMMAND ACTIVITY <small>LOG-26</small></h3><div className="v25-widget-list">{activityLog.slice(0,4).map((entry)=><span key={entry.id}><b>{entry.title}</b><small>{entry.source} · {entry.status.toUpperCase()}</small></span>)}{!activityLog.length&&<p>NO COMMANDS RECORDED</p>}</div><button className="widget-launch" onClick={()=>setHistoryOpen(true)}>OPEN ACTIVITY LOG</button></section>;
     if (id === "media")
       return (
         <section className="overview-widget wide-widget">
@@ -1989,7 +2024,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>26.2 DEV</small>
+          <small>26.3 RC</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>
@@ -2429,6 +2464,10 @@ export default function Home() {
                   <b>RUN GUIDED TOUR</b>
                   <small>LEARN THE LCARS DESKTOP CONTROLS</small>
                 </button>
+                <button onClick={()=>setWhatsNewOpen(true)}>
+                  <b>WHAT'S NEW IN VERSION 26</b>
+                  <small>REOPEN THE RELEASE ORIENTATION</small>
+                </button>
                 <button onClick={() => coreAction("shell-mode-off")}>
                   <b>RECOVERY CONTROL</b>
                   <small>
@@ -2516,6 +2555,7 @@ export default function Home() {
           }}
         />
       )}
+      {whatsNewOpen&&<Version26Welcome close={()=>{localStorage.setItem("lcars-whats-new-v26","1");setWhatsNewOpen(false);}} openWorkstations={()=>{localStorage.setItem("lcars-whats-new-v26","1");setWhatsNewOpen(false);setSection("settings");}}/>}
       {paletteOpen && (
         <CommandPalette
           query={paletteQuery}
@@ -2822,7 +2862,7 @@ function EngineeringConsole({data,refresh,processAction}:{data:EngineeringData;r
   const [query,setQuery]=useState(""),[expanded,setExpanded]=useState(true);
   const processes=data.processes.filter((process)=>`${process.name} ${process.pid} ${process.user||""}`.toLowerCase().includes(query.toLowerCase())).slice(0,40);
   const command=(process:EngineeringData["processes"][number],action:"terminate"|"suspend"|"resume")=>{if(action==="terminate"&&!window.confirm(`Terminate ${process.name} (PID ${process.pid})? Unsaved work in that application may be lost.`))return;processAction(process.pid,action);};
-  return <section className="engineering-console"><header><div><small>VERSION 25 ENGINEERING OPERATIONS</small><h4>ENGINEERING CONSOLE</h4><p>Hardware health, power sources, storage status, and guarded process control remain local to this computer.</p></div><strong>{String(data.sensors.filter((sensor)=>sensor.status==="ready").length).padStart(2,"0")}<small> SYSTEMS READY</small></strong></header><div className="engineering-sensors">{data.sensors.length?data.sensors.map((sensor)=><article className={sensor.status} key={sensor.id}><i>{sensor.kind.slice(0,3).toUpperCase()}</i><span><b>{sensor.name}</b><small>{sensor.detail||sensor.kind.toUpperCase()}</small></span><strong>{sensor.value}</strong></article>):<p>NO OPTIONAL SENSOR ADAPTERS REPORTED · CORE TELEMETRY REMAINS AVAILABLE ABOVE</p>}</div><nav><button onClick={refresh}>REFRESH ENGINEERING</button><button onClick={()=>setExpanded(!expanded)}>{expanded?"HIDE PROCESS MATRIX":"SHOW PROCESS MATRIX"}</button><input aria-label="Search engineering processes" placeholder="SEARCH PROCESSES…" value={query} onChange={(event)=>setQuery(event.target.value)}/></nav>{expanded&&<div className="engineering-processes"><header><span>PROCESS</span><span>CPU</span><span>MEMORY</span><span>CONTROL</span></header>{processes.map((process)=><article key={process.pid}><span><b>{process.name}</b><small>PID {process.pid}{process.user?` · ${process.user}`:""}</small></span><strong>{process.cpu.toFixed(1)}%</strong><strong>{process.memory.toFixed(1)}%</strong><nav>{process.protected||!data.processControl?<small>PROTECTED</small>:<><button onClick={()=>command(process,process.state==="stopped"?"resume":"suspend")}>{process.state==="stopped"?"RESUME":"PAUSE"}</button><button className="danger" onClick={()=>command(process,"terminate")}>END</button></>}</nav></article>)}{!processes.length&&<p>NO MATCHING USER PROCESSES</p>}</div>}{data.notes?.length?<footer>{data.notes.join(" · ")}</footer>:null}</section>;
+  return <section className="engineering-console"><header><div><small>VERSION 26 ENGINEERING OPERATIONS</small><h4>ENGINEERING CONSOLE</h4><p>Hardware health, power sources, storage status, and guarded process control remain local to this computer.</p></div><strong>{String(data.sensors.filter((sensor)=>sensor.status==="ready").length).padStart(2,"0")}<small> SYSTEMS READY</small></strong></header><div className="engineering-sensors">{data.sensors.length?data.sensors.map((sensor)=><article className={sensor.status} key={sensor.id}><i>{sensor.kind.slice(0,3).toUpperCase()}</i><span><b>{sensor.name}</b><small>{sensor.detail||sensor.kind.toUpperCase()}</small></span><strong>{sensor.value}</strong></article>):<p>NO OPTIONAL SENSOR ADAPTERS REPORTED · CORE TELEMETRY REMAINS AVAILABLE ABOVE</p>}</div><nav><button onClick={refresh}>REFRESH ENGINEERING</button><button onClick={()=>setExpanded(!expanded)}>{expanded?"HIDE PROCESS MATRIX":"SHOW PROCESS MATRIX"}</button><input aria-label="Search engineering processes" placeholder="SEARCH PROCESSES…" value={query} onChange={(event)=>setQuery(event.target.value)}/></nav>{expanded&&<div className="engineering-processes"><header><span>PROCESS</span><span>CPU</span><span>MEMORY</span><span>CONTROL</span></header>{processes.map((process)=><article key={process.pid}><span><b>{process.name}</b><small>PID {process.pid}{process.user?` · ${process.user}`:""}</small></span><strong>{process.cpu.toFixed(1)}%</strong><strong>{process.memory.toFixed(1)}%</strong><nav>{process.protected||!data.processControl?<small>PROTECTED</small>:<><button onClick={()=>command(process,process.state==="stopped"?"resume":"suspend")}>{process.state==="stopped"?"RESUME":"PAUSE"}</button><button className="danger" onClick={()=>command(process,"terminate")}>END</button></>}</nav></article>)}{!processes.length&&<p>NO MATCHING USER PROCESSES</p>}</div>}{data.notes?.length?<footer>{data.notes.join(" · ")}</footer>:null}</section>;
 }
 
 function TaskRail({
@@ -3467,7 +3507,7 @@ function CompatibilityCenter({
 
 function WorkspaceWindowPanel({windows,peeks,arrange,reset,closePeeks,command}:{windows:string[];peeks:number;arrange:()=>void;reset:()=>void;closePeeks:()=>void;command:(popupKey:string,command:"focus"|"toggle-minimize")=>void}){
   const layouts=typeof window==="undefined"?{}:readPopupLayouts(),label=(key:string)=>key.startsWith("speed-dial-page-peek:")?key.split(":").at(-1)?.replace(/^peek-/,"").replaceAll("-"," ")||"PAGE PEEK":key.replaceAll("-"," ");
-  return <section className="workspace-window-panel"><header><span><small>VERSION 26.2 WINDOW MATRIX</small><b>POPUP WORKSPACE</b></span><strong>{String(windows.length).padStart(2,"0")}<small>ACTIVE</small></strong></header><p>Drag popup headers, resize from every edge, or use the window controls to minimize and snap. Live placement previews show each snap zone. Positions, dimensions, and stacking restore with the selected Workstation.</p><div><button onClick={arrange}><b>AUTO ARRANGE</b><small>TILE OPEN WINDOWS</small></button><button onClick={reset}><b>RESET LAYOUT</b><small>RESTORE SAFE DEFAULTS</small></button><button disabled={!peeks} onClick={closePeeks}><b>CLOSE PAGE PEEKS</b><small>{peeks} OPEN PREVIEW{peeks===1?"":"S"}</small></button></div>{windows.length>0&&<section className="workspace-window-manager"><header><b>LIVE WINDOW MANAGER</b><small>FOCUS OR MINIMIZE WITHOUT HUNTING THROUGH THE STACK</small></header>{windows.map((key,index)=><article key={key}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label(key).toUpperCase()}</b><small>{layouts[key]?.minimized?"MINIMIZED":layouts[key]?.snap&&layouts[key].snap!=="none"?`SNAPPED ${layouts[key].snap.toUpperCase()}`:"FLOATING"}</small></span><button onClick={()=>command(key,"focus")}>FOCUS</button><button onClick={()=>command(key,"toggle-minimize")}>{layouts[key]?.minimized?"RESTORE":"MINIMIZE"}</button></article>)}</section>}</section>;
+  return <section className="workspace-window-panel"><header><span><small>VERSION 26 WINDOW MATRIX</small><b>POPUP WORKSPACE</b></span><strong>{String(windows.length).padStart(2,"0")}<small>ACTIVE</small></strong></header><p>Drag popup headers, resize from every edge, or use the window controls to minimize and snap. Live placement previews show each snap zone. Positions, dimensions, and stacking restore with the selected Workstation.</p><div><button onClick={arrange}><b>AUTO ARRANGE</b><small>TILE OPEN WINDOWS</small></button><button onClick={reset}><b>RESET LAYOUT</b><small>RESTORE SAFE DEFAULTS</small></button><button disabled={!peeks} onClick={closePeeks}><b>CLOSE PAGE PEEKS</b><small>{peeks} OPEN PREVIEW{peeks===1?"":"S"}</small></button></div>{windows.length>0&&<section className="workspace-window-manager"><header><b>LIVE WINDOW MANAGER</b><small>FOCUS OR MINIMIZE WITHOUT HUNTING THROUGH THE STACK</small></header>{windows.map((key,index)=><article key={key}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label(key).toUpperCase()}</b><small>{layouts[key]?.minimized?"MINIMIZED":layouts[key]?.snap&&layouts[key].snap!=="none"?`SNAPPED ${layouts[key].snap.toUpperCase()}`:"FLOATING"}</small></span><button onClick={()=>command(key,"focus")}>FOCUS</button><button onClick={()=>command(key,"toggle-minimize")}>{layouts[key]?.minimized?"RESTORE":"MINIMIZE"}</button></article>)}</section>}</section>;
 }
 
 function MobileCommandBar({section,sheet,navigate,applications,commands,communications,more,routines,tray,displays,power,close}:{section:string;sheet:"commands"|"more"|null;navigate:(page:string)=>void;applications:()=>void;commands:()=>void;communications:()=>void;more:()=>void;routines:()=>void;tray:()=>void;displays:()=>void;power:()=>void;close:()=>void}){
@@ -4086,7 +4126,7 @@ function RoutineCenter({routines,apps,profiles,devices,players,running,history,s
   const updateStep=(id:string,patch:Partial<RoutineStep>)=>routine&&update({steps:routine.steps.map((step)=>step.id===id?{...step,...patch}:step)});
   const moveStep=(index:number,direction:number)=>{if(!routine)return;const target=index+direction;if(target<0||target>=routine.steps.length)return;const steps=[...routine.steps];[steps[index],steps[target]]=[steps[target],steps[index]];update({steps});};
   const triggerNeedsValue=routine?.trigger.type!=="manual"&&routine?.trigger.type!=="startup";
-  return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><section className="routine-center" role="dialog" aria-modal="true"><header><div><small>VERSION 26.2 OPERATIONS AUTOMATION</small><h2>ROUTINE COMMAND CENTER</h2><p>Compose conditional local workflows with delays, retries, failure paths, and operator prompts. Protected actions always retain an explicit confirmation gate.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header><div className="routine-center-layout"><aside><button onClick={add}>+ NEW ROUTINE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</aside>{showHistory?<main className="routine-run-history"><header><small>LOCAL EXECUTION JOURNAL</small><h3>RUN HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO ROUTINE EXECUTIONS RECORDED</p>}</main>:routine?<main><div className="routine-fields"><label>ROUTINE NAME<input maxLength={40} value={routine.name} onChange={(event)=>update({name:event.target.value})}/></label><label>FOLDER<input maxLength={40} value={routine.folder||"GENERAL"} onChange={(event)=>update({folder:event.target.value})}/></label><label>DESCRIPTION<input maxLength={160} value={routine.description} onChange={(event)=>update({description:event.target.value})}/></label><label>COLOR<select value={routine.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></select></label><label>TRIGGER<select value={routine.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option></select></label>{triggerNeedsValue&&<label>TRIGGER VALUE<input type={routine.trigger.type==="time"?"time":"text"} value={routine.trigger.value||""} placeholder={routine.trigger.type==="app"?"APPLICATION NAME":"DEVICE NAME"} onChange={(event)=>update({trigger:{...routine.trigger,value:event.target.value}})}/></label>}<Toggle label="Routine enabled" checked={routine.enabled} change={(enabled)=>update({enabled})}/></div><section className="routine-steps"><header><div><small>EXECUTION ORDER · CONDITIONAL BRANCHES</small><h3>ROUTINE STEPS</h3></div><b>{routine.steps.length}/24</b></header>{routine.steps.map((step,index)=>{const choices=stepChoices(step.kind),selectable=choices.length>0;return <article className="routine-step-v26" key={step.id}><i>{String(index+1).padStart(2,"0")}</i><select value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=stepChoices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined,prompt:kind==="prompt"?"Continue this routine?":undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="prompt">OPERATOR PROMPT</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></select>{step.kind==="prompt"?<input aria-label="Operator prompt" value={step.prompt||""} placeholder="ASK THE OPERATOR…" onChange={(event)=>updateStep(step.id,{prompt:event.target.value,target:event.target.value})}/>:selectable?<select value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!choices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{choices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</select>:<label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label>}<nav><button title="Test this step" disabled={Boolean(running)} onClick={()=>testStep(routine,step)}>TEST</button><button disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</button><button disabled={index===routine.steps.length-1} onClick={()=>moveStep(index,1)}>↓</button><button disabled={routine.steps.length<=1} onClick={()=>update({steps:routine.steps.filter((item)=>item.id!==step.id)})}>×</button></nav><details><summary>BRANCH / TIMING / FAILURE</summary><div><label>RUN WHEN<select value={step.condition?.source||""} onChange={(event)=>updateStep(step.id,{condition:event.target.value?{source:event.target.value as NonNullable<RoutineStep["condition"]>["source"],operator:"available"}:undefined})}><option value="">ALWAYS</option><option value="bridge">LOCAL CORE</option><option value="media">MEDIA</option><option value="application">APPLICATION</option><option value="device">AUDIO DEVICE</option><option value="dnd">DO NOT DISTURB</option></select></label>{step.condition&&<><label>CONDITION<select value={step.condition.operator} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,operator:event.target.value as NonNullable<RoutineStep["condition"]>["operator"]}})}><option value="available">AVAILABLE</option><option value="unavailable">UNAVAILABLE</option><option value="equals">EQUALS</option><option value="not-equals">DOES NOT EQUAL</option></select></label><label>MATCH VALUE<input value={step.condition.value||""} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,value:event.target.value}})}/></label></>}<label>DELAY MS<input type="number" min="0" max="30000" value={step.delayMs||0} onChange={(event)=>updateStep(step.id,{delayMs:+event.target.value})}/></label><label>RETRIES<input type="number" min="0" max="5" value={step.retries||0} onChange={(event)=>updateStep(step.id,{retries:+event.target.value})}/></label><label>IF FAILED<select value={step.onFailure||"stop"} onChange={(event)=>updateStep(step.id,{onFailure:event.target.value as "stop"|"continue"})}><option value="stop">STOP ROUTINE</option><option value="continue">CONTINUE TO NEXT STEP</option></select></label></div></details></article>;})}<button disabled={routine.steps.length>=24} onClick={addStep}>+ ADD STEP</button></section><footer><button className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==routine.id));setSelected("");}}>DELETE ROUTINE</button><button onClick={duplicate}>DUPLICATE</button><button disabled={!routine.steps.length||running===routine.id} onClick={()=>request(routine)}>{running===routine.id?"ROUTINE RUNNING…":"PREVIEW ROUTINE"}</button></footer></main>:<div className="adaptive-empty"><b>CREATE AN OPERATIONS ROUTINE</b><small>Start with a page change, then add conditions, prompts, applications, audio controls, workstation restore, or guarded system actions.</small></div>}</div></section></div>;
+  return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><section className="routine-center" role="dialog" aria-modal="true"><header><div><small>VERSION 26 OPERATIONS AUTOMATION</small><h2>ROUTINE COMMAND CENTER</h2><p>Compose conditional local workflows with delays, retries, failure paths, and operator prompts. Protected actions always retain an explicit confirmation gate.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header><div className="routine-center-layout"><aside><button onClick={add}>+ NEW ROUTINE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</aside>{showHistory?<main className="routine-run-history"><header><small>LOCAL EXECUTION JOURNAL</small><h3>RUN HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO ROUTINE EXECUTIONS RECORDED</p>}</main>:routine?<main><div className="routine-fields"><label>ROUTINE NAME<input maxLength={40} value={routine.name} onChange={(event)=>update({name:event.target.value})}/></label><label>FOLDER<input maxLength={40} value={routine.folder||"GENERAL"} onChange={(event)=>update({folder:event.target.value})}/></label><label>DESCRIPTION<input maxLength={160} value={routine.description} onChange={(event)=>update({description:event.target.value})}/></label><label>COLOR<select value={routine.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></select></label><label>TRIGGER<select value={routine.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option></select></label>{triggerNeedsValue&&<label>TRIGGER VALUE<input type={routine.trigger.type==="time"?"time":"text"} value={routine.trigger.value||""} placeholder={routine.trigger.type==="app"?"APPLICATION NAME":"DEVICE NAME"} onChange={(event)=>update({trigger:{...routine.trigger,value:event.target.value}})}/></label>}<Toggle label="Routine enabled" checked={routine.enabled} change={(enabled)=>update({enabled})}/></div><section className="routine-steps"><header><div><small>EXECUTION ORDER · CONDITIONAL BRANCHES</small><h3>ROUTINE STEPS</h3></div><b>{routine.steps.length}/24</b></header>{routine.steps.map((step,index)=>{const choices=stepChoices(step.kind),selectable=choices.length>0;return <article className="routine-step-v26" key={step.id}><i>{String(index+1).padStart(2,"0")}</i><select value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=stepChoices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined,prompt:kind==="prompt"?"Continue this routine?":undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="prompt">OPERATOR PROMPT</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></select>{step.kind==="prompt"?<input aria-label="Operator prompt" value={step.prompt||""} placeholder="ASK THE OPERATOR…" onChange={(event)=>updateStep(step.id,{prompt:event.target.value,target:event.target.value})}/>:selectable?<select value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!choices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{choices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</select>:<label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label>}<nav><button title="Test this step" disabled={Boolean(running)} onClick={()=>testStep(routine,step)}>TEST</button><button disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</button><button disabled={index===routine.steps.length-1} onClick={()=>moveStep(index,1)}>↓</button><button disabled={routine.steps.length<=1} onClick={()=>update({steps:routine.steps.filter((item)=>item.id!==step.id)})}>×</button></nav><details><summary>BRANCH / TIMING / FAILURE</summary><div><label>RUN WHEN<select value={step.condition?.source||""} onChange={(event)=>updateStep(step.id,{condition:event.target.value?{source:event.target.value as NonNullable<RoutineStep["condition"]>["source"],operator:"available"}:undefined})}><option value="">ALWAYS</option><option value="bridge">LOCAL CORE</option><option value="media">MEDIA</option><option value="application">APPLICATION</option><option value="device">AUDIO DEVICE</option><option value="dnd">DO NOT DISTURB</option></select></label>{step.condition&&<><label>CONDITION<select value={step.condition.operator} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,operator:event.target.value as NonNullable<RoutineStep["condition"]>["operator"]}})}><option value="available">AVAILABLE</option><option value="unavailable">UNAVAILABLE</option><option value="equals">EQUALS</option><option value="not-equals">DOES NOT EQUAL</option></select></label><label>MATCH VALUE<input value={step.condition.value||""} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,value:event.target.value}})}/></label></>}<label>DELAY MS<input type="number" min="0" max="30000" value={step.delayMs||0} onChange={(event)=>updateStep(step.id,{delayMs:+event.target.value})}/></label><label>RETRIES<input type="number" min="0" max="5" value={step.retries||0} onChange={(event)=>updateStep(step.id,{retries:+event.target.value})}/></label><label>IF FAILED<select value={step.onFailure||"stop"} onChange={(event)=>updateStep(step.id,{onFailure:event.target.value as "stop"|"continue"})}><option value="stop">STOP ROUTINE</option><option value="continue">CONTINUE TO NEXT STEP</option></select></label></div></details></article>;})}<button disabled={routine.steps.length>=24} onClick={addStep}>+ ADD STEP</button></section><footer><button className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==routine.id));setSelected("");}}>DELETE ROUTINE</button><button onClick={duplicate}>DUPLICATE</button><button disabled={!routine.steps.length||running===routine.id} onClick={()=>request(routine)}>{running===routine.id?"ROUTINE RUNNING…":"PREVIEW ROUTINE"}</button></footer></main>:<div className="adaptive-empty"><b>CREATE AN OPERATIONS ROUTINE</b><small>Start with a page change, then add conditions, prompts, applications, audio controls, workstation restore, or guarded system actions.</small></div>}</div></section></div>;
 }
 
 function RoutinePreview({routine,describe,running,cancel,run}:{routine:Routine;describe:(step:RoutineStep)=>string;running:boolean;cancel:()=>void;run:()=>void}){
@@ -4305,6 +4345,16 @@ function FirstRun({
       </ResizablePopup>
     </div>
   );
+}
+
+function Version26Welcome({close,openWorkstations}:{close:()=>void;openWorkstations:()=>void}){
+  const features=[
+    {code:"01",title:"ADAPTIVE PADD",text:"Touch-first portrait and landscape controls keep navigation, Speed Dial, and command sheets usable on compact displays."},
+    {code:"02",title:"WINDOW WORKSPACE",text:"Open multiple Page Peeks, resize from every edge, snap, minimize, detach, auto-arrange, and restore the complete layout."},
+    {code:"03",title:"OPERATIONS",text:"Build conditional routines with prompts, delays, retries, failure paths, protected confirmations, and a local execution history."},
+    {code:"04",title:"COMMUNITY MODULES",text:"Add public GitHub module repositories or generate a repository-ready package with validation and SHA-256 verification."},
+  ];
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 26"><header><span><small>MAJOR RELEASE ORIENTATION</small><h2>WELCOME TO VERSION 26</h2><p>Your Version 25 settings remain in place. Here are the new command systems now available.</p></span><strong>26</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openWorkstations}>OPEN WORKSTATIONS</button><button autoFocus onClick={close}>START USING VERSION 26</button></footer></section></div>;
 }
 
 function OverviewEditor({
@@ -4944,7 +4994,7 @@ function NotificationCenter({
         <ResizablePopup as="aside" popupKey="communications-center" className="notice-history" floating minWidth={380} minHeight={360} ariaModal={false} ariaLabel="Communications Center">
           <header>
             <div>
-              <small>VERSION 26.2 PRIORITY & ACTION MATRIX</small>
+              <small>VERSION 26 PRIORITY & ACTION MATRIX</small>
               <h3>COMMUNICATIONS ACTION CENTER</h3>
             </div>
             <button onClick={close}>CLOSE ×</button>

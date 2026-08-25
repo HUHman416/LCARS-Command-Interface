@@ -4,9 +4,9 @@ LCARS extensions are declarative JSON modules. They do not execute arbitrary Jav
 
 Install an extension manually by placing a folder containing `lcars-module.json` in the user extension directory shown by **Updates → Extension Hub → Open Module Folder**, then select **Scan Extensions**. Bundled examples live in `extensions/stardate-clock` and `extensions/mission-timer`.
 
-## Version 26.2 Module Repository
+## Version 26.3 Module Repository
 
-Version 26.1 added the official, download-only module repository backed by the project's dedicated `Modules` branch. Version 26.2 adds operator-configured public GitHub repositories. Each community repository exposes a root `catalog.json`; LCARS labels it as community content and lets the operator add, disable, refresh, diagnose, or remove the source.
+Version 26.1 added the official, download-only module repository backed by the project's dedicated `Modules` branch. Version 26.2 added operator-configured public GitHub repositories. Version 26.3 includes those community sources in the main LCARS configuration backup and restore flow. Each community repository exposes a root `catalog.json`; LCARS labels it as community content and lets the operator add, disable, refresh, diagnose, or remove the source.
 
 Repository modules remain declarative data only. LCARS accepts public `https://github.com/OWNER/REPOSITORY` source URLs without credentials or tokens. Catalog and manifest downloads are confined to that same repository, remote payload size is limited, SHA-256 is verified before installation, and the downloaded manifest must pass the same API v2 validator used for local modules with a matching ID and version. Installation writes only `lcars-module.json` into that module's isolated extension directory; no archive extraction or executable plug-in code is involved.
 

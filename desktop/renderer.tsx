@@ -10,6 +10,7 @@ import "../app/v25.css";
 import "../app/v26-1.css";
 import "../app/v26.css";
 import "../app/v26-2.css";
+import "../app/v26-3.css";
 
 const nativeFetch: typeof window.fetch = window.fetch.bind(window);
 const compatFallback = {
