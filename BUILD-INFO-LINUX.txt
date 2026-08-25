@@ -1,6 +1,5 @@
-LCARS Universal Linux Desktop Version 25-B
-Application release label: 25-B
-Package compatibility version: 25.2.0
+LCARS Universal Linux Desktop v26
+Application version: 26.0.0
 AppImage SHA-256: GENERATED-DURING-PACKAGING
 
 The installer verifies this checksum before replacing the installed application.

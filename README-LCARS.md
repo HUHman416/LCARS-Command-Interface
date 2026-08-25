@@ -10,7 +10,7 @@ Windows is distributed separately and is not included in the Universal Linux ins
 
 - Classic, Voyager, Nemesis Blue, Picard, Lower Decks, and PADD themes
 - Persistent theme selection
-- Responsive desktop and tablet layouts
+- Responsive desktop, tablet, portrait, and landscape PADD layouts
 - LCARS interface sounds with an audio toggle
 - System telemetry display
 - Searchable inventory of applications installed on the system
@@ -48,20 +48,28 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Verified GitHub updates with release notes and automatic previous-AppImage archiving for Linux rollback
 - Non-destructive installation repair for Linux desktop registration and Windows application search
 - Version 25 Operations Automation with editable, preview-first routines and guarded system steps
-- Workstation profiles that restore layout, audio, applications, and supported display destinations
+- Version 26 Workstation profiles that also restore open Page Peeks, window geometry, z-order, minimized state, and snapping
 - Engineering Console with cross-platform sensors and protected current-user process controls
 - Communications Center with priority notices and persistent command activity
 - Extension Hub with declarative catalog, enable/disable controls, and guarded local removal
 - Configurable Tray Command Deck for applications, routines, LCARS pages, and desktop tray services
-- Pin-capable Speed Dial Page Peeks that stay visible while working elsewhere in LCARS
+- Simultaneous Speed Dial Page Peeks with dragging, eight-direction resizing, snapping, minimizing, auto-arrange, reset, and persistent placement
 - Stable and development update channels with quiet background checks
 - Version 25.1 Speed Dial media controls with artwork, master audio, and per-application audio
 - Resizable popup surfaces with persistent, viewport-safe sizes
 - Plain number-key page navigation outside Terminal and other editable controls
+- Touch-first PADD navigation with bottom command sheets and larger controls
+- Trusted, checksum-verified declarative Module Repository under Updates → Module API
+- Public GitHub community Module Repository sources with validation, source controls, diagnostics, and a repository-package publisher
+- Workstations 3.0 with adaptive display presets, Workstation-specific Speed Dials, preview, rename, duplicate, and individual export
+- Operations Automation 2.0 with conditions, delays, retries, failure paths, prompts, step tests, folders, and run history
+- Communications Action Center with filters, repeated-message grouping, read/archive state, and safe destination actions
+- Native detachable Page Peeks, snap-zone previews, and minimized-window management
+- Contained Communications feed and quiet native scrollbars without disabling scrolling
 
 ## Current stage
 
-Version 25.1 is the development-channel maintenance update for the Version 25 Operations line. It rebuilds the Speed Dial media Peek, adds resizable popup surfaces, restores plain number-key page navigation outside editable controls, and ships through an updater-visible prerelease for end-to-end testing. Version 25 introduced user-built routines, fuller Workstation restoration, Engineering and Communications centers, a declarative Extension Hub, configurable control mappings, and the scrollable Tray Command Deck. Protected commands, process termination, and computer power steps remain confirmation-gated.
+Version 26 is the current stable release. It combines the adaptive PADD interface, Workstations 3.0, Operations Automation 2.0, the Communications Action Center, native detachable Page Peeks, public GitHub community catalogs, complete v26 configuration portability, and a one-time major-release orientation. Protected commands, process termination, computer power steps, and every module permission boundary remain confirmation-gated or host-controlled.
 
 For one-click Linux installation, open `Install-LCARS-Linux.desktop` or run `Install-LCARS-Linux.run`. Your file manager may ask you to mark the desktop launcher as trusted the first time it is opened. The installer places the standalone application in `~/.local/opt/lcars-command-interface`; Node.js, npm, and an external browser are not required to run it.
 

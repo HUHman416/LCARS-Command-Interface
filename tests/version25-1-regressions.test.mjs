@@ -7,7 +7,6 @@ const page=read("../app/page.tsx");
 const css=read("../app/v25.css");
 const linux=read("../local/lcars_bridge.py");
 const workflow=read("../.github/workflows/v25-test.yml");
-const pkg=JSON.parse(read("../package.json"));
 
 test("Speed Dial Media Page Peek has artwork and live master and application audio controls",()=>{
   assert.match(page,/function SpeedDialMediaPeek/);
@@ -25,7 +24,7 @@ test("Speed Dial Media Page Peek has artwork and live master and application aud
 test("Popup surfaces expose persistent viewport-safe resizing",()=>{
   assert.match(page,/function ResizablePopup/);
   assert.match(page,/lcars-popup-sizes/);
-  assert.match(page,/popupKey="speed-dial-page-peek"/);
+  assert.match(page,/popupKey=\{popupKey\} className=\{`speed-dial-page-peek/);
   assert.match(page,/popupKey="application-drawer"/);
   for(const direction of ["n","ne","e","se","s","sw","w","nw"])assert.match(page,new RegExp(`beginResize\\("${direction}"`));
   assert.match(css,/\.popup-resize-edge-n/);
@@ -49,8 +48,7 @@ test("Plain number keys navigate unless the operator is typing",()=>{
   assert.match(page,/Press the number shown on a sidebar control/);
 });
 
-test("Version 25.2 development builds publish an updater-visible prerelease",()=>{
-  assert.equal(pkg.version,"25.2.0");
+test("Version 25.2 development release workflow remains preserved for historical release coverage",()=>{
   assert.match(workflow,/branches:\s*\[agent\/v25-development\]/);
   assert.match(workflow,/LCARS-Command-Interface-v25\.2-x86_64\.AppImage/);
   assert.match(workflow,/LCARS-Windows-Setup-v25\.2\.exe/);

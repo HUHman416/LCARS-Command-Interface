@@ -1,6 +1,7 @@
 node_modules/
 dist/
 desktop-dist/
+*.tsbuildinfo
 release-desktop/
 .next/
 .wrangler/

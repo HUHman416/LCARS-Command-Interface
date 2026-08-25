@@ -1,38 +1,16 @@
-name: Build Version 25-B Release
+name: Build Version 25 Release
 
 on:
   push:
     branches: [main]
-    paths:
-      - app/**
-      - desktop/**
-      - local/**
-      - windows/**
-      - shared/**
-      - scripts/**
-      - extensions/**
-      - tests/**
-      - package.json
-      - package-lock.json
-      - electron-builder.yml
-      - BUILD-INFO-LINUX.txt
-      - install.sh
-      - install-autostart.sh
-      - uninstall-linux.sh
-      - start-local.sh
-      - .github/workflows/release.yml
+    paths: [.github/workflows/release.yml]
   workflow_dispatch:
 
 permissions:
   contents: write
 
-concurrency:
-  group: version-25-b-release
-  cancel-in-progress: true
-
 jobs:
   linux:
-    name: Linux Version 25-B
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,23 +18,16 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Install locked dependencies
-        run: npm ci
-      - name: Run tested Version 25-B regression suite
-        run: node --test tests/version25-hotfix-v2-popup-resize.test.mjs tests/version25-b-compact.test.mjs tests/version25-1-regressions.test.mjs tests/version25-features.test.mjs
-      - name: Build Linux AppImage from Version 25-B source
-        run: npm run desktop:package:linux -- --publish never
+      - run: npm ci
+      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
+      - run: npm run desktop:package:linux -- --publish never
       - name: Assemble universal Linux package
         shell: bash
         run: |
           set -euo pipefail
-          appimage="$(find release-desktop -maxdepth 1 -type f -name '*.AppImage' -print -quit)"
-          if [[ -z "$appimage" ]]; then
-            echo 'Version 25-B Linux AppImage was not produced.' >&2
-            exit 1
-          fi
+          appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
           checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          stage="release/LCARS-Universal-Linux-Desktop-v25-B"
+          stage="release/LCARS-Universal-Linux-Desktop-v25"
           mkdir -p "$stage/local"
           cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
           cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
@@ -65,21 +36,20 @@ jobs:
           sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
           sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
           chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh"
-          cp "$appimage" release/LCARS-Command-Interface-v25-B-x86_64.AppImage
-          cp install-autostart.sh release/LCARS-Linux-Integration-v25-B.sh
-          chmod +x release/LCARS-Linux-Integration-v25-B.sh
-          (cd release && zip -qr LCARS-Universal-Linux-Desktop-v25-B.zip LCARS-Universal-Linux-Desktop-v25-B)
+          cp "$appimage" release/LCARS-Command-Interface-v25-x86_64.AppImage
+          cp install-autostart.sh release/LCARS-Linux-Integration-v25.sh
+          chmod +x release/LCARS-Linux-Integration-v25.sh
+          (cd release && zip -qr LCARS-Universal-Linux-Desktop-v25.zip LCARS-Universal-Linux-Desktop-v25)
       - uses: actions/upload-artifact@v4
         with:
-          name: linux-release-25-B
+          name: linux-release
           path: |
-            release/LCARS-Universal-Linux-Desktop-v25-B.zip
-            release/LCARS-Command-Interface-v25-B-x86_64.AppImage
-            release/LCARS-Linux-Integration-v25-B.sh
+            release/LCARS-Universal-Linux-Desktop-v25.zip
+            release/LCARS-Command-Interface-v25-x86_64.AppImage
+            release/LCARS-Linux-Integration-v25.sh
           retention-days: 1
 
   windows:
-    name: Windows Version 25-B
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -87,27 +57,33 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Install locked dependencies
-        run: npm ci
-      - name: Run tested Version 25-B regression suite
-        run: node --test tests/version25-hotfix-v2-popup-resize.test.mjs tests/version25-b-compact.test.mjs tests/version25-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
-      - name: Build Windows installer from Version 25-B source
-        run: npm run desktop:package:windows -- --publish never
-      - name: Assemble Windows release package
+      - run: npm ci
+      - run: node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs tests/version25-windows-bridge-hotfix.test.mjs
+      - name: Use verified Version 25.2 Windows hotfix installer
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          New-Item -ItemType Directory -Force release | Out-Null
-          $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
-          if (-not $installer) { throw 'Version 25-B Windows installer was not produced.' }
-          Copy-Item $installer.FullName release/LCARS-Windows-Setup-v25-B.exe
+          New-Item -ItemType Directory -Force release, hotfix | Out-Null
+          $tag = 'v25.2-windows-hotfix1'
+          $name = 'LCARS-Windows-Setup-v25.2-Hotfix-1.exe'
+          $checksumName = "$name.sha256"
+          gh release download $tag --pattern $name --pattern $checksumName --dir hotfix
+          $installer = Join-Path hotfix $name
+          $checksumFile = Join-Path hotfix $checksumName
+          if (-not (Test-Path $installer)) { throw "Required Windows hotfix installer $name was not found in release $tag." }
+          if (-not (Test-Path $checksumFile)) { throw "Required Windows hotfix checksum $checksumName was not found in release $tag." }
+          $expected = ((Get-Content $checksumFile -Raw).Trim() -split '\s+')[0].ToLower()
+          $actual = (Get-FileHash $installer -Algorithm SHA256).Hash.ToLower()
+          if ($actual -ne $expected) { throw "Windows hotfix checksum mismatch: expected $expected, got $actual." }
+          Copy-Item $installer release/LCARS-Windows-Setup-v25.exe
       - uses: actions/upload-artifact@v4
         with:
-          name: windows-release-25-B
-          path: release/LCARS-Windows-Setup-v25-B.exe
+          name: windows-release
+          path: release/LCARS-Windows-Setup-v25.exe
           retention-days: 1
 
   publish:
-    name: Publish Version 25-B
     needs: [linux, windows]
     runs-on: ubuntu-latest
     steps:
@@ -117,32 +93,25 @@ jobs:
           path: release
           merge-multiple: true
       - name: Create source archive and checksums
-        shell: bash
         run: |
           set -euo pipefail
-          git archive --format=zip --output=release/LCARS-Command-Interface-v25-B-Source.zip HEAD
-          (cd release && sha256sum LCARS-Command-Interface-v25-B-x86_64.AppImage LCARS-Universal-Linux-Desktop-v25-B.zip LCARS-Linux-Integration-v25-B.sh LCARS-Windows-Setup-v25-B.exe LCARS-Command-Interface-v25-B-Source.zip > SHA256SUMS.txt)
+          git archive --format=zip --output=release/LCARS-Command-Interface-v25-Source.zip HEAD
+          (cd release && sha256sum LCARS-Command-Interface-v25-x86_64.AppImage LCARS-Universal-Linux-Desktop-v25.zip LCARS-Linux-Integration-v25.sh LCARS-Windows-Setup-v25.exe LCARS-Command-Interface-v25-Source.zip > SHA256SUMS.txt)
       - name: Verify release assets against SHA256SUMS
-        shell: bash
         run: |
           set -euo pipefail
           cd release
-          test -s LCARS-Command-Interface-v25-B-x86_64.AppImage
-          test -s LCARS-Universal-Linux-Desktop-v25-B.zip
-          test -s LCARS-Linux-Integration-v25-B.sh
-          test -s LCARS-Windows-Setup-v25-B.exe
-          test -s LCARS-Command-Interface-v25-B-Source.zip
+          test -s LCARS-Command-Interface-v25-x86_64.AppImage
+          test -s LCARS-Universal-Linux-Desktop-v25.zip
+          test -s LCARS-Linux-Integration-v25.sh
+          test -s LCARS-Windows-Setup-v25.exe
+          test -s LCARS-Command-Interface-v25-Source.zip
           sha256sum --check SHA256SUMS.txt
-      - name: Publish or update GitHub Release
-        shell: bash
+      - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          notes='Version 25-B rolls the tested popup and Page Peek resize corrections into Version 25, including reliable resizing from every edge, corrected Communications Center resize handles, smaller below-default vertical sizing, remembered compact sizes, and responsive narrow-width text/control layouts. Linux and Windows assets are built from the same Version 25-B source. Download SHA256SUMS.txt to verify every release file.'
-          if gh release view v25-B >/dev/null 2>&1; then
-            gh release upload v25-B release/* --clobber
-            gh release edit v25-B --target "$GITHUB_SHA" --title "LCARS Command Interface Version 25-B" --notes "$notes"
-          else
-            gh release create v25-B release/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 25-B" --notes "$notes"
-          fi
+          gh release create v25 release/* \
+            --target "$GITHUB_SHA" \
+            --title "LCARS Command Interface Version 25" \
+            --notes "Version 25 adds preview-first Operations Automation, fuller Workstation restore, Engineering and Communications centers, a declarative Extension Hub, configurable control mappings, a mixed scrollable Tray Command Deck, and pin-capable Speed Dial Page Peeks. The Windows installer incorporates the tested v25.2 Python bridge hotfix. Protected system steps remain confirmation-gated. Download SHA256SUMS.txt to verify every release file."

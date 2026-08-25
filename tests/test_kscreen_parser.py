@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 import importlib.util
 from pathlib import Path
+import sys
 import unittest
 
 ROOT=Path(__file__).resolve().parents[1]
-SPEC=importlib.util.spec_from_file_location("lcars_bridge",ROOT/"local/lcars_bridge.py")
-BRIDGE=importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(BRIDGE)
+BRIDGE=None
+if sys.platform != "win32":
+    SPEC=importlib.util.spec_from_file_location("lcars_bridge",ROOT/"local/lcars_bridge.py")
+    BRIDGE=importlib.util.module_from_spec(SPEC)
+    SPEC.loader.exec_module(BRIDGE)
 
+@unittest.skipIf(sys.platform == "win32", "KScreen parsing is a Linux bridge test")
 class KScreenParserTests(unittest.TestCase):
     def test_plasma_ansi_two_monitor_output(self):
         sample=(

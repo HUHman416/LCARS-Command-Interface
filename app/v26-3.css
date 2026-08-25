@@ -1,0 +1,27 @@
+/* Version 26 stable orientation and migration polish. */
+
+.whats-new-backdrop { z-index: 420; display: grid; place-items: center; padding: 14px; }
+.whats-new-v26 { display: grid; grid-template-rows: auto minmax(0,1fr) auto; width: min(760px,calc(100vw - 28px)); max-height: calc(100vh - 28px); overflow: auto; border: 2px solid var(--blue); border-left: 20px solid var(--orange); border-radius: 3px 28px 28px 3px; background: #070708; box-shadow: 0 0 0 4px #000,0 18px 70px #000; }
+.whats-new-v26 > header { display: grid; grid-template-columns: minmax(0,1fr) 110px; gap: 12px; align-items: stretch; border-bottom: 10px solid var(--pink); padding: 14px 14px 10px; }
+.whats-new-v26 > header span { display: grid; align-content: center; gap: 3px; }
+.whats-new-v26 > header small { color: var(--peach); font-size: 9px; letter-spacing: .12em; }
+.whats-new-v26 > header h2 { margin: 0; color: #fff; font-size: clamp(22px,4vw,38px); line-height: 1; }
+.whats-new-v26 > header p { max-width: 580px; margin: 4px 0 0; color: #aaa3af; font: 10px/1.45 Arial,sans-serif; }
+.whats-new-v26 > header strong { display: grid; place-items: center; border-radius: 32px 3px 32px 32px; background: var(--orange); color: #050505; font-size: 46px; }
+.whats-new-v26 > div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; overflow: auto; padding: 10px 14px; }
+.whats-new-v26 article { display: grid; grid-template-columns: 44px minmax(0,1fr); gap: 7px; min-width: 0; border-left: 7px solid var(--blue); background: #151218; padding: 7px; }
+.whats-new-v26 article:nth-child(2) { border-left-color: var(--violet); }.whats-new-v26 article:nth-child(3) { border-left-color: var(--gold); }.whats-new-v26 article:nth-child(4) { border-left-color: var(--pink); }
+.whats-new-v26 article > i { display: grid; place-items: center; align-self: stretch; background: var(--blue); color: #050505; font-style: normal; font-weight: 700; }
+.whats-new-v26 article:nth-child(2) > i { background: var(--violet); }.whats-new-v26 article:nth-child(3) > i { background: var(--gold); }.whats-new-v26 article:nth-child(4) > i { background: var(--pink); }
+.whats-new-v26 article span { display: grid; align-content: center; min-width: 0; }
+.whats-new-v26 article b { color: #fff; font-size: 12px; }.whats-new-v26 article p { margin: 2px 0 0; color: #aaa3af; font: 9px/1.4 Arial,sans-serif; }
+.whats-new-v26 > footer { display: grid; grid-template-columns: 1fr 1.4fr; gap: 4px; border-top: 8px solid var(--orange); padding: 8px 14px 12px; }
+.whats-new-v26 > footer button { min-height: 42px; border: 0; background: var(--violet); color: #050505; font-weight: 700; }.whats-new-v26 > footer button:last-child { border-radius: 2px 24px 24px 2px; background: var(--orange); }
+
+@media (max-width: 600px) {
+  .whats-new-backdrop { align-items: end; padding: 6px; }
+  .whats-new-v26 { width: 100%; max-height: calc(100dvh - 12px); border-left-width: 10px; border-radius: 3px 20px 20px 3px; }
+  .whats-new-v26 > header { grid-template-columns: minmax(0,1fr) 70px; padding: 10px; }.whats-new-v26 > header strong { font-size: 32px; }
+  .whats-new-v26 > div { grid-template-columns: 1fr; padding: 7px 10px; }
+  .whats-new-v26 > footer { grid-template-columns: 1fr; padding: 7px 10px 10px; }.whats-new-v26 > footer button:last-child { border-radius: 2px 20px 20px 2px; }
+}

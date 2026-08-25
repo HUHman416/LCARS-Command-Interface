@@ -1,0 +1,152 @@
+/* Version 26 workspace, PADD navigation, and shared overflow system. */
+.workspace-window { position: fixed !important; isolation: isolate; }
+.workspace-window > header { cursor: move; touch-action: none; padding-right: 132px !important; user-select: none; }
+.workspace-window > header button,.workspace-window > header input,.workspace-window > header select { cursor: pointer; }
+.workspace-window-controls { position: absolute; z-index: 42; top: 5px; right: 7px; display: grid; grid-template-columns: repeat(4,27px); gap: 2px; }
+.workspace-window-controls button { display: grid !important; place-items: center !important; width: 27px !important; min-width: 27px !important; height: 25px !important; min-height: 25px !important; border: 0 !important; border-radius: 12px 2px 12px 12px !important; background: var(--blue) !important; color: #070708 !important; padding: 0 !important; font: 700 14px/1 Arial,sans-serif !important; }
+.workspace-window-controls button:nth-child(2) { background: var(--violet) !important; }
+.workspace-window-controls button:nth-child(3) { background: var(--pink) !important; }
+.workspace-window-controls button:nth-child(4) { background: var(--gold) !important; }
+.workspace-window-controls button:focus-visible { outline: 2px solid #fff !important; outline-offset: 2px; }
+.workspace-minimized { height: 56px !important; min-height: 56px !important; overflow: hidden !important; }
+.workspace-minimized > :not(header):not(.workspace-window-controls):not(.popup-resize-edge):not(.popup-resize-corner):not(.popup-resize-grip) { display: none !important; }
+.workspace-minimized > header { min-height: 54px; overflow: hidden; border-bottom: 0 !important; }
+.workspace-minimized .popup-resize-edge-s,.workspace-minimized .popup-resize-corner-sw,.workspace-minimized .popup-resize-grip { display: none !important; }
+.workspace-snapped { max-width: none !important; max-height: none !important; border-radius: 0 22px 22px 0 !important; }
+.display-menu.resizable-popup-floating { position: fixed !important; }
+.resizable-popup-floating { margin: 0 !important; transform: none !important; }
+
+.workspace-window-panel { margin-top: 14px; border: 1px solid #302a35; border-left: 24px solid var(--gold); background: #070708; padding: 12px; }
+.workspace-window-panel > header { display: flex; align-items: end; justify-content: space-between; gap: 14px; border-bottom: 8px solid var(--gold); padding: 0 4px 9px; }
+.workspace-window-panel > header span,.workspace-window-panel > header strong { display: grid; }
+.workspace-window-panel > header small { color: var(--peach); font-size: 8px; }
+.workspace-window-panel > header b { font-size: 24px; }
+.workspace-window-panel > header strong { color: var(--gold); font-size: 30px; line-height: .9; text-align: right; }
+.workspace-window-panel > header strong small { margin-top: 5px; color: #8e8792; }
+.workspace-window-panel > p { color: #aaa3af; font: 10px/1.45 Arial,sans-serif; }
+.workspace-window-panel > div { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 4px; }
+.workspace-window-panel > div button { display: grid; min-height: 54px; border: 0; border-radius: 26px 2px 2px 26px; background: var(--gold); color: #070708; padding: 8px 12px; text-align: left; }
+.workspace-window-panel > div button:nth-child(2) { border-radius: 2px; background: var(--blue); }
+.workspace-window-panel > div button:nth-child(3) { border-radius: 2px 26px 26px 2px; background: var(--violet); }
+.workspace-window-panel > div button:disabled { opacity: .35; }
+.workspace-window-panel button small { opacity: .65; font-size: 8px; }
+
+/* Communications owns one internal scrolling feed; its controls stay in place. */
+.notice-history.resizable-popup { display: grid !important; grid-template-rows: auto auto auto minmax(0,1fr); overflow: hidden !important; }
+.notice-history > header,.notice-history > nav,.notice-history > input { flex: none; }
+.communications-feed { min-height: 0; overflow: auto; overscroll-behavior: contain; padding-right: 2px; }
+
+/* Chromium scroll mechanics remain available without native gray tracks. */
+:where(.content,.communications-feed,.speed-dial-page-peek > main,.tray-scroll-region,.routine-steps,.extension-catalog,.engineering-processes,.file-grid,.file-inspector,.media-mixer-list,.terminal-output,.mobile-command-sheet) { scrollbar-width: none; -ms-overflow-style: none; }
+:where(.content,.communications-feed,.speed-dial-page-peek > main,.tray-scroll-region,.routine-steps,.extension-catalog,.engineering-processes,.file-grid,.file-inspector,.media-mixer-list,.terminal-output,.mobile-command-sheet)::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+.mobile-command-bar,.mobile-sheet-scrim { display: none; }
+
+@media (pointer: coarse) {
+  button,select,input[type="checkbox"],input[type="range"] { touch-action: manipulation; }
+  .nav,.speed-dial button,.communications-tabs button,.workspace-window-controls button { min-height: 42px; }
+  .workspace-window-controls { grid-template-columns: repeat(4,40px); }
+  .workspace-window-controls button { width: 40px !important; min-width: 40px !important; height: 38px !important; min-height: 38px !important; }
+  .workspace-window > header { padding-right: 180px !important; }
+}
+
+@media (max-width: 760px) {
+  html,body { width: 100%; min-width: 0; overflow: hidden; background: #050505; }
+  .lcars,.theme-padd { width: 100%; height: 100dvh; min-height: 0; overflow: hidden; padding: 6px; }
+  .top { grid-template-columns: 82px minmax(0,1fr) auto !important; min-height: 65px; gap: 4px; }
+  .top .brand { min-width: 0; border-radius: 30px 2px 2px 30px; padding: 7px 9px; }
+  .top .brand span { font-size: 20px; }
+  .top .brand small { font-size: 9px; }
+  .top .title { min-width: 0; border-bottom-width: 8px; padding: 0 6px 5px; }
+  .top .title small { display: none; }
+  .top .title h1 { overflow: hidden; font-size: clamp(15px,4.4vw,22px); text-overflow: ellipsis; white-space: nowrap; }
+  .top .clock { border-bottom-width: 8px; padding: 5px; }
+  .top .clock b { font-size: 18px; }
+  .top .clock small { display: none; }
+  .top .command-button,.top .notice-button,.top .extension-header { display: none !important; }
+  .shell { display: block; min-width: 0; }
+  .shell > aside { display: none !important; }
+  .content { height: calc(100dvh - 71px); min-width: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 0 2px 154px; }
+  .heading { position: sticky; z-index: 12; top: 0; display: grid !important; grid-template-columns: 1fr; min-height: 54px; background: #050505; border-bottom: 7px solid var(--orange); padding: 6px 3px; }
+  .heading small { font-size: 7px; }
+  .heading h2 { margin: 1px 0; font-size: clamp(24px,8vw,34px); line-height: 1; }
+  .heading-actions { display: none !important; }
+  .ticker { overflow-x: auto; scroll-snap-type: x proximity; white-space: nowrap; }
+  .ticker b { scroll-snap-align: start; }
+  .overview-toolbar { align-items: stretch !important; flex-direction: column; gap: 5px; }
+  .overview-toolbar nav { display: grid !important; grid-template-columns: 1fr; }
+  .overview-modules,.meters,.action-grid,.settings-grid,.experience-grid,.settings-columns,.network-grid,.engineering-sensors { grid-template-columns: 1fr !important; }
+  .widget-wrap.size-wide,.widget-wrap.size-standard,.widget-wrap.size-compact { grid-column: 1 !important; }
+  .detail-view { min-width: 0; padding: 8px !important; }
+  .detail-view > h3 { font-size: clamp(26px,9vw,38px); }
+
+  .system-tray.speed-dial { z-index: 214; left: 0 !important; right: 0 !important; bottom: 64px !important; display: flex; width: 100%; min-height: 52px; gap: 3px; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; background: #050505; border-top: 4px solid var(--violet); padding: 5px 6px; }
+  .speed-dial button { flex: 0 0 104px; display: grid !important; grid-template-columns: 27px minmax(0,1fr); grid-template-rows: 1fr auto; align-items: center; min-width: 104px; min-height: 42px; border-radius: 20px 3px 20px 20px !important; padding: 4px 6px !important; scroll-snap-align: start; text-align: left; }
+  .speed-dial button > i { grid-row: 1 / 3; display: grid; place-items: center; width: 25px; height: 25px; border-radius: 50%; background: #080808; color: var(--gold); font-style: normal; }
+  .speed-dial button > span { overflow: hidden; padding: 0 !important; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+  .speed-dial button > b { font-size: 7px; opacity: .65; }
+  .mobile-command-bar { position: fixed; z-index: 220; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); min-height: 64px; border-top: 6px solid var(--orange); background: #050505; padding: 4px 5px max(4px,env(safe-area-inset-bottom)); }
+  .mobile-command-bar button { display: grid; place-items: center; min-width: 0; border: 0; border-right: 2px solid #050505; background: var(--violet); color: #070708; padding: 5px 2px; }
+  .mobile-command-bar button:first-child { border-radius: 24px 2px 2px 24px; background: var(--gold); }
+  .mobile-command-bar button:last-child { border-radius: 2px 24px 24px 2px; background: var(--blue); }
+  .mobile-command-bar button.active { background: var(--orange); }
+  .mobile-command-bar i { font-style: normal; font-size: 8px; opacity: .62; }
+  .mobile-command-bar span { overflow: hidden; max-width: 100%; font-size: 8px; text-overflow: ellipsis; }
+  .mobile-sheet-scrim { position: fixed; z-index: 218; inset: 0; display: grid; align-items: end; background: #0009; }
+  .mobile-command-sheet { max-height: min(72dvh,650px); overflow-y: auto; border: 2px solid var(--blue); border-bottom: 0; border-radius: 30px 30px 0 0; background: #050505; padding: 10px 10px 76px; box-shadow: 0 -18px 50px #000; }
+  .mobile-command-sheet > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 8px solid var(--blue); padding: 7px; }
+  .mobile-command-sheet header span { display: grid; }
+  .mobile-command-sheet header small { color: var(--peach); font-size: 8px; }
+  .mobile-command-sheet header b { font-size: 24px; }
+  .mobile-command-sheet header button { min-height: 42px; border: 0; border-radius: 21px 3px 21px 21px; background: var(--pink); padding: 8px 13px; }
+  .mobile-sheet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding-top: 8px; }
+  .mobile-sheet-grid > button { display: grid; grid-template-columns: 30px 1fr; min-height: 64px; border: 0; border-left: 10px solid var(--violet); background: #151218; color: #fff; padding: 8px; text-align: left; }
+  .mobile-sheet-grid > button i { grid-row: 1 / 3; align-self: stretch; display: grid; place-items: center; background: var(--violet); color: #070708; font-style: normal; }
+  .mobile-sheet-grid > button small { color: #918a96; font-size: 8px; }
+  .mobile-sheet-grid.page-grid > button.active { border-left-color: var(--gold); background: #211b16; }
+
+  .workspace-window:not(.workspace-minimized) { top: auto !important; right: 7px !important; bottom: 124px !important; left: 7px !important; width: auto !important; height: min(70dvh,620px) !important; max-width: none !important; max-height: none !important; min-width: 0 !important; border-radius: 28px 28px 0 0 !important; }
+  .workspace-window.workspace-minimized { top: auto !important; right: 7px !important; bottom: 124px !important; left: 7px !important; width: auto !important; min-width: 0 !important; }
+  .workspace-window > header { min-height: 62px; cursor: default; padding-top: 44px !important; padding-right: 8px !important; touch-action: auto; }
+  .workspace-window-controls { top: 4px; right: 7px; left: 7px; grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .workspace-window-controls button { width: auto !important; min-width: 0 !important; height: 36px !important; }
+  .workspace-window .popup-resize-edge,.workspace-window .popup-resize-corner,.workspace-window .popup-resize-grip { display: none !important; }
+  .speed-dial-page-peek > main { min-height: 0; }
+  .speed-dial-page-peek > footer { flex-wrap: wrap; }
+  .notice-history.resizable-popup { grid-template-rows: auto auto auto minmax(0,1fr); }
+  .communications-tabs { grid-template-columns: 1fr 1fr !important; }
+  .communications-tabs button { min-height: 42px; }
+  .communications-feed { padding-bottom: 10px; }
+
+  .media-console-tabs { grid-template-columns: repeat(3,minmax(0,1fr)) !important; }
+  .media-console,.media-player-stack,.media-device-routing,.media-master-body,.media-mixer-row,.media-stream-detail { grid-template-columns: 1fr !important; min-width: 0; }
+  .media-source-row { grid-template-columns: 42px minmax(0,1fr) 44px !important; }
+  .media-mixer-actions,.media-master-actions { justify-content: stretch !important; }
+  .media-mixer-actions button,.media-master-actions button { flex: 1; min-height: 42px; }
+  .file-browser-body { grid-template-columns: 1fr !important; }
+  .file-grid { max-height: 46dvh; }
+  .file-inspector { min-height: 190px; }
+  .terminal-panel { min-height: calc(100dvh - 190px); }
+  .terminal-tabs { overflow-x: auto; }
+  .terminal-input { grid-template-columns: auto minmax(0,1fr) auto !important; }
+  .workspace-window-panel { border-left-width: 12px; padding: 8px; }
+  .workspace-window-panel > div { grid-template-columns: 1fr; }
+  .workspace-window-panel > div button:nth-child(n) { border-radius: 22px 3px 22px 22px; }
+}
+
+@media (max-width: 480px) {
+  .mobile-sheet-grid { grid-template-columns: 1fr; }
+  .peek-master-audio > div,.peek-app-audio > label { grid-template-columns: 1fr !important; }
+  .peek-app-audio > label > input,.peek-app-audio > label > button { grid-column: auto !important; grid-row: auto !important; }
+  .communications-tabs { grid-template-columns: 1fr !important; }
+  .workspace-window-panel > header { align-items: start; }
+}
+
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 520px) {
+  .top { min-height: 50px; }
+  .content { height: calc(100dvh - 56px); }
+  .system-tray.speed-dial { display: none; }
+  .mobile-command-bar { min-height: 54px; }
+  .workspace-window:not(.workspace-minimized) { bottom: 58px !important; height: calc(100dvh - 66px) !important; }
+  .mobile-command-sheet { max-height: calc(100dvh - 54px); padding-bottom: 58px; }
+}
