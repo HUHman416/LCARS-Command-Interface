@@ -25,10 +25,10 @@
 </p>
 
 > [!IMPORTANT]
-> **Version 25 is the current stable line; Version 25.2 is the latest development-channel candidate prepared by this branch.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
+> **Version 25 is the current stable line; Version 26.1 is the latest development-channel candidate prepared by this branch.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
 
 > [!NOTE]
-> To test the built-in updater from Version 25 or 25.1, open **Settings → LCARS Update Channel**, select **Development**, then open **Updates** and choose **Check for LCARS Update**. The `v25.2` prerelease remains invisible to the Stable channel.
+> To test the built-in updater from Version 25, open **Settings → LCARS Update Channel**, select **Development**, save the interface settings, then open **Updates** and choose **Check for LCARS Update**. The `v26.1` prerelease remains invisible to the Stable channel.
 
 ## 📥 Choose your download
 
@@ -53,10 +53,19 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 📁 **Files and documents** | Browse local files, mount or unmount supported removable drives, preview common formats, and open text, document, and PDF workspaces in LCARS or detached windows |
 | ⌨️ **Embedded terminal** | Use isolated local shell tabs directly inside LCARS, configure terminal behavior, open another native terminal window on a selected display, and middle-click tabs to close them |
 | 🎵 **Media and audio** | Control compatible players, pin media sources, adjust master and per-application volume, and select output devices and microphones where the OS exposes them |
-| 🎨 **Personalization** | Choose six visual themes, configure the modular Speed Dial and sidebar destinations, pin compact Page Peeks, save richer Workstations, adjust accessibility options, and import or export settings |
+| 🎨 **Personalization** | Choose six visual themes, configure the modular Speed Dial and sidebar destinations, open simultaneous Page Peeks, save complete Workstations, adjust accessibility options, and import or export settings |
 | 🔔 **Operator tools** | Build preview-first routines, search with `Ctrl+F`, open the Command Palette with `Ctrl+K`, map keyboard controls, review priority communications and command activity, and use Do Not Disturb |
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
-| 🧩 **Extensions and voice** | Install declarative local modules and configure optional offline push-to-talk commands through `whisper.cpp` |
+| 🧩 **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
+
+## 🧪 Version 26.1 development update
+
+- Introduces a real LCARS window workspace: open multiple Page Peeks, drag them by their headers, resize from every edge or corner, snap, minimize, focus, auto-arrange, close together, or reset the layout.
+- Persists window geometry, z-order, minimized state, snap state, and open Page Peeks; Version 26 Workstations capture and restore that workspace with the rest of the operator profile.
+- Adds the touch-first PADD interface with bottom navigation, horizontal Speed Dial access, command sheets, larger targets, and responsive portrait/landscape layouts.
+- Rebuilds Communications Center overflow as one contained feed and quiets native scrollbars throughout popup and touch surfaces without disabling scrolling.
+- Adds the trusted Module Repository under **Updates → Module API**. Catalog entries are explicit, declarative, size-limited, checksum-verified, and validated again before installation.
+- Publishes Linux and Windows Development-channel installers only after the full regression suite, renderer builds, packaging, and combined SHA-256 verification pass.
 
 ## 🧪 Version 25.2 development update
 

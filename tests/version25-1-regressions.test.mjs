@@ -24,7 +24,7 @@ test("Speed Dial Media Page Peek has artwork and live master and application aud
 test("Popup surfaces expose persistent viewport-safe resizing",()=>{
   assert.match(page,/function ResizablePopup/);
   assert.match(page,/lcars-popup-sizes/);
-  assert.match(page,/popupKey="speed-dial-page-peek"/);
+  assert.match(page,/popupKey=\{popupKey\} className=\{`speed-dial-page-peek/);
   assert.match(page,/popupKey="application-drawer"/);
   for(const direction of ["n","ne","e","se","s","sw","w","nw"])assert.match(page,new RegExp(`beginResize\\("${direction}"`));
   assert.match(css,/\.popup-resize-edge-n/);

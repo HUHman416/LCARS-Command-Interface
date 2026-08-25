@@ -36,6 +36,6 @@ test('desktop renderer loads Version 26.1 styling after Version 25',()=>{
 });
 
 test('26.1 development builds identify themselves correctly',()=>{
-  assert.equal(packageJson.version,'26.1.0-dev.1');
+  assert.equal(packageJson.version,'26.1.0-dev.2');
   assert.match(page,/V26\.1 DEV/);
 });

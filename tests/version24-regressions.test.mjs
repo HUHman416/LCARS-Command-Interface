@@ -95,8 +95,8 @@ test("portable Linux registration and Windows installer autostart are opt-in",()
 });
 
 test("Current metadata and protected sleep voice intent stay aligned",()=>{
-  assert.match(page,/V25 \$\{prefs\.updateChannel\.toUpperCase\(\)\} CHANNEL/);
+  assert.match(page,/V26\.1 DEV · \$\{prefs\.updateChannel\.toUpperCase\(\)\} CHANNEL/);
   assert.match(page,/sleep\|suspend/);
-  assert.match(linux,/LCARS_VERSION="25\.2\.0"/);
-  assert.match(windows,/LCARS_VERSION="25\.2\.0"/);
+  assert.match(linux,/LCARS_VERSION="26\.1\.0-dev\.2"/);
+  assert.match(windows,/LCARS_VERSION="26\.1\.0-dev\.2"/);
 });

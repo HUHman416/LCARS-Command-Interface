@@ -22,6 +22,18 @@ import type {
   RoutineStepKind,
   TrayShortcut,
 } from "./v25-core";
+import {
+  arrangePopupWindows,
+  fitPopupGeometry,
+  normalizePagePeeks,
+  normalizePopupLayouts,
+  openPeeksStorageKey,
+  popupLayoutStorageKey,
+  snapPopupGeometry,
+  workspaceCommandEvent,
+  workspaceStateEvent,
+} from "./v26-core";
+import type { PagePeekState, PopupGeometry, PopupLayoutMap, PopupSnap } from "./v26-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
 
@@ -170,6 +182,8 @@ type WorkspaceProfile = {
   doNotDisturb?: boolean;
   trayShortcuts?: TrayShortcut[];
   restoreApplications?: boolean;
+  pagePeeks?: PagePeekState[];
+  popupLayout?: PopupLayoutMap;
 };
 type LockCredential = { salt: string; hash: string; iterations: number };
 type UpdateInfo = {
@@ -392,6 +406,7 @@ const recoveryConfigKeys = [
   "lcars-custom-pages","lcars-app-destinations","lcars-default-workstation","lcars-selected-player",
   "lcars-routines","lcars-activity-log","lcars-tray-shortcuts","lcars-control-mappings","lcars-disabled-extensions",
   "lcars-popup-sizes",
+  popupLayoutStorageKey,openPeeksStorageKey,
 ];
 const readRecoveryConfig = () => Object.fromEntries(recoveryConfigKeys.flatMap((key)=>{const value=localStorage.getItem(key);return value===null?[]:[[key,value]];}));
 const readRecoverySnapshots = ():RecoverySnapshot[] => {try{const value=JSON.parse(localStorage.getItem("lcars-config-snapshots")||"[]");return Array.isArray(value)?value.slice(0,5):[];}catch{return[];}};
@@ -405,7 +420,6 @@ const restoreRecoveryValues = (values:Record<string,string>) => {
   recoveryConfigKeys.forEach((key)=>localStorage.removeItem(key));Object.entries(values).forEach(([key,value])=>{if(recoveryConfigKeys.includes(key)&&typeof value==="string")localStorage.setItem(key,value);});
 };
 
-type PopupSize = { width:number; height:number };
 type ResizablePopupProps = {
   as?: "section" | "aside";
   popupKey: string;
@@ -420,16 +434,27 @@ type ResizablePopupProps = {
 };
 
 const popupSizeStorageKey = "lcars-popup-sizes";
-const readPopupSizes = ():Record<string,PopupSize> => {
+const readPopupSizes = ():Record<string,{width:number;height:number}> => {
   try {
     const value=JSON.parse(localStorage.getItem(popupSizeStorageKey)||"{}");
     if(!value||typeof value!=="object"||Array.isArray(value))return {};
     return Object.fromEntries(Object.entries(value).flatMap(([key,size])=>{
-      const candidate=size as Partial<PopupSize>;
+      const candidate=size as Partial<{width:number;height:number}>;
       return Number.isFinite(candidate?.width)&&Number.isFinite(candidate?.height)?[[key,{width:Number(candidate.width),height:Number(candidate.height)}]]:[];
     }));
   } catch { return {}; }
 };
+const readPopupLayouts = ():PopupLayoutMap => {
+  try { return normalizePopupLayouts(JSON.parse(localStorage.getItem(popupLayoutStorageKey)||"{}")); }
+  catch { return {}; }
+};
+const writePopupLayout = (popupKey:string,geometry:PopupGeometry) => {
+  const layouts=readPopupLayouts();layouts[popupKey]=geometry;
+  localStorage.setItem(popupLayoutStorageKey,JSON.stringify(layouts));
+  window.dispatchEvent(new CustomEvent(workspaceStateEvent,{detail:{layouts,active:[...activePopupKeys]}}));
+};
+const activePopupKeys=new Set<string>();
+let workspaceZ=200;
 const shortcutTargetIsEditable = (target:EventTarget|null) => {
   const element=target instanceof HTMLElement?target:null;
   return Boolean(element?.closest("input, textarea, select, [contenteditable='true'], [role='textbox']"));
@@ -437,61 +462,76 @@ const shortcutTargetIsEditable = (target:EventTarget|null) => {
 
 function ResizablePopup({as="section",popupKey,className="",floating=false,minWidth=320,minHeight=220,role="dialog",ariaModal,ariaLabel,children}:ResizablePopupProps){
   const ref=useRef<HTMLElement|null>(null);
+  const expandedHeight=useRef(minHeight);
+  const [minimized,setMinimized]=useState(false);
+  const [snap,setSnap]=useState<PopupSnap>("none");
+  const minimizedRef=useRef(false),snapRef=useRef<PopupSnap>("none");
+  useEffect(()=>{minimizedRef.current=minimized;},[minimized]);
+  useEffect(()=>{snapRef.current=snap;},[snap]);
   useEffect(()=>{
     const element=ref.current;
     if(!element)return;
-    let frame=0;
-    const bounds=()=>({maxWidth:Math.max(160,window.innerWidth-24),maxHeight:Math.max(140,window.innerHeight-24)});
-    const fitSize=(width:number,height:number)=>{
-      const {maxWidth,maxHeight}=bounds();
-      return {width:Math.min(maxWidth,Math.max(Math.min(minWidth,maxWidth),width)),height:Math.min(maxHeight,Math.max(Math.min(minHeight,maxHeight),height))};
-    };
-    const captureFloatingPosition=()=>{
-      if(!floating)return;
-      const rect=element.getBoundingClientRect(),parent=element.offsetParent?.getBoundingClientRect();
-      element.style.left=`${rect.left-(parent?.left||0)}px`;
-      element.style.top=`${rect.top-(parent?.top||0)}px`;
-      element.style.right="auto";
-      element.style.bottom="auto";
-    };
-    const clampFloatingPosition=()=>{
-      if(!floating)return;
-      const rect=element.getBoundingClientRect(),parent=element.offsetParent?.getBoundingClientRect();
-      let left=Number.parseFloat(element.style.left)||rect.left-(parent?.left||0),top=Number.parseFloat(element.style.top)||rect.top-(parent?.top||0);
-      if(rect.left<8)left+=8-rect.left;
-      if(rect.top<8)top+=8-rect.top;
-      if(rect.right>window.innerWidth-8)left-=rect.right-(window.innerWidth-8);
-      if(rect.bottom>window.innerHeight-8)top-=rect.bottom-(window.innerHeight-8);
-      element.style.left=`${left}px`;element.style.top=`${top}px`;
+    let frame=0,lastPersist=0;
+    activePopupKeys.add(popupKey);
+    const viewport=()=>({width:window.innerWidth,height:window.innerHeight});
+    const minimum=()=>({width:minWidth,height:minHeight});
+    const current=():PopupGeometry=>{const rect=element.getBoundingClientRect();return{width:rect.width,height:minimizedRef.current?expandedHeight.current:rect.height,left:rect.left,top:rect.top,minimized:minimizedRef.current,z:Number(element.style.zIndex)||workspaceZ,snap:snapRef.current};};
+    const applyGeometry=(raw:Partial<PopupGeometry>)=>{
+      const geometry=fitPopupGeometry(raw,viewport(),minimum());
+      expandedHeight.current=geometry.height;
+      element.style.width=`${geometry.width}px`;
+      if(!geometry.minimized)element.style.height=`${geometry.height}px`;
+      if(floating){element.style.left=`${geometry.left}px`;element.style.top=`${geometry.top}px`;element.style.right="auto";element.style.bottom="auto";}
+      element.style.zIndex=String(geometry.z||workspaceZ);
+      minimizedRef.current=Boolean(geometry.minimized);snapRef.current=geometry.snap||"none";setMinimized(minimizedRef.current);setSnap(snapRef.current);
     };
     const persist=()=>{
-      const rect=element.getBoundingClientRect();
-      if(rect.width<1||rect.height<1)return;
-      const stored=readPopupSizes();
-      stored[popupKey]={width:Math.round(rect.width),height:Math.round(rect.height)};
-      localStorage.setItem(popupSizeStorageKey,JSON.stringify(stored));
+      const now=Date.now();if(now-lastPersist<40)return;lastPersist=now;
+      const geometry=current();if(geometry.width<1||geometry.height<1)return;
+      writePopupLayout(popupKey,{...geometry,width:Math.round(geometry.width),height:Math.round(geometry.height),left:Math.round(geometry.left||0),top:Math.round(geometry.top||0)});
     };
     const initialize=()=>{
-      const rect=element.getBoundingClientRect(),stored=readPopupSizes()[popupKey];
-      const size=fitSize(stored?.width||rect.width,stored?.height||rect.height);
-      element.style.width=`${size.width}px`;element.style.height=`${size.height}px`;
-      captureFloatingPosition();clampFloatingPosition();
+      const rect=element.getBoundingClientRect(),saved=readPopupLayouts()[popupKey],legacy=readPopupSizes()[popupKey];
+      const cascade=Math.max(0,activePopupKeys.size-1)*24;
+      const initial={width:saved?.width||legacy?.width||rect.width,height:saved?.height||legacy?.height||rect.height,left:saved?.left??Math.max(8,rect.left-cascade),top:saved?.top??Math.max(8,rect.top-cascade),minimized:saved?.minimized,z:saved?.z||++workspaceZ,snap:saved?.snap};
+      applyGeometry(initial);persist();
     };
     const resizeWindow=()=>{
-      const rect=element.getBoundingClientRect(),size=fitSize(rect.width,rect.height);
-      element.style.width=`${size.width}px`;element.style.height=`${size.height}px`;clampFloatingPosition();
+      applyGeometry(current());persist();
+    };
+    const command=(event:Event)=>{
+      const detail=(event as CustomEvent<{command:string;layouts?:PopupLayoutMap;popupKey?:string}>).detail;
+      if(detail?.command==="focus"&&detail.popupKey===popupKey){workspaceZ+=1;element.style.zIndex=String(workspaceZ);persist();}
+      if(detail?.command==="reset"){
+        element.style.removeProperty("width");element.style.removeProperty("height");element.style.removeProperty("left");element.style.removeProperty("top");element.style.removeProperty("right");element.style.removeProperty("bottom");
+        setMinimized(false);setSnap("none");frame=window.requestAnimationFrame(initialize);
+      }
+      if((detail?.command==="arrange"||detail?.command==="restore")&&detail.layouts?.[popupKey]){applyGeometry(detail.layouts[popupKey]);persist();}
     };
     frame=window.requestAnimationFrame(initialize);
-    const observer=typeof ResizeObserver==="undefined"?null:new ResizeObserver(()=>{clampFloatingPosition();persist();});
-    observer?.observe(element);window.addEventListener("resize",resizeWindow);
-    return()=>{window.cancelAnimationFrame(frame);observer?.disconnect();window.removeEventListener("resize",resizeWindow);};
+    const observer=typeof ResizeObserver==="undefined"?null:new ResizeObserver(()=>persist());
+    observer?.observe(element);window.addEventListener("resize",resizeWindow);window.addEventListener(workspaceCommandEvent,command);
+    return()=>{activePopupKeys.delete(popupKey);window.cancelAnimationFrame(frame);observer?.disconnect();window.removeEventListener("resize",resizeWindow);window.removeEventListener(workspaceCommandEvent,command);window.dispatchEvent(new CustomEvent(workspaceStateEvent,{detail:{layouts:readPopupLayouts(),active:[...activePopupKeys]}}));};
   },[floating,minHeight,minWidth,popupKey]);
+  const bringToFront=()=>{const element=ref.current;if(!element)return;workspaceZ+=1;element.style.zIndex=String(workspaceZ);const geometry=readPopupLayouts()[popupKey];if(geometry)writePopupLayout(popupKey,{...geometry,z:workspaceZ});};
+  const persistCurrent=(overrides:Partial<PopupGeometry>={})=>{const element=ref.current;if(!element)return;const rect=element.getBoundingClientRect(),previous=readPopupLayouts()[popupKey];writePopupLayout(popupKey,{...previous,width:Math.round(rect.width),height:Math.round(overrides.height??(minimized?expandedHeight.current:rect.height)),left:Math.round(rect.left),top:Math.round(rect.top),minimized,z:Number(element.style.zIndex)||workspaceZ,snap,...overrides});};
+  const applySnap=(side:PopupSnap)=>{const element=ref.current;if(!element)return;bringToFront();const geometry=snapPopupGeometry(side,{width:window.innerWidth,height:window.innerHeight},{width:minWidth,height:minHeight},workspaceZ);expandedHeight.current=geometry.height;element.style.width=`${geometry.width}px`;element.style.height=`${geometry.height}px`;element.style.left=`${geometry.left}px`;element.style.top=`${geometry.top}px`;element.style.right="auto";element.style.bottom="auto";setMinimized(false);setSnap(side);writePopupLayout(popupKey,geometry);};
+  const toggleMinimize=()=>{const element=ref.current;if(!element)return;const next=!minimized;if(!next)element.style.height=`${expandedHeight.current}px`;setMinimized(next);persistCurrent({minimized:next,height:expandedHeight.current});};
+  const beginDrag=(event:ReactPointerEvent<HTMLElement>)=>{
+    if(!floating||minimized&&!(event.target as HTMLElement).closest("header"))return;
+    const element=ref.current,target=event.target as HTMLElement,header=target.closest("header");
+    if(!element||!header||header.parentElement!==element||target.closest("button,input,select,textarea,a,[role='button'],.workspace-window-controls"))return;
+    event.preventDefault();bringToFront();const start=element.getBoundingClientRect(),startX=event.clientX,startY=event.clientY;setSnap("none");
+    const move=(pointer:PointerEvent)=>{const left=Math.min(window.innerWidth-start.width-8,Math.max(8,start.left+pointer.clientX-startX)),top=Math.min(window.innerHeight-(minimized?52:start.height)-8,Math.max(8,start.top+pointer.clientY-startY));element.style.left=`${left}px`;element.style.top=`${top}px`;element.style.right="auto";element.style.bottom="auto";};
+    const finish=(pointer:PointerEvent)=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",finish);window.removeEventListener("pointercancel",finish);if(pointer.clientX<26)applySnap("left");else if(pointer.clientX>window.innerWidth-26)applySnap("right");else if(pointer.clientY<22)applySnap("full");else persistCurrent({snap:"none"});};
+    window.addEventListener("pointermove",move);window.addEventListener("pointerup",finish,{once:true});window.addEventListener("pointercancel",finish,{once:true});
+  };
   const beginResize=(direction:"n"|"ne"|"e"|"se"|"s"|"sw"|"w"|"nw",event:ReactPointerEvent<HTMLSpanElement>)=>{
     const element=ref.current;
     if(!element)return;
     event.preventDefault();event.stopPropagation();
-    const start=element.getBoundingClientRect(),startX=event.clientX,startY=event.clientY;
-    const startLeft=Number.parseFloat(element.style.left)||start.left,startTop=Number.parseFloat(element.style.top)||start.top;
+    bringToFront();setMinimized(false);setSnap("none");
+    const start=element.getBoundingClientRect(),startX=event.clientX,startY=event.clientY,startLeft=start.left,startTop=start.top;
     const move=(pointer:PointerEvent)=>{
       const maxWidth=Math.max(160,window.innerWidth-24),maxHeight=Math.max(140,window.innerHeight-24);
       const west=direction.includes("w"),east=direction.includes("e"),north=direction.includes("n"),south=direction.includes("s");
@@ -502,14 +542,16 @@ function ResizablePopup({as="section",popupKey,className="",floating=false,minWi
       element.style.width=`${width}px`;element.style.height=`${height}px`;
       if(floating&&west)element.style.left=`${startLeft+start.width-width}px`;
       if(floating&&north)element.style.top=`${startTop+start.height-height}px`;
+      if(floating){element.style.right="auto";element.style.bottom="auto";}
     };
-    const finish=()=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",finish);window.removeEventListener("pointercancel",finish);};
+    const finish=()=>{expandedHeight.current=element.getBoundingClientRect().height;persistCurrent({minimized:false,snap:"none"});window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",finish);window.removeEventListener("pointercancel",finish);};
     window.addEventListener("pointermove",move);window.addEventListener("pointerup",finish,{once:true});window.addEventListener("pointercancel",finish,{once:true});
   };
-  const popupClass=`resizable-popup${floating?" resizable-popup-floating":""}${className?` ${className}`:""}`;
-  const contents=<>{children}<span className="popup-resize-edge popup-resize-edge-n" onPointerDown={(event)=>beginResize("n",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-e" onPointerDown={(event)=>beginResize("e",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-s" onPointerDown={(event)=>beginResize("s",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-w" onPointerDown={(event)=>beginResize("w",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-nw" onPointerDown={(event)=>beginResize("nw",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-ne" onPointerDown={(event)=>beginResize("ne",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-sw" onPointerDown={(event)=>beginResize("sw",event)} aria-hidden="true"/><span className="popup-resize-grip" onPointerDown={(event)=>beginResize("se",event)} aria-hidden="true"/></>;
-  if(as==="aside")return <aside ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel}>{contents}</aside>;
-  return <section ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel}>{contents}</section>;
+  const popupClass=`resizable-popup${floating?" resizable-popup-floating workspace-window":""}${minimized?" workspace-minimized":""}${snap!=="none"?` workspace-snapped workspace-snap-${snap}`:""}${className?` ${className}`:""}`;
+  const controls=floating?<nav className="workspace-window-controls" aria-label={`${ariaLabel||popupKey} window controls`}><button title="Minimize or restore" aria-label={minimized?"Restore window":"Minimize window"} onClick={toggleMinimize}>{minimized?"▣":"—"}</button><button title="Snap left" aria-label="Snap window left" onClick={()=>applySnap("left")}>◧</button><button title="Snap right" aria-label="Snap window right" onClick={()=>applySnap("right")}>◨</button><button title="Maximize" aria-label="Maximize window" onClick={()=>applySnap("full")}>□</button></nav>:null;
+  const contents=<>{controls}{children}<span className="popup-resize-edge popup-resize-edge-n" onPointerDown={(event)=>beginResize("n",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-e" onPointerDown={(event)=>beginResize("e",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-s" onPointerDown={(event)=>beginResize("s",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-w" onPointerDown={(event)=>beginResize("w",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-nw" onPointerDown={(event)=>beginResize("nw",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-ne" onPointerDown={(event)=>beginResize("ne",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-sw" onPointerDown={(event)=>beginResize("sw",event)} aria-hidden="true"/><span className="popup-resize-grip" onPointerDown={(event)=>beginResize("se",event)} aria-hidden="true"/></>;
+  if(as==="aside")return <aside ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel} onPointerDownCapture={bringToFront} onPointerDown={beginDrag}>{contents}</aside>;
+  return <section ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel} onPointerDownCapture={bringToFront} onPointerDown={beginDrag}>{contents}</section>;
 }
 
 export default function Home() {
@@ -558,8 +600,9 @@ export default function Home() {
     [systemDetails, setSystemDetails] = useState<SystemDetails>({}),
     [detailOpen, setDetailOpen] = useState<string | null>(null),
     [speedDialModule,setSpeedDialModule]=useState<WidgetId|null>(null),
-    [speedDialPage,setSpeedDialPage]=useState<string|null>(null),
-    [speedDialPagePinned,setSpeedDialPagePinned]=useState(false);
+    [speedDialPages,setSpeedDialPages]=useState<PagePeekState[]>([]),
+    [mobileSheet,setMobileSheet]=useState<"commands"|"more"|null>(null),
+    [workspaceWindowCount,setWorkspaceWindowCount]=useState(0);
   const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({ interfaces: [], diagnostics: { gateway: false, dns: false, internet: false, latency: null }, bluetooth: false }),
     [startupVisible, setStartupVisible] = useState(true);
   const [extensions, setExtensions] = useState<ExtensionManifest[]>([]);
@@ -607,6 +650,7 @@ export default function Home() {
     [extensionCatalog,setExtensionCatalog]=useState<ExtensionCatalogEntry[]>([]),
     [disabledExtensions,setDisabledExtensions]=useState<string[]>([]);
   const routineTriggerGuard=useRef<Set<string>>(new Set()),workstationRestoreGuard=useRef(false);
+  useEffect(()=>{const update=(event:Event)=>setWorkspaceWindowCount(((event as CustomEvent<{active?:string[]}>).detail?.active||[]).length);window.addEventListener(workspaceStateEvent,update);return()=>window.removeEventListener(workspaceStateEvent,update);},[]);
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get(
       "section",
@@ -637,6 +681,7 @@ export default function Home() {
       trayShortcutData = safeBoot?null:localStorage.getItem("lcars-tray-shortcuts"),
       mappingData = safeBoot?null:localStorage.getItem("lcars-control-mappings"),
       disabledExtensionData = safeBoot?null:localStorage.getItem("lcars-disabled-extensions"),
+      pagePeekData = safeBoot?null:localStorage.getItem(openPeeksStorageKey),
       defaultStation = safeBoot?"":localStorage.getItem("lcars-default-workstation") || "";
     if (t) setTheme(t);
     if (f)
@@ -680,6 +725,7 @@ export default function Home() {
     if (trayShortcutData) try { setTrayShortcuts(normalizeTrayShortcuts(JSON.parse(trayShortcutData))); } catch {}
     if (mappingData) try { setControlMappings(normalizeControlMappings(JSON.parse(mappingData))); } catch {}
     if (disabledExtensionData) try { const parsed=JSON.parse(disabledExtensionData);if(Array.isArray(parsed))setDisabledExtensions(parsed.filter((item):item is string=>typeof item==="string").slice(0,128)); } catch {}
+    if (pagePeekData) try { setSpeedDialPages(normalizePagePeeks(JSON.parse(pagePeekData))); } catch {}
     setDefaultWorkstation(defaultStation);
     const remoteTerminal = requested === "terminal";
     if (!safeBoot && !remoteTerminal && localStorage.getItem("lcars-setup-complete") && restoredPrefs.lockOnLaunch && !(restoredPrefs.quickBootWithoutPassword && !lockData)) setLocked(true);
@@ -899,9 +945,9 @@ export default function Home() {
     return () => window.removeEventListener("keydown", key, true);
   }, []);
   useEffect(()=>{
-    const closePeek=(event:KeyboardEvent)=>{if(event.key==="Escape"&&speedDialPage&&!speedDialPagePinned)setSpeedDialPage(null);};
+    const closePeek=(event:KeyboardEvent)=>{if(event.key!=="Escape")return;setSpeedDialPages((current)=>{const target=[...current].reverse().find((peek)=>!peek.pinned);if(!target)return current;const next=current.filter((peek)=>peek.id!==target.id);localStorage.setItem(openPeeksStorageKey,JSON.stringify(next));return next;});};
     window.addEventListener("keydown",closePeek,true);return()=>window.removeEventListener("keydown",closePeek,true);
-  },[speedDialPage,speedDialPagePinned]);
+  },[]);
   const filtered = useMemo(
     () =>
       apps
@@ -1080,7 +1126,7 @@ export default function Home() {
   const runSpeedDial = (item: SpeedDialItem) => {
     beep(true);
     if (item.startsWith("page:")) {
-      setSpeedDialPage(item.slice(5));
+      openPagePeek(item.slice(5));
       return;
     }
     if(item.startsWith("module:")){setSpeedDialModule(item.slice(7) as WidgetId);return;}
@@ -1309,6 +1355,25 @@ export default function Home() {
       Number(pinnedPlayers.includes(b.id)) -
       Number(pinnedPlayers.includes(a.id)),
   );
+  const savePagePeeks=(next:PagePeekState[])=>{const normalized=normalizePagePeeks(next);setSpeedDialPages(normalized);localStorage.setItem(openPeeksStorageKey,JSON.stringify(normalized));};
+  const openPagePeek=(page:string)=>{
+    const existing=speedDialPages.find((peek)=>peek.page===page);
+    if(existing){window.dispatchEvent(new CustomEvent(workspaceCommandEvent,{detail:{command:"focus",popupKey:`speed-dial-page-peek:${existing.id}`}}));return;}
+    savePagePeeks([...speedDialPages,{id:`peek-${page.replace(/[^a-z0-9-]/gi,"-")}`,page,pinned:false}]);
+  };
+  const resetPopupLayout=()=>{
+    createRecoverySnapshot("Before popup workspace reset");
+    localStorage.removeItem(popupLayoutStorageKey);localStorage.removeItem(popupSizeStorageKey);
+    window.dispatchEvent(new CustomEvent(workspaceCommandEvent,{detail:{command:"reset"}}));
+    notify("Popup workspace reset to viewport-safe defaults");
+  };
+  const arrangePopupLayout=()=>{
+    const layouts=arrangePopupWindows([...activePopupKeys],{width:window.innerWidth,height:window.innerHeight});
+    const merged={...readPopupLayouts(),...layouts};localStorage.setItem(popupLayoutStorageKey,JSON.stringify(merged));
+    window.dispatchEvent(new CustomEvent(workspaceCommandEvent,{detail:{command:"arrange",layouts:merged}}));
+    notify(`${Object.keys(layouts).length} popup window${Object.keys(layouts).length===1?"":"s"} arranged`);
+  };
+  const closeAllPagePeeks=()=>{savePagePeeks([]);notify("All Page Peeks closed");};
   const saveProfiles = (next: WorkspaceProfile[]) => {
     createRecoverySnapshot("Before workstation list change");
     setProfiles(next);
@@ -1343,11 +1408,13 @@ export default function Home() {
       doNotDisturb,
       trayShortcuts:[...trayShortcuts],
       restoreApplications:true,
+      pagePeeks:speedDialPages.map((peek)=>({...peek})),
+      popupLayout:readPopupLayouts(),
     };
     saveProfiles([...profiles, profile]);
     setActiveProfile(profile.id);
     notify(name + " workstation saved");
-    recordActivity("Workstation captured",`${name} · ${applications.length} application(s) · ${widgets.length} modules`,"success","OPERATOR",true);
+    recordActivity("Workstation captured",`${name} · ${applications.length} application(s) · ${widgets.length} modules · ${speedDialPages.length} Page Peek(s)`,"success","OPERATOR",true);
   };
   const applyProfile = (profile: WorkspaceProfile) => {
     createRecoverySnapshot("Before workstation profile change");
@@ -1358,6 +1425,11 @@ export default function Home() {
     if(profile.section)setSection(profile.section);
     if(typeof profile.doNotDisturb==="boolean")setDoNotDisturb(profile.doNotDisturb);
     if(profile.trayShortcuts?.length)saveTrayShortcuts(profile.trayShortcuts);
+    if(profile.pagePeeks){savePagePeeks(profile.pagePeeks);}
+    if(profile.popupLayout){
+      const layouts=normalizePopupLayouts(profile.popupLayout);localStorage.setItem(popupLayoutStorageKey,JSON.stringify(layouts));
+      window.requestAnimationFrame(()=>window.requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent(workspaceCommandEvent,{detail:{command:"restore",layouts}}))));
+    }
     if(typeof profile.volume==="number"){
       setVolume(profile.volume);
       fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:profile.volume})}).catch(()=>{});
@@ -1864,7 +1936,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>26</small>
+          <small>26.1</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>
@@ -2251,6 +2323,7 @@ export default function Home() {
                 command={() => setPaletteOpen(true)}
                 action={coreAction}
               />
+              <WorkspaceWindowPanel active={workspaceWindowCount} peeks={speedDialPages.length} arrange={arrangePopupLayout} reset={resetPopupLayout} closePeeks={closeAllPagePeeks}/>
               <ShellSettings
                 platform={platform}
                 prefs={prefs}
@@ -2353,9 +2426,10 @@ export default function Home() {
         taskPinned={taskLocked || prefs.taskPinned}
         execute={runSpeedDial}
       />
+      <MobileCommandBar section={section} sheet={mobileSheet} navigate={(page)=>{setSection(page);setMobileSheet(null);}} applications={()=>{setAllOpen(true);setMobileSheet(null);}} commands={()=>setMobileSheet((current)=>current==="commands"?null:"commands")} communications={()=>{setHistoryOpen(true);setMobileSheet(null);}} more={()=>setMobileSheet((current)=>current==="more"?null:"more")} routines={()=>{setRoutineCenterOpen(true);setMobileSheet(null);}} tray={()=>{setTrayOpen(true);setMobileSheet(null);}} displays={()=>{setDisplayMenu(true);setMobileSheet(null);}} power={()=>{setPowerOpen(true);setMobileSheet(null);}} close={()=>setMobileSheet(null)}/>
       <TrayDrawer open={trayOpen} items={trayItems} shortcuts={trayShortcuts} close={() => setTrayOpen(false)} execute={runTrayShortcut} />
       {speedDialModule&&<div className="backdrop module-spotlight" onMouseDown={(event)=>event.target===event.currentTarget&&setSpeedDialModule(null)}><ResizablePopup popupKey="speed-dial-module" ariaModal={true}><header><div><small>SPEED DIAL MODULE</small><h3>{widgetMeta(speedDialModule).name}</h3></div><button onClick={()=>setSpeedDialModule(null)}>CLOSE ×</button></header>{renderWidget(speedDialModule)}</ResizablePopup></div>}
-      {speedDialPage&&<SpeedDialPagePeek page={speedDialPage} pinned={speedDialPagePinned} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>setSpeedDialPagePinned((value)=>!value)} close={()=>{setSpeedDialPage(null);setSpeedDialPagePinned(false);}} openFull={(page)=>{setSpeedDialPage(null);setSpeedDialPagePinned(false);setSection(page);}} />}
+      {speedDialPages.map((peek)=><SpeedDialPagePeek key={peek.id} popupKey={`speed-dial-page-peek:${peek.id}`} page={peek.page} pinned={peek.pinned} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>savePagePeeks(speedDialPages.map((item)=>item.id===peek.id?{...item,pinned:!item.pinned}:item))} close={()=>savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id))} openFull={(page)=>{savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id));setSection(page);}} />)}
       {routineCenterOpen&&<RoutineCenter routines={routines} apps={apps} profiles={profiles} devices={audioDevices} players={players} running={runningRoutine} save={saveRoutines} request={requestRoutine} close={()=>setRoutineCenterOpen(false)}/>}
       {pendingRoutine&&<RoutinePreview routine={pendingRoutine} describe={describeRoutineStep} running={runningRoutine===pendingRoutine.id} cancel={()=>setPendingRoutine(null)} run={()=>void executeRoutine(pendingRoutine)}/>}
       {startupVisible && prefs.startupSequence && <StartupTelemetry bridge={bridge} reduced={access.reducedMotion} />}
@@ -3303,6 +3377,15 @@ function CompatibilityCenter({
   );
 }
 
+function WorkspaceWindowPanel({active,peeks,arrange,reset,closePeeks}:{active:number;peeks:number;arrange:()=>void;reset:()=>void;closePeeks:()=>void}){
+  return <section className="workspace-window-panel"><header><span><small>VERSION 26 WINDOW MATRIX</small><b>POPUP WORKSPACE</b></span><strong>{String(active).padStart(2,"0")}<small>ACTIVE</small></strong></header><p>Drag popup headers, resize from every edge, or use the window controls to minimize and snap. Positions, dimensions, and stacking restore with the selected Workstation.</p><div><button onClick={arrange}><b>AUTO ARRANGE</b><small>TILE OPEN WINDOWS</small></button><button onClick={reset}><b>RESET LAYOUT</b><small>RESTORE SAFE DEFAULTS</small></button><button disabled={!peeks} onClick={closePeeks}><b>CLOSE PAGE PEEKS</b><small>{peeks} OPEN PREVIEW{peeks===1?"":"S"}</small></button></div></section>;
+}
+
+function MobileCommandBar({section,sheet,navigate,applications,commands,communications,more,routines,tray,displays,power,close}:{section:string;sheet:"commands"|"more"|null;navigate:(page:string)=>void;applications:()=>void;commands:()=>void;communications:()=>void;more:()=>void;routines:()=>void;tray:()=>void;displays:()=>void;power:()=>void;close:()=>void}){
+  const item=(page:string,label:string,code:string)=><button className={section===page?"active":""} onClick={()=>navigate(page)}><i>{code}</i><span>{label}</span></button>;
+  return <><nav className="mobile-command-bar" aria-label="PADD navigation">{item("overview","STATUS","01")}<button onClick={applications}><i>02</i><span>APPS</span></button><button className={sheet==="commands"?"active":""} onClick={commands}><i>03</i><span>COMMAND</span></button><button onClick={communications}><i>04</i><span>COMMS</span></button><button className={sheet==="more"?"active":""} onClick={more}><i>05</i><span>MORE</span></button></nav>{sheet&&<div className="mobile-sheet-scrim" onPointerDown={(event)=>event.target===event.currentTarget&&close()}><section className="mobile-command-sheet" aria-label={sheet==="commands"?"PADD command sheet":"PADD page sheet"}><header><span><small>LCARS PADD</small><b>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</b></span><button onClick={close}>CLOSE ×</button></header>{sheet==="commands"?<div className="mobile-sheet-grid"><button onClick={routines}><i>01</i><b>ROUTINES</b><small>OPERATIONS AUTOMATION</small></button><button onClick={tray}><i>02</i><b>TRAY DECK</b><small>APPLICATIONS & SERVICES</small></button><button onClick={displays}><i>03</i><b>DISPLAYS</b><small>MONITOR ROUTING</small></button><button onClick={power}><i>04</i><b>POWER</b><small>PROTECTED CONTROLS</small></button></div>:<div className="mobile-sheet-grid page-grid">{item("terminal","TERMINAL","02")}{item("files","FILES","03")}{item("system","SYSTEMS","04")}{item("media","MEDIA","05")}{item("network","NETWORK","06")}{item("updates","UPDATES","07")}{item("settings","SETTINGS","08")}</div>}</section></div>}</>;
+}
+
 function DesktopExperience({
   profiles,
   activeProfile,
@@ -3378,7 +3461,7 @@ function DesktopExperience({
                 <button onClick={() => applyProfile(p)}>
                   <b>{p.name}</b>
                   <small>
-                    {p.widgets.length} MODULES · {p.theme.toUpperCase()}
+                    {p.widgets.length} MODULES · {p.pagePeeks?.length||0} PEEKS · {p.theme.toUpperCase()}
                   </small>
                 </button>
                 <button
@@ -3930,11 +4013,11 @@ function SpeedDialMediaPeek({players,streams,volume,muted,control,setMasterVolum
   </div>;
 }
 
-function SpeedDialPagePeek({page,pinned,customPages,apps,players,streams,network,meters,update,notices,bridge,volume,muted,doNotDisturb,mediaControl,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute,launch,togglePinned,close,openFull}:{page:string;pinned:boolean;customPages:CustomPage[];apps:App[];players:Player[];streams:Stream[];network:NetworkInfo;meters:(string|number)[][];update:UpdateInfo|null;notices:Notice[];bridge:boolean;volume:number;muted:boolean;doNotDisturb:boolean;mediaControl:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void;launch:(app:App)=>void;togglePinned:()=>void;close:()=>void;openFull:(page:string)=>void}){
+function SpeedDialPagePeek({popupKey,page,pinned,customPages,apps,players,streams,network,meters,update,notices,bridge,volume,muted,doNotDisturb,mediaControl,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute,launch,togglePinned,close,openFull}:{popupKey:string;page:string;pinned:boolean;customPages:CustomPage[];apps:App[];players:Player[];streams:Stream[];network:NetworkInfo;meters:(string|number)[][];update:UpdateInfo|null;notices:Notice[];bridge:boolean;volume:number;muted:boolean;doNotDisturb:boolean;mediaControl:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void;launch:(app:App)=>void;togglePinned:()=>void;close:()=>void;openFull:(page:string)=>void}){
   const custom=page.startsWith("custom:")?customPages.find((item)=>item.id===page.slice(7)):undefined;
   const title=custom?.name||nav.find((item)=>item[0]===page)?.[2]||page.replace(/^custom:/,"").toUpperCase();
   const content=page==="overview"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="system"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="media"?<SpeedDialMediaPeek players={players} streams={streams} volume={volume} muted={muted} control={mediaControl} setMasterVolume={setMasterVolume} commitMasterVolume={commitMasterVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={setStreamVolume} setStreamMute={setStreamMute}/>:page==="network"?<div className="peek-network">{network.interfaces.slice(0,4).map((item)=><article key={item.id}><i className={item.state==="connected"?"ready":""}>●</i><span><b>{item.name}</b><small>{item.address||item.state.toUpperCase()}</small></span><em>{item.speed||"LOCAL"}</em></article>)}{!network.interfaces.length&&<p>{bridge?"NO ACTIVE NETWORK INTERFACES":"LOCAL CORE LINK PENDING"}</p>}</div>:page==="updates"?<div className="peek-update"><strong>{update?.available?`V${update.version} AVAILABLE`:"RELEASE CHANNEL READY"}</strong><p>{update?.available?"A verified release can be downloaded from the full Updates page.":"Background checks remain silent when offline."}</p><small>{update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"STABLE / DEVELOPMENT CHANNEL AWARE"}</small></div>:page==="terminal"?<div className="peek-terminal"><pre>LCARS LOCAL COMMAND LINK{`\n`}{bridge?"PTY CORE READY":"LOCAL CORE STANDBY"}{`\n\n`}terminal@lcars:~$ <i>█</i></pre><small>OPEN THE FULL TERMINAL TO TYPE COMMANDS</small></div>:page==="files"?<div className="peek-files"><i><FileGlyph kind="folder"/></i><span><b>LOCAL FILE SYSTEM</b><small>HOME · DOCUMENTS · DOWNLOADS</small><p>Use the full File Browser for previews, transfers, and document editing.</p></span></div>:page==="settings"?<div className="peek-settings"><article><b>LOCAL CORE</b><span>{bridge?"CONNECTED":"STANDBY"}</span></article><article><b>DO NOT DISTURB</b><span>{doNotDisturb?"ACTIVE":"OFF"}</span></article><article><b>NOTICES</b><span>{notices.length}</span></article><p>Open the full page to change themes, workstations, routines, accessibility, and shell behavior.</p></div>:custom?<div className="peek-custom"><i>{custom.kind.toUpperCase()}</i><span><b>{custom.name}</b><small>{custom.target}</small>{custom.kind==="app"&&apps.find((app)=>app.id===custom.target)&&<button onClick={()=>launch(apps.find((app)=>app.id===custom.target)!)}>OPEN APPLICATION ↗</button>}</span></div>:<p>PAGE PREVIEW IS UNAVAILABLE</p>;
-  return <ResizablePopup as="aside" popupKey="speed-dial-page-peek" className={`speed-dial-page-peek ${pinned?"pinned":"floating"}`} floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}><header><div><small>{pinned?"PINNED PAGE PEEK · ALWAYS ABOVE LCARS":"SPEED DIAL PAGE PEEK"}</small><h3>{title}</h3></div><nav><button className={pinned?"active":""} onClick={togglePinned}>{pinned?"RELEASE":"PIN"}</button><button onClick={close}>×</button></nav></header><main>{content}</main><footer><span>{pinned?"PIN LOCK ACTIVE":"FLOATING PREVIEW"}</span><button onClick={()=>openFull(page)}>OPEN FULL PAGE ›</button></footer></ResizablePopup>;
+  return <ResizablePopup as="aside" popupKey={popupKey} className={`speed-dial-page-peek ${pinned?"pinned":"floating"}`} floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}><header><div><small>{pinned?"PINNED PAGE PEEK · ALWAYS ABOVE LCARS":"SPEED DIAL PAGE PEEK"}</small><h3>{title}</h3></div><nav><button className={pinned?"active":""} onClick={togglePinned}>{pinned?"RELEASE":"PIN"}</button><button aria-label={`Close ${title} Page Peek`} onClick={close}>×</button></nav></header><main>{content}</main><footer><span>{pinned?"PIN LOCK ACTIVE":"FLOATING PREVIEW"}</span><button onClick={()=>openFull(page)}>OPEN FULL PAGE ›</button></footer></ResizablePopup>;
 }
 
 function CustomPageManager({pages,apps,extensions,change}:{pages:CustomPage[];apps:App[];extensions:ExtensionManifest[];change:(pages:CustomPage[])=>void}) {
@@ -4755,7 +4838,7 @@ function NotificationCenter({
         <ResizablePopup as="aside" popupKey="communications-center" className="notice-history" floating minWidth={380} minHeight={360} ariaModal={false} ariaLabel="Communications Center">
           <header>
             <div>
-              <small>VERSION 25 COMMUNICATIONS MATRIX</small>
+              <small>VERSION 26.1 COMMUNICATIONS MATRIX</small>
               <h3>COMMUNICATIONS CENTER</h3>
             </div>
             <button onClick={close}>CLOSE ×</button>
@@ -4777,6 +4860,7 @@ function NotificationCenter({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          <div className="communications-feed" tabIndex={0}>
           {tab==="notices"&&(visible.length ? (
             visible.map((n) => (
               <article className={`communication-entry priority-${n.priority||"routine"}`} key={Math.abs(n.id)}>
@@ -4791,6 +4875,7 @@ function NotificationCenter({
             <p>NO MATCHING NOTIFICATIONS</p>
           ))}
           {tab==="activity"&&(visibleActivity.length?visibleActivity.map((entry)=><article className={`communication-entry activity-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{entry.source} · {entry.status.toUpperCase()} · {new Date(entry.time).toLocaleString()}</small><em>{entry.detail}</em></span></article>):<p>NO MATCHING COMMAND ACTIVITY</p>)}
+          </div>
         </ResizablePopup>
       )}
     </>
