@@ -18,7 +18,7 @@ from pathlib import Path
 REPOSITORY = "HUHman416/LCARS-Command-Interface"
 API_URL = f"https://api.github.com/repos/{REPOSITORY}/releases/latest"
 RELEASES_URL = f"https://api.github.com/repos/{REPOSITORY}/releases?per_page=30"
-USER_AGENT = "LCARS-Command-Interface-Updater/26.3"
+USER_AGENT = "LCARS-Command-Interface-Updater/26"
 
 
 def _request(url: str, binary: bool = False, timeout: int = 12):

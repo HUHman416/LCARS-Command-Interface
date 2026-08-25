@@ -1,4 +1,4 @@
-/* Version 26.3 release-candidate orientation and stable migration polish. */
+/* Version 26 stable orientation and migration polish. */
 
 .whats-new-backdrop { z-index: 420; display: grid; place-items: center; padding: 14px; }
 .whats-new-v26 { display: grid; grid-template-rows: auto minmax(0,1fr) auto; width: min(760px,calc(100vw - 28px)); max-height: calc(100vh - 28px); overflow: auto; border: 2px solid var(--blue); border-left: 20px solid var(--orange); border-radius: 3px 28px 28px 3px; background: #070708; box-shadow: 0 0 0 4px #000,0 18px 70px #000; }

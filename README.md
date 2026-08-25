@@ -10,14 +10,14 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/stable-v25-ff9866" alt="Stable version 25">
+  <img src="https://img.shields.io/badge/stable-v26-ff9866" alt="Stable version 26">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
 </p>
 
 <p align="center">
-  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v25"><strong>🚀 Download Version 25</strong></a>
+  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v26"><strong>🚀 Download Version 26</strong></a>
   ·
   <a href="https://github.com/HUHman416/LCARS-Command-Interface/issues">🐞 Report an issue</a>
   ·
@@ -25,21 +25,21 @@
 </p>
 
 > [!IMPORTANT]
-> **Version 25 is the current stable line; Version 26.3 is the final Version 26 release candidate prepared by this branch.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
+> **Version 26 is the current stable release for Linux and Windows.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
 
 > [!NOTE]
-> To test the built-in updater, open **Settings → LCARS Update Channel**, select **Development**, save the interface settings, then open **Updates** and choose **Check for LCARS Update**. The `v26.3` prerelease remains invisible to the Stable channel. Development testers can use **Check for Version 26 Stable** when the final major release is published.
+> Existing installations can update from **Updates → LCARS Interface**. The Stable channel follows major releases such as `v26`; Development remains available for opt-in test builds.
 
 ## 📥 Choose your download
 
 | Platform | Download | Best for |
 | --- | --- | --- |
-| 🐧 Linux | [Universal Linux package](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Universal-Linux-Desktop-v25.zip) | Recommended installer bundle with desktop launcher, icon, uninstaller, dependencies, and integration tools |
-| 🐧 Linux | [Portable AppImage](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Command-Interface-v25-x86_64.AppImage) | Running LCARS directly without a traditional installation |
-| 🐧 Linux | [Search and autostart helper](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Linux-Integration-v25.sh) | Registering the portable AppImage in the application menu and optionally starting it at login |
-| 🪟 Windows | [One-click Windows setup](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Windows-Setup-v25.exe) | Normal Windows installation, Start Menu search, shortcuts, optional autostart, and clean uninstall |
-| 💻 Developers | [Version 25 source](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Command-Interface-v25-Source.zip) | Reviewing, extending, or building the project |
-| 🔐 Verification | [SHA256SUMS.txt](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/SHA256SUMS.txt) | Confirming that a download is complete and authentic |
+| 🐧 Linux | [Universal Linux package](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/LCARS-Universal-Linux-Desktop-v26.zip) | Recommended installer bundle with desktop launcher, icon, uninstaller, dependencies, and integration tools |
+| 🐧 Linux | [Portable AppImage](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/LCARS-Command-Interface-v26-x86_64.AppImage) | Running LCARS directly without a traditional installation |
+| 🐧 Linux | [Search and autostart helper](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/LCARS-Linux-Integration-v26.sh) | Registering the portable AppImage in the application menu and optionally starting it at login |
+| 🪟 Windows | [One-click Windows setup](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/LCARS-Windows-Setup-v26.exe) | Normal Windows installation, Start Menu search, shortcuts, optional autostart, and clean uninstall |
+| 💻 Developers | [Version 26 source](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/LCARS-Command-Interface-v26-Source.zip) | Reviewing, extending, or building the project |
+| 🔐 Verification | [SHA256SUMS.txt](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/SHA256SUMS.txt) | Confirming that a download is complete and authentic |
 
 The Universal Linux download contains **Linux files only**. Windows is distributed separately through the setup executable.
 
@@ -58,12 +58,12 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
 
-## 🧪 Version 26.3 release candidate
+## 🆕 Version 26 highlights
 
 - Corrects the remaining visible Version 25 generation labels and identifies exported configuration with the Version 26 schema and exact application version.
 - Expands configuration backup and restore to include community GitHub repositories, popup geometry, open Page Peeks, the default Workstation, session restore, and the selected media source.
 - Adds a one-time **Welcome to Version 26** orientation with a permanent Settings shortcut for reopening it.
-- Freezes the feature set for final Linux, Windows, clean-install, update, rollback, and Development-to-Stable verification.
+- Ships one verified stable release for Linux and Windows, with clean-install, update, rollback, and Development-to-Stable coverage.
 
 ## 🧪 Version 26.2 development update
 
@@ -115,7 +115,7 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 
 ### Recommended: Universal installer
 
-1. Download [`LCARS-Universal-Linux-Desktop-v25.zip`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Universal-Linux-Desktop-v25.zip).
+1. Download [`LCARS-Universal-Linux-Desktop-v26.zip`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/LCARS-Universal-Linux-Desktop-v26.zip).
 2. Extract the ZIP into a normal folder.
 3. Double-click `Install-LCARS-Linux.desktop` and choose **Execute**.
 4. Launch **LCARS Command Interface** from your application menu.
@@ -132,15 +132,15 @@ The installer detects DNF, APT, Pacman, Zypper, APK, or XBPS and installs the ma
 ### Portable AppImage
 
 ```bash
-chmod +x LCARS-Command-Interface-v25-x86_64.AppImage
-./LCARS-Command-Interface-v25-x86_64.AppImage
+chmod +x LCARS-Command-Interface-v26-x86_64.AppImage
+./LCARS-Command-Interface-v26-x86_64.AppImage
 ```
 
-To make a portable AppImage searchable from your desktop application menu, place `LCARS-Linux-Integration-v25.sh` beside it and run:
+To make a portable AppImage searchable from your desktop application menu, place `LCARS-Linux-Integration-v26.sh` beside it and run:
 
 ```bash
-chmod +x LCARS-Linux-Integration-v25.sh
-./LCARS-Linux-Integration-v25.sh --register
+chmod +x LCARS-Linux-Integration-v26.sh
+./LCARS-Linux-Integration-v26.sh --register
 ```
 
 Use `--enable-autostart` or `--disable-autostart` to control login startup. These per-user integration actions do not require `sudo`.
@@ -154,7 +154,7 @@ Double-click `Uninstall-LCARS-Linux.desktop`, or run `./uninstall-linux.sh` from
 
 ## 🪟 Windows installation
 
-1. Download [`LCARS-Windows-Setup-v25.exe`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/LCARS-Windows-Setup-v25.exe).
+1. Download [`LCARS-Windows-Setup-v26.exe`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/LCARS-Windows-Setup-v26.exe).
 2. Open the setup executable and follow the installer.
 3. Optionally enable **Start LCARS Command Interface when I sign in**.
 4. Launch LCARS from its desktop shortcut, Start Menu entry, or Windows taskbar search.
@@ -190,17 +190,17 @@ The Linux installer attempts a non-destructive FFmpeg installation but will neve
 
 ## 🔐 Verify a download
 
-Download [`SHA256SUMS.txt`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v25/SHA256SUMS.txt) from the same release and compare the appropriate file.
+Download [`SHA256SUMS.txt`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/SHA256SUMS.txt) from the same release and compare the appropriate file.
 
 ```bash
 # Linux
-sha256sum LCARS-Universal-Linux-Desktop-v25.zip
-sha256sum LCARS-Command-Interface-v25-x86_64.AppImage
+sha256sum LCARS-Universal-Linux-Desktop-v26.zip
+sha256sum LCARS-Command-Interface-v26-x86_64.AppImage
 ```
 
 ```powershell
 # Windows PowerShell
-Get-FileHash .\LCARS-Windows-Setup-v25.exe -Algorithm SHA256
+Get-FileHash .\LCARS-Windows-Setup-v26.exe -Algorithm SHA256
 ```
 
 The displayed value must exactly match the filename's line in `SHA256SUMS.txt`.

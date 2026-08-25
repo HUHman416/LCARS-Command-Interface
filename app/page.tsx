@@ -37,7 +37,7 @@ import {
 import type { PagePeekState, PopupGeometry, PopupLayoutMap, PopupSnap } from "./v26-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="26.3.0-dev.1";
+const LCARS_VERSION="26.0.0";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -2024,7 +2024,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>26.3 RC</small>
+          <small>26 STABLE</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>
