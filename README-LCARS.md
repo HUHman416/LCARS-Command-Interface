@@ -66,10 +66,12 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Communications Action Center with filters, repeated-message grouping, read/archive state, and safe destination actions
 - Native detachable Page Peeks, snap-zone previews, and minimized-window management
 - Contained Communications feed and quiet native scrollbars without disabling scrolling
+- Version 27 Connected LCARS with a separately paired, role-limited phone/tablet PADD companion
+- Native context actions for compatible Linux StatusNotifier tray services, including application-provided quit controls
 
 ## Current stage
 
-Version 26 is the current stable release. It combines the adaptive PADD interface, Workstations 3.0, Operations Automation 2.0, the Communications Action Center, native detachable Page Peeks, public GitHub community catalogs, complete v26 configuration portability, and a one-time major-release orientation. Protected commands, process termination, computer power steps, and every module permission boundary remain confirmation-gated or host-controlled.
+Version 26 is the current stable release. Version 27.1 is an opt-in Development-channel preview of Connected LCARS. In Settings, operators can arm a one-use code and pair a phone or tablet on the same trusted local network. The separate PADD listener is disabled by default; only hashed revocable tokens are stored, and Viewer, Operator, and Command roles are enforced by the local core. PADD devices never receive Terminal, file, process, or computer power access. Compatible Linux StatusNotifier services also expose their application-owned context actions through right-click, the keyboard menu key, or an Actions button.
 
 For one-click Linux installation, open `Install-LCARS-Linux.desktop` or run `Install-LCARS-Linux.run`. Your file manager may ask you to mark the desktop launcher as trusted the first time it is opened. The installer places the standalone application in `~/.local/opt/lcars-command-interface`; Node.js, npm, and an external browser are not required to run it.
 
@@ -79,7 +81,7 @@ Supported full-integration target: KDE Plasma 6 on Wayland with KDotool. Generic
 
 To uninstall, open `Uninstall-LCARS-Linux.desktop` or run `./uninstall-linux.sh`. The uninstaller preserves shared system packages and asks separately before removing LCARS preferences.
 
-Run `./start-local.sh` to start both the interface and its local system bridge. It listens only on the loopback interface and does not expose the dashboard to other devices.
+Run `./start-local.sh` to start both the interface and its local system bridge. The privileged desktop core listens only on the loopback interface. If the operator explicitly enables PADD Companion Link, a separate limited service listens on local-network port 8766 until it is disabled.
 
 Run `./install-autostart.sh --register` to add a portable AppImage to application/taskbar search. Use `./install-autostart.sh --enable-autostart` to launch it at login or `--disable-autostart` to turn that behavior off. These per-user operations do not require sudo and do not replace or remove KDE.
 

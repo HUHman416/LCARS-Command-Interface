@@ -35,7 +35,7 @@ test('desktop renderer loads Version 26.1 styling after Version 25',()=>{
   assert.ok(v261 > v25);
 });
 
-test('Version 26 candidates identify themselves correctly while retaining 26.1 repository coverage',()=>{
-  assert.ok(['26.3.0-dev.1','26.0.0'].includes(packageJson.version));
-  assert.match(page,/26\.3 RC|26 STABLE/);
+test('newer candidates retain Version 26.1 repository coverage',()=>{
+  assert.ok(['27.1.0-dev.1','26.3.0-dev.1','26.0.0'].includes(packageJson.version));
+  assert.match(page,/27\.1 DEV|26\.3 RC|26 STABLE/);
 });

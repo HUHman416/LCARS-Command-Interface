@@ -8,7 +8,7 @@ The Windows edition uses the same LCARS visual interface, themes, modules, profi
 2. Double-click the setup executable and choose the installation folder.
 3. Optionally tick **Start LCARS Command Interface when I sign in**.
 
-The installer obtains the local Python runtime components when needed, creates a searchable Start Menu shortcut, and starts the standalone LCARS app. Login startup is opt-in. Nothing listens beyond `127.0.0.1`, and an external browser is not used.
+The installer obtains the local Python runtime components when needed, creates a searchable Start Menu shortcut, and starts the standalone LCARS app. Login startup is opt-in. The privileged desktop core remains on `127.0.0.1`, and an external browser is not required. Version 27.1 can optionally open a separate, role-limited PADD companion listener on local-network port 8766 after the operator arms pairing in Settings.
 
 A Windows setup executable can be produced from source by running `windows\installer\build-installer.ps1` on Windows. It invokes the same Electron/NSIS packaging path used by GitHub Releases.
 
@@ -34,10 +34,11 @@ A Windows setup executable can be produced from source by running `windows\insta
 - Confirmed whole-computer sleep, restart, and shutdown controls
 - Operations Automation, richer Workstation restore, Engineering, Communications, and Extension Hub surfaces
 - Configurable Tray Command Deck controls and pin-capable Speed Dial Page Peeks
+- Version 27 Connected LCARS with one-use phone/tablet pairing, revocable device roles, and a touch-first local PADD companion
 
 ## Current limitations
 
-The first Windows edition uses global Windows media controls because Windows does not expose every application's full media metadata consistently to ordinary desktop processes. Per-application volume discovery works through Windows Core Audio; changing individual application volumes is reserved for the dedicated Windows audio companion. The Application Bay manages native windows through the Task Rail rather than forcibly embedding every application, since modern Windows applications use several incompatible window technologies.
+The first Windows edition uses global Windows media controls because Windows does not expose every application's full media metadata consistently to ordinary desktop processes. Per-application volume discovery works through Windows Core Audio. The Application Bay manages native windows through the Task Rail rather than forcibly embedding every application, since modern Windows applications use several incompatible window technologies. Windows does not offer the same supported cross-application tray-menu protocol as Linux StatusNotifier, so Version 27.1 native tray context actions are currently available on compatible Linux desktops only.
 
 LCARS immersive mode does not replace `explorer.exe` in this first release. That is intentional: Explorer remains available as a recovery shell while the Windows port is tested on more hardware.
 # Optional offline voice commands

@@ -10,9 +10,10 @@ sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
 from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
 from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation, repository_source_operation, prepare_module_publication
 from lcars_documents import read_document, write_document
+from lcars_padd import PaddController
 
 PORT=8765
-LCARS_VERSION="26.0.0"
+LCARS_VERSION="27.1.0-dev.1"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -22,6 +23,8 @@ BUILTIN_EXTENSION_DIR=Path(__file__).resolve().parent.parent/"extensions"
 EXTENSION_STATE_DIR=CONFIG_DIR/"extension-state"
 MODULE_SOURCE_FILE=CONFIG_DIR/"module-sources.json"
 MODULE_PUBLISHER_DIR=CONFIG_DIR/"module-publisher"
+PADD_ASSET_DIR=Path(__file__).resolve().parent.parent/"padd"
+PADD=PaddController(CONFIG_DIR,PADD_ASSET_DIR,LCARS_VERSION,"windows")
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
 APP_CACHE={}
@@ -483,6 +486,8 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/storage":return self.send_json({"drives":storage_data()})
         if route=="/api/network-details":return self.send_json(network_details())
         if route=="/api/tray":return self.send_json({"items":[],"supported":False,"reason":"Windows does not expose a supported API for re-hosting every third-party notification icon; LCARS quick controls remain available"})
+        if route=="/api/padd-pairing":return self.send_json(PADD.status(True))
+        if route=="/api/padd-commands":return self.send_json({"commands":PADD.pop_commands()})
         if route=="/api/voice-status":return self.send_json(voice_status())
         if route=="/api/audio":return self.send_json(audio_data())
         if route=="/api/audio-devices":return self.send_json({"devices":audio_devices()})
@@ -550,6 +555,12 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/module-publisher":
             try:return self.send_json(prepare_module_publication(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_PUBLISHER_DIR,str(data.get("id","")),str(data.get("repository","YOUR-GITHUB-NAME/YOUR-REPOSITORY"))))
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/padd-pairing":
+            try:return self.send_json(PADD.manage(data))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/padd-sync":
+            try:return self.send_json(PADD.sync(data))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/process-action":
             try:return self.send_json(process_action(data.get("pid",0),str(data.get("action",""))))
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
@@ -598,5 +609,6 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self,format,*args):pass
 
 if __name__=="__main__":
+    PADD.start()
     print(f"LCARS Windows local core ready on http://127.0.0.1:{PORT}")
     ThreadingHTTPServer(("127.0.0.1",PORT),Handler).serve_forever()

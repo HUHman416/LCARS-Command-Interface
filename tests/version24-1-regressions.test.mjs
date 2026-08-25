@@ -79,6 +79,6 @@ test("Packaged repair support and current bridge versions stay aligned",()=>{
   assert.match(builder,/recovery\/register-app\.sh/);
   assert.match(linux,/repair-installation/);
   assert.match(windows,/repair-installation/);
-  assert.match(linux,/LCARS_VERSION="26\.(?:3\.0-dev\.1|0\.0)"/);
-  assert.match(windows,/LCARS_VERSION="26\.(?:3\.0-dev\.1|0\.0)"/);
+  assert.match(linux,/LCARS_VERSION="(?:27\.1\.0-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(windows,/LCARS_VERSION="(?:27\.1\.0-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
 });

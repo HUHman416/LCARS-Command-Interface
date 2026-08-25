@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#050505">
+  <title>LCARS PADD Companion</title>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icon.png">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main>
+    <header class="masthead"><span><small>LCARS VERSION 27</small><h1>PADD COMPANION</h1></span><b id="link-state">LINK</b></header>
+    <section id="pairing" class="pairing-panel">
+      <div><small>LOCAL STATION PAIRING</small><h2>CONNECT THIS PADD</h2><p>Open Settings on the LCARS computer, arm a one-use pairing code, then enter it here.</p></div>
+      <form id="pair-form"><label>PADD NAME<input id="device-name" maxlength="48" value="Personal PADD" autocomplete="nickname"></label><label>SIX-DIGIT CODE<input id="pair-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="000000" autocomplete="one-time-code"></label><button>PAIR WITH LCARS</button></form>
+      <p id="pair-message" role="status"></p>
+    </section>
+    <section id="console" hidden>
+      <nav class="station-tabs"><button data-tab="status" class="active">STATUS</button><button data-tab="media">MEDIA</button><button data-tab="command">COMMAND</button></nav>
+      <section id="status-view" class="view active">
+        <header><span><small>CONNECTED STATION</small><h2 id="station-name">LCARS CORE</h2></span><strong id="role-label">OPERATOR</strong></header>
+        <div class="status-grid"><article><small>ACTIVE PAGE</small><b id="current-page">OVERVIEW</b></article><article><small>LINK UPDATE</small><b id="last-update">STANDBY</b></article><article><small>MASTER AUDIO</small><b id="volume-readout">0%</b></article><article><small>OPERATIONS</small><b id="routine-count">0 ROUTINES</b></article></div>
+        <div id="meters" class="meter-grid"></div>
+        <section class="notice-feed"><header><b>COMMUNICATIONS</b><small id="notice-count">0 SIGNALS</small></header><div id="notices"></div></section>
+      </section>
+      <section id="media-view" class="view">
+        <header><span><small>REMOTE AUDIO BUS</small><h2>MEDIA CONTROL</h2></span><strong id="mute-state">LIVE</strong></header>
+        <div id="players" class="player-list"></div>
+        <div class="transport"><button data-action="media" data-value="previous">|◀</button><button data-action="media" data-value="play-pause">▶/Ⅱ</button><button data-action="media" data-value="next">▶|</button></div>
+        <label class="volume-control">MASTER VOLUME <input id="master-volume" type="range" min="0" max="100" value="0"><b id="volume-value">0%</b></label>
+      </section>
+      <section id="command-view" class="view">
+        <header><span><small>ROLE-GUARDED CONTROL</small><h2>COMMAND DECK</h2></span><strong id="command-role">OPERATOR</strong></header>
+        <div class="page-grid" id="pages"><button data-action="navigate" data-value="overview">STATUS</button><button data-action="navigate" data-value="system">SYSTEMS</button><button data-action="navigate" data-value="media">MEDIA</button><button data-action="navigate" data-value="network">NETWORK</button><button data-action="navigate" data-value="updates">UPDATES</button><button data-action="navigate" data-value="settings">SETTINGS</button><button id="dnd-toggle" data-action="dnd" data-value="true">ENABLE DO NOT DISTURB</button></div>
+        <section><header><b>OPERATIONS ROUTINES</b></header><div id="routines" class="command-list"></div></section>
+        <section><header><b>APPLICATIONS</b></header><div id="apps" class="command-list"></div></section>
+      </section>
+      <footer><button id="refresh">REFRESH LINK</button><button id="unpair">FORGET THIS STATION</button></footer>
+      <p id="console-message" role="status"></p>
+    </section>
+  </main>
+  <script src="/app.js" defer></script>
+</body>
+</html>

@@ -26,5 +26,13 @@ class UpdaterChannelTests(unittest.TestCase):
             result=updater.check_update("26.2.0-dev.1","windows","stable-release")
         self.assertFalse(result["available"])
 
+    def test_version_26_can_receive_version_27_1_on_development_channel(self):
+        release={"tag_name":"v27.1","draft":False,"prerelease":True,"html_url":"https://github.com/example/releases/v27.1","assets":[]}
+        with patch.object(updater,"_release_for_channel",return_value=release):
+            result=updater.check_update("26.0.0","linux","development")
+        self.assertTrue(result["available"])
+        self.assertEqual(result["channel"],"development")
+        self.assertEqual(result["version"],"27.1")
+
 
 if __name__=="__main__":unittest.main()

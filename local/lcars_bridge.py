@@ -10,9 +10,10 @@ sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
 from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
 from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation, repository_source_operation, prepare_module_publication
 from lcars_documents import read_document, write_document
+from lcars_padd import PaddController
 
 PORT=8765
-LCARS_VERSION="26.0.0"
+LCARS_VERSION="27.1.0-dev.1"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -22,6 +23,8 @@ BUILTIN_EXTENSION_DIR=Path(__file__).resolve().parent.parent/"extensions"
 EXTENSION_STATE_DIR=CONFIG_DIR/"extension-state"
 MODULE_SOURCE_FILE=CONFIG_DIR/"module-sources.json"
 MODULE_PUBLISHER_DIR=CONFIG_DIR/"module-publisher"
+PADD_ASSET_DIR=Path(__file__).resolve().parent.parent/"padd"
+PADD=PaddController(CONFIG_DIR,PADD_ASSET_DIR,LCARS_VERSION,"linux")
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
 ICON_CACHE={}
@@ -515,12 +518,12 @@ def tray_data():
             service,path=(value.split("/",1)+[""])[:2] if "/" in value else (value,"")
             path="/"+path if path else "/StatusNotifierItem"
             title=property_value(service,path,"Title");app_id=property_value(service,path,"Id");status=property_value(service,path,"Status")
-            desktop_entry=property_value(service,path,"DesktopEntry");icon_name=property_value(service,path,"IconName");process=process_identity(service)
+            desktop_entry=property_value(service,path,"DesktopEntry");icon_name=property_value(service,path,"IconName");menu_path=property_value(service,path,"Menu");process=process_identity(service)
             desktop_name,desktop_icon=desktop_identity(desktop_entry,app_id,process)
             generic=not title or title.isdigit() or title.casefold() in ("status notifier item","statusnotifieritem","indicator","tray")
             name=desktop_name or ("" if generic else title) or friendly_service(app_id or process or service)
             if not name or name.isdigit() or name=="Tray Service":name=friendly_service(process or desktop_entry or app_id or service)
-            items.append({"id":service+"|"+path,"name":name[:80],"status":status.upper() if status else "ACTIVE","icon":icon_data(icon_name or desktop_icon)})
+            items.append({"id":service+"|"+path,"name":name[:80],"status":status.upper() if status else "ACTIVE","icon":icon_data(icon_name or desktop_icon),"hasContextMenu":bool(menu_path and menu_path!="/")})
         result={"items":items,"supported":raw.returncode==0,"reason":"" if raw.returncode==0 else "StatusNotifierWatcher did not respond"};TRAY_CACHE.update(at=time.time(),value=result);return result
     except Exception:return {"items":[],"supported":False,"reason":"System tray inventory unavailable"}
 
@@ -528,12 +531,17 @@ def voice_status():
     engine=command_path("whisper-cli") or command_path("whisper-cpp")
     return {"available":bool(engine and shutil.which("ffmpeg")),"engine":engine or "","ffmpeg":shutil.which("ffmpeg") or "","reason":"" if engine and shutil.which("ffmpeg") else "Install whisper.cpp and FFmpeg, then select a local model in Voice Control settings"}
 
-def tray_action(ident):
+def tray_action(ident,action="activate",x=0,y=0):
     allowed={item["id"] for item in tray_data()["items"]}
     if ident not in allowed or "|" not in ident:return {"ok":False,"message":"Tray service is no longer registered"}
     service,path=ident.split("|",1)
-    result=subprocess.run(["gdbus","call","--session","--dest",service,"--object-path",path,"--method","org.kde.StatusNotifierItem.Activate","0","0"],capture_output=True,text=True,timeout=4)
-    return {"ok":result.returncode==0,"message":"Tray service activated" if result.returncode==0 else "This tray service did not accept activation"}
+    methods={"activate":"Activate","secondary":"SecondaryActivate","context":"ContextMenu"};method=methods.get(action)
+    if not method:return {"ok":False,"message":"Unknown tray action"}
+    try:px=max(-32768,min(32767,int(x)));py=max(-32768,min(32767,int(y)))
+    except Exception:px=py=0
+    result=subprocess.run(["gdbus","call","--session","--dest",service,"--object-path",path,"--method",f"org.kde.StatusNotifierItem.{method}",str(px),str(py)],capture_output=True,text=True,timeout=4)
+    messages={"activate":"Tray service activated","secondary":"Secondary tray action requested","context":"Tray context actions opened"}
+    return {"ok":result.returncode==0,"message":messages[action] if result.returncode==0 else "This tray service did not accept the requested action"}
 
 def voice_transcribe(data):
     status=voice_status();prefs=load_config().get("shell_prefs",{});engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or "")).expanduser()
@@ -842,6 +850,8 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/storage": self.send_json({"drives":storage_data()})
         elif route=="/api/network-details": self.send_json(network_details())
         elif route=="/api/tray": self.send_json(tray_data())
+        elif route=="/api/padd-pairing": self.send_json(PADD.status(True))
+        elif route=="/api/padd-commands": self.send_json({"commands":PADD.pop_commands()})
         elif route=="/api/voice-status": self.send_json(voice_status())
         elif route=="/api/compat": self.send_json(linux_environment())
         elif route=="/api/audio": self.send_json(audio_data())
@@ -922,6 +932,12 @@ class Handler(BaseHTTPRequestHandler):
             if route=="/api/module-publisher":
                 try:return self.send_json(prepare_module_publication(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_PUBLISHER_DIR,str(data.get("id","")),str(data.get("repository","YOUR-GITHUB-NAME/YOUR-REPOSITORY"))))
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/padd-pairing":
+                try:return self.send_json(PADD.manage(data))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/padd-sync":
+                try:return self.send_json(PADD.sync(data))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
             if route=="/api/process-action":
                 try:return self.send_json(process_action(data.get("pid",0),str(data.get("action",""))))
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
@@ -941,7 +957,7 @@ class Handler(BaseHTTPRequestHandler):
                 subprocess.run(["wpctl","set-volume","@DEFAULT_AUDIO_SINK@",f"{volume}%"],timeout=3)
                 return self.send_json({"volume":volume})
             if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action",""))))
-            if route=="/api/tray-action":return self.send_json(tray_action(str(data.get("id",""))))
+            if route=="/api/tray-action":return self.send_json(tray_action(str(data.get("id","")),str(data.get("action","activate")),data.get("x",0),data.get("y",0)))
             if route=="/api/voice-transcribe":return self.send_json(voice_transcribe(data))
             if route=="/api/audio-device":
                 ident=str(data.get("id",""))
@@ -1011,4 +1027,5 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self,fmt,*args): pass
 
 if __name__=="__main__":
+    PADD.start()
     ThreadingHTTPServer(("127.0.0.1",PORT),Handler).serve_forever()

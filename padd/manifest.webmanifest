@@ -1,0 +1,10 @@
+{
+  "name": "LCARS PADD Companion",
+  "short_name": "LCARS PADD",
+  "description": "A paired local companion for LCARS Command Interface Version 27.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#050505",
+  "icons": [{"src":"/icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]
+}

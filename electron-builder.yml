@@ -24,6 +24,10 @@ linux:
       to: shared/lcars_extensions.py
     - from: shared/lcars_documents.py
       to: shared/lcars_documents.py
+    - from: shared/lcars_padd.py
+      to: shared/lcars_padd.py
+    - from: padd
+      to: padd
     - from: extensions
       to: extensions
     - from: local/lcars-recovery.sh
@@ -46,6 +50,10 @@ win:
       to: shared/lcars_extensions.py
     - from: shared/lcars_documents.py
       to: shared/lcars_documents.py
+    - from: shared/lcars_padd.py
+      to: shared/lcars_padd.py
+    - from: padd
+      to: padd
     - from: extensions
       to: extensions
     - from: windows/install-runtime.ps1

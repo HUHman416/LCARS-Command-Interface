@@ -37,8 +37,8 @@ test("Module Repository 2.0 accepts constrained public GitHub sources and genera
 });
 
 test("Version 26 release candidates can explicitly transition to the stable major release",()=>{
-  assert.ok(["26.3.0-dev.1","26.0.0"].includes(packageJson.version));
-  assert.match(page,/CHECK FOR VERSION 26 STABLE/);
+  assert.ok(["27.1.0-dev.1","26.3.0-dev.1","26.0.0"].includes(packageJson.version));
+  assert.match(page,/CHECK FOR VERSION (?:27|26) STABLE/);
   assert.match(updater,/stableTransition/);
   assert.match(updater,/channel=="stable-release"/);
   assert.match(renderer,/v26-3\.css/);
