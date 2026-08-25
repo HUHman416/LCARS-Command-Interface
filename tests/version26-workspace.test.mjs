@@ -53,9 +53,10 @@ test("Communications uses one quiet accessible scrolling feed", () => {
   assert.match(css, /::-webkit-scrollbar/);
 });
 
-test("Version 26.1 dev.2 styling loads last on desktop", () => {
-  assert.equal(packageJson.version, "26.1.0-dev.2");
+test("Version 26.2 styling loads last on desktop", () => {
+  assert.equal(packageJson.version, "26.2.0-dev.1");
   const repository = renderer.indexOf('import "../app/v26-1.css"');
   const workspace = renderer.indexOf('import "../app/v26.css"');
-  assert.ok(repository >= 0 && workspace > repository);
+  const current = renderer.indexOf('import "../app/v26-2.css"');
+  assert.ok(repository >= 0 && workspace > repository && current > workspace);
 });

@@ -8,11 +8,11 @@ from urllib.parse import parse_qs, urlparse
 
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
 from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
-from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation
+from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation, repository_source_operation, prepare_module_publication
 from lcars_documents import read_document, write_document
 
 PORT=8765
-LCARS_VERSION="26.1.0-dev.2"
+LCARS_VERSION="26.2.0-dev.1"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -20,6 +20,8 @@ UPDATE_DIR=CONFIG_DIR/"updates"
 EXTENSION_DIR=Path(os.environ.get("LCARS_EXTENSION_DIR",Path(os.environ.get("LOCALAPPDATA",HOME))/"LCARS Command Interface"/"extensions"))
 BUILTIN_EXTENSION_DIR=Path(__file__).resolve().parent.parent/"extensions"
 EXTENSION_STATE_DIR=CONFIG_DIR/"extension-state"
+MODULE_SOURCE_FILE=CONFIG_DIR/"module-sources.json"
+MODULE_PUBLISHER_DIR=CONFIG_DIR/"module-publisher"
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
 APP_CACHE={}
@@ -490,7 +492,7 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/health-check":return self.send_json({"health":integration_health()})
         if route=="/api/diagnostics":return self.send_json(diagnostics_report())
         if route=="/api/extensions":return self.send_json(extension_manifests())
-        if route=="/api/extension-catalog":return self.send_json(build_extension_catalog(EXTENSION_DIR,BUILTIN_EXTENSION_DIR))
+        if route=="/api/extension-catalog":return self.send_json(build_extension_catalog(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_SOURCE_FILE))
         if route=="/api/engineering":return self.send_json(engineering_data())
         if route=="/api/extension-state":
             try:return self.send_json({"state":extension_state(EXTENSION_STATE_DIR,parse_qs(parsed.query).get("id",[""])[0])})
@@ -523,7 +525,7 @@ class Handler(BaseHTTPRequestHandler):
         route=urlparse(self.path).path
         if route=="/api/lcars-update":
             operation=str(data.get("operation","check"))
-            channel="development" if str(data.get("channel","stable"))=="development" else "stable"
+            requested_channel=str(data.get("channel","stable"));channel=requested_channel if requested_channel in {"development","stable-release"} else "stable"
             try:
                 executable=os.environ.get("LCARS_EXECUTABLE","");archive=CONFIG_DIR/"previous-release"
                 if operation=="check":return self.send_json({**check_update(LCARS_VERSION,"windows",channel),"rollback":rollback_status("windows",executable,archive)})
@@ -540,7 +542,13 @@ class Handler(BaseHTTPRequestHandler):
             try:return self.send_json({"ok":True,"state":save_extension_state(EXTENSION_STATE_DIR,str(data.get("id","")),data.get("state",{}))})
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/extension-install":
-            try:return self.send_json(extension_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,str(data.get("id","")),str(data.get("operation","install"))))
+            try:return self.send_json(extension_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,str(data.get("id","")),str(data.get("operation","install")),MODULE_SOURCE_FILE,str(data.get("sourceId",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/module-source":
+            try:return self.send_json(repository_source_operation(MODULE_SOURCE_FILE,str(data.get("operation","")),str(data.get("url","")),str(data.get("id",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/module-publisher":
+            try:return self.send_json(prepare_module_publication(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_PUBLISHER_DIR,str(data.get("id","")),str(data.get("repository","YOUR-GITHUB-NAME/YOUR-REPOSITORY"))))
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/process-action":
             try:return self.send_json(process_action(data.get("pid",0),str(data.get("action",""))))

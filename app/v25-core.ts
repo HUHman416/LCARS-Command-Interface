@@ -9,13 +9,25 @@ export type RoutineStepKind =
   | "media"
   | "system"
   | "command"
+  | "prompt"
   | "wait";
+
+export type RoutineCondition = {
+  source: "bridge" | "media" | "application" | "device" | "dnd";
+  operator: "available" | "unavailable" | "equals" | "not-equals";
+  value?: string;
+};
 
 export type RoutineStep = {
   id: string;
   kind: RoutineStepKind;
   target: string;
   value?: string | number | boolean;
+  condition?: RoutineCondition;
+  delayMs?: number;
+  retries?: number;
+  onFailure?: "stop" | "continue";
+  prompt?: string;
 };
 
 export type RoutineTrigger = {
@@ -27,6 +39,7 @@ export type Routine = {
   id: string;
   name: string;
   description: string;
+  folder?: string;
   color: "orange" | "gold" | "violet" | "blue" | "pink";
   enabled: boolean;
   trigger: RoutineTrigger;
@@ -96,6 +109,29 @@ export type ExtensionCatalogEntry = {
   installed: boolean;
   bundled?: boolean;
   manifestUrl?: string;
+  repository?: boolean;
+  updateAvailable?: boolean;
+  installedVersion?: string;
+  minimumLcarsVersion?: string;
+  category?: string;
+  sha256?: string;
+  featured?: boolean;
+  lastUpdated?: string;
+  sourceId?: string;
+  sourceName?: string;
+  official?: boolean;
+};
+
+export type ModuleRepositorySource = {
+  id: string;
+  name: string;
+  repositoryUrl?: string;
+  catalogUrl: string;
+  enabled: boolean;
+  official: boolean;
+  count?: number;
+  error?: string;
+  status?: "ready" | "attention" | "disabled";
 };
 
 export const v25Pages = [
@@ -130,7 +166,7 @@ export const normalizeRoutines = (value: unknown): Routine[] => {
   if (!Array.isArray(value)) return [];
   const kinds = new Set<RoutineStepKind>([
     "page", "app", "workstation", "theme", "dnd", "volume", "audio-device",
-    "media", "system", "command", "wait",
+    "media", "system", "command", "prompt", "wait",
   ]);
   const triggers = new Set(["manual", "startup", "time", "app", "device"]);
   const colors = new Set(["orange", "gold", "violet", "blue", "pink"]);
@@ -152,12 +188,22 @@ export const normalizeRoutines = (value: unknown): Routine[] => {
         kind: step.kind as RoutineStepKind,
         target: cleanText(step.target, 512),
         value: typeof step.value === "string" || typeof step.value === "number" || typeof step.value === "boolean" ? step.value : undefined,
+        condition: step.condition && typeof step.condition === "object" && ["bridge","media","application","device","dnd"].includes(String(step.condition.source)) && ["available","unavailable","equals","not-equals"].includes(String(step.condition.operator)) ? {
+          source: step.condition.source as RoutineCondition["source"],
+          operator: step.condition.operator as RoutineCondition["operator"],
+          value: cleanText(step.condition.value,120)||undefined,
+        } : undefined,
+        delayMs: Math.max(0,Math.min(30000,Number(step.delayMs)||0)),
+        retries: Math.max(0,Math.min(5,Number(step.retries)||0)),
+        onFailure: step.onFailure==="continue"?"continue":"stop",
+        prompt: cleanText(step.prompt,180)||undefined,
       }];
     }) : [];
     return [{
       id,
       name,
       description: cleanText(item.description, 160),
+      folder: cleanText(item.folder,40)||"GENERAL",
       color: colors.has(String(item.color)) ? item.color as Routine["color"] : "orange",
       enabled: item.enabled !== false,
       trigger,

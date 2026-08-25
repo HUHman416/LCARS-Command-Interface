@@ -21,7 +21,7 @@ test('26.1 verifies catalog module payloads before installation',()=>{
 });
 
 test('integrated Module Repository is the Updates slot 03 browser',()=>{
-  assert.match(page,/DECLARATIVE MODULE API · TRUSTED MODULES BRANCH/);
+  assert.match(page,/DECLARATIVE MODULE API · OFFICIAL \+ COMMUNITY GITHUB SOURCES/);
   assert.match(page,/BROWSE MODULES/);
   assert.match(page,/SEARCH MODULE REPOSITORY/);
   assert.match(page,/operate\(entry,"update"\)/);
@@ -35,7 +35,7 @@ test('desktop renderer loads Version 26.1 styling after Version 25',()=>{
   assert.ok(v261 > v25);
 });
 
-test('26.1 development builds identify themselves correctly',()=>{
-  assert.equal(packageJson.version,'26.1.0-dev.2');
-  assert.match(page,/V26\.1 DEV/);
+test('26.2 development builds identify themselves correctly while retaining 26.1 repository coverage',()=>{
+  assert.equal(packageJson.version,'26.2.0-dev.1');
+  assert.match(page,/26\.2 DEV/);
 });

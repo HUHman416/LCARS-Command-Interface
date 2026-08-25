@@ -25,10 +25,10 @@
 </p>
 
 > [!IMPORTANT]
-> **Version 25 is the current stable line; Version 26.1 is the latest development-channel candidate prepared by this branch.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
+> **Version 25 is the current stable line; Version 26.2 is the latest development-channel candidate prepared by this branch.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
 
 > [!NOTE]
-> To test the built-in updater from Version 25, open **Settings → LCARS Update Channel**, select **Development**, save the interface settings, then open **Updates** and choose **Check for LCARS Update**. The `v26.1` prerelease remains invisible to the Stable channel.
+> To test the built-in updater, open **Settings → LCARS Update Channel**, select **Development**, save the interface settings, then open **Updates** and choose **Check for LCARS Update**. The `v26.2` prerelease remains invisible to the Stable channel. Development testers can use **Check for Version 26 Stable** when the final major release is published.
 
 ## 📥 Choose your download
 
@@ -57,6 +57,15 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔔 **Operator tools** | Build preview-first routines, search with `Ctrl+F`, open the Command Palette with `Ctrl+K`, map keyboard controls, review priority communications and command activity, and use Do Not Disturb |
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
+
+## 🧪 Version 26.2 development update
+
+- Adds **Workstations 3.0** with Workstation-specific Speed Dials, automatic portrait, landscape, desktop, and multi-monitor presets, plus preview, rename, duplicate, and individual export controls.
+- Adds **Operations Automation 2.0** with folders, conditional step branches, delays, retries, continue/stop failure paths, operator prompts, individual-step testing, duplication, and local run history. Protected actions remain confirmation-gated.
+- Rebuilds Communications as an **Action Center** with priority/source filters, repeated-message grouping, read/archive state, and safe Settings, Updates, or Process destinations.
+- Expands Module Repository with operator-added **public GitHub sources**, source diagnostics and lifecycle controls, module update metadata, and a Module Publisher that generates repository-ready catalogs, checksums, folders, and documentation.
+- Adds native detachable Page Peeks, snap-zone previews, a live minimized-window manager, and carries forward the post-split Windows-safe vertical-resize and compact-popup behavior.
+- Shows the actual development version/channel and adds a clean Development-to-Stable major-release check.
 
 ## 🧪 Version 26.1 development update
 

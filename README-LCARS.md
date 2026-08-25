@@ -60,11 +60,16 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Plain number-key page navigation outside Terminal and other editable controls
 - Touch-first PADD navigation with bottom command sheets and larger controls
 - Trusted, checksum-verified declarative Module Repository under Updates → Module API
+- Public GitHub community Module Repository sources with validation, source controls, diagnostics, and a repository-package publisher
+- Workstations 3.0 with adaptive display presets, Workstation-specific Speed Dials, preview, rename, duplicate, and individual export
+- Operations Automation 2.0 with conditions, delays, retries, failure paths, prompts, step tests, folders, and run history
+- Communications Action Center with filters, repeated-message grouping, read/archive state, and safe destination actions
+- Native detachable Page Peeks, snap-zone previews, and minimized-window management
 - Contained Communications feed and quiet native scrollbars without disabling scrolling
 
 ## Current stage
 
-Version 26.1 is the current development-channel candidate. It introduces the LCARS multi-window workspace, complete Workstation restoration, touch-first PADD navigation, contained overflow behavior, and the trusted declarative Module Repository. Version 25 remains the stable line and provides the Operations Automation, Engineering, Communications, Extension Hub, media, audio, and updater foundations carried forward here. Protected commands, process termination, and computer power steps remain confirmation-gated.
+Version 26.2 is the current development-channel candidate. It expands the v26 multi-window and PADD foundations with Workstations 3.0, Operations Automation 2.0, the Communications Action Center, native detachable Page Peeks, and public GitHub community catalogs in Module Repository 2.0. Version 25 remains the stable line. Protected commands, process termination, computer power steps, and every module permission boundary remain confirmation-gated or host-controlled.
 
 For one-click Linux installation, open `Install-LCARS-Linux.desktop` or run `Install-LCARS-Linux.run`. Your file manager may ask you to mark the desktop launcher as trusted the first time it is opened. The installer places the standalone application in `~/.local/opt/lcars-command-interface`; Node.js, npm, and an external browser are not required to run it.
 

@@ -18,7 +18,7 @@ from pathlib import Path
 REPOSITORY = "HUHman416/LCARS-Command-Interface"
 API_URL = f"https://api.github.com/repos/{REPOSITORY}/releases/latest"
 RELEASES_URL = f"https://api.github.com/repos/{REPOSITORY}/releases?per_page=30"
-USER_AGENT = "LCARS-Command-Interface-Updater/25"
+USER_AGENT = "LCARS-Command-Interface-Updater/26.2"
 
 
 def _request(url: str, binary: bool = False, timeout: int = 12):
@@ -31,6 +31,15 @@ def _request(url: str, binary: bool = False, timeout: int = 12):
 def _version(value: str):
     parts = re.findall(r"\d+", value.lstrip("vV").split("-", 1)[0])[:3]
     return tuple(int(part) for part in parts + ["0"] * (3 - len(parts)))
+
+
+def _letter_revision(value: str):
+    match=re.search(r"(?:^|[-.])([A-Z])(?:$|[-.])",value.lstrip("vV").upper())
+    return ord(match.group(1))-ord("A")+1 if match else 0
+
+
+def _release_key(value: str):
+    return (*_version(value),_letter_revision(value))
 
 
 def _platform_asset(assets: list[dict], system: str):
@@ -48,14 +57,9 @@ def _release_for_channel(channel: str):
         candidates = json.loads(_request(RELEASES_URL))
         if not isinstance(candidates, list):
             candidates = []
-        whole = []
-        for release in candidates:
-            tag = str(release.get("tag_name", ""))
-            parts = _version(tag)
-            if not release.get("draft") and not release.get("prerelease") and parts[1:] == (0, 0):
-                whole.append(release)
-        if whole:
-            return max(whole, key=lambda item: _version(str(item.get("tag_name", ""))))
+        stable = [release for release in candidates if not release.get("draft") and not release.get("prerelease")]
+        if stable:
+            return max(stable, key=lambda item: _release_key(str(item.get("tag_name", ""))))
         return json.loads(_request(API_URL))
     candidates = json.loads(_request(RELEASES_URL))
     if not isinstance(candidates, list):
@@ -63,21 +67,24 @@ def _release_for_channel(channel: str):
     candidates = [item for item in candidates if not item.get("draft")]
     if not candidates:
         return json.loads(_request(API_URL))
-    return max(candidates, key=lambda item: _version(str(item.get("tag_name", ""))))
+    return max(candidates, key=lambda item: _release_key(str(item.get("tag_name", ""))))
 
 
 def check_update(current_version: str, system: str | None = None, channel: str = "stable"):
     system = (system or platform.system()).lower()
+    stable_transition=channel=="stable-release"
     channel = "development" if channel == "development" else "stable"
     release = _release_for_channel(channel)
     tag = str(release.get("tag_name", "")).strip()
     assets = release.get("assets") if isinstance(release.get("assets"), list) else []
     asset = _platform_asset(assets, system)
     checksums = next((item for item in assets if str(item.get("name", "")).lower() in {"sha256sums.txt", "checksums-sha256.txt"}), None)
-    available = bool(tag and _version(tag) > _version(current_version))
+    available = bool(tag and _release_key(tag) > _release_key(current_version))
+    if stable_transition and tag and ("dev" in current_version.lower() or "beta" in current_version.lower()):available=_version(tag)[0]>=_version(current_version)[0]
     return {
         "ok": True,
         "channel": channel,
+        "stableTransition": stable_transition,
         "available": available,
         "current": current_version,
         "version": tag.lstrip("vV"),

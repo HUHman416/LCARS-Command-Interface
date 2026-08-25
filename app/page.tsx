@@ -17,6 +17,7 @@ import type {
   ControlMapping,
   EngineeringData,
   ExtensionCatalogEntry,
+  ModuleRepositorySource,
   Routine,
   RoutineStep,
   RoutineStepKind,
@@ -36,6 +37,7 @@ import {
 import type { PagePeekState, PopupGeometry, PopupLayoutMap, PopupSnap } from "./v26-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
+const LCARS_VERSION="26.2.0-dev.1";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -82,6 +84,9 @@ type Notice = {
   time: string;
   source?: string;
   priority?: "routine" | "priority" | "critical";
+  read?: boolean;
+  archived?: boolean;
+  repeats?: number;
 };
 type WindowTask = {
   id: string;
@@ -184,6 +189,8 @@ type WorkspaceProfile = {
   restoreApplications?: boolean;
   pagePeeks?: PagePeekState[];
   popupLayout?: PopupLayoutMap;
+  speedDial?: SpeedDialItem[];
+  layoutPreset?: "auto" | "desktop" | "portrait" | "landscape" | "multi-monitor";
 };
 type LockCredential = { salt: string; hash: string; iterations: number };
 type UpdateInfo = {
@@ -200,6 +207,7 @@ type UpdateInfo = {
   message?: string;
   error?: string;
   closeApp?: boolean;
+  stableTransition?: boolean;
   rollback?: { available: boolean; path?: string; sha256?: string; message?: string };
 };
 type AccessibilityPrefs = {
@@ -502,6 +510,7 @@ function ResizablePopup({as="section",popupKey,className="",floating=false,minWi
     const command=(event:Event)=>{
       const detail=(event as CustomEvent<{command:string;layouts?:PopupLayoutMap;popupKey?:string}>).detail;
       if(detail?.command==="focus"&&detail.popupKey===popupKey){workspaceZ+=1;element.style.zIndex=String(workspaceZ);persist();}
+      if(detail?.command==="toggle-minimize"&&detail.popupKey===popupKey){const next=!minimizedRef.current;if(!next)element.style.height=`${expandedHeight.current}px`;minimizedRef.current=next;setMinimized(next);persist();}
       if(detail?.command==="reset"){
         element.style.removeProperty("width");element.style.removeProperty("height");element.style.removeProperty("left");element.style.removeProperty("top");element.style.removeProperty("right");element.style.removeProperty("bottom");
         setMinimized(false);setSnap("none");frame=window.requestAnimationFrame(initialize);
@@ -509,7 +518,7 @@ function ResizablePopup({as="section",popupKey,className="",floating=false,minWi
       if((detail?.command==="arrange"||detail?.command==="restore")&&detail.layouts?.[popupKey]){applyGeometry(detail.layouts[popupKey]);persist();}
     };
     frame=window.requestAnimationFrame(initialize);
-    const observer=typeof ResizeObserver==="undefined"?null:new ResizeObserver(()=>persist());
+    const observer=typeof ResizeObserver==="undefined"?null:new ResizeObserver(()=>{if(element.dataset.lcarsResizing!=="1")persist();});
     observer?.observe(element);window.addEventListener("resize",resizeWindow);window.addEventListener(workspaceCommandEvent,command);
     return()=>{activePopupKeys.delete(popupKey);window.cancelAnimationFrame(frame);observer?.disconnect();window.removeEventListener("resize",resizeWindow);window.removeEventListener(workspaceCommandEvent,command);window.dispatchEvent(new CustomEvent(workspaceStateEvent,{detail:{layouts:readPopupLayouts(),active:[...activePopupKeys]}}));};
   },[floating,minHeight,minWidth,popupKey]);
@@ -522,8 +531,9 @@ function ResizablePopup({as="section",popupKey,className="",floating=false,minWi
     const element=ref.current,target=event.target as HTMLElement,header=target.closest("header");
     if(!element||!header||header.parentElement!==element||target.closest("button,input,select,textarea,a,[role='button'],.workspace-window-controls"))return;
     event.preventDefault();bringToFront();const start=element.getBoundingClientRect(),startX=event.clientX,startY=event.clientY;setSnap("none");
-    const move=(pointer:PointerEvent)=>{const left=Math.min(window.innerWidth-start.width-8,Math.max(8,start.left+pointer.clientX-startX)),top=Math.min(window.innerHeight-(minimized?52:start.height)-8,Math.max(8,start.top+pointer.clientY-startY));element.style.left=`${left}px`;element.style.top=`${top}px`;element.style.right="auto";element.style.bottom="auto";};
-    const finish=(pointer:PointerEvent)=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",finish);window.removeEventListener("pointercancel",finish);if(pointer.clientX<26)applySnap("left");else if(pointer.clientX>window.innerWidth-26)applySnap("right");else if(pointer.clientY<22)applySnap("full");else persistCurrent({snap:"none"});};
+    const preview=(pointer:PointerEvent):PopupSnap=>pointer.clientX<36?"left":pointer.clientX>window.innerWidth-36?"right":pointer.clientY<32?"full":"none";
+    const move=(pointer:PointerEvent)=>{const left=Math.min(window.innerWidth-start.width-8,Math.max(8,start.left+pointer.clientX-startX)),top=Math.min(window.innerHeight-(minimized?52:start.height)-8,Math.max(8,start.top+pointer.clientY-startY));element.style.left=`${left}px`;element.style.top=`${top}px`;element.style.right="auto";element.style.bottom="auto";document.body.dataset.lcarsSnapPreview=preview(pointer);};
+    const finish=(pointer:PointerEvent)=>{window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",finish);window.removeEventListener("pointercancel",finish);const target=preview(pointer);delete document.body.dataset.lcarsSnapPreview;if(target!=="none")applySnap(target);else persistCurrent({snap:"none"});};
     window.addEventListener("pointermove",move);window.addEventListener("pointerup",finish,{once:true});window.addEventListener("pointercancel",finish,{once:true});
   };
   const beginResize=(direction:"n"|"ne"|"e"|"se"|"s"|"sw"|"w"|"nw",event:ReactPointerEvent<HTMLSpanElement>)=>{
@@ -531,6 +541,7 @@ function ResizablePopup({as="section",popupKey,className="",floating=false,minWi
     if(!element)return;
     event.preventDefault();event.stopPropagation();
     bringToFront();setMinimized(false);setSnap("none");
+    element.dataset.lcarsResizing="1";
     const start=element.getBoundingClientRect(),startX=event.clientX,startY=event.clientY,startLeft=start.left,startTop=start.top;
     const move=(pointer:PointerEvent)=>{
       const maxWidth=Math.max(160,window.innerWidth-24),maxHeight=Math.max(140,window.innerHeight-24);
@@ -540,11 +551,12 @@ function ResizablePopup({as="section",popupKey,className="",floating=false,minWi
       const width=Math.min(maxWidth,Math.max(Math.min(minWidth,maxWidth),requestedWidth));
       const height=Math.min(maxHeight,Math.max(Math.min(minHeight,maxHeight),requestedHeight));
       element.style.width=`${width}px`;element.style.height=`${height}px`;
-      if(floating&&west)element.style.left=`${startLeft+start.width-width}px`;
-      if(floating&&north)element.style.top=`${startTop+start.height-height}px`;
+      const rendered=element.getBoundingClientRect();
+      if(floating&&west)element.style.left=`${startLeft+start.width-rendered.width}px`;
+      if(floating&&north)element.style.top=`${startTop+start.height-rendered.height}px`;
       if(floating){element.style.right="auto";element.style.bottom="auto";}
     };
-    const finish=()=>{expandedHeight.current=element.getBoundingClientRect().height;persistCurrent({minimized:false,snap:"none"});window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",finish);window.removeEventListener("pointercancel",finish);};
+    const finish=()=>{delete element.dataset.lcarsResizing;expandedHeight.current=element.getBoundingClientRect().height;persistCurrent({minimized:false,snap:"none"});window.removeEventListener("pointermove",move);window.removeEventListener("pointerup",finish);window.removeEventListener("pointercancel",finish);};
     window.addEventListener("pointermove",move);window.addEventListener("pointerup",finish,{once:true});window.addEventListener("pointercancel",finish,{once:true});
   };
   const popupClass=`resizable-popup${floating?" resizable-popup-floating workspace-window":""}${minimized?" workspace-minimized":""}${snap!=="none"?` workspace-snapped workspace-snap-${snap}`:""}${className?` ${className}`:""}`;
@@ -602,7 +614,7 @@ export default function Home() {
     [speedDialModule,setSpeedDialModule]=useState<WidgetId|null>(null),
     [speedDialPages,setSpeedDialPages]=useState<PagePeekState[]>([]),
     [mobileSheet,setMobileSheet]=useState<"commands"|"more"|null>(null),
-    [workspaceWindowCount,setWorkspaceWindowCount]=useState(0);
+    [workspaceWindows,setWorkspaceWindows]=useState<string[]>([]);
   const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({ interfaces: [], diagnostics: { gateway: false, dns: false, internet: false, latency: null }, bluetooth: false }),
     [startupVisible, setStartupVisible] = useState(true);
   const [extensions, setExtensions] = useState<ExtensionManifest[]>([]);
@@ -648,9 +660,10 @@ export default function Home() {
     [controlMappings,setControlMappings]=useState<ControlMapping[]>(defaultControlMappings);
   const [engineering,setEngineering]=useState<EngineeringData>({processes:[],sensors:[],processControl:false}),
     [extensionCatalog,setExtensionCatalog]=useState<ExtensionCatalogEntry[]>([]),
+    [extensionSources,setExtensionSources]=useState<ModuleRepositorySource[]>([]),
     [disabledExtensions,setDisabledExtensions]=useState<string[]>([]);
   const routineTriggerGuard=useRef<Set<string>>(new Set()),workstationRestoreGuard=useRef(false);
-  useEffect(()=>{const update=(event:Event)=>setWorkspaceWindowCount(((event as CustomEvent<{active?:string[]}>).detail?.active||[]).length);window.addEventListener(workspaceStateEvent,update);return()=>window.removeEventListener(workspaceStateEvent,update);},[]);
+  useEffect(()=>{const update=(event:Event)=>setWorkspaceWindows((event as CustomEvent<{active?:string[]}>).detail?.active||[]);window.addEventListener(workspaceStateEvent,update);return()=>window.removeEventListener(workspaceStateEvent,update);},[]);
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get(
       "section",
@@ -790,6 +803,7 @@ export default function Home() {
       ]).then(([installed,catalog])=>{
         setExtensions(Array.isArray(installed.extensions) ? installed.extensions : []);
         setExtensionCatalog(Array.isArray(catalog.catalog) ? catalog.catalog : []);
+        setExtensionSources(Array.isArray(catalog.sources) ? catalog.sources : []);
       }).catch(() => {});
     getExtensions();
     const getMedia = () => {
@@ -1068,13 +1082,13 @@ export default function Home() {
       source,
       priority,
     };
-    setNotices((old) => {const next=[notice, ...old].slice(0,100);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});
+    setNotices((old) => {const match=old.find((item)=>item.text===text&&item.source===source&&!item.archived),next=match?[{...match,id:notice.id,time:notice.time,kind,priority,read:false,repeats:(match.repeats||1)+1},...old.filter((item)=>item!==match)].slice(0,100):[{...notice,read:false,archived:false,repeats:1},...old].slice(0,100);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});
     if (!doNotDisturb)
       setTimeout(
         () =>
           setNotices((old) => {
             const next=old.map((x) =>
-              x.id === notice.id ? { ...x, id: -Math.abs(x.id) } : x,
+              x.id === notice.id ? { ...x, id: -Math.abs(x.id), read:true } : x,
             );localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;
           }),
         Math.max(1, prefs.notificationSeconds) * 1000,
@@ -1083,9 +1097,11 @@ export default function Home() {
   const dismissNotice = (id: number) =>
     setNotices((old) => {
       const next=old.map((x) =>
-        Math.abs(x.id) === Math.abs(id) ? { ...x, id: -Math.abs(x.id) } : x,
+        Math.abs(x.id) === Math.abs(id) ? { ...x, id: -Math.abs(x.id), read:true } : x,
       );localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;
     });
+  const updateNoticeState=(id:number,patch:Partial<Notice>)=>setNotices((old)=>{const next=old.map((item)=>Math.abs(item.id)===Math.abs(id)?{...item,...patch}:item);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});
+  const noticeAction=(notice:Notice)=>{const value=`${notice.source||""} ${notice.text}`.toLowerCase();setHistoryOpen(false);if(/process|engineering|cpu|memory/.test(value))setSection("system");else if(/module|extension/.test(value)){setSection("updates");Promise.all([fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()),fetch("http://127.0.0.1:8765/api/extension-catalog").then((response)=>response.json())]).then(([installed,catalog])=>{setExtensions(installed.extensions||[]);setExtensionCatalog(catalog.catalog||[]);setExtensionSources(catalog.sources||[]);notify("Module repositories refreshed");}).catch(()=>notify("Module repository retry failed","error"));}else if(/update|release/.test(value)){setSection("updates");fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation:"check",channel:prefs.updateChannel})}).then((response)=>response.json()).then(setLcarsUpdate).catch(()=>notify("Update check retry failed","error"));}else {setSection("settings");if(notice.kind==="error")coreAction("integration-recheck");}recordActivity(notice.kind==="error"?"Communications retry requested":"Communications action opened",notice.text,"success","OPERATOR");};
   const clearNotices=()=>{setNotices([]);localStorage.removeItem("lcars-notification-history");recordActivity("Communications history cleared","Operator removed stored LCARS notices","success","OPERATOR");};
   const clearActivity=()=>{setActivityLog([]);localStorage.removeItem("lcars-activity-log");};
   const coreAction = (action: string) => {
@@ -1386,14 +1402,12 @@ export default function Home() {
     else localStorage.removeItem("lcars-default-workstation");
     notify(id ? "Default workstation assigned" : "Default workstation cleared");
   };
-  const createProfile = () => {
-    const name = prompt("Workspace profile name")?.trim();
-    if (!name) return;
+  const captureProfile = (name:string,layoutPreset:WorkspaceProfile["layoutPreset"]="auto"):WorkspaceProfile => {
     const applications:WorkspaceAppState[]=tasks.filter((task)=>!task.app.toLowerCase().includes("lcars")).flatMap((task)=>{
       const app=apps.find((candidate)=>{const haystack=`${candidate.id} ${candidate.name}`.toLowerCase(),needle=task.app.toLowerCase();return haystack.includes(needle)||needle.includes(candidate.name.toLowerCase());});
       return app?[{appId:app.id,display:task.monitor,name:app.name}]:[];
     }).filter((item,index,list)=>list.findIndex((candidate)=>candidate.appId===item.appId)===index);
-    const profile = {
+    return {
       id: Date.now().toString(),
       name,
       theme,
@@ -1410,26 +1424,37 @@ export default function Home() {
       restoreApplications:true,
       pagePeeks:speedDialPages.map((peek)=>({...peek})),
       popupLayout:readPopupLayouts(),
+      speedDial:[...prefs.speedDial],
+      layoutPreset,
     };
+  };
+  const createProfile = (preset:WorkspaceProfile["layoutPreset"]="auto") => {
+    const label=preset==="auto"?"Automatic":preset.replace("-"," ");
+    const name = prompt(`${label} Workstation name`)?.trim();
+    if (!name) return;
+    const profile = captureProfile(name,preset);
     saveProfiles([...profiles, profile]);
     setActiveProfile(profile.id);
     notify(name + " workstation saved");
-    recordActivity("Workstation captured",`${name} · ${applications.length} application(s) · ${widgets.length} modules · ${speedDialPages.length} Page Peek(s)`,"success","OPERATOR",true);
+    recordActivity("Workstation captured",`${name} · ${profile.applications?.length||0} application(s) · ${widgets.length} modules · ${speedDialPages.length} Page Peek(s)`,"success","OPERATOR",true);
   };
   const applyProfile = (profile: WorkspaceProfile) => {
     createRecoverySnapshot("Before workstation profile change");
-    setTheme(profile.theme);
+    const preset=profile.layoutPreset==="auto"?(displays.filter((display)=>display.enabled).length>1?"multi-monitor":window.innerWidth<760?(window.innerWidth>window.innerHeight?"landscape":"portrait"):"desktop"):profile.layoutPreset||"desktop";
+    setTheme(preset==="portrait"||preset==="landscape"?"padd":profile.theme);
     setWidgets(profile.widgets);
     setWidgetSizes(profile.widgetSizes);
     setFavoriteIds(profile.favoriteIds);
     if(profile.section)setSection(profile.section);
     if(typeof profile.doNotDisturb==="boolean")setDoNotDisturb(profile.doNotDisturb);
     if(profile.trayShortcuts?.length)saveTrayShortcuts(profile.trayShortcuts);
+    if(profile.speedDial?.length){const next=normalizePrefs({...prefs,speedDial:profile.speedDial});setPrefs(next);localStorage.setItem("lcars-shell-prefs",JSON.stringify(next));}
     if(profile.pagePeeks){savePagePeeks(profile.pagePeeks);}
     if(profile.popupLayout){
       const layouts=normalizePopupLayouts(profile.popupLayout);localStorage.setItem(popupLayoutStorageKey,JSON.stringify(layouts));
       window.requestAnimationFrame(()=>window.requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent(workspaceCommandEvent,{detail:{command:"restore",layouts}}))));
     }
+    if(preset==="multi-monitor")window.setTimeout(arrangePopupLayout,220);
     if(typeof profile.volume==="number"){
       setVolume(profile.volume);
       fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:profile.volume})}).catch(()=>{});
@@ -1468,6 +1493,9 @@ export default function Home() {
     if (activeProfile === id) setActiveProfile("");
     if (defaultWorkstation === id) chooseDefaultWorkstation("");
   };
+  const renameProfile=(id:string)=>{const profile=profiles.find((item)=>item.id===id);if(!profile)return;const name=prompt("Rename Workstation",profile.name)?.trim();if(name)saveProfiles(profiles.map((item)=>item.id===id?{...item,name:name.slice(0,48)}:item));};
+  const duplicateProfile=(id:string)=>{const profile=profiles.find((item)=>item.id===id);if(!profile)return;const copy={...profile,id:Date.now().toString(),name:`${profile.name} COPY`.slice(0,48),widgets:[...profile.widgets],favoriteIds:[...profile.favoriteIds],widgetSizes:{...profile.widgetSizes},applications:profile.applications?.map((item)=>({...item})),pagePeeks:profile.pagePeeks?.map((item)=>({...item})),popupLayout:profile.popupLayout?normalizePopupLayouts(profile.popupLayout):undefined,speedDial:profile.speedDial?[...profile.speedDial]:undefined};saveProfiles([...profiles,copy]);notify(`${copy.name} created`);};
+  const exportProfile=(profile:WorkspaceProfile)=>{const blob=new Blob([JSON.stringify({schema:1,kind:"lcars-workstation",version:"26.2",workstation:profile},null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=`lcars-workstation-${profile.name.toLowerCase().replace(/[^a-z0-9]+/g,"-")||profile.id}.json`;link.click();URL.revokeObjectURL(url);notify(`${profile.name} exported`);};
   const describeRoutineStep=(step:RoutineStep)=>{
     if(step.kind==="page")return `Open ${step.target.toUpperCase()}`;
     if(step.kind==="app")return `Launch ${apps.find((app)=>app.id===step.target)?.name||step.target}`;
@@ -1479,38 +1507,62 @@ export default function Home() {
     if(step.kind==="media")return `Media command ${step.target}`;
     if(step.kind==="system")return `Protected system action ${step.target}`;
     if(step.kind==="command")return `Approved local command: ${step.target}`;
+    if(step.kind==="prompt")return `Ask operator: ${step.prompt||step.target||"Continue?"}`;
     return `Wait ${Math.max(0,Number(step.value??step.target)||0)} ms`;
   };
-  const executeRoutine=async(routine:Routine)=>{
+  const routineConditionMatches=(step:RoutineStep)=>{
+    if(!step.condition)return true;
+    const expected=(step.condition.value||"").toLowerCase();let available=false,actual="";
+    if(step.condition.source==="bridge"){available=bridge;actual=String(bridge);}
+    else if(step.condition.source==="media"){available=players.length>0;actual=players.map((player)=>`${player.name} ${player.title}`).join(" ").toLowerCase();}
+    else if(step.condition.source==="application"){available=tasks.some((task)=>`${task.app} ${task.name}`.toLowerCase().includes(expected));actual=available?expected:"";}
+    else if(step.condition.source==="device"){available=audioDevices.some((device)=>`${device.id} ${device.name}`.toLowerCase().includes(expected));actual=available?expected:"";}
+    else {available=true;actual=String(doNotDisturb);}
+    if(step.condition.operator==="available")return available;
+    if(step.condition.operator==="unavailable")return !available;
+    if(step.condition.operator==="equals")return actual===expected;
+    return actual!==expected;
+  };
+  const executeRoutineStep=async(step:RoutineStep)=>{
+    if(step.kind==="page")setSection(step.target);
+    else if(step.kind==="app"){
+      const app=apps.find((candidate)=>candidate.id===step.target);if(!app)throw new Error(`Application ${step.target} is not installed`);
+      await fetch("http://127.0.0.1:8765/api/launch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:app.id,mode:"window"})}).then(async(response)=>{if(!response.ok)throw new Error((await response.json()).error||`Could not launch ${app.name}`);});
+    } else if(step.kind==="workstation"){
+      const profile=profiles.find((candidate)=>candidate.id===step.target);if(!profile)throw new Error("Saved workstation is unavailable");applyProfile(profile);
+    } else if(step.kind==="theme")choose(step.target);
+    else if(step.kind==="dnd")setDoNotDisturb(String(step.value??step.target)==="true");
+    else if(step.kind==="volume"){
+      const next=Math.max(0,Math.min(100,Number(step.value??step.target)||0));setVolume(next);await fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:next})});
+    } else if(step.kind==="audio-device")await fetch("http://127.0.0.1:8765/api/audio-device",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:step.target})});
+    else if(step.kind==="media"){
+      const [playerId,command]=step.target.includes("|")?step.target.split("|",2):[players[0]?.id||"",step.target];if(!playerId)throw new Error("No media player is active");await fetch("http://127.0.0.1:8765/api/media-control",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({player:playerId,command})});
+    } else if(step.kind==="system"){
+      const result=await fetch("http://127.0.0.1:8765/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:step.target})}).then((response)=>response.json());if(result.error)throw new Error(result.error);
+    } else if(step.kind==="command"){
+      const response=await fetch("http://127.0.0.1:8765/api/routine-command",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({command:step.target,approved:true})});const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Approved command was rejected");
+    } else if(step.kind==="prompt"){
+      if(!window.confirm(step.prompt||step.target||"Continue this Operations routine?"))throw new Error("Operator declined the routine prompt");
+    } else await new Promise((resolve)=>window.setTimeout(resolve,Math.max(0,Math.min(30000,Number(step.value??step.target)||0))));
+  };
+  const executeRoutine=async(routine:Routine,steps=routine.steps,testRun=false)=>{
     if(runningRoutine)return;
     setPendingRoutine(null);setRunningRoutine(routine.id);
-    recordActivity(`Routine ${routine.name}`,`${routine.steps.length} step sequence started`,"running","ROUTINE");
+    recordActivity(`${testRun?"Step test":"Routine"} ${routine.name}`,`${steps.length} step sequence started`,"running","ROUTINE");
     try{
-      for(const step of routine.steps){
-        if(step.kind==="page")setSection(step.target);
-        else if(step.kind==="app"){
-          const app=apps.find((candidate)=>candidate.id===step.target);if(!app)throw new Error(`Application ${step.target} is not installed`);
-          await fetch("http://127.0.0.1:8765/api/launch",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:app.id,mode:"window"})}).then(async(response)=>{if(!response.ok)throw new Error((await response.json()).error||`Could not launch ${app.name}`);});
-        } else if(step.kind==="workstation"){
-          const profile=profiles.find((candidate)=>candidate.id===step.target);if(!profile)throw new Error("Saved workstation is unavailable");applyProfile(profile);
-        } else if(step.kind==="theme")choose(step.target);
-        else if(step.kind==="dnd")setDoNotDisturb(String(step.value??step.target)==="true");
-        else if(step.kind==="volume"){
-          const next=Math.max(0,Math.min(100,Number(step.value??step.target)||0));setVolume(next);await fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:next})});
-        } else if(step.kind==="audio-device")await fetch("http://127.0.0.1:8765/api/audio-device",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:step.target})});
-        else if(step.kind==="media"){
-          const [playerId,command]=step.target.includes("|")?step.target.split("|",2):[players[0]?.id||"",step.target];if(!playerId)throw new Error("No media player is active");await fetch("http://127.0.0.1:8765/api/media-control",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({player:playerId,command})});
-        } else if(step.kind==="system"){
-          const result=await fetch("http://127.0.0.1:8765/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:step.target})}).then((response)=>response.json());if(result.error)throw new Error(result.error);
-        } else if(step.kind==="command"){
-          const response=await fetch("http://127.0.0.1:8765/api/routine-command",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({command:step.target,approved:true})});const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Approved command was rejected");
-        } else await new Promise((resolve)=>window.setTimeout(resolve,Math.max(0,Math.min(30000,Number(step.value??step.target)||0))));
+      for(const step of steps){
+        if(!routineConditionMatches(step)){recordActivity(`Routine branch skipped`,`${routine.name} · ${describeRoutineStep(step)}`,"cancelled","ROUTINE");continue;}
+        if(step.delayMs)await new Promise((resolve)=>window.setTimeout(resolve,step.delayMs));
+        let lastError:unknown=null,complete=false;
+        for(let attempt=0;attempt<=(step.retries||0);attempt++)try{await executeRoutineStep(step);complete=true;break;}catch(error){lastError=error;if(attempt<(step.retries||0))await new Promise((resolve)=>window.setTimeout(resolve,350));}
+        if(!complete){const detail=lastError instanceof Error?lastError.message:"Step failed";recordActivity(`Routine step failed`,`${routine.name} · ${detail}`,"attention","ROUTINE");if(step.onFailure!=="continue")throw lastError;}
         await new Promise((resolve)=>window.setTimeout(resolve,90));
       }
-      recordActivity(`Routine ${routine.name}`,"All steps completed successfully","success","ROUTINE",true);notify(`${routine.name} routine complete`,"info",true,"OPERATIONS AUTOMATION","priority");
+      recordActivity(`${testRun?"Step test":"Routine"} ${routine.name}`,"All selected steps completed successfully","success","ROUTINE",true);notify(`${routine.name} ${testRun?"step test":"routine"} complete`,"info",true,"OPERATIONS AUTOMATION","priority");
     }catch(error){const detail=error instanceof Error?error.message:"Routine failed";recordActivity(`Routine ${routine.name}`,detail,"attention","ROUTINE");notify(`${routine.name}: ${detail}`,"error",true,"OPERATIONS AUTOMATION","critical");}
     finally{setRunningRoutine("");}
   };
+  const testRoutineStep=(routine:Routine,step:RoutineStep)=>{if(step.kind==="system"||step.kind==="command"){setPendingRoutine({...routine,name:`TEST · ${routine.name}`,steps:[step]});return;}void executeRoutine(routine,[step],true);};
   const requestRoutine=(routine:Routine)=>{if(!routine.enabled)return notify(`${routine.name} is disabled`,"error");setPendingRoutine(routine);};
   useEffect(()=>{
     if(!bridge||locked)return;
@@ -1921,6 +1973,7 @@ export default function Home() {
   };
   const detachedParams=typeof window!=="undefined"?new URLSearchParams(window.location.search):null;
   if(detachedParams?.get("tool")==="document"&&detachedParams.get("path"))return <DocumentWorkspace path={detachedParams.get("path")||""} detached close={()=>window.close()} notify={notify}/>;
+  if(detachedParams?.get("tool")==="page-peek"&&detachedParams.get("page")){const page=detachedParams.get("page")||"overview";return <main className={`lcars detached-peek-shell theme-${theme}`}><SpeedDialPagePeek detached popupKey="detached-page-peek" page={page} pinned={false} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>{}} close={()=>window.close()} openFull={(target)=>{window.location.href=`lcars://app/index.html?section=${encodeURIComponent(target)}`;}}/></main>;}
   return (
     <main
       style={{ fontSize: access.fontScale + "%" }}
@@ -1936,7 +1989,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>26.1</small>
+          <small>26.2 DEV</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>
@@ -2265,7 +2318,7 @@ export default function Home() {
             <NetworkConsole info={networkInfo} action={coreAction} refresh={() => fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => notify("Network telemetry unavailable","error"))} />
           )}
           {section === "updates" && (
-            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => setSection("settings")} update={lcarsUpdate} setUpdate={setLcarsUpdate} notify={notify} extensions={extensions} catalog={extensionCatalog} disabled={disabledExtensions} setDisabled={saveDisabledExtensions} refreshExtensions={()=>fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()).then((result)=>setExtensions(result.extensions||[])).catch(()=>notify("Extension inventory could not be refreshed","error"))} />
+            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => setSection("settings")} update={lcarsUpdate} setUpdate={setLcarsUpdate} notify={notify} extensions={extensions} catalog={extensionCatalog} sources={extensionSources} setCatalog={setExtensionCatalog} setSources={setExtensionSources} disabled={disabledExtensions} setDisabled={saveDisabledExtensions} refreshExtensions={()=>Promise.all([fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()),fetch("http://127.0.0.1:8765/api/extension-catalog").then((response)=>response.json())]).then(([installed,catalog])=>{setExtensions(installed.extensions||[]);setExtensionCatalog(catalog.catalog||[]);setExtensionSources(catalog.sources||[]);}).catch(()=>notify("Extension inventory could not be refreshed","error"))} />
           )}
           {section.startsWith("custom:") && renderCustomPage()}
           {section === "settings" && (
@@ -2296,6 +2349,9 @@ export default function Home() {
                 createProfile={createProfile}
                 applyProfile={applyProfile}
                 deleteProfile={deleteProfile}
+                renameProfile={renameProfile}
+                duplicateProfile={duplicateProfile}
+                exportProfile={exportProfile}
                 defaultWorkstation={defaultWorkstation}
                 setDefaultWorkstation={chooseDefaultWorkstation}
                 access={access}
@@ -2323,7 +2379,7 @@ export default function Home() {
                 command={() => setPaletteOpen(true)}
                 action={coreAction}
               />
-              <WorkspaceWindowPanel active={workspaceWindowCount} peeks={speedDialPages.length} arrange={arrangePopupLayout} reset={resetPopupLayout} closePeeks={closeAllPagePeeks}/>
+              <WorkspaceWindowPanel windows={workspaceWindows} peeks={speedDialPages.length} arrange={arrangePopupLayout} reset={resetPopupLayout} closePeeks={closeAllPagePeeks} command={(popupKey,command)=>window.dispatchEvent(new CustomEvent(workspaceCommandEvent,{detail:{popupKey,command}}))}/>
               <ShellSettings
                 platform={platform}
                 prefs={prefs}
@@ -2429,8 +2485,20 @@ export default function Home() {
       <MobileCommandBar section={section} sheet={mobileSheet} navigate={(page)=>{setSection(page);setMobileSheet(null);}} applications={()=>{setAllOpen(true);setMobileSheet(null);}} commands={()=>setMobileSheet((current)=>current==="commands"?null:"commands")} communications={()=>{setHistoryOpen(true);setMobileSheet(null);}} more={()=>setMobileSheet((current)=>current==="more"?null:"more")} routines={()=>{setRoutineCenterOpen(true);setMobileSheet(null);}} tray={()=>{setTrayOpen(true);setMobileSheet(null);}} displays={()=>{setDisplayMenu(true);setMobileSheet(null);}} power={()=>{setPowerOpen(true);setMobileSheet(null);}} close={()=>setMobileSheet(null)}/>
       <TrayDrawer open={trayOpen} items={trayItems} shortcuts={trayShortcuts} close={() => setTrayOpen(false)} execute={runTrayShortcut} />
       {speedDialModule&&<div className="backdrop module-spotlight" onMouseDown={(event)=>event.target===event.currentTarget&&setSpeedDialModule(null)}><ResizablePopup popupKey="speed-dial-module" ariaModal={true}><header><div><small>SPEED DIAL MODULE</small><h3>{widgetMeta(speedDialModule).name}</h3></div><button onClick={()=>setSpeedDialModule(null)}>CLOSE ×</button></header>{renderWidget(speedDialModule)}</ResizablePopup></div>}
-      {speedDialPages.map((peek)=><SpeedDialPagePeek key={peek.id} popupKey={`speed-dial-page-peek:${peek.id}`} page={peek.page} pinned={peek.pinned} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>savePagePeeks(speedDialPages.map((item)=>item.id===peek.id?{...item,pinned:!item.pinned}:item))} close={()=>savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id))} openFull={(page)=>{savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id));setSection(page);}} />)}
-      {routineCenterOpen&&<RoutineCenter routines={routines} apps={apps} profiles={profiles} devices={audioDevices} players={players} running={runningRoutine} save={saveRoutines} request={requestRoutine} close={()=>setRoutineCenterOpen(false)}/>}
+      {speedDialPages.map((peek)=><SpeedDialPagePeek key={peek.id} popupKey={`speed-dial-page-peek:${peek.id}`} page={peek.page} pinned={peek.pinned} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>savePagePeeks(speedDialPages.map((item)=>item.id===peek.id?{...item,pinned:!item.pinned}:item))} detach={()=>{window.open(`lcars://app/index.html?tool=page-peek&page=${encodeURIComponent(peek.page)}`,"_blank");savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id));}} close={()=>savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id))} openFull={(page)=>{savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id));setSection(page);}} />)}
+      {routineCenterOpen&&<RoutineCenter
+        routines={routines}
+        apps={apps}
+        profiles={profiles}
+        devices={audioDevices}
+        players={players}
+        running={runningRoutine}
+        history={activityLog.filter((entry)=>entry.source==="ROUTINE")}
+        save={saveRoutines}
+        request={requestRoutine}
+        testStep={testRoutineStep}
+        close={()=>setRoutineCenterOpen(false)}
+      />}
       {pendingRoutine&&<RoutinePreview routine={pendingRoutine} describe={describeRoutineStep} running={runningRoutine===pendingRoutine.id} cancel={()=>setPendingRoutine(null)} run={()=>void executeRoutine(pendingRoutine)}/>}
       {startupVisible && prefs.startupSequence && <StartupTelemetry bridge={bridge} reduced={access.reducedMotion} />}
       <VoiceControl prefs={prefs} apps={apps} extensions={extensions} routines={routines} navigate={setSection} launch={launch} requestRoutine={requestRoutine} action={coreAction} notify={notify} />
@@ -2475,6 +2543,8 @@ export default function Home() {
         historyOpen={historyOpen}
         close={() => setHistoryOpen(false)}
         dismiss={dismissNotice}
+        updateState={updateNoticeState}
+        action={noticeAction}
         clear={clearNotices}
         clearActivity={clearActivity}
         doNotDisturb={doNotDisturb}
@@ -2899,6 +2969,9 @@ function UpdateCenter({
   notify,
   extensions,
   catalog,
+  sources,
+  setCatalog,
+  setSources,
   disabled,
   setDisabled,
   refreshExtensions,
@@ -2913,16 +2986,19 @@ function UpdateCenter({
   notify: (text: string, kind?: "info" | "error") => void;
   extensions: ExtensionManifest[];
   catalog: ExtensionCatalogEntry[];
+  sources: ModuleRepositorySource[];
+  setCatalog: (items: ExtensionCatalogEntry[]) => void;
+  setSources: (items: ModuleRepositorySource[]) => void;
   disabled: string[];
   setDisabled: (ids: string[]) => void;
   refreshExtensions: () => void;
 }) {
   const windows = platform.includes("WINDOWS");
   const [updateBusy,setUpdateBusy]=useState<""|"check"|"download"|"install"|"rollback">("");
-  const updateOperation=async(operation:"check"|"download"|"install"|"rollback")=>{
+  const updateOperation=async(operation:"check"|"download"|"install"|"rollback",channel:"stable"|"development"|"stable-release"=prefs.updateChannel)=>{
     setUpdateBusy(operation);
     try{
-      const response=await fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,path:update?.path||"",channel:prefs.updateChannel})});
+      const response=await fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,path:update?.path||"",channel})});
       const result:UpdateInfo=await response.json();
       setUpdate(result);
       if(!response.ok||!result.ok)notify(result.error||"GitHub update service could not be reached","error");
@@ -2967,15 +3043,17 @@ function UpdateCenter({
           number="02"
           eyebrow="LCARS RELEASE CHANNEL"
           title="LCARS INTERFACE"
-          status={updateBusy?updateBusy.toUpperCase()+"…":update?.downloaded?"VERIFIED / READY":update?.available?`V${update.version} AVAILABLE`:`V26.1 DEV · ${prefs.updateChannel.toUpperCase()} CHANNEL`}
+          status={updateBusy?updateBusy.toUpperCase()+"…":update?.downloaded?"VERIFIED / READY":update?.available?`V${update.version} AVAILABLE`:`V${update?.current||LCARS_VERSION} · ${prefs.updateChannel.toUpperCase()}`}
           description={update?.available?`A newer signed release is available from GitHub${update.asset?.name?`: ${update.asset.name}`:""}.`:"Background checks stay silent when offline. Manual checks report useful connection and verification details here."}
           primary={update?.downloaded?"INSTALL VERIFIED UPDATE":update?.available?"DOWNLOAD & VERIFY":"CHECK FOR LCARS UPDATE"}
           secondary={update?.rollback?.available?"RESTORE PREVIOUS RELEASE":"ROLLBACK STATUS"}
-          primaryAction={() => updateOperation(update?.downloaded?"install":update?.available?"download":"check")}
+          primaryAction={() => updateOperation(update?.downloaded?"install":update?.available?"download":"check",update?.stableTransition?"stable-release":prefs.updateChannel)}
           secondaryAction={() => updateOperation("rollback")}
+          tertiary={prefs.updateChannel==="development"?"CHECK FOR VERSION 26 STABLE":""}
+          tertiaryAction={prefs.updateChannel==="development"?()=>updateOperation("check","stable-release"):undefined}
           stamp={update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:update?.rollback?.available?`ROLLBACK ${update.rollback.sha256?.slice(0,12).toUpperCase()||"ARCHIVED"}… · PREVIOUS LINUX RELEASE READY`:"AUTOMATIC GITHUB RELEASE CHANNEL · BACKGROUND ERRORS SILENT"}
         />
-        <ExtensionHub installed={extensions} catalog={catalog} disabled={disabled} setDisabled={setDisabled} refresh={refreshExtensions} notify={notify} openFolder={()=>action("extension-folder")}/>
+        <ExtensionHub installed={extensions} catalog={catalog} sources={sources} setCatalog={setCatalog} setSources={setSources} disabled={disabled} setDisabled={setDisabled} refresh={refreshExtensions} notify={notify} openFolder={()=>action("extension-folder")}/>
         <UpdatePanel
           number="04"
           eyebrow="DESKTOP ADAPTERS"
@@ -3002,25 +3080,30 @@ function UpdateCenter({
   );
 }
 
-function ExtensionHub({installed,catalog,disabled,setDisabled,refresh,notify,openFolder}:{installed:ExtensionManifest[];catalog:ExtensionCatalogEntry[];disabled:string[];setDisabled:(ids:string[])=>void;refresh:()=>void;notify:(text:string,kind?:"info"|"error")=>void;openFolder:()=>void}){
-  const [query,setQuery]=useState(""),[busy,setBusy]=useState(""),[expanded,setExpanded]=useState(false),[details,setDetails]=useState("");
+function ExtensionHub({installed,catalog,sources,setCatalog,setSources,disabled,setDisabled,refresh,notify,openFolder}:{installed:ExtensionManifest[];catalog:ExtensionCatalogEntry[];sources:ModuleRepositorySource[];setCatalog:(items:ExtensionCatalogEntry[])=>void;setSources:(items:ModuleRepositorySource[])=>void;disabled:string[];setDisabled:(ids:string[])=>void;refresh:()=>void;notify:(text:string,kind?:"info"|"error")=>void;openFolder:()=>void}){
+  const [query,setQuery]=useState(""),[busy,setBusy]=useState(""),[expanded,setExpanded]=useState(false),[details,setDetails]=useState(""),[sourceUrl,setSourceUrl]=useState(""),[sourceBay,setSourceBay]=useState(false),[publisherOpen,setPublisherOpen]=useState(false),[publisherModule,setPublisherModule]=useState(installed[0]?.id||""),[publisherRepository,setPublisherRepository]=useState("YOUR-GITHUB-NAME/YOUR-REPOSITORY"),[publisherResult,setPublisherResult]=useState<{path?:string;sha256?:string;files?:string[]}|null>(null);
   const inventory=useMemo(()=>{const known=new Map<string,ExtensionCatalogEntry>();catalog.forEach((entry)=>known.set(entry.id,entry));installed.forEach((extension)=>{if(!known.has(extension.id))known.set(extension.id,{id:extension.id,name:extension.name,version:extension.version,description:extension.description,author:extension.author,capabilities:extension.capabilities,installed:true});});return Array.from(known.values()).filter((entry)=>`${entry.name} ${entry.description} ${entry.author} ${entry.capabilities.join(" ")}`.toLowerCase().includes(query.toLowerCase()));},[catalog,installed,query]);
   const repositoryEntries=catalog.filter((entry)=>Boolean((entry as ExtensionCatalogEntry&{repository?:boolean}).repository));
   const updateCount=repositoryEntries.filter((entry)=>Boolean((entry as ExtensionCatalogEntry&{updateAvailable?:boolean}).updateAvailable)).length;
-  const operate=async(entry:ExtensionCatalogEntry,operation:"install"|"update"|"remove")=>{setBusy(entry.id);try{const response=await fetch("http://127.0.0.1:8765/api/extension-install",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:entry.id,operation})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Module operation failed");notify(result.message||`${entry.name} ${operation} complete`);window.setTimeout(refresh,250);}catch(error){notify(error instanceof Error?error.message:"Module operation failed","error");}finally{setBusy("");}};
+  const operate=async(entry:ExtensionCatalogEntry,operation:"install"|"update"|"remove")=>{setBusy(entry.id);try{const response=await fetch("http://127.0.0.1:8765/api/extension-install",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:entry.id,operation,sourceId:entry.sourceId||""})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Module operation failed");notify(result.message||`${entry.name} ${operation} complete`);window.setTimeout(refresh,250);}catch(error){notify(error instanceof Error?error.message:"Module operation failed","error");}finally{setBusy("");}};
+  const reloadCatalog=async()=>{const response=await fetch("http://127.0.0.1:8765/api/extension-catalog"),result=await response.json();if(!response.ok)throw new Error(result.error||"Module repositories could not be refreshed");setCatalog(result.catalog||[]);setSources(result.sources||[]);};
+  const sourceOperation=async(operation:"add"|"enable"|"disable"|"remove"|"refresh",source?:ModuleRepositorySource)=>{const key=source?.id||"add";setBusy(key);try{const response=await fetch("http://127.0.0.1:8765/api/module-source",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,id:source?.id||"",url:sourceUrl})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Module source operation failed");if(operation==="add")setSourceUrl("");notify(result.message||"Module source updated");await reloadCatalog();}catch(error){notify(error instanceof Error?error.message:"Module source operation failed","error");}finally{setBusy("");}};
+  const preparePublisher=async()=>{setBusy("publisher");try{const response=await fetch("http://127.0.0.1:8765/api/module-publisher",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:publisherModule,repository:publisherRepository})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Publisher package could not be prepared");setPublisherResult(result);notify(result.message||"Module publisher package prepared");}catch(error){notify(error instanceof Error?error.message:"Module publisher failed","error");}finally{setBusy("");}};
   const isInstalled=(id:string)=>installed.some((extension)=>extension.id===id);
   return <section className={`extension-hub module-repository-panel ${expanded?"repository-open":"repository-closed"}`}>
     <button className="module-repository-toggle" onClick={()=>setExpanded(!expanded)} aria-expanded={expanded}>
       <i>03</i>
-      <span><small>DECLARATIVE MODULE API · TRUSTED MODULES BRANCH</small><b>MODULE REPOSITORY</b><p>Browse, install, update, disable, and remove validated declarative LCARS modules without leaving Updates.</p></span>
+      <span><small>DECLARATIVE MODULE API · OFFICIAL + COMMUNITY GITHUB SOURCES</small><b>MODULE REPOSITORY</b><p>Browse, install, update, disable, and remove validated declarative LCARS modules without leaving Updates.</p></span>
       <strong>{String(repositoryEntries.length).padStart(2,"0")}<small> AVAILABLE</small>{updateCount>0&&<em>{updateCount} UPDATE{updateCount===1?"":"S"}</em>}</strong>
       <u>{expanded?"CLOSE MODULES":"BROWSE MODULES"}</u>
     </button>
     {expanded&&<>
-      <nav><input aria-label="Search Module Repository" placeholder="SEARCH MODULE REPOSITORY…" value={query} onChange={(event)=>setQuery(event.target.value)}/><button onClick={refresh}>RESCAN LOCAL</button><button onClick={openFolder}>OPEN MODULE FOLDER</button><button onClick={()=>setQuery("")}>CLEAR SEARCH</button></nav>
-      <div className="module-repository-status"><b>TRUSTED SOURCE</b><span>HUHman416 / LCARS-Command-Interface / Modules</span><em>{String(installed.length).padStart(2,"0")} INSTALLED · {String(updateCount).padStart(2,"0")} UPDATE{updateCount===1?"":"S"}</em></div>
-      <div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id),remote=entry as ExtensionCatalogEntry&{repository?:boolean;updateAvailable?:boolean;installedVersion?:string;minimumLcarsVersion?:string;category?:string;sha256?:string;featured?:boolean};const showDetails=details===entry.id;return <article className={`${disabledNow?"disabled":""} ${remote.repository?"repository-module":"local-module"}`} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{remote.repository?(remote.featured?"FEATURED · TRUSTED REPOSITORY":"TRUSTED REPOSITORY MODULE"):entry.bundled?"BUNDLED MODULE":"LOCAL MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · REPOSITORY V{entry.version}{installedNow?` · INSTALLED V${manifest?.version||remote.installedVersion||entry.version}`:""} · {(manifest?.capabilities||entry.capabilities).join(" · ")||"NO PRIVILEGED CAPABILITIES"}</em>{showDetails&&<div className="module-detail-strip"><span><b>CATEGORY</b>{remote.category||"GENERAL"}</span><span><b>MINIMUM LCARS</b>{remote.minimumLcarsVersion||"COMPATIBLE"}</span><span><b>PACKAGE</b>{remote.sha256?`SHA-256 ${remote.sha256.slice(0,16).toUpperCase()}…`:"LOCAL MANIFEST"}</span></div>}</span><nav><button onClick={()=>setDetails(showDetails?"":entry.id)}>{showDetails?"LESS":"DETAILS"}</button>{installedNow?<><button onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</button>{remote.updateAvailable&&<button className="update" disabled={busy===entry.id} onClick={()=>operate(entry,"update")}>{busy===entry.id?"VERIFYING…":"UPDATE"}</button>}{!entry.bundled&&<button className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</button>}</>:remote.repository?<button className="install" disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"VERIFYING…":"INSTALL"}</button>:null}</nav></article>;})}{!inventory.length&&<p className="extension-empty">NO MATCHING MODULES</p>}</div>
-      <footer><b>DECLARATIVE SAFETY MODEL</b> · Repository manifests are downloaded only from the trusted Modules branch, checksum verified, validated by Extension API v2, and installed without executable plug-in code.</footer>
+      <nav><input aria-label="Search Module Repository" placeholder="SEARCH MODULE REPOSITORY…" value={query} onChange={(event)=>setQuery(event.target.value)}/><button onClick={refresh}>REFRESH CATALOG</button><button onClick={()=>setSourceBay(!sourceBay)}>SOURCES · {sources.length}</button><button onClick={()=>setPublisherOpen(!publisherOpen)}>MODULE PUBLISHER</button><button onClick={openFolder}>OPEN MODULE FOLDER</button><button onClick={()=>setQuery("")}>CLEAR SEARCH</button></nav>
+      <div className="module-repository-status"><b>VALIDATED SOURCES</b><span>{sources.filter((source)=>source.enabled).length} ENABLED · {sources.filter((source)=>!source.official).length} COMMUNITY</span><em>{String(installed.length).padStart(2,"0")} INSTALLED · {String(updateCount).padStart(2,"0")} UPDATE{updateCount===1?"":"S"}</em></div>
+      {sourceBay&&<section className="module-source-bay"><header><span><small>PUBLIC GITHUB ONLY · NO TOKENS</small><b>REPOSITORY SOURCES</b></span><strong>{sources.length}/25</strong></header><div className="module-source-add"><input aria-label="Public GitHub repository URL" placeholder="https://github.com/OWNER/REPOSITORY" value={sourceUrl} onChange={(event)=>setSourceUrl(event.target.value)}/><button disabled={!sourceUrl.trim()||busy==="add"} onClick={()=>sourceOperation("add")}>{busy==="add"?"VALIDATING…":"ADD PUBLIC REPOSITORY"}</button></div>{sources.map((source)=><article className={`source-${source.status||"ready"}`} key={source.id}><i>{source.official?"★":"◇"}</i><span><b>{source.name}</b><small>{source.official?"OFFICIAL LCARS SOURCE":"COMMUNITY SOURCE"} · {source.enabled?`${source.count||0} VALIDATED MODULES`:"DISABLED"}</small>{source.error&&<em>{source.error}</em>}</span><nav><button disabled={busy===source.id} onClick={()=>sourceOperation("refresh",source)}>REFRESH</button>{!source.official&&<button onClick={()=>sourceOperation(source.enabled?"disable":"enable",source)}>{source.enabled?"DISABLE":"ENABLE"}</button>}{!source.official&&<button className="danger" onClick={()=>sourceOperation("remove",source)}>REMOVE</button>}</nav></article>)}</section>}
+      {publisherOpen&&<section className="module-publisher"><header><span><small>VALIDATE · PACKAGE · PUBLISH</small><b>MODULE PUBLISHER</b></span><a href="https://github.com/new" target="_blank" rel="noreferrer">CREATE GITHUB REPOSITORY ↗</a></header><p>Select an installed declarative module. LCARS validates it and generates a repository-ready catalog, checksum manifest, module folder, and README in the local publisher workspace.</p><div><label>MODULE<select value={publisherModule} onChange={(event)=>setPublisherModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><label>GITHUB OWNER / REPOSITORY<input value={publisherRepository} onChange={(event)=>setPublisherRepository(event.target.value)} placeholder="OWNER/REPOSITORY"/></label><button disabled={!publisherModule||busy==="publisher"} onClick={preparePublisher}>{busy==="publisher"?"VALIDATING…":"GENERATE REPOSITORY PACKAGE"}</button></div>{publisherResult&&<aside><b>PACKAGE READY</b><span>{publisherResult.path}</span><small>SHA-256 {publisherResult.sha256?.toUpperCase()}</small><em>{publisherResult.files?.join(" · ")}</em></aside>}</section>}
+      <div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id),remote=entry;const showDetails=details===entry.id;return <article className={`${disabledNow?"disabled":""} ${remote.repository?"repository-module":"local-module"}`} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{remote.repository?`${remote.official?"OFFICIAL":"COMMUNITY"} · ${remote.sourceName||"MODULE REPOSITORY"}`:entry.bundled?"BUNDLED MODULE":"LOCAL MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · REPOSITORY V{entry.version}{installedNow?` · INSTALLED V${manifest?.version||remote.installedVersion||entry.version}`:""} · {(manifest?.capabilities||entry.capabilities).join(" · ")||"NO PRIVILEGED CAPABILITIES"}</em>{showDetails&&<div className="module-detail-strip"><span><b>CATEGORY</b>{remote.category||"GENERAL"}</span><span><b>MINIMUM LCARS</b>{remote.minimumLcarsVersion||"COMPATIBLE"}</span><span><b>PACKAGE</b>{remote.sha256?`SHA-256 ${remote.sha256.slice(0,16).toUpperCase()}…`:"LOCAL MANIFEST"}</span><span><b>PERMISSIONS</b>{(manifest?.capabilities||entry.capabilities).join(", ")||"NONE"}</span><span><b>LAST UPDATE</b>{remote.lastUpdated||"NOT DECLARED"}</span><span><b>SOURCE</b>{remote.official?"LCARS OFFICIAL":remote.sourceName||"LOCAL"}</span></div>}</span><nav><button onClick={()=>setDetails(showDetails?"":entry.id)}>{showDetails?"LESS":"DETAILS"}</button>{installedNow?<><button onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</button>{remote.updateAvailable&&<button className="update" disabled={busy===entry.id} onClick={()=>operate(entry,"update")}>{busy===entry.id?"VERIFYING…":"UPDATE"}</button>}{!entry.bundled&&<button className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</button>}</>:remote.repository?<button className="install" disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"VERIFYING…":"INSTALL"}</button>:null}</nav></article>;})}{!inventory.length&&<p className="extension-empty">NO MATCHING MODULES</p>}</div>
+      <footer><b>DECLARATIVE SAFETY MODEL</b> · LCARS accepts public GitHub catalogs only, confines each download to its declared repository, verifies SHA-256, validates Extension API v2, and never executes repository code.</footer>
     </>}
   </section>;
 }
@@ -3048,6 +3131,8 @@ function UpdatePanel({
   secondary,
   primaryAction,
   secondaryAction,
+  tertiary,
+  tertiaryAction,
   stamp,
 }: {
   number: string;
@@ -3059,6 +3144,8 @@ function UpdatePanel({
   secondary: string;
   primaryAction: () => void;
   secondaryAction: () => void;
+  tertiary?: string;
+  tertiaryAction?: () => void;
   stamp?: string;
 }) {
   return (
@@ -3081,6 +3168,7 @@ function UpdatePanel({
       <div className="update-actions">
         <button onClick={primaryAction}>{primary}</button>
         <button onClick={secondaryAction}>{secondary}</button>
+        {tertiary&&tertiaryAction&&<button onClick={tertiaryAction}>{tertiary}</button>}
       </div>
     </article>
   );
@@ -3377,8 +3465,9 @@ function CompatibilityCenter({
   );
 }
 
-function WorkspaceWindowPanel({active,peeks,arrange,reset,closePeeks}:{active:number;peeks:number;arrange:()=>void;reset:()=>void;closePeeks:()=>void}){
-  return <section className="workspace-window-panel"><header><span><small>VERSION 26 WINDOW MATRIX</small><b>POPUP WORKSPACE</b></span><strong>{String(active).padStart(2,"0")}<small>ACTIVE</small></strong></header><p>Drag popup headers, resize from every edge, or use the window controls to minimize and snap. Positions, dimensions, and stacking restore with the selected Workstation.</p><div><button onClick={arrange}><b>AUTO ARRANGE</b><small>TILE OPEN WINDOWS</small></button><button onClick={reset}><b>RESET LAYOUT</b><small>RESTORE SAFE DEFAULTS</small></button><button disabled={!peeks} onClick={closePeeks}><b>CLOSE PAGE PEEKS</b><small>{peeks} OPEN PREVIEW{peeks===1?"":"S"}</small></button></div></section>;
+function WorkspaceWindowPanel({windows,peeks,arrange,reset,closePeeks,command}:{windows:string[];peeks:number;arrange:()=>void;reset:()=>void;closePeeks:()=>void;command:(popupKey:string,command:"focus"|"toggle-minimize")=>void}){
+  const layouts=typeof window==="undefined"?{}:readPopupLayouts(),label=(key:string)=>key.startsWith("speed-dial-page-peek:")?key.split(":").at(-1)?.replace(/^peek-/,"").replaceAll("-"," ")||"PAGE PEEK":key.replaceAll("-"," ");
+  return <section className="workspace-window-panel"><header><span><small>VERSION 26.2 WINDOW MATRIX</small><b>POPUP WORKSPACE</b></span><strong>{String(windows.length).padStart(2,"0")}<small>ACTIVE</small></strong></header><p>Drag popup headers, resize from every edge, or use the window controls to minimize and snap. Live placement previews show each snap zone. Positions, dimensions, and stacking restore with the selected Workstation.</p><div><button onClick={arrange}><b>AUTO ARRANGE</b><small>TILE OPEN WINDOWS</small></button><button onClick={reset}><b>RESET LAYOUT</b><small>RESTORE SAFE DEFAULTS</small></button><button disabled={!peeks} onClick={closePeeks}><b>CLOSE PAGE PEEKS</b><small>{peeks} OPEN PREVIEW{peeks===1?"":"S"}</small></button></div>{windows.length>0&&<section className="workspace-window-manager"><header><b>LIVE WINDOW MANAGER</b><small>FOCUS OR MINIMIZE WITHOUT HUNTING THROUGH THE STACK</small></header>{windows.map((key,index)=><article key={key}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label(key).toUpperCase()}</b><small>{layouts[key]?.minimized?"MINIMIZED":layouts[key]?.snap&&layouts[key].snap!=="none"?`SNAPPED ${layouts[key].snap.toUpperCase()}`:"FLOATING"}</small></span><button onClick={()=>command(key,"focus")}>FOCUS</button><button onClick={()=>command(key,"toggle-minimize")}>{layouts[key]?.minimized?"RESTORE":"MINIMIZE"}</button></article>)}</section>}</section>;
 }
 
 function MobileCommandBar({section,sheet,navigate,applications,commands,communications,more,routines,tray,displays,power,close}:{section:string;sheet:"commands"|"more"|null;navigate:(page:string)=>void;applications:()=>void;commands:()=>void;communications:()=>void;more:()=>void;routines:()=>void;tray:()=>void;displays:()=>void;power:()=>void;close:()=>void}){
@@ -3392,6 +3481,9 @@ function DesktopExperience({
   createProfile,
   applyProfile,
   deleteProfile,
+  renameProfile,
+  duplicateProfile,
+  exportProfile,
   defaultWorkstation,
   setDefaultWorkstation,
   access,
@@ -3413,9 +3505,12 @@ function DesktopExperience({
 }: {
   profiles: WorkspaceProfile[];
   activeProfile: string;
-  createProfile: () => void;
+  createProfile: (preset?: WorkspaceProfile["layoutPreset"]) => void;
   applyProfile: (p: WorkspaceProfile) => void;
   deleteProfile: (id: string) => void;
+  renameProfile: (id: string) => void;
+  duplicateProfile: (id: string) => void;
+  exportProfile: (profile: WorkspaceProfile) => void;
   defaultWorkstation: string;
   setDefaultWorkstation: (id: string) => void;
   access: AccessibilityPrefs;
@@ -3435,6 +3530,7 @@ function DesktopExperience({
   command: () => void;
   action: (a: string) => void;
 }) {
+  const [workstationPreview,setWorkstationPreview]=useState<WorkspaceProfile|null>(null);
   const set = <K extends keyof AccessibilityPrefs>(
     key: K,
     value: AccessibilityPrefs[K],
@@ -3477,12 +3573,15 @@ function DesktopExperience({
                 >
                   ×
                 </button>
+                <nav className="workstation-actions"><button onClick={()=>setWorkstationPreview(p)}>PREVIEW</button><button onClick={()=>renameProfile(p.id)}>RENAME</button><button onClick={()=>duplicateProfile(p.id)}>DUPLICATE</button><button onClick={()=>exportProfile(p)}>EXPORT</button></nav>
               </div>
             ))}
           </div>
-          <button className="lcars-action" onClick={createProfile}>
+          {workstationPreview&&<aside className="workstation-preview"><header><span><small>{(workstationPreview.layoutPreset||"desktop").toUpperCase()} PRESET</small><b>{workstationPreview.name}</b></span><button onClick={()=>setWorkstationPreview(null)}>×</button></header><div><span><b>{workstationPreview.widgets.length}</b> MODULES</span><span><b>{workstationPreview.pagePeeks?.length||0}</b> PAGE PEEKS</span><span><b>{workstationPreview.speedDial?.length||0}</b> SPEED DIALS</span><span><b>{Object.keys(workstationPreview.popupLayout||{}).length}</b> WINDOWS</span></div><p>{workstationPreview.applications?.length||0} applications · {workstationPreview.theme.toUpperCase()} theme · audio, devices, DND, tray, popup state, and page state preserved.</p><button onClick={()=>{applyProfile(workstationPreview);setWorkstationPreview(null);}}>RESTORE THIS WORKSTATION</button></aside>}
+          <button className="lcars-action" onClick={()=>createProfile("auto")}>
             SAVE CURRENT WORKSPACE
           </button>
+          <div className="workstation-preset-grid"><button onClick={()=>createProfile("portrait")}>PORTRAIT PADD</button><button onClick={()=>createProfile("landscape")}>LANDSCAPE PADD</button><button onClick={()=>createProfile("desktop")}>DESKTOP</button><button onClick={()=>createProfile("multi-monitor")}>MULTI-MONITOR</button></div>
         </article>
         <article>
           <h4>ACCESSIBILITY</h4>
@@ -3975,18 +4074,19 @@ function ControlMappingEditor({mappings,routines,change}:{mappings:ControlMappin
   return <section className="control-mapping-editor v25-settings-panel"><header><div><small>KEYBOARD / CONTROL SURFACE ADAPTER</small><h4>CONTROL MAPPINGS</h4><p>Assign keyboard combinations to pages, routines, and command centers. Select a key field, then press the complete combination you want to use.</p></div><b>{mappings.length}/24</b></header><div>{mappings.map((mapping,index)=><article key={mapping.id}><label className="mapping-enabled"><input type="checkbox" checked={mapping.enabled} onChange={(event)=>update(mapping.id,{enabled:event.target.checked})}/><span>{String(index+1).padStart(2,"0")}</span></label><input className="mapping-shortcut" readOnly value={mapping.shortcut} aria-label={`Keyboard mapping ${index+1}`} onKeyDown={(event)=>{event.preventDefault();event.stopPropagation();const shortcut=eventShortcut(event.nativeEvent);if(shortcut&&!shortcut.endsWith("CTRL")&&!shortcut.endsWith("ALT")&&!shortcut.endsWith("SHIFT")&&!shortcut.endsWith("META"))update(mapping.id,{shortcut});}}/><select value={mapping.target} onChange={(event)=>{const selected=targets.find((item)=>item.value===event.target.value);update(mapping.id,{target:event.target.value,label:selected?.label||mapping.label});}}>{!targets.some((item)=>item.value===mapping.target)&&<option value={mapping.target}>UNAVAILABLE · {mapping.label}</option>}{targets.map((target)=><option value={target.value} key={target.value}>{target.label}</option>)}</select><button onClick={()=>change(mappings.filter((item)=>item.id!==mapping.id))}>REMOVE</button></article>)}</div><button disabled={mappings.length>=24} onClick={add}>+ ADD CONTROL MAPPING</button></section>;
 }
 
-function RoutineCenter({routines,apps,profiles,devices,players,running,save,request,close}:{routines:Routine[];apps:App[];profiles:WorkspaceProfile[];devices:AudioDevice[];players:Player[];running:string;save:(items:Routine[])=>void;request:(routine:Routine)=>void;close:()=>void}){
-  const [selected,setSelected]=useState(routines[0]?.id||"");
+function RoutineCenter({routines,apps,profiles,devices,players,running,history,save,request,testStep,close}:{routines:Routine[];apps:App[];profiles:WorkspaceProfile[];devices:AudioDevice[];players:Player[];running:string;history:ActivityEntry[];save:(items:Routine[])=>void;request:(routine:Routine)=>void;testStep:(routine:Routine,step:RoutineStep)=>void;close:()=>void}){
+  const [selected,setSelected]=useState(routines[0]?.id||""),[showHistory,setShowHistory]=useState(false);
   const routine=routines.find((item)=>item.id===selected)||null;
   useEffect(()=>{if(selected&&!routines.some((item)=>item.id===selected))setSelected(routines[0]?.id||"");},[routines,selected]);
   const update=(patch:Partial<Routine>)=>{if(!routine)return;save(routines.map((item)=>item.id===routine.id?{...item,...patch}:item));};
-  const add=()=>{const item:Routine={id:createV25Id("routine"),name:`ROUTINE ${routines.length+1}`,description:"Operator-defined LCARS command sequence",color:"orange",enabled:true,trigger:{type:"manual"},steps:[{id:createV25Id("step"),kind:"page",target:"overview"}]};save([...routines,item]);setSelected(item.id);};
+  const add=()=>{const item:Routine={id:createV25Id("routine"),name:`ROUTINE ${routines.length+1}`,description:"Operator-defined LCARS command sequence",folder:"GENERAL",color:"orange",enabled:true,trigger:{type:"manual"},steps:[{id:createV25Id("step"),kind:"page",target:"overview",delayMs:0,retries:0,onFailure:"stop"}]};save([...routines,item]);setSelected(item.id);setShowHistory(false);};
+  const duplicate=()=>{if(!routine)return;const copy:Routine={...routine,id:createV25Id("routine"),name:`${routine.name} COPY`.slice(0,40),steps:routine.steps.map((step)=>({...step,id:createV25Id("step")}))};save([...routines,copy]);setSelected(copy.id);};
   const stepChoices=(kind:RoutineStepKind)=>kind==="page"?nav.map((page)=>({value:page[0],label:page[2]})):kind==="app"?apps.map((app)=>({value:app.id,label:app.name})):kind==="workstation"?profiles.map((profile)=>({value:profile.id,label:profile.name})):kind==="theme"?themes.map((theme)=>({value:theme[0],label:theme[1]})):kind==="dnd"?[{value:"true",label:"ENABLE"},{value:"false",label:"DISABLE"}]:kind==="audio-device"?devices.map((device)=>({value:device.id,label:`${device.kind.toUpperCase()} · ${device.name}`})):kind==="media"?[...players.flatMap((player)=>["play-pause","previous","next","stop"].map((command)=>({value:`${player.id}|${command}`,label:`${player.name} · ${command.toUpperCase()}`}))),{value:"play-pause",label:"ACTIVE PLAYER · PLAY/PAUSE"}]:kind==="system"?[{value:"sleep",label:"SLEEP COMPUTER"},{value:"reboot",label:"RESTART COMPUTER"},{value:"poweroff",label:"SHUT DOWN COMPUTER"}]:kind==="command"?[{value:"refresh-applications",label:"REFRESH APPLICATION INVENTORY"},{value:"integration-recheck",label:"RECHECK LOCAL INTEGRATIONS"},{value:"open-system-monitor",label:"OPEN SYSTEM MONITOR"},{value:"open-software-center",label:"OPEN SOFTWARE CENTER"}]:[];
-  const addStep=()=>{if(!routine||routine.steps.length>=24)return;update({steps:[...routine.steps,{id:createV25Id("step"),kind:"page",target:"overview"}]});};
+  const addStep=()=>{if(!routine||routine.steps.length>=24)return;update({steps:[...routine.steps,{id:createV25Id("step"),kind:"page",target:"overview",delayMs:0,retries:0,onFailure:"stop"}]});};
   const updateStep=(id:string,patch:Partial<RoutineStep>)=>routine&&update({steps:routine.steps.map((step)=>step.id===id?{...step,...patch}:step)});
   const moveStep=(index:number,direction:number)=>{if(!routine)return;const target=index+direction;if(target<0||target>=routine.steps.length)return;const steps=[...routine.steps];[steps[index],steps[target]]=[steps[target],steps[index]];update({steps});};
   const triggerNeedsValue=routine?.trigger.type!=="manual"&&routine?.trigger.type!=="startup";
-  return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><section className="routine-center" role="dialog" aria-modal="true"><header><div><small>VERSION 25 OPERATIONS AUTOMATION</small><h2>ROUTINE COMMAND CENTER</h2><p>Compose multi-step local workflows. Every run opens a readable preview, and power or approved-command steps require explicit operator confirmation.</p></div><button onClick={close}>CLOSE ×</button></header><div className="routine-center-layout"><aside><button onClick={add}>+ NEW ROUTINE</button>{routines.map((item,index)=><button className={item.id===selected?"active":""} key={item.id} onClick={()=>setSelected(item.id)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</aside>{routine?<main><div className="routine-fields"><label>ROUTINE NAME<input maxLength={40} value={routine.name} onChange={(event)=>update({name:event.target.value})}/></label><label>DESCRIPTION<input maxLength={160} value={routine.description} onChange={(event)=>update({description:event.target.value})}/></label><label>COLOR<select value={routine.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></select></label><label>TRIGGER<select value={routine.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option></select></label>{triggerNeedsValue&&<label>TRIGGER VALUE<input type={routine.trigger.type==="time"?"time":"text"} value={routine.trigger.value||""} placeholder={routine.trigger.type==="app"?"APPLICATION NAME":"DEVICE NAME"} onChange={(event)=>update({trigger:{...routine.trigger,value:event.target.value}})}/></label>}<Toggle label="Routine enabled" checked={routine.enabled} change={(enabled)=>update({enabled})}/></div><section className="routine-steps"><header><div><small>EXECUTION ORDER</small><h3>ROUTINE STEPS</h3></div><b>{routine.steps.length}/24</b></header>{routine.steps.map((step,index)=>{const choices=stepChoices(step.kind),selectable=choices.length>0;return <article key={step.id}><i>{String(index+1).padStart(2,"0")}</i><select value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=stepChoices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></select>{selectable?<select value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!choices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{choices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</select>:<label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label>}<nav><button disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</button><button disabled={index===routine.steps.length-1} onClick={()=>moveStep(index,1)}>↓</button><button disabled={routine.steps.length<=1} onClick={()=>update({steps:routine.steps.filter((item)=>item.id!==step.id)})}>×</button></nav></article>;})}<button disabled={routine.steps.length>=24} onClick={addStep}>+ ADD STEP</button></section><footer><button className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==routine.id));setSelected("");}}>DELETE ROUTINE</button><button disabled={!routine.steps.length||running===routine.id} onClick={()=>request(routine)}>{running===routine.id?"ROUTINE RUNNING…":"PREVIEW ROUTINE"}</button></footer></main>:<div className="adaptive-empty"><b>CREATE AN OPERATIONS ROUTINE</b><small>Start with a page change, then add applications, audio controls, workstation restore, or guarded system actions.</small></div>}</div></section></div>;
+  return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><section className="routine-center" role="dialog" aria-modal="true"><header><div><small>VERSION 26.2 OPERATIONS AUTOMATION</small><h2>ROUTINE COMMAND CENTER</h2><p>Compose conditional local workflows with delays, retries, failure paths, and operator prompts. Protected actions always retain an explicit confirmation gate.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header><div className="routine-center-layout"><aside><button onClick={add}>+ NEW ROUTINE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</aside>{showHistory?<main className="routine-run-history"><header><small>LOCAL EXECUTION JOURNAL</small><h3>RUN HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO ROUTINE EXECUTIONS RECORDED</p>}</main>:routine?<main><div className="routine-fields"><label>ROUTINE NAME<input maxLength={40} value={routine.name} onChange={(event)=>update({name:event.target.value})}/></label><label>FOLDER<input maxLength={40} value={routine.folder||"GENERAL"} onChange={(event)=>update({folder:event.target.value})}/></label><label>DESCRIPTION<input maxLength={160} value={routine.description} onChange={(event)=>update({description:event.target.value})}/></label><label>COLOR<select value={routine.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></select></label><label>TRIGGER<select value={routine.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option></select></label>{triggerNeedsValue&&<label>TRIGGER VALUE<input type={routine.trigger.type==="time"?"time":"text"} value={routine.trigger.value||""} placeholder={routine.trigger.type==="app"?"APPLICATION NAME":"DEVICE NAME"} onChange={(event)=>update({trigger:{...routine.trigger,value:event.target.value}})}/></label>}<Toggle label="Routine enabled" checked={routine.enabled} change={(enabled)=>update({enabled})}/></div><section className="routine-steps"><header><div><small>EXECUTION ORDER · CONDITIONAL BRANCHES</small><h3>ROUTINE STEPS</h3></div><b>{routine.steps.length}/24</b></header>{routine.steps.map((step,index)=>{const choices=stepChoices(step.kind),selectable=choices.length>0;return <article className="routine-step-v26" key={step.id}><i>{String(index+1).padStart(2,"0")}</i><select value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=stepChoices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined,prompt:kind==="prompt"?"Continue this routine?":undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="prompt">OPERATOR PROMPT</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></select>{step.kind==="prompt"?<input aria-label="Operator prompt" value={step.prompt||""} placeholder="ASK THE OPERATOR…" onChange={(event)=>updateStep(step.id,{prompt:event.target.value,target:event.target.value})}/>:selectable?<select value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!choices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{choices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</select>:<label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label>}<nav><button title="Test this step" disabled={Boolean(running)} onClick={()=>testStep(routine,step)}>TEST</button><button disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</button><button disabled={index===routine.steps.length-1} onClick={()=>moveStep(index,1)}>↓</button><button disabled={routine.steps.length<=1} onClick={()=>update({steps:routine.steps.filter((item)=>item.id!==step.id)})}>×</button></nav><details><summary>BRANCH / TIMING / FAILURE</summary><div><label>RUN WHEN<select value={step.condition?.source||""} onChange={(event)=>updateStep(step.id,{condition:event.target.value?{source:event.target.value as NonNullable<RoutineStep["condition"]>["source"],operator:"available"}:undefined})}><option value="">ALWAYS</option><option value="bridge">LOCAL CORE</option><option value="media">MEDIA</option><option value="application">APPLICATION</option><option value="device">AUDIO DEVICE</option><option value="dnd">DO NOT DISTURB</option></select></label>{step.condition&&<><label>CONDITION<select value={step.condition.operator} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,operator:event.target.value as NonNullable<RoutineStep["condition"]>["operator"]}})}><option value="available">AVAILABLE</option><option value="unavailable">UNAVAILABLE</option><option value="equals">EQUALS</option><option value="not-equals">DOES NOT EQUAL</option></select></label><label>MATCH VALUE<input value={step.condition.value||""} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,value:event.target.value}})}/></label></>}<label>DELAY MS<input type="number" min="0" max="30000" value={step.delayMs||0} onChange={(event)=>updateStep(step.id,{delayMs:+event.target.value})}/></label><label>RETRIES<input type="number" min="0" max="5" value={step.retries||0} onChange={(event)=>updateStep(step.id,{retries:+event.target.value})}/></label><label>IF FAILED<select value={step.onFailure||"stop"} onChange={(event)=>updateStep(step.id,{onFailure:event.target.value as "stop"|"continue"})}><option value="stop">STOP ROUTINE</option><option value="continue">CONTINUE TO NEXT STEP</option></select></label></div></details></article>;})}<button disabled={routine.steps.length>=24} onClick={addStep}>+ ADD STEP</button></section><footer><button className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==routine.id));setSelected("");}}>DELETE ROUTINE</button><button onClick={duplicate}>DUPLICATE</button><button disabled={!routine.steps.length||running===routine.id} onClick={()=>request(routine)}>{running===routine.id?"ROUTINE RUNNING…":"PREVIEW ROUTINE"}</button></footer></main>:<div className="adaptive-empty"><b>CREATE AN OPERATIONS ROUTINE</b><small>Start with a page change, then add conditions, prompts, applications, audio controls, workstation restore, or guarded system actions.</small></div>}</div></section></div>;
 }
 
 function RoutinePreview({routine,describe,running,cancel,run}:{routine:Routine;describe:(step:RoutineStep)=>string;running:boolean;cancel:()=>void;run:()=>void}){
@@ -4013,11 +4113,11 @@ function SpeedDialMediaPeek({players,streams,volume,muted,control,setMasterVolum
   </div>;
 }
 
-function SpeedDialPagePeek({popupKey,page,pinned,customPages,apps,players,streams,network,meters,update,notices,bridge,volume,muted,doNotDisturb,mediaControl,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute,launch,togglePinned,close,openFull}:{popupKey:string;page:string;pinned:boolean;customPages:CustomPage[];apps:App[];players:Player[];streams:Stream[];network:NetworkInfo;meters:(string|number)[][];update:UpdateInfo|null;notices:Notice[];bridge:boolean;volume:number;muted:boolean;doNotDisturb:boolean;mediaControl:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void;launch:(app:App)=>void;togglePinned:()=>void;close:()=>void;openFull:(page:string)=>void}){
+function SpeedDialPagePeek({popupKey,page,pinned,detached=false,customPages,apps,players,streams,network,meters,update,notices,bridge,volume,muted,doNotDisturb,mediaControl,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute,launch,togglePinned,detach,close,openFull}:{popupKey:string;page:string;pinned:boolean;detached?:boolean;customPages:CustomPage[];apps:App[];players:Player[];streams:Stream[];network:NetworkInfo;meters:(string|number)[][];update:UpdateInfo|null;notices:Notice[];bridge:boolean;volume:number;muted:boolean;doNotDisturb:boolean;mediaControl:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void;launch:(app:App)=>void;togglePinned:()=>void;detach?:()=>void;close:()=>void;openFull:(page:string)=>void}){
   const custom=page.startsWith("custom:")?customPages.find((item)=>item.id===page.slice(7)):undefined;
   const title=custom?.name||nav.find((item)=>item[0]===page)?.[2]||page.replace(/^custom:/,"").toUpperCase();
   const content=page==="overview"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="system"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="media"?<SpeedDialMediaPeek players={players} streams={streams} volume={volume} muted={muted} control={mediaControl} setMasterVolume={setMasterVolume} commitMasterVolume={commitMasterVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={setStreamVolume} setStreamMute={setStreamMute}/>:page==="network"?<div className="peek-network">{network.interfaces.slice(0,4).map((item)=><article key={item.id}><i className={item.state==="connected"?"ready":""}>●</i><span><b>{item.name}</b><small>{item.address||item.state.toUpperCase()}</small></span><em>{item.speed||"LOCAL"}</em></article>)}{!network.interfaces.length&&<p>{bridge?"NO ACTIVE NETWORK INTERFACES":"LOCAL CORE LINK PENDING"}</p>}</div>:page==="updates"?<div className="peek-update"><strong>{update?.available?`V${update.version} AVAILABLE`:"RELEASE CHANNEL READY"}</strong><p>{update?.available?"A verified release can be downloaded from the full Updates page.":"Background checks remain silent when offline."}</p><small>{update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"STABLE / DEVELOPMENT CHANNEL AWARE"}</small></div>:page==="terminal"?<div className="peek-terminal"><pre>LCARS LOCAL COMMAND LINK{`\n`}{bridge?"PTY CORE READY":"LOCAL CORE STANDBY"}{`\n\n`}terminal@lcars:~$ <i>█</i></pre><small>OPEN THE FULL TERMINAL TO TYPE COMMANDS</small></div>:page==="files"?<div className="peek-files"><i><FileGlyph kind="folder"/></i><span><b>LOCAL FILE SYSTEM</b><small>HOME · DOCUMENTS · DOWNLOADS</small><p>Use the full File Browser for previews, transfers, and document editing.</p></span></div>:page==="settings"?<div className="peek-settings"><article><b>LOCAL CORE</b><span>{bridge?"CONNECTED":"STANDBY"}</span></article><article><b>DO NOT DISTURB</b><span>{doNotDisturb?"ACTIVE":"OFF"}</span></article><article><b>NOTICES</b><span>{notices.length}</span></article><p>Open the full page to change themes, workstations, routines, accessibility, and shell behavior.</p></div>:custom?<div className="peek-custom"><i>{custom.kind.toUpperCase()}</i><span><b>{custom.name}</b><small>{custom.target}</small>{custom.kind==="app"&&apps.find((app)=>app.id===custom.target)&&<button onClick={()=>launch(apps.find((app)=>app.id===custom.target)!)}>OPEN APPLICATION ↗</button>}</span></div>:<p>PAGE PREVIEW IS UNAVAILABLE</p>;
-  return <ResizablePopup as="aside" popupKey={popupKey} className={`speed-dial-page-peek ${pinned?"pinned":"floating"}`} floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}><header><div><small>{pinned?"PINNED PAGE PEEK · ALWAYS ABOVE LCARS":"SPEED DIAL PAGE PEEK"}</small><h3>{title}</h3></div><nav><button className={pinned?"active":""} onClick={togglePinned}>{pinned?"RELEASE":"PIN"}</button><button aria-label={`Close ${title} Page Peek`} onClick={close}>×</button></nav></header><main>{content}</main><footer><span>{pinned?"PIN LOCK ACTIVE":"FLOATING PREVIEW"}</span><button onClick={()=>openFull(page)}>OPEN FULL PAGE ›</button></footer></ResizablePopup>;
+  return <ResizablePopup as="aside" popupKey={popupKey} className={`speed-dial-page-peek ${detached?"detached":pinned?"pinned":"floating"}`} floating={!detached} minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}><header><div><small>{detached?"NATIVE DETACHED PAGE PEEK":pinned?"PINNED PAGE PEEK · ALWAYS ABOVE LCARS":"SPEED DIAL PAGE PEEK"}</small><h3>{title}</h3></div><nav>{!detached&&<button className={pinned?"active":""} onClick={togglePinned}>{pinned?"RELEASE":"PIN"}</button>}{!detached&&detach&&<button onClick={detach}>DETACH ↗</button>}<button aria-label={`Close ${title} Page Peek`} onClick={close}>×</button></nav></header><main>{content}</main><footer><span>{detached?"NATIVE WINDOW":pinned?"PIN LOCK ACTIVE":"FLOATING PREVIEW"}</span><button onClick={()=>openFull(page)}>OPEN FULL PAGE ›</button></footer></ResizablePopup>;
 }
 
 function CustomPageManager({pages,apps,extensions,change}:{pages:CustomPage[];apps:App[];extensions:ExtensionManifest[];change:(pages:CustomPage[])=>void}) {
@@ -4792,6 +4892,8 @@ function NotificationCenter({
   historyOpen,
   close,
   dismiss,
+  updateState,
+  action,
   clear,
   clearActivity,
   doNotDisturb,
@@ -4802,6 +4904,8 @@ function NotificationCenter({
   historyOpen: boolean;
   close: () => void;
   dismiss: (id: number) => void;
+  updateState: (id:number,patch:Partial<Notice>) => void;
+  action: (notice:Notice) => void;
   clear: () => void;
   clearActivity: () => void;
   doNotDisturb: boolean;
@@ -4809,10 +4913,12 @@ function NotificationCenter({
 }) {
   const [query, setQuery] = useState(""),
     [tab,setTab]=useState<"notices"|"activity">("notices"),
+    [priority,setPriority]=useState("all"),
+    [source,setSource]=useState("all"),
+    [showArchived,setShowArchived]=useState(false),
     live = notices.filter((n) => n.id > 0).slice(0, 3),
-    visible = notices.filter((n) =>
-      `${n.text} ${n.source||""} ${n.priority||""}`.toLowerCase().includes(query.toLowerCase()),
-    ),
+    sources=Array.from(new Set(notices.map((notice)=>notice.source||"LCARS CORE"))).sort(),
+    visible = notices.filter((n) => `${n.text} ${n.source||""} ${n.priority||""}`.toLowerCase().includes(query.toLowerCase())&&(priority==="all"||(n.priority||"routine")===priority)&&(source==="all"||(n.source||"LCARS CORE")===source)&&(showArchived||!n.archived)),
     visibleActivity=activity.filter((entry)=>`${entry.title} ${entry.detail} ${entry.source} ${entry.status}`.toLowerCase().includes(query.toLowerCase()));
   return (
     <>
@@ -4822,7 +4928,7 @@ function NotificationCenter({
             <i>●</i>
             <span>
               <b>{n.text}</b>
-              <small>{n.source||"LCARS CORE"} · {n.priority?.toUpperCase()||"ROUTINE"} · {n.time}</small>
+              <small>{n.source||"LCARS CORE"} · {n.priority?.toUpperCase()||"ROUTINE"} · {n.time}{(n.repeats||1)>1?` · ×${n.repeats}`:""}</small>
             </span>
             <button
               title="Close notification"
@@ -4838,13 +4944,13 @@ function NotificationCenter({
         <ResizablePopup as="aside" popupKey="communications-center" className="notice-history" floating minWidth={380} minHeight={360} ariaModal={false} ariaLabel="Communications Center">
           <header>
             <div>
-              <small>VERSION 26.1 COMMUNICATIONS MATRIX</small>
-              <h3>COMMUNICATIONS CENTER</h3>
+              <small>VERSION 26.2 PRIORITY & ACTION MATRIX</small>
+              <h3>COMMUNICATIONS ACTION CENTER</h3>
             </div>
             <button onClick={close}>CLOSE ×</button>
           </header>
           <nav className="communications-tabs">
-            <button className={tab==="notices"?"active":""} onClick={()=>setTab("notices")}>NOTICES <b>{notices.length}</b></button>
+            <button className={tab==="notices"?"active":""} onClick={()=>setTab("notices")}>NOTICES <b>{notices.filter((notice)=>!notice.archived).length}</b></button>
             <button className={tab==="activity"?"active":""} onClick={()=>setTab("activity")}>COMMAND ACTIVITY <b>{activity.length}</b></button>
             <button
               className={doNotDisturb ? "active" : ""}
@@ -4860,6 +4966,7 @@ function NotificationCenter({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
+          {tab==="notices"&&<nav className="communications-filters"><label>PRIORITY<select value={priority} onChange={(event)=>setPriority(event.target.value)}><option value="all">ALL PRIORITIES</option><option value="critical">CRITICAL</option><option value="priority">PRIORITY</option><option value="routine">ROUTINE</option></select></label><label>SOURCE<select value={source} onChange={(event)=>setSource(event.target.value)}><option value="all">ALL SOURCES</option>{sources.map((item)=><option value={item} key={item}>{item}</option>)}</select></label><label className="communications-archive-toggle"><input type="checkbox" checked={showArchived} onChange={(event)=>setShowArchived(event.target.checked)}/><span>SHOW ARCHIVED</span></label></nav>}
           <div className="communications-feed" tabIndex={0}>
           {tab==="notices"&&(visible.length ? (
             visible.map((n) => (
@@ -4867,8 +4974,9 @@ function NotificationCenter({
                 <i>●</i>
                 <span>
                   <b>{n.text}</b>
-                  <small>{n.source||"LCARS CORE"} · {n.priority?.toUpperCase()||"ROUTINE"} · {n.time}</small>
+                  <small>{n.source||"LCARS CORE"} · {n.priority?.toUpperCase()||"ROUTINE"} · {n.time}{(n.repeats||1)>1?` · REPEATED ${n.repeats}×`:""}{n.read?" · READ":" · UNREAD"}</small>
                 </span>
+                <nav><button onClick={()=>action(n)}>{n.kind==="error"?"RETRY":/process|engineering/i.test(`${n.source} ${n.text}`)?"VIEW PROCESS":/update|module|extension/i.test(`${n.source} ${n.text}`)?"OPEN UPDATES":"OPEN SETTINGS"}</button><button onClick={()=>updateState(n.id,{read:!n.read,id:-Math.abs(n.id)})}>{n.read?"MARK UNREAD":"MARK READ"}</button><button onClick={()=>updateState(n.id,{archived:!n.archived,read:true,id:-Math.abs(n.id)})}>{n.archived?"RESTORE":"ARCHIVE"}</button></nav>
               </article>
             ))
           ) : (

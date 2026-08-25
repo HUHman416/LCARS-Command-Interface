@@ -4,13 +4,13 @@ LCARS extensions are declarative JSON modules. They do not execute arbitrary Jav
 
 Install an extension manually by placing a folder containing `lcars-module.json` in the user extension directory shown by **Updates → Extension Hub → Open Module Folder**, then select **Scan Extensions**. Bundled examples live in `extensions/stardate-clock` and `extensions/mission-timer`.
 
-## Version 26.1 Module Repository
+## Version 26.2 Module Repository
 
-Version 26.1 adds a trusted, download-only module repository backed by the repository's dedicated `Modules` branch. The Extension Hub reads `catalog.json` from that branch and merges those downloadable entries with bundled and locally installed modules.
+Version 26.1 added the official, download-only module repository backed by the project's dedicated `Modules` branch. Version 26.2 adds operator-configured public GitHub repositories. Each community repository exposes a root `catalog.json`; LCARS labels it as community content and lets the operator add, disable, refresh, diagnose, or remove the source.
 
-Repository modules remain declarative data only. LCARS accepts module download URLs only from the trusted `Modules` branch, limits remote payload size, verifies the catalog SHA-256 before installation, validates the downloaded manifest with the same API v2 validator used for local modules, and requires the manifest ID and version to match the catalog entry. Installation writes only the validated `lcars-module.json` into that module's isolated extension directory; no archive extraction or executable plug-in code is involved.
+Repository modules remain declarative data only. LCARS accepts public `https://github.com/OWNER/REPOSITORY` source URLs without credentials or tokens. Catalog and manifest downloads are confined to that same repository, remote payload size is limited, SHA-256 is verified before installation, and the downloaded manifest must pass the same API v2 validator used for local modules with a matching ID and version. Installation writes only `lcars-module.json` into that module's isolated extension directory; no archive extraction or executable plug-in code is involved.
 
-The repository is intentionally download-only in 26.1. Module creation, publishing, and arbitrary third-party repository configuration are outside this first implementation.
+Module Publisher can validate an installed module and generate a repository-ready `catalog.json`, `SHA256SUMS.txt`, README, and `modules/ID/lcars-module.json` folder. It does not push code or collect GitHub credentials; the operator creates a public repository and uploads the generated files through GitHub.
 
 ## Manifest outline
 
@@ -37,4 +37,4 @@ State is namespaced by extension ID, stored as JSON, and limited to 64 KiB per e
 
 The API is intentionally data-only. Extensions may compose host-provided controls and actions, but cannot inject scripts, access arbitrary files, or bypass LCARS protected-action prompts.
 
-Version 25 added the searchable Extension Hub, local enable/disable controls, and guarded removal of non-bundled modules. Users can assign an extension Overview placement to the Speed Dial or mount a compatible placement as a persistent custom sidebar page. Version 26.1 extends that hub with the trusted remote catalog while retaining the same capability restrictions in every host surface.
+Version 25 added the searchable Extension Hub, local enable/disable controls, and guarded removal of non-bundled modules. Users can assign an extension Overview placement to the Speed Dial or mount a compatible placement as a persistent custom sidebar page. Version 26.1 added the official remote catalog; Version 26.2 adds constrained community catalogs and the publisher helper while retaining the same capability restrictions in every host surface.
