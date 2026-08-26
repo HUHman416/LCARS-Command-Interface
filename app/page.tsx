@@ -39,7 +39,7 @@ import { PaddLinkPanel } from "./v27-connected";
 import type { PaddDevice, PaddRole, PaddStatus } from "./v27-connected";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="27.1.0-dev.1";
+const LCARS_VERSION="27.1.1-dev.1";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -2035,7 +2035,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>27.1 DEV</small>
+          <small>27.1.1 DEV</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>

@@ -31,7 +31,7 @@
 > Existing installations can update from **Updates → LCARS Interface**. The Stable channel follows major releases such as `v26`; Development remains available for opt-in test builds.
 
 > [!TIP]
-> **Version 27.1 is available on the Development channel.** It introduces Connected LCARS with a paired phone/tablet PADD companion and native context actions for compatible Linux tray services. Android operators can directly install the [Version 27.1 PADD Companion APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.1/LCARS-PADD-Companion-v27.1-Android.apk). Version 26 remains the unchanged Stable channel while Version 27 is tested.
+> **Version 27.1.1 is available on the Development channel.** It introduces Connected LCARS with a paired phone/tablet PADD companion and native context actions for compatible Linux tray services. Android operators can directly install the [Version 27.1.1 PADD Companion APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.1.1/LCARS-PADD-Companion-v27.1.1-Android.apk). Version 26 remains the unchanged Stable channel while Version 27 is tested.
 
 ## 📥 Choose your download
 
@@ -63,6 +63,7 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 
 ## 🧪 Version 27.1 development update
 
+- Version 27.1.1 fixes the disabled **Arm Pairing Code** control when the secure PADD listener is offline by default.
 - Adds a touch-first **PADD Companion** for phones and tablets on the same trusted local network. Pairing is off by default and uses a one-use, five-minute code.
 - Includes a directly installable Android APK with a native station-connection screen, remembered address, private-network allowlist, and locked-down WebView. This Development APK is intended for sideload testing and is not a Play Store release.
 - Stores only hashed device tokens and enforces revocable **Viewer**, **Operator**, and **Command** roles in the local core.

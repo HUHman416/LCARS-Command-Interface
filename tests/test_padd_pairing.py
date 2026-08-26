@@ -13,7 +13,7 @@ class PaddPairingTests(unittest.TestCase):
         assets = Path(folder) / "padd"
         assets.mkdir()
         (assets / "index.html").write_text("LCARS PADD", encoding="utf-8")
-        return PaddController(Path(folder) / "config", assets, "27.1.0-dev.1", "test", listen=False)
+        return PaddController(Path(folder) / "config", assets, "27.1.1-dev.1", "test", listen=False)
 
     def test_one_use_pairing_hashes_tokens_and_supports_revocation(self):
         with tempfile.TemporaryDirectory() as folder:

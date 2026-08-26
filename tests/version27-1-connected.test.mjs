@@ -14,8 +14,8 @@ const companion = read("padd/app.js");
 const manifest = read("padd/manifest.webmanifest");
 
 test("Version 27.1 identity and connected settings are explicit", () => {
-  assert.match(page, /LCARS_VERSION="27\.1\.0-dev\.1"/);
-  assert.match(page, /27\.1 DEV/);
+  assert.match(page, /LCARS_VERSION="27\.1\.1-dev\.1"/);
+  assert.match(page, /27\.1\.1 DEV/);
   assert.match(page, /PaddLinkPanel/);
   assert.match(connected, /PADD COMPANION LINK/);
   assert.match(connected, /VIEWER.*OPERATOR.*COMMAND/s);
@@ -31,6 +31,12 @@ test("PADD pairing is separate, role-gated, revocable, and packaged", () => {
   assert.match(manifest, /"display": "standalone"/);
   assert.match(companion, /lcars-padd-token-v27/);
   assert.doesNotMatch(read("padd/index.html"), /data-value="(?:terminal|files)"/);
+});
+
+test("pairing can be armed while the disabled-by-default listener is offline", () => {
+  assert.match(connected, /disabled=\{busy==="start"\}/);
+  assert.doesNotMatch(connected, /busy==="start"\|\|!status\?\.online/);
+  assert.match(padd, /self\.start\(force=True\)/);
 });
 
 test("desktop and companion exchange only queued allowlisted commands", () => {

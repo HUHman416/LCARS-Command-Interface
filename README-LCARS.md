@@ -72,7 +72,7 @@ Windows is distributed separately and is not included in the Universal Linux ins
 
 ## Current stage
 
-Version 26 is the current stable release. Version 27.1 is an opt-in Development-channel preview of Connected LCARS. In Settings, operators can arm a one-use code and pair a phone or tablet on the same trusted local network. The separate PADD listener is disabled by default; only hashed revocable tokens are stored, and Viewer, Operator, and Command roles are enforced by the local core. PADD devices never receive Terminal, file, process, or computer power access. Compatible Linux StatusNotifier services also expose their application-owned context actions through right-click, the keyboard menu key, or an Actions button.
+Version 26 is the current stable release. Version 27.1.1 is an opt-in Development-channel preview of Connected LCARS and fixes pairing-code arming while the secure listener is offline by default. In Settings, operators can arm a one-use code and pair a phone or tablet on the same trusted local network. Only hashed revocable tokens are stored, and Viewer, Operator, and Command roles are enforced by the local core. PADD devices never receive Terminal, file, process, or computer power access. Compatible Linux StatusNotifier services also expose their application-owned context actions through right-click, the keyboard menu key, or an Actions button.
 
 For one-click Linux installation, open `Install-LCARS-Linux.desktop` or run `Install-LCARS-Linux.run`. Your file manager may ask you to mark the desktop launcher as trusted the first time it is opened. The installer places the standalone application in `~/.local/opt/lcars-command-interface`; Node.js, npm, and an external browser are not required to run it.
 

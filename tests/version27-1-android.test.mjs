@@ -9,12 +9,12 @@ const activity = read("mobile/android/app/src/main/java/com/lcars/padd/MainActiv
 const guard = read("mobile/android/app/src/main/java/com/lcars/padd/StationAddress.java");
 const security = read("mobile/android/app/src/main/res/xml/network_security_config.xml");
 
-test("Version 27.1 publishes a directly installable Android companion", () => {
+test("Version 27.1.1 publishes a directly installable Android companion", () => {
   assert.match(workflow, /android:[\s\S]*gradle-version: 8\.9/);
   assert.match(workflow, /:app:assembleDebug/);
-  assert.match(workflow, /LCARS-PADD-Companion-v27\.1-Android\.apk/);
+  assert.match(workflow, /LCARS-PADD-Companion-v27\.1\.1-Android\.apk/);
   assert.match(workflow, /needs: \[linux, windows, android\]/);
-  assert.match(workflow, /sha256sum[^\n]*LCARS-PADD-Companion-v27\.1-Android\.apk/);
+  assert.match(workflow, /sha256sum[^\n]*LCARS-PADD-Companion-v27\.1\.1-Android\.apk/);
 });
 
 test("Android companion declares only networking and a non-exported surface beyond its launcher", () => {
