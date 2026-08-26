@@ -39,7 +39,7 @@ import { PaddLinkPanel } from "./v27-connected";
 import type { PaddDevice, PaddRole, PaddStatus } from "./v27-connected";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="27.2.0-dev.1";
+const LCARS_VERSION="27.2.1-dev.1";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -2038,7 +2038,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>27.2 DEV</small>
+          <small>27.2.1 DEV</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>
@@ -2379,7 +2379,7 @@ export default function Home() {
                   ["workspace","WORKSPACE","Windows, controls, pages"],
                   ["connected","CONNECTED","PADD and modules"],
                   ["system","SYSTEM","Shell and recovery"],
-                ] as [SettingsArea,string,string][]).map(([area,label,detail],index)=><button key={area} className={settingsArea===area?"active":""} onClick={()=>setSettingsArea(area)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label}</b><small>{detail}</small></span></button>)}
+                ] as [SettingsArea,string,string][]).map(([area,label,detail],index)=><button type="button" key={area} className={settingsArea===area?"active":""} aria-current={settingsArea===area?"page":undefined} onClick={()=>setSettingsArea(area)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label}</b><small>{detail}</small></span></button>)}
               </nav>
               <div className={`settings-area-body settings-area-${settingsArea}`}>
               {settingsArea==="interface"&&<>
@@ -3109,7 +3109,7 @@ function UpdateCenter({
           ["releases","RELEASES","System, LCARS, integrations"],
           ["modules","MODULES","Official and community repositories"],
           ["diagnostics","DIAGNOSTICS","Health, repair, support export"],
-        ] as [UpdateArea,string,string][]).map(([next,label,detail],index)=><button key={next} className={area===next?"active":""} onClick={()=>setArea(next)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label}</b><small>{detail}</small></span></button>)}
+        ] as [UpdateArea,string,string][]).map(([next,label,detail],index)=><button type="button" key={next} className={area===next?"active":""} aria-current={area===next?"page":undefined} onClick={()=>setArea(next)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label}</b><small>{detail}</small></span></button>)}
       </nav>
       {area==="releases"&&<>
       <div className="update-grid update-release-grid">

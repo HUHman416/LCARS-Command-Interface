@@ -10,8 +10,8 @@ android {
         applicationId "com.lcars.padd"
         minSdk 26
         targetSdk 35
-        versionCode 27200
-        versionName "27.2.0"
+        versionCode 27201
+        versionName "27.2.1"
     }
 
     buildTypes {

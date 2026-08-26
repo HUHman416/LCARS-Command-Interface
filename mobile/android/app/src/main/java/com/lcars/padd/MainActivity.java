@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,6 +14,7 @@ import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
@@ -75,6 +77,8 @@ public final class MainActivity extends Activity {
         preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
         getWindow().setStatusBarColor(BLACK);
         getWindow().setNavigationBarColor(BLACK);
+        if (Build.VERSION.SDK_INT >= 29) getWindow().setNavigationBarContrastEnforced(false);
+        if (Build.VERSION.SDK_INT >= 30) getWindow().setDecorFitsSystemWindows(false);
         requestLocalNetworkAccess();
         stationRoot = preferences.getString(LAST_STATION, "");
         token = preferences.getString(TOKEN, "");
@@ -94,7 +98,6 @@ public final class MainActivity extends Activity {
         latest = null;
         poller.removeCallbacks(poll);
         LinearLayout page = column(BLACK);
-        page.setPadding(dp(10), dp(14), dp(10), dp(18));
         page.addView(masthead("STANDALONE PADD", "SETUP"), matchWrap(dp(8)));
 
         LinearLayout intro = panel(BLUE);
@@ -190,15 +193,14 @@ public final class MainActivity extends Activity {
         consoleActive = true;
         poller.removeCallbacks(poll);
         LinearLayout shell = column(BLACK);
-        shell.setPadding(dp(8), dp(10), dp(8), dp(10));
-        LinearLayout header = masthead("LCARS 27.2", "LINK");
-        linkBadge = (TextView) header.getChildAt(1);
+        LinearLayout header = masthead("LCARS 27.2.1", "LINK");
+        linkBadge = (TextView) header.getChildAt(2);
         shell.addView(header, matchWrap(dp(5)));
 
         LinearLayout tabs = row(BLACK);
-        tabs.addView(tabButton("STATUS", "status"), weightedWrap(1, dp(3)));
-        tabs.addView(tabButton("MEDIA", "media"), weightedWrap(1, dp(3)));
-        tabs.addView(tabButton("COMMAND", "command"), weightedWrap(1, 0));
+        tabs.addView(tabButton("STATUS", "status", 0, 3), weightedWrap(1, dp(3)));
+        tabs.addView(tabButton("MEDIA", "media", 1, 3), weightedWrap(1, dp(3)));
+        tabs.addView(tabButton("COMMAND", "command", 2, 3), weightedWrap(1, 0));
         shell.addView(tabs, matchWrap(dp(5)));
 
         consoleContent = column(BLACK);
@@ -218,14 +220,18 @@ public final class MainActivity extends Activity {
         shell.addView(footer, matchWrap(dp(4)));
         consoleMessage = label("ACQUIRING STATION STATE…", PEACH, 11, true);
         shell.addView(consoleMessage, matchWrap(0));
-        setContentView(shell);
+        setInsetAwareContent(shell, 8, 10, 8, 8);
         refreshState(true);
         poller.postDelayed(poll, 2500);
     }
 
-    private Button tabButton(String title, String tab) {
+    private Button tabButton(String title, String tab, int index, int count) {
         Button button = button(title, activeTab.equals(tab) ? ORANGE : DIM_PANEL);
         button.setTextColor(activeTab.equals(tab) ? BLACK : Color.LTGRAY);
+        int color = activeTab.equals(tab) ? ORANGE : DIM_PANEL;
+        if (index == 0) button.setBackground(shape(color, 24, 3, 3, 24));
+        else if (index == count - 1) button.setBackground(shape(color, 3, 24, 24, 3));
+        else button.setBackground(shape(color, 3, 3, 3, 3));
         button.setOnClickListener(ignored -> {
             activeTab = tab;
             showConsole();
@@ -378,6 +384,7 @@ public final class MainActivity extends Activity {
     private Button actionButton(String title, String action, Object value, boolean enabled, int color) {
         Button button = button(title, color);
         button.setEnabled(enabled);
+        button.setAlpha(enabled ? 1f : .38f);
         button.setOnClickListener(ignored -> sendAction(action, value));
         return button;
     }
@@ -435,35 +442,54 @@ public final class MainActivity extends Activity {
     }
 
     private LinearLayout masthead(String eyebrow, String badgeText) {
-        LinearLayout header = row(PANEL);
-        header.setPadding(dp(16), dp(10), dp(8), dp(10));
+        LinearLayout header = row(BLACK);
+        TextView index = label("27", BLACK, 12, true);
+        index.setGravity(Gravity.CENTER);
+        index.setBackground(shape(ORANGE, 28, 3, 3, 28));
         LinearLayout titles = column(PANEL);
+        titles.setPadding(dp(12), dp(7), dp(8), dp(7));
+        titles.setBackground(shape(PANEL, 3, 3, 3, 3));
         titles.addView(label(eyebrow, PEACH, 10, true), matchWrap(dp(1)));
-        titles.addView(label("PADD COMPANION", Color.WHITE, 25, true), matchWrap(0));
+        titles.addView(label("PADD COMPANION", Color.WHITE, 21, true), matchWrap(0));
         TextView badge = label(badgeText, BLACK, 11, true);
-        badge.setBackgroundColor(ORANGE);
+        badge.setBackground(shape(ORANGE, 3, 28, 28, 3));
         badge.setGravity(Gravity.CENTER);
-        header.addView(titles, new LinearLayout.LayoutParams(0, dp(64), 1));
-        header.addView(badge, new LinearLayout.LayoutParams(dp(98), dp(64)));
+        LinearLayout.LayoutParams indexParams = new LinearLayout.LayoutParams(dp(42), dp(64));
+        indexParams.rightMargin = dp(3);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, dp(64), 1);
+        titleParams.rightMargin = dp(3);
+        header.addView(index, indexParams);
+        header.addView(titles, titleParams);
+        header.addView(badge, new LinearLayout.LayoutParams(dp(82), dp(64)));
         return header;
     }
 
     private LinearLayout sectionHeader(String eyebrow, String title, String badgeText) {
-        LinearLayout header = row(PANEL);
-        header.setPadding(dp(12), dp(8), dp(8), dp(8));
+        LinearLayout header = row(BLACK);
+        View rail = new View(this);
+        rail.setBackground(shape(ORANGE, 18, 3, 3, 18));
         LinearLayout text = column(PANEL);
+        text.setPadding(dp(11), dp(7), dp(8), dp(7));
+        text.setBackground(shape(PANEL, 3, 3, 3, 3));
         text.addView(label(eyebrow, PEACH, 9, true), matchWrap(0));
-        text.addView(label(title, Color.WHITE, 23, true), matchWrap(0));
+        text.addView(label(title, Color.WHITE, 21, true), matchWrap(0));
         TextView badge = label(badgeText, BLUE, 11, true);
+        badge.setBackground(shape(PANEL, 3, 20, 20, 3));
         badge.setGravity(Gravity.CENTER);
-        header.addView(text, new LinearLayout.LayoutParams(0, dp(58), 1));
-        header.addView(badge, new LinearLayout.LayoutParams(dp(98), dp(58)));
+        LinearLayout.LayoutParams railParams = new LinearLayout.LayoutParams(dp(18), dp(58));
+        railParams.rightMargin = dp(3);
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, dp(58), 1);
+        textParams.rightMargin = dp(3);
+        header.addView(rail, railParams);
+        header.addView(text, textParams);
+        header.addView(badge, new LinearLayout.LayoutParams(dp(88), dp(58)));
         return header;
     }
 
     private LinearLayout subhead(String title, String detail) {
         LinearLayout header = row(PANEL);
         header.setPadding(dp(10), dp(8), dp(10), dp(8));
+        header.setBackground(shape(PANEL, 18, 3, 3, 18));
         header.addView(label(title, Color.WHITE, 14, true), new LinearLayout.LayoutParams(0, dp(38), 1));
         TextView value = label(detail, PEACH, 9, true);
         value.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
@@ -474,6 +500,7 @@ public final class MainActivity extends Activity {
     private LinearLayout step(String number, String title, String detail) {
         LinearLayout item = column(PANEL);
         item.setPadding(dp(8), dp(8), dp(8), dp(8));
+        item.setBackground(shape(PANEL, 18, 3, 18, 18));
         item.addView(label(number, ORANGE, 17, true), matchWrap(dp(2)));
         item.addView(label(title, Color.WHITE, 12, true), matchWrap(dp(2)));
         item.addView(label(detail, Color.GRAY, 9, false), matchWrap(0));
@@ -482,16 +509,20 @@ public final class MainActivity extends Activity {
 
     private LinearLayout panel(int accent) {
         LinearLayout layout = column(PANEL);
-        layout.setPadding(dp(18), dp(18), dp(18), dp(18));
+        layout.setPadding(dp(12), dp(12), dp(12), dp(12));
+        layout.setBackground(shape(PANEL, 22, 3, 22, 22));
         TextView bar = new TextView(this);
         bar.setBackgroundColor(accent);
-        layout.addView(bar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(7)));
+        LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(6));
+        barParams.bottomMargin = dp(8);
+        layout.addView(bar, barParams);
         return layout;
     }
 
     private LinearLayout statusCard(String title, String value, int accent) {
         LinearLayout card = column(PANEL);
         card.setPadding(dp(10), dp(10), dp(10), dp(10));
+        card.setBackground(shape(PANEL, 18, 3, 18, 18));
         card.addView(label(title, PEACH, 9, true), matchWrap(dp(3)));
         card.addView(label(value, Color.WHITE, 18, true), matchWrap(dp(6)));
         TextView bar = new TextView(this);
@@ -504,6 +535,7 @@ public final class MainActivity extends Activity {
         int safeValue = Math.max(0, Math.min(100, value));
         LinearLayout outer = column(PANEL);
         outer.setPadding(dp(10), dp(7), dp(10), dp(7));
+        outer.setBackground(shape(PANEL, 16, 3, 16, 16));
         LinearLayout top = row(PANEL);
         top.addView(label(title.toUpperCase(), Color.LTGRAY, 11, true), new LinearLayout.LayoutParams(0, dp(28), 1));
         TextView reading = label(safeValue + "%", PEACH, 12, true);
@@ -521,6 +553,7 @@ public final class MainActivity extends Activity {
 
     private LinearLayout listRow(int index, String title, String detail) {
         LinearLayout itemRow = row(PANEL);
+        itemRow.setBackground(shape(PANEL, 18, 3, 18, 18));
         TextView number = label(String.format("%02d", index + 1), BLACK, 12, true);
         number.setBackgroundColor(index % 2 == 0 ? ORANGE : BLUE);
         number.setGravity(Gravity.CENTER);
@@ -535,8 +568,8 @@ public final class MainActivity extends Activity {
 
     private TextView emptyState(String text) {
         TextView empty = label(text, Color.GRAY, 11, true);
-        empty.setBackgroundColor(PANEL);
         empty.setPadding(dp(12), dp(16), dp(12), dp(16));
+        empty.setBackground(shape(PANEL, 18, 3, 18, 18));
         return empty;
     }
 
@@ -550,7 +583,9 @@ public final class MainActivity extends Activity {
         input.setTextSize(17);
         input.setInputType(inputType);
         input.setPadding(dp(12), dp(9), dp(12), dp(9));
-        input.setBackgroundColor(BLACK);
+        GradientDrawable background = shape(DIM_PANEL, 18, 3, 18, 18);
+        background.setStroke(dp(1), ORANGE);
+        input.setBackground(background);
         return input;
     }
 
@@ -561,7 +596,7 @@ public final class MainActivity extends Activity {
         view.setText(text);
         view.setTextColor(color);
         view.setTextSize(size);
-        if (bold) view.setTypeface(Typeface.DEFAULT_BOLD);
+        view.setTypeface(Typeface.create("sans-serif-condensed", bold ? Typeface.BOLD : Typeface.NORMAL));
         view.setGravity(Gravity.CENTER_VERTICAL);
         return view;
     }
@@ -570,9 +605,15 @@ public final class MainActivity extends Activity {
         Button view = new Button(this);
         view.setText(text);
         view.setTextColor(BLACK);
-        view.setTextSize(12);
-        view.setTypeface(Typeface.DEFAULT_BOLD);
-        view.setBackgroundColor(color);
+        view.setTextSize(13);
+        view.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+        view.setBackground(shape(color, 22, 3, 22, 22));
+        view.setGravity(Gravity.CENTER);
+        view.setMinHeight(dp(44));
+        view.setPadding(dp(10), dp(6), dp(10), dp(6));
+        view.setElevation(0);
+        view.setStateListAnimator(null);
+        view.setLetterSpacing(.025f);
         view.setAllCaps(false);
         return view;
     }
@@ -592,11 +633,54 @@ public final class MainActivity extends Activity {
     }
 
     private void setScrollableContent(LinearLayout page) {
+        page.setPadding(dp(10), dp(14), dp(10), dp(18));
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
+        scroll.setClipToPadding(false);
         scroll.setVerticalScrollBarEnabled(false);
         scroll.addView(page, new ScrollView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        setContentView(scroll);
+        setInsetAwareContent(scroll, 0, 0, 0, 8);
+    }
+
+    private void setInsetAwareContent(View content, int left, int top, int right, int bottom) {
+        final int baseLeft = dp(left);
+        final int baseTop = dp(top);
+        final int baseRight = dp(right);
+        final int baseBottom = dp(bottom);
+        content.setBackgroundColor(BLACK);
+        content.setPadding(baseLeft, baseTop, baseRight, baseBottom);
+        content.setOnApplyWindowInsetsListener((view, insets) -> {
+            int insetLeft;
+            int insetTop;
+            int insetRight;
+            int insetBottom;
+            if (Build.VERSION.SDK_INT >= 30) {
+                android.graphics.Insets bars = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout() | WindowInsets.Type.ime());
+                insetLeft = bars.left;
+                insetTop = bars.top;
+                insetRight = bars.right;
+                insetBottom = bars.bottom;
+            } else {
+                insetLeft = insets.getSystemWindowInsetLeft();
+                insetTop = insets.getSystemWindowInsetTop();
+                insetRight = insets.getSystemWindowInsetRight();
+                insetBottom = insets.getSystemWindowInsetBottom();
+            }
+            view.setPadding(baseLeft + insetLeft, baseTop + insetTop, baseRight + insetRight, baseBottom + insetBottom);
+            return insets;
+        });
+        setContentView(content);
+        content.requestApplyInsets();
+    }
+
+    private GradientDrawable shape(int color, int topLeft, int topRight, int bottomRight, int bottomLeft) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(color);
+        drawable.setCornerRadii(new float[]{
+            dp(topLeft), dp(topLeft), dp(topRight), dp(topRight),
+            dp(bottomRight), dp(bottomRight), dp(bottomLeft), dp(bottomLeft)
+        });
+        return drawable;
     }
 
     private void forgetToken() {

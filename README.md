@@ -31,7 +31,7 @@
 > Existing installations can update from **Updates → LCARS Interface**. The Stable channel follows major releases such as `v26`; Development remains available for opt-in test builds.
 
 > [!TIP]
-> **Version 27.2 is available on the Development channel.** The PADD Companion is now a fully native standalone Android interface with guided pairing, while Desktop Settings and Updates use focused category consoles. Update downloads are locked and cached for the rest of the LCARS session to prevent a second download from replacing the installer being mounted. Android operators can directly install the [Version 27.2 PADD Companion APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.2/LCARS-PADD-Companion-v27.2-Android.apk). Version 26 remains the unchanged Stable channel while Version 27 is tested.
+> **Version 27.2.1 is available on the Development channel.** The PADD Companion is now a fully native standalone Android interface with guided pairing and a desktop-matched LCARS layout that respects phone and tablet system bars. Desktop Settings and Updates use repaired, polished category consoles. Update downloads remain locked and cached for the rest of the LCARS session to prevent a second download from replacing the installer being mounted. Android operators can directly install the [Version 27.2.1 PADD Companion APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.2.1/LCARS-PADD-Companion-v27.2.1-Android.apk). Version 26 remains the unchanged Stable channel while Version 27 is tested.
 
 ## 📥 Choose your download
 
@@ -61,11 +61,13 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
 
-## 🧪 Version 27.2 development update
+## 🧪 Version 27.2.1 development update
 
 - Replaces the Android WebView wrapper with a standalone native **PADD Companion** interface for status, communications, media, audio, page navigation, routines, and approved application commands.
 - Adds a guided three-step pairing station under **Settings → Connected**, with direct APK download, one-use code arming, copyable station details, reconnection guidance, device roles, and revocation.
 - Reorganizes **Settings** into Interface, Workspace, Connected, and System consoles and **Updates** into Releases, Modules, and Diagnostics so standard-size displays render one useful workspace instead of every panel in one vertical stack.
+- Repairs the Electron stylesheet path for those categories and gives them a legible LCARS rail, distinct color coding, active state, hover state, and keyboard focus treatment.
+- Refines the native PADD with LCARS elbows, compact segmented navigation, curved controls, condensed typography, denser panels, and proper status-bar, cutout, keyboard, and navigation-bar insets.
 - Locks the Download control as soon as a release download begins and keeps it locked until LCARS restarts. The bridge also serializes downloads and reuses the verified artifact instead of replacing it.
 - Retains the Version 27.1.1 pairing-arm hotfix, one-use five-minute codes, and native context actions for compatible Linux tray services.
 - Stores only hashed device tokens and enforces revocable **Viewer**, **Operator**, and **Command** roles in the local core.
