@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="lcars_black">#000000</color>
+    <color name="lcars_orange">#FF9868</color>
+    <color name="lcars_peach">#F4B66B</color>
+    <color name="lcars_blue">#829AF1</color>
+    <color name="lcars_violet">#B69DE8</color>
+</resources>

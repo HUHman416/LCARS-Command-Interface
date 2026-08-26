@@ -91,8 +91,37 @@ jobs:
           path: prerelease/LCARS-Windows-Setup-v27.1.exe
           retention-days: 14
 
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+      - name: Validate private-station address guard
+        run: |
+          mkdir -p mobile/android/build/address-test
+          javac -d mobile/android/build/address-test mobile/android/app/src/main/java/com/lcars/padd/StationAddress.java mobile/android/tools/StationAddressSelfTest.java
+          java -cp mobile/android/build/address-test com.lcars.padd.StationAddressSelfTest
+      - name: Build installable Android development APK
+        run: gradle -p mobile/android --no-daemon :app:assembleDebug
+      - name: Prepare Android companion
+        run: |
+          mkdir -p prerelease
+          cp mobile/android/app/build/outputs/apk/debug/app-debug.apk prerelease/LCARS-PADD-Companion-v27.1-Android.apk
+          test -s prerelease/LCARS-PADD-Companion-v27.1-Android.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v27-1-android
+          path: prerelease/LCARS-PADD-Companion-v27.1-Android.apk
+          retention-days: 14
+
   publish-development-release:
-    needs: [linux, windows]
+    needs: [linux, windows, android]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -106,7 +135,7 @@ jobs:
         run: |
           set -euo pipefail
           git archive --format=zip --output=prerelease/LCARS-Command-Interface-v27.1-Source.zip HEAD
-          (cd prerelease && sha256sum LCARS-Command-Interface-v27.1-x86_64.AppImage LCARS-Universal-Linux-Desktop-v27.1.zip LCARS-Linux-Integration-v27.1.sh LCARS-Windows-Setup-v27.1.exe LCARS-Command-Interface-v27.1-Source.zip > SHA256SUMS.txt)
+          (cd prerelease && sha256sum LCARS-Command-Interface-v27.1-x86_64.AppImage LCARS-Universal-Linux-Desktop-v27.1.zip LCARS-Linux-Integration-v27.1.sh LCARS-Windows-Setup-v27.1.exe LCARS-PADD-Companion-v27.1-Android.apk LCARS-Command-Interface-v27.1-Source.zip > SHA256SUMS.txt)
       - name: Verify prerelease assets
         run: |
           set -euo pipefail
@@ -115,6 +144,7 @@ jobs:
           test -s LCARS-Universal-Linux-Desktop-v27.1.zip
           test -s LCARS-Linux-Integration-v27.1.sh
           test -s LCARS-Windows-Setup-v27.1.exe
+          test -s LCARS-PADD-Companion-v27.1-Android.apk
           test -s LCARS-Command-Interface-v27.1-Source.zip
           sha256sum --check SHA256SUMS.txt
       - name: Publish updater-visible Version 27.1 prerelease
@@ -122,7 +152,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          notes='Version 27.1 begins the Version 27 Development channel with Connected LCARS. It adds a touch-first phone and tablet PADD companion over the local network, one-use pairing codes, hashed revocable device tokens, viewer/operator/command roles enforced by the local core, and shared status, media, navigation, routine, and favorite-application controls. Terminal, file, process, and power access are never exposed to paired devices. Compatible Linux StatusNotifier tray services now support their native context actions through right-click, the keyboard menu key, or a dedicated Actions control. Version 26 remains the Stable channel while Version 27 is tested.'
+          notes='Version 27.1 begins the Version 27 Development channel with Connected LCARS. It includes a directly installable Android PADD Companion APK with a native LCARS station screen and guarded private-network navigation. The companion uses one-use pairing codes, hashed revocable device tokens, viewer/operator/command roles enforced by the local core, and shared status, media, navigation, routine, and favorite-application controls. Terminal, file, process, and power access are never exposed to paired devices. Compatible Linux StatusNotifier tray services support their native context actions through right-click, the keyboard menu key, or a dedicated Actions control. Version 26 remains the Stable channel while Version 27 is tested.'
           if gh release view v27.1 >/dev/null 2>&1; then
             gh release upload v27.1 prerelease/* --clobber
             gh release edit v27.1 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 27.1" --notes "$notes" --prerelease

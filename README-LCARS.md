@@ -67,6 +67,7 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Native detachable Page Peeks, snap-zone previews, and minimized-window management
 - Contained Communications feed and quiet native scrollbars without disabling scrolling
 - Version 27 Connected LCARS with a separately paired, role-limited phone/tablet PADD companion
+- Directly installable Android PADD Companion APK with a private-station connection guard
 - Native context actions for compatible Linux StatusNotifier tray services, including application-provided quit controls
 
 ## Current stage

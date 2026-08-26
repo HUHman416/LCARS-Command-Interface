@@ -31,7 +31,7 @@
 > Existing installations can update from **Updates → LCARS Interface**. The Stable channel follows major releases such as `v26`; Development remains available for opt-in test builds.
 
 > [!TIP]
-> **Version 27.1 is available on the Development channel.** It introduces Connected LCARS with a paired phone/tablet PADD companion and native context actions for compatible Linux tray services. Version 26 remains the unchanged Stable channel while Version 27 is tested.
+> **Version 27.1 is available on the Development channel.** It introduces Connected LCARS with a paired phone/tablet PADD companion and native context actions for compatible Linux tray services. Android operators can directly install the [Version 27.1 PADD Companion APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.1/LCARS-PADD-Companion-v27.1-Android.apk). Version 26 remains the unchanged Stable channel while Version 27 is tested.
 
 ## 📥 Choose your download
 
@@ -64,12 +64,13 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 ## 🧪 Version 27.1 development update
 
 - Adds a touch-first **PADD Companion** for phones and tablets on the same trusted local network. Pairing is off by default and uses a one-use, five-minute code.
+- Includes a directly installable Android APK with a native station-connection screen, remembered address, private-network allowlist, and locked-down WebView. This Development APK is intended for sideload testing and is not a Play Store release.
 - Stores only hashed device tokens and enforces revocable **Viewer**, **Operator**, and **Command** roles in the local core.
 - Shares live LCARS status, communications, media, master volume, pages, routines, and favorite applications according to the assigned role.
 - Never exposes Terminal, Files, process controls, or computer power actions to a paired PADD.
 - Adds native context actions for compatible Linux StatusNotifier tray services. Right-click a service, press the keyboard menu key, or choose **Actions** to open the application's own menu, including actions such as Discord Quit.
 
-To try it, select **Development** under Settings → Desktop Shell Control, save, and check for an LCARS update. Then open **Settings → PADD Companion Link**, arm a pairing code, and open the displayed local address on a phone or tablet connected to the same network. Use this first preview only on a network you trust; the companion link is local HTTP and is not intended for internet exposure.
+To try it, select **Development** under Settings → Desktop Shell Control, save, and check for an LCARS update. Install the Android APK on the phone or tablet, then open **Settings → PADD Companion Link** on the desktop and arm a pairing code. Enter the displayed private IPv4 address in the app and use the six-digit code to pair. Use this first preview only on a network you trust; the companion link is local HTTP and is not intended for internet exposure.
 
 ## 🆕 Version 26 highlights
 
