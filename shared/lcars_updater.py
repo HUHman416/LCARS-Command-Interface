@@ -10,6 +10,7 @@ import shlex
 import stat
 import subprocess
 import tempfile
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -18,7 +19,9 @@ from pathlib import Path
 REPOSITORY = "HUHman416/LCARS-Command-Interface"
 API_URL = f"https://api.github.com/repos/{REPOSITORY}/releases/latest"
 RELEASES_URL = f"https://api.github.com/repos/{REPOSITORY}/releases?per_page=30"
-USER_AGENT = "LCARS-Command-Interface-Updater/27.1.1"
+USER_AGENT = "LCARS-Command-Interface-Updater/27.2"
+_DOWNLOAD_LOCK = threading.Lock()
+_DOWNLOAD_CACHE: dict[tuple[str, str, str], dict] = {}
 
 
 def _request(url: str, binary: bool = False, timeout: int = 12):
@@ -107,36 +110,51 @@ def _expected_hash(checksums_url: str, asset_name: str):
 
 
 def download_update(current_version: str, system: str, update_dir: Path, channel: str = "stable"):
-    info = check_update(current_version, system, channel)
-    if not info["available"]:
-        return {**info, "message": "LCARS is already on the newest public release"}
-    asset = info.get("asset")
-    if not asset:
-        raise RuntimeError(f"Release {info['version']} has no compatible {system.title()} installer")
-    update_dir.mkdir(parents=True, exist_ok=True)
-    destination = update_dir / Path(asset["name"]).name
-    temporary = destination.with_suffix(destination.suffix + ".part")
-    digest = hashlib.sha256()
-    request = urllib.request.Request(asset["url"], headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=45) as response, temporary.open("wb") as output:
-        while True:
-            chunk = response.read(1024 * 1024)
-            if not chunk:
-                break
-            digest.update(chunk)
-            output.write(chunk)
-    actual = digest.hexdigest()
-    expected = _expected_hash(info.get("checksumsUrl", ""), asset["name"])
-    if not expected:
+    if not _DOWNLOAD_LOCK.acquire(blocking=False):
+        raise RuntimeError("An LCARS update download is already in progress; wait for it to finish")
+    temporary = None
+    try:
+        info = check_update(current_version, system, channel)
+        if not info["available"]:
+            return {**info, "message": "LCARS is already on the newest public release"}
+        asset = info.get("asset")
+        if not asset:
+            raise RuntimeError(f"Release {info['version']} has no compatible {system.title()} installer")
+        update_dir = Path(update_dir)
+        update_dir.mkdir(parents=True, exist_ok=True)
+        destination = update_dir / Path(asset["name"]).name
+        cache_key = (system, str(update_dir.resolve()), f"{channel}:{info['version']}")
+        cached = _DOWNLOAD_CACHE.get(cache_key)
+        if cached and cached.get("path") == str(destination) and destination.is_file() and _sha256(destination) == cached.get("sha256"):
+            return {**info, **cached, "message": f"Version {info['version']} is already downloaded and verified; restart LCARS before downloading again"}
+        temporary = destination.with_suffix(destination.suffix + ".part")
         temporary.unlink(missing_ok=True)
-        raise RuntimeError("The release does not publish a SHA-256 checksum for this installer")
-    if actual != expected:
-        temporary.unlink(missing_ok=True)
-        raise RuntimeError("Downloaded installer failed SHA-256 verification")
-    temporary.replace(destination)
-    if system == "linux":
-        destination.chmod(destination.stat().st_mode | stat.S_IXUSR)
-    return {**info, "downloaded": True, "path": str(destination), "sha256": actual, "message": f"Version {info['version']} downloaded and verified"}
+        digest = hashlib.sha256()
+        request = urllib.request.Request(asset["url"], headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(request, timeout=45) as response, temporary.open("wb") as output:
+            while True:
+                chunk = response.read(1024 * 1024)
+                if not chunk:
+                    break
+                digest.update(chunk)
+                output.write(chunk)
+        actual = digest.hexdigest()
+        expected = _expected_hash(info.get("checksumsUrl", ""), asset["name"])
+        if not expected:
+            raise RuntimeError("The release does not publish a SHA-256 checksum for this installer")
+        if actual != expected:
+            raise RuntimeError("Downloaded installer failed SHA-256 verification")
+        temporary.replace(destination)
+        temporary = None
+        if system == "linux":
+            destination.chmod(destination.stat().st_mode | stat.S_IXUSR)
+        result = {"downloaded": True, "path": str(destination), "sha256": actual}
+        _DOWNLOAD_CACHE[cache_key] = result
+        return {**info, **result, "message": f"Version {info['version']} downloaded and verified; the download control is locked until LCARS restarts"}
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+        _DOWNLOAD_LOCK.release()
 
 
 def _sha256(path: Path):

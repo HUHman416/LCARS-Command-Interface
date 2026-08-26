@@ -13,11 +13,11 @@ const builder = read("electron-builder.yml");
 const companion = read("padd/app.js");
 const manifest = read("padd/manifest.webmanifest");
 
-test("Version 27.1 identity and connected settings are explicit", () => {
-  assert.match(page, /LCARS_VERSION="27\.1\.1-dev\.1"/);
-  assert.match(page, /27\.1\.1 DEV/);
+test("Version 27 identity and connected settings are explicit", () => {
+  assert.match(page, /LCARS_VERSION="27\.2\.0-dev\.1"/);
+  assert.match(page, /27\.2 DEV/);
   assert.match(page, /PaddLinkPanel/);
-  assert.match(connected, /PADD COMPANION LINK/);
+  assert.match(connected, /PADD COMPANION SETUP/);
   assert.match(connected, /VIEWER.*OPERATOR.*COMMAND/s);
   assert.match(css, /\.padd-link-panel/);
 });

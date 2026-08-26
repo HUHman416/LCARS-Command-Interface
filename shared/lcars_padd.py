@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import ipaddress
 import json
 import mimetypes
 import secrets
@@ -97,10 +98,16 @@ class PaddController:
 
     def _addresses(self):
         found = set()
+        def private(address):
+            try:
+                value = ipaddress.ip_address(address)
+                return value.version == 4 and value.is_private and not value.is_loopback and not value.is_link_local
+            except ValueError:
+                return False
         try:
             for row in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
                 address = row[4][0]
-                if address and not address.startswith("127.") and not address.startswith("169.254."):
+                if private(address):
                     found.add(address)
         except Exception:
             pass
@@ -108,7 +115,7 @@ class PaddController:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
                 probe.connect(("8.8.8.8", 80))
                 address = probe.getsockname()[0]
-            if address and not address.startswith("127."):
+            if private(address):
                 found.add(address)
         except Exception:
             pass

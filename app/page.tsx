@@ -39,7 +39,7 @@ import { PaddLinkPanel } from "./v27-connected";
 import type { PaddDevice, PaddRole, PaddStatus } from "./v27-connected";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="27.1.1-dev.1";
+const LCARS_VERSION="27.2.0-dev.1";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -123,6 +123,8 @@ type TrayItem = { id: string; name: string; status: string; icon?: string; hasCo
 type NetworkInterface = { id: string; name: string; kind: string; state: string; address: string; gateway: string; dns: string[]; speed: string; signal?: number; received: number; sent: number };
 type NetworkInfo = { interfaces: NetworkInterface[]; diagnostics: { gateway: boolean; dns: boolean; internet: boolean; latency: number | null }; bluetooth: boolean };
 type PageDensity = "compact" | "standard" | "wide";
+type SettingsArea = "interface" | "workspace" | "connected" | "system";
+type UpdateArea = "releases" | "modules" | "diagnostics";
 type SpeedDialItem = `page:${string}` | `module:${string}` | `action:${string}` | `routine:${string}`;
 type CustomPage = { id: string; name: string; kind: "app" | "module" | "extension"; target: string };
 type ApplicationDestination = "embedded" | "native";
@@ -654,6 +656,7 @@ export default function Home() {
   const [lcarsUpdate, setLcarsUpdate] = useState<UpdateInfo | null>(null);
   const [startupAudioStatus,setStartupAudioStatus]=useState("NOT TESTED · SYSTEM DEFAULT OUTPUT");
   const [paddStatus,setPaddStatus]=useState<PaddStatus|null>(null),[paddBusy,setPaddBusy]=useState("");
+  const [settingsArea,setSettingsArea]=useState<SettingsArea>("interface");
   const [safeMode,setSafeMode]=useState(false);
   const [routines,setRoutines]=useState<Routine[]>([]),
     [routineCenterOpen,setRoutineCenterOpen]=useState(false),
@@ -2035,7 +2038,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>27.1.1 DEV</small>
+          <small>27.2 DEV</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>
@@ -2364,32 +2367,42 @@ export default function Home() {
             <NetworkConsole info={networkInfo} action={coreAction} refresh={() => fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => notify("Network telemetry unavailable","error"))} />
           )}
           {section === "updates" && (
-            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => setSection("settings")} update={lcarsUpdate} setUpdate={setLcarsUpdate} notify={notify} extensions={extensions} catalog={extensionCatalog} sources={extensionSources} setCatalog={setExtensionCatalog} setSources={setExtensionSources} disabled={disabledExtensions} setDisabled={saveDisabledExtensions} refreshExtensions={()=>Promise.all([fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()),fetch("http://127.0.0.1:8765/api/extension-catalog").then((response)=>response.json())]).then(([installed,catalog])=>{setExtensions(installed.extensions||[]);setExtensionCatalog(catalog.catalog||[]);setExtensionSources(catalog.sources||[]);}).catch(()=>notify("Extension inventory could not be refreshed","error"))} />
+            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => {setSettingsArea("system");setSection("settings");}} update={lcarsUpdate} setUpdate={setLcarsUpdate} notify={notify} extensions={extensions} catalog={extensionCatalog} sources={extensionSources} setCatalog={setExtensionCatalog} setSources={setExtensionSources} disabled={disabledExtensions} setDisabled={saveDisabledExtensions} refreshExtensions={()=>Promise.all([fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()),fetch("http://127.0.0.1:8765/api/extension-catalog").then((response)=>response.json())]).then(([installed,catalog])=>{setExtensions(installed.extensions||[]);setExtensionCatalog(catalog.catalog||[]);setExtensionSources(catalog.sources||[]);}).catch(()=>notify("Extension inventory could not be refreshed","error"))} />
           )}
           {section.startsWith("custom:") && renderCustomPage()}
           {section === "settings" && (
             <section className="detail-view settings-view">
               <h3>INTERFACE CONFIGURATION</h3>
-              <div className="setting-block">
-                <header>
-                  <span>DISPLAY MATRIX</span>
-                  <small>SELECT VISUAL THEME</small>
-                </header>
-                <div className="settings-themes">
-                  {themes.map((t, i) => (
-                    <button
-                      className={theme === t[0] ? "selected" : ""}
-                      key={t[0]}
-                      onClick={() => choose(t[0])}
-                    >
-                      <i>0{i + 1}</i>
-                      <b>{t[1]}</b>
-                      <small>{t[2]}</small>
-                    </button>
-                  ))}
+              <nav className="settings-area-tabs" aria-label="Settings categories">
+                {([
+                  ["interface","INTERFACE","Themes, profiles, access"],
+                  ["workspace","WORKSPACE","Windows, controls, pages"],
+                  ["connected","CONNECTED","PADD and modules"],
+                  ["system","SYSTEM","Shell and recovery"],
+                ] as [SettingsArea,string,string][]).map(([area,label,detail],index)=><button key={area} className={settingsArea===area?"active":""} onClick={()=>setSettingsArea(area)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label}</b><small>{detail}</small></span></button>)}
+              </nav>
+              <div className={`settings-area-body settings-area-${settingsArea}`}>
+              {settingsArea==="interface"&&<>
+                <div className="setting-block settings-display-matrix">
+                  <header>
+                    <span>DISPLAY MATRIX</span>
+                    <small>SELECT VISUAL THEME</small>
+                  </header>
+                  <div className="settings-themes">
+                    {themes.map((t, i) => (
+                      <button
+                        className={theme === t[0] ? "selected" : ""}
+                        key={t[0]}
+                        onClick={() => choose(t[0])}
+                      >
+                        <i>0{i + 1}</i>
+                        <b>{t[1]}</b>
+                        <small>{t[2]}</small>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <DesktopExperience
+                <DesktopExperience
                 profiles={profiles}
                 activeProfile={activeProfile}
                 createProfile={createProfile}
@@ -2425,9 +2438,19 @@ export default function Home() {
                 command={() => setPaletteOpen(true)}
                 action={coreAction}
               />
-              <WorkspaceWindowPanel windows={workspaceWindows} peeks={speedDialPages.length} arrange={arrangePopupLayout} reset={resetPopupLayout} closePeeks={closeAllPagePeeks} command={(popupKey,command)=>window.dispatchEvent(new CustomEvent(workspaceCommandEvent,{detail:{popupKey,command}}))}/>
-              <PaddLinkPanel status={paddStatus} busy={paddBusy} refresh={refreshPadd} operate={operatePadd}/>
-              <ShellSettings
+              </>}
+              {settingsArea==="workspace"&&<>
+                <WorkspaceWindowPanel windows={workspaceWindows} peeks={speedDialPages.length} arrange={arrangePopupLayout} reset={resetPopupLayout} closePeeks={closeAllPagePeeks} command={(popupKey,command)=>window.dispatchEvent(new CustomEvent(workspaceCommandEvent,{detail:{popupKey,command}}))}/>
+                <TrayCommandDeckEditor shortcuts={trayShortcuts} apps={apps} routines={routines} customPages={customPages} change={saveTrayShortcuts}/>
+                <ControlMappingEditor mappings={controlMappings} routines={routines} change={saveControlMappings}/>
+                <CustomPageManager pages={customPages} apps={apps} extensions={extensions} change={saveCustomPages}/>
+              </>}
+              {settingsArea==="connected"&&<>
+                <PaddLinkPanel status={paddStatus} busy={paddBusy} refresh={refreshPadd} operate={operatePadd}/>
+                <ExtensionSettings extensions={extensions}/>
+              </>}
+              {settingsArea==="system"&&<>
+                <ShellSettings
                 platform={platform}
                 prefs={prefs}
                 extensions={extensions}
@@ -2444,11 +2467,7 @@ export default function Home() {
                 quarantinedExtensions={quarantinedExtensions}
                 clearExtensionQuarantine={clearExtensionQuarantine}
               />
-              <TrayCommandDeckEditor shortcuts={trayShortcuts} apps={apps} routines={routines} customPages={customPages} change={saveTrayShortcuts}/>
-              <ControlMappingEditor mappings={controlMappings} routines={routines} change={saveControlMappings}/>
-              <CustomPageManager pages={customPages} apps={apps} extensions={extensions} change={saveCustomPages}/>
-              <ExtensionSettings extensions={extensions}/>
-              <div className="settings-grid">
+                <div className="settings-grid settings-quick-grid">
                 <button onClick={()=>setRoutineCenterOpen(true)}><b>OPERATIONS AUTOMATION</b><small>BUILD, PREVIEW, AND RUN MULTI-STEP ROUTINES</small></button>
                 <button onClick={()=>setHistoryOpen(true)}><b>COMMUNICATIONS CENTER</b><small>NOTICES, PRIORITIES, AND COMMAND ACTIVITY</small></button>
                 <button onClick={() => setEditOpen(true)}>
@@ -2488,6 +2507,8 @@ export default function Home() {
                       : "RESTORE PLASMA PANELS"}
                   </small>
                 </button>
+              </div>
+              </>}
               </div>
             </section>
           )}
@@ -2567,7 +2588,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version27Welcome close={()=>{localStorage.setItem("lcars-whats-new-v27","1");setWhatsNewOpen(false);}} openConnected={()=>{localStorage.setItem("lcars-whats-new-v27","1");setWhatsNewOpen(false);setSection("settings");}}/>}
+      {whatsNewOpen&&<Version27Welcome close={()=>{localStorage.setItem("lcars-whats-new-v27","1");setWhatsNewOpen(false);}} openConnected={()=>{localStorage.setItem("lcars-whats-new-v27","1");setWhatsNewOpen(false);setSettingsArea("connected");setSection("settings");}}/>}
       {paletteOpen && (
         <CommandPalette
           query={paletteQuery}
@@ -3046,19 +3067,29 @@ function UpdateCenter({
   refreshExtensions: () => void;
 }) {
   const windows = platform.includes("WINDOWS");
+  const [area,setArea]=useState<UpdateArea>("releases");
   const [updateBusy,setUpdateBusy]=useState<""|"check"|"download"|"install"|"rollback">("");
+  const operationLock=useRef(false);
+  const [downloadLocked,setDownloadLocked]=useState(()=>typeof window!=="undefined"&&sessionStorage.getItem("lcars-update-download-locked-v27")==="1");
   const updateOperation=async(operation:"check"|"download"|"install"|"rollback",channel:"stable"|"development"|"stable-release"=prefs.updateChannel)=>{
+    if(operationLock.current||(operation==="download"&&downloadLocked))return;
+    operationLock.current=true;
+    if(operation==="download"){
+      setDownloadLocked(true);
+      sessionStorage.setItem("lcars-update-download-locked-v27","1");
+    }
     setUpdateBusy(operation);
     try{
       const response=await fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,path:update?.path||"",channel})});
       const result:UpdateInfo=await response.json();
-      setUpdate(result);
+      setUpdate({...update,...result});
       if(!response.ok||!result.ok)notify(result.error||"GitHub update service could not be reached","error");
       else notify(result.message||(result.available?`LCARS ${result.version} is available`:"LCARS is up to date"));
       if(result.closeApp)window.setTimeout(()=>window.close(),700);
     }catch{notify("GitHub update service could not be reached","error");}
-    finally{setUpdateBusy("");}
+    finally{operationLock.current=false;setUpdateBusy("");}
   };
+  const downloadBlocked=Boolean(updateBusy)||(downloadLocked&&Boolean(update?.available)&&!update?.downloaded);
   return (
     <section className="detail-view update-center">
       <h3>SOFTWARE UPDATE CONTROL</h3>
@@ -3071,9 +3102,17 @@ function UpdateCenter({
             this console.
           </p>
         </div>
-        <i>04</i>
+        <i>03</i>
       </header>
-      <div className="update-grid">
+      <nav className="update-area-tabs" aria-label="Update categories">
+        {([
+          ["releases","RELEASES","System, LCARS, integrations"],
+          ["modules","MODULES","Official and community repositories"],
+          ["diagnostics","DIAGNOSTICS","Health, repair, support export"],
+        ] as [UpdateArea,string,string][]).map(([next,label,detail],index)=><button key={next} className={area===next?"active":""} onClick={()=>setArea(next)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label}</b><small>{detail}</small></span></button>)}
+      </nav>
+      {area==="releases"&&<>
+      <div className="update-grid update-release-grid">
         <UpdatePanel
           number="01"
           eyebrow={
@@ -3097,17 +3136,19 @@ function UpdateCenter({
           title="LCARS INTERFACE"
           status={updateBusy?updateBusy.toUpperCase()+"…":update?.downloaded?"VERIFIED / READY":update?.available?`V${update.version} AVAILABLE`:`V${update?.current||LCARS_VERSION} · ${prefs.updateChannel.toUpperCase()}`}
           description={update?.available?`A newer signed release is available from GitHub${update.asset?.name?`: ${update.asset.name}`:""}.`:"Background checks stay silent when offline. Manual checks report useful connection and verification details here."}
-          primary={update?.downloaded?"INSTALL VERIFIED UPDATE":update?.available?"DOWNLOAD & VERIFY":"CHECK FOR LCARS UPDATE"}
+          primary={update?.downloaded?"INSTALL VERIFIED UPDATE":downloadLocked&&update?.available?"DOWNLOAD LOCKED · RESTART LCARS":update?.available?"DOWNLOAD & VERIFY":"CHECK FOR LCARS UPDATE"}
           secondary={update?.rollback?.available?"RESTORE PREVIOUS RELEASE":"ROLLBACK STATUS"}
           primaryAction={() => updateOperation(update?.downloaded?"install":update?.available?"download":"check",update?.stableTransition?"stable-release":prefs.updateChannel)}
           secondaryAction={() => updateOperation("rollback")}
           tertiary={prefs.updateChannel==="development"?"CHECK FOR VERSION 27 STABLE":""}
           tertiaryAction={prefs.updateChannel==="development"?()=>updateOperation("check","stable-release"):undefined}
+          primaryDisabled={downloadBlocked}
+          secondaryDisabled={Boolean(updateBusy)}
+          tertiaryDisabled={Boolean(updateBusy)||downloadLocked}
           stamp={update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:update?.rollback?.available?`ROLLBACK ${update.rollback.sha256?.slice(0,12).toUpperCase()||"ARCHIVED"}… · PREVIOUS LINUX RELEASE READY`:"AUTOMATIC GITHUB RELEASE CHANNEL · BACKGROUND ERRORS SILENT"}
         />
-        <ExtensionHub installed={extensions} catalog={catalog} sources={sources} setCatalog={setCatalog} setSources={setSources} disabled={disabled} setDisabled={setDisabled} refresh={refreshExtensions} notify={notify} openFolder={()=>action("extension-folder")}/>
         <UpdatePanel
-          number="04"
+          number="03"
           eyebrow="DESKTOP ADAPTERS"
           title="INTEGRATION COMPONENTS"
           status="LOCAL"
@@ -3127,13 +3168,15 @@ function UpdateCenter({
         </div>
       </aside>
       {update?.notes && <details className="release-notes"><summary>RELEASE NOTES · VERSION {update.version}</summary><pre>{update.notes}</pre></details>}
-      <DiagnosticsCenter health={health} notify={notify} action={action} />
+      </>}
+      {area==="modules"&&<ExtensionHub openByDefault installed={extensions} catalog={catalog} sources={sources} setCatalog={setCatalog} setSources={setSources} disabled={disabled} setDisabled={setDisabled} refresh={refreshExtensions} notify={notify} openFolder={()=>action("extension-folder")}/>}
+      {area==="diagnostics"&&<DiagnosticsCenter health={health} notify={notify} action={action} />}
     </section>
   );
 }
 
-function ExtensionHub({installed,catalog,sources,setCatalog,setSources,disabled,setDisabled,refresh,notify,openFolder}:{installed:ExtensionManifest[];catalog:ExtensionCatalogEntry[];sources:ModuleRepositorySource[];setCatalog:(items:ExtensionCatalogEntry[])=>void;setSources:(items:ModuleRepositorySource[])=>void;disabled:string[];setDisabled:(ids:string[])=>void;refresh:()=>void;notify:(text:string,kind?:"info"|"error")=>void;openFolder:()=>void}){
-  const [query,setQuery]=useState(""),[busy,setBusy]=useState(""),[expanded,setExpanded]=useState(false),[details,setDetails]=useState(""),[sourceUrl,setSourceUrl]=useState(""),[sourceBay,setSourceBay]=useState(false),[publisherOpen,setPublisherOpen]=useState(false),[publisherModule,setPublisherModule]=useState(installed[0]?.id||""),[publisherRepository,setPublisherRepository]=useState("YOUR-GITHUB-NAME/YOUR-REPOSITORY"),[publisherResult,setPublisherResult]=useState<{path?:string;sha256?:string;files?:string[]}|null>(null);
+function ExtensionHub({installed,catalog,sources,setCatalog,setSources,disabled,setDisabled,refresh,notify,openFolder,openByDefault=false}:{installed:ExtensionManifest[];catalog:ExtensionCatalogEntry[];sources:ModuleRepositorySource[];setCatalog:(items:ExtensionCatalogEntry[])=>void;setSources:(items:ModuleRepositorySource[])=>void;disabled:string[];setDisabled:(ids:string[])=>void;refresh:()=>void;notify:(text:string,kind?:"info"|"error")=>void;openFolder:()=>void;openByDefault?:boolean}){
+  const [query,setQuery]=useState(""),[busy,setBusy]=useState(""),[expanded,setExpanded]=useState(openByDefault),[details,setDetails]=useState(""),[sourceUrl,setSourceUrl]=useState(""),[sourceBay,setSourceBay]=useState(false),[publisherOpen,setPublisherOpen]=useState(false),[publisherModule,setPublisherModule]=useState(installed[0]?.id||""),[publisherRepository,setPublisherRepository]=useState("YOUR-GITHUB-NAME/YOUR-REPOSITORY"),[publisherResult,setPublisherResult]=useState<{path?:string;sha256?:string;files?:string[]}|null>(null);
   const inventory=useMemo(()=>{const known=new Map<string,ExtensionCatalogEntry>();catalog.forEach((entry)=>known.set(entry.id,entry));installed.forEach((extension)=>{if(!known.has(extension.id))known.set(extension.id,{id:extension.id,name:extension.name,version:extension.version,description:extension.description,author:extension.author,capabilities:extension.capabilities,installed:true});});return Array.from(known.values()).filter((entry)=>`${entry.name} ${entry.description} ${entry.author} ${entry.capabilities.join(" ")}`.toLowerCase().includes(query.toLowerCase()));},[catalog,installed,query]);
   const repositoryEntries=catalog.filter((entry)=>Boolean((entry as ExtensionCatalogEntry&{repository?:boolean}).repository));
   const updateCount=repositoryEntries.filter((entry)=>Boolean((entry as ExtensionCatalogEntry&{updateAvailable?:boolean}).updateAvailable)).length;
@@ -3185,6 +3228,9 @@ function UpdatePanel({
   secondaryAction,
   tertiary,
   tertiaryAction,
+  primaryDisabled,
+  secondaryDisabled,
+  tertiaryDisabled,
   stamp,
 }: {
   number: string;
@@ -3198,6 +3244,9 @@ function UpdatePanel({
   secondaryAction: () => void;
   tertiary?: string;
   tertiaryAction?: () => void;
+  primaryDisabled?: boolean;
+  secondaryDisabled?: boolean;
+  tertiaryDisabled?: boolean;
   stamp?: string;
 }) {
   return (
@@ -3218,9 +3267,9 @@ function UpdatePanel({
         </div>
       )}
       <div className="update-actions">
-        <button onClick={primaryAction}>{primary}</button>
-        <button onClick={secondaryAction}>{secondary}</button>
-        {tertiary&&tertiaryAction&&<button onClick={tertiaryAction}>{tertiary}</button>}
+        <button disabled={primaryDisabled} onClick={primaryAction}>{primary}</button>
+        <button disabled={secondaryDisabled} onClick={secondaryAction}>{secondary}</button>
+        {tertiary&&tertiaryAction&&<button disabled={tertiaryDisabled} onClick={tertiaryAction}>{tertiary}</button>}
       </div>
     </article>
   );

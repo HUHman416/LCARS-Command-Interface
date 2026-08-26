@@ -25,7 +25,7 @@ test('integrated Module Repository is the Updates slot 03 browser',()=>{
   assert.match(page,/BROWSE MODULES/);
   assert.match(page,/SEARCH MODULE REPOSITORY/);
   assert.match(page,/operate\(entry,"update"\)/);
-  assert.equal((page.match(/<ExtensionHub installed=\{extensions\}/g)||[]).length,1);
+  assert.equal((page.match(/<ExtensionHub openByDefault installed=\{extensions\}/g)||[]).length,1);
 });
 
 test('desktop renderer loads Version 26.1 styling after Version 25',()=>{
@@ -36,6 +36,6 @@ test('desktop renderer loads Version 26.1 styling after Version 25',()=>{
 });
 
 test('newer candidates retain Version 26.1 repository coverage',()=>{
-  assert.ok(['27.1.1-dev.1','26.3.0-dev.1','26.0.0'].includes(packageJson.version));
-  assert.match(page,/27\.1(?:\.1)? DEV|26\.3 RC|26 STABLE/);
+  assert.ok(['27.2.0-dev.1','27.1.1-dev.1','26.3.0-dev.1','26.0.0'].includes(packageJson.version));
+  assert.match(page,/27\.2 DEV|27\.1(?:\.1)? DEV|26\.3 RC|26 STABLE/);
 });

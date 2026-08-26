@@ -31,7 +31,7 @@
 > Existing installations can update from **Updates → LCARS Interface**. The Stable channel follows major releases such as `v26`; Development remains available for opt-in test builds.
 
 > [!TIP]
-> **Version 27.1.1 is available on the Development channel.** It introduces Connected LCARS with a paired phone/tablet PADD companion and native context actions for compatible Linux tray services. Android operators can directly install the [Version 27.1.1 PADD Companion APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.1.1/LCARS-PADD-Companion-v27.1.1-Android.apk). Version 26 remains the unchanged Stable channel while Version 27 is tested.
+> **Version 27.2 is available on the Development channel.** The PADD Companion is now a fully native standalone Android interface with guided pairing, while Desktop Settings and Updates use focused category consoles. Update downloads are locked and cached for the rest of the LCARS session to prevent a second download from replacing the installer being mounted. Android operators can directly install the [Version 27.2 PADD Companion APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.2/LCARS-PADD-Companion-v27.2-Android.apk). Version 26 remains the unchanged Stable channel while Version 27 is tested.
 
 ## 📥 Choose your download
 
@@ -61,17 +61,19 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
 
-## 🧪 Version 27.1 development update
+## 🧪 Version 27.2 development update
 
-- Version 27.1.1 fixes the disabled **Arm Pairing Code** control when the secure PADD listener is offline by default.
-- Adds a touch-first **PADD Companion** for phones and tablets on the same trusted local network. Pairing is off by default and uses a one-use, five-minute code.
-- Includes a directly installable Android APK with a native station-connection screen, remembered address, private-network allowlist, and locked-down WebView. This Development APK is intended for sideload testing and is not a Play Store release.
+- Replaces the Android WebView wrapper with a standalone native **PADD Companion** interface for status, communications, media, audio, page navigation, routines, and approved application commands.
+- Adds a guided three-step pairing station under **Settings → Connected**, with direct APK download, one-use code arming, copyable station details, reconnection guidance, device roles, and revocation.
+- Reorganizes **Settings** into Interface, Workspace, Connected, and System consoles and **Updates** into Releases, Modules, and Diagnostics so standard-size displays render one useful workspace instead of every panel in one vertical stack.
+- Locks the Download control as soon as a release download begins and keeps it locked until LCARS restarts. The bridge also serializes downloads and reuses the verified artifact instead of replacing it.
+- Retains the Version 27.1.1 pairing-arm hotfix, one-use five-minute codes, and native context actions for compatible Linux tray services.
 - Stores only hashed device tokens and enforces revocable **Viewer**, **Operator**, and **Command** roles in the local core.
 - Shares live LCARS status, communications, media, master volume, pages, routines, and favorite applications according to the assigned role.
 - Never exposes Terminal, Files, process controls, or computer power actions to a paired PADD.
 - Adds native context actions for compatible Linux StatusNotifier tray services. Right-click a service, press the keyboard menu key, or choose **Actions** to open the application's own menu, including actions such as Discord Quit.
 
-To try it, select **Development** under Settings → Desktop Shell Control, save, and check for an LCARS update. Install the Android APK on the phone or tablet, then open **Settings → PADD Companion Link** on the desktop and arm a pairing code. Enter the displayed private IPv4 address in the app and use the six-digit code to pair. Use this first preview only on a network you trust; the companion link is local HTTP and is not intended for internet exposure.
+To try it, select **Development** under Settings → System, save, and check for an LCARS update. Install the Android APK on the phone or tablet, then open **Settings → Connected** on the desktop and follow the numbered setup. Use this preview only on a network you trust; the companion link is local HTTP and is not intended for internet exposure.
 
 ## 🆕 Version 26 highlights
 

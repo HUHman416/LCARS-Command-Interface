@@ -3,18 +3,18 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-const workflow = read(".github/workflows/v27-1-development.yml");
+const workflow = read(".github/workflows/v27-2-development.yml");
 const manifest = read("mobile/android/app/src/main/AndroidManifest.xml");
 const activity = read("mobile/android/app/src/main/java/com/lcars/padd/MainActivity.java");
 const guard = read("mobile/android/app/src/main/java/com/lcars/padd/StationAddress.java");
 const security = read("mobile/android/app/src/main/res/xml/network_security_config.xml");
 
-test("Version 27.1.1 publishes a directly installable Android companion", () => {
+test("Version 27.2 publishes a directly installable Android companion", () => {
   assert.match(workflow, /android:[\s\S]*gradle-version: 8\.9/);
   assert.match(workflow, /:app:assembleDebug/);
-  assert.match(workflow, /LCARS-PADD-Companion-v27\.1\.1-Android\.apk/);
+  assert.match(workflow, /LCARS-PADD-Companion-v27\.2-Android\.apk/);
   assert.match(workflow, /needs: \[linux, windows, android\]/);
-  assert.match(workflow, /sha256sum[^\n]*LCARS-PADD-Companion-v27\.1\.1-Android\.apk/);
+  assert.match(workflow, /sha256sum[^\n]*LCARS-PADD-Companion-v27\.2-Android\.apk/);
 });
 
 test("Android companion declares only networking and a non-exported surface beyond its launcher", () => {
@@ -27,13 +27,13 @@ test("Android companion declares only networking and a non-exported surface beyo
   assert.match(security, /cleartextTrafficPermitted="true"/);
 });
 
-test("Android WebView is pinned to the paired private station", () => {
+test("Android companion owns its native UI and is pinned to the paired private station", () => {
   for (const source of ["10", "172", "192", "PADD_PORT = 8766"]) assert.match(guard, new RegExp(source));
   assert.match(guard, /isAllowedUrl/);
-  assert.match(activity, /setAllowFileAccess\(false\)/);
-  assert.match(activity, /setAllowContentAccess\(false\)/);
-  assert.match(activity, /MIXED_CONTENT_NEVER_ALLOW/);
-  assert.match(activity, /External navigation blocked by LCARS/);
-  assert.doesNotMatch(activity, /addJavascriptInterface/);
+  assert.match(activity, /HttpURLConnection/);
+  assert.match(activity, /api\/padd\/(?:pair|state|action)/);
+  assert.match(activity, /STANDALONE PADD/);
+  assert.match(activity, /STATUS.*MEDIA.*COMMAND/s);
+  assert.doesNotMatch(activity, /WebView|addJavascriptInterface/);
   assert.match(activity, /LAST_STATION/);
 });
