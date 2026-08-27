@@ -13,7 +13,7 @@ from lcars_documents import read_document, write_document
 from lcars_padd import PaddController
 
 PORT=8765
-LCARS_VERSION="27.2.1-dev.1"
+LCARS_VERSION="28.1-dev.1"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -852,6 +852,7 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/tray": self.send_json(tray_data())
         elif route=="/api/padd-pairing": self.send_json(PADD.status(True))
         elif route=="/api/padd-commands": self.send_json({"commands":PADD.pop_commands()})
+        elif route=="/api/padd-events": self.send_json({"events":PADD.pop_events()})
         elif route=="/api/voice-status": self.send_json(voice_status())
         elif route=="/api/compat": self.send_json(linux_environment())
         elif route=="/api/audio": self.send_json(audio_data())

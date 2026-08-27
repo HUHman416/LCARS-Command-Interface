@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guarded local-network PADD companion service for LCARS Version 27."""
+"""Guarded local-network PADD companion service for LCARS Version 28."""
 from __future__ import annotations
 
 import hashlib
@@ -27,7 +27,16 @@ ACTION_ROLES = {
     "dnd": "command",
     "routine": "command",
     "app": "command",
+    "workstation": "command",
+    "notice-read": "operator",
+    "notice-archive": "operator",
+    "quick": "operator",
+    "handoff": "operator",
+    "clipboard": "command",
 }
+PERMISSION_NAMES = tuple(ACTION_ROLES) + ("autoApprove", "communications", "telemetry")
+APPROVAL_ACTIONS = {"routine", "app", "workstation", "handoff", "clipboard"}
+DEFAULT_WIDGETS = ["status", "media", "communications", "telemetry", "quick-actions"]
 
 
 class ReusableThreadingHTTPServer(ThreadingHTTPServer):
@@ -37,6 +46,17 @@ class ReusableThreadingHTTPServer(ThreadingHTTPServer):
 
 def _clean_text(value, limit=80):
     return " ".join(str(value or "").split())[:limit]
+
+
+def _bounded_int(value, minimum, maximum, fallback=0):
+    try:
+        return max(minimum, min(maximum, int(value)))
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _clean_clipboard(value, limit=4000):
+    return str(value or "").replace("\x00", "")[:limit]
 
 
 class PaddController:
@@ -53,6 +73,10 @@ class PaddController:
         self.pairing = None
         self.failed_attempts = {}
         self.commands = deque(maxlen=100)
+        self.approvals = deque(maxlen=100)
+        self.events = deque(maxlen=100)
+        self.signals = {}
+        self.presence = {}
         self.shared_state = {
             "page": "overview",
             "theme": "classic",
@@ -64,6 +88,13 @@ class PaddController:
             "apps": [],
             "notices": [],
             "doNotDisturb": False,
+            "activeWorkstation": "",
+            "workstations": [],
+            "quickActions": [],
+            "routineStatus": [],
+            "handoff": None,
+            "accessibility": {},
+            "release": {},
             "updatedAt": 0,
         }
         self.server = None
@@ -72,12 +103,14 @@ class PaddController:
     def _load(self):
         try:
             value = json.loads(self.device_file.read_text(encoding="utf-8"))
-            devices = value.get("devices", []) if isinstance(value, dict) else []
+            value = value if isinstance(value, dict) else {}
+            devices = value.get("devices", [])
             clean = []
             for device in devices[:24]:
                 if not isinstance(device, dict) or not str(device.get("tokenHash", "")):
                     continue
                 role = str(device.get("role", "viewer"))
+                permissions = device.get("permissions", {}) if isinstance(device.get("permissions"), dict) else {}
                 clean.append({
                     "id": _clean_text(device.get("id"), 64),
                     "name": _clean_text(device.get("name") or "PADD", 48),
@@ -85,10 +118,28 @@ class PaddController:
                     "tokenHash": str(device.get("tokenHash")),
                     "createdAt": int(device.get("createdAt", 0) or 0),
                     "lastSeen": int(device.get("lastSeen", 0) or 0),
+                    "lastAddress": _clean_text(device.get("lastAddress"), 64),
+                    "connectionCount": max(0, int(device.get("connectionCount", 0) or 0)),
+                    "battery": _bounded_int(device.get("battery", -1), -1, 100, -1),
+                    "network": _clean_text(device.get("network"), 32),
+                    "latencyMs": max(0, min(60_000, int(device.get("latencyMs", 0) or 0))),
+                    "clientVersion": _clean_text(device.get("clientVersion"), 32),
+                    "permissions": {name: bool(permissions[name]) for name in PERMISSION_NAMES if name in permissions},
+                    "widgets": [str(item) for item in device.get("widgets", DEFAULT_WIDGETS) if str(item) in DEFAULT_WIDGETS][:8] or list(DEFAULT_WIDGETS),
+                    "workstation": _clean_text(device.get("workstation"), 64),
+                    "proximity": bool(device.get("proximity", False)),
                 })
-            return {"enabled": bool(value.get("enabled", False)), "devices": clean}
+            activity = value.get("activity", []) if isinstance(value.get("activity"), list) else []
+            activity = [item for item in activity[-200:] if isinstance(item, dict)]
+            return {
+                "schema": 2,
+                "enabled": bool(value.get("enabled", False)),
+                "clipboardEnabled": bool(value.get("clipboardEnabled", False)),
+                "devices": clean,
+                "activity": activity,
+            }
         except Exception:
-            return {"enabled": False, "devices": []}
+            return {"schema": 2, "enabled": False, "clipboardEnabled": False, "devices": [], "activity": []}
 
     def _save(self, value):
         self.config_dir.mkdir(parents=True, exist_ok=True)
@@ -123,11 +174,64 @@ class PaddController:
 
     @staticmethod
     def _public_device(device):
-        return {key: device.get(key) for key in ("id", "name", "role", "createdAt", "lastSeen")}
+        result = {key: device.get(key) for key in (
+            "id", "name", "role", "createdAt", "lastSeen", "lastAddress", "connectionCount",
+            "battery", "network", "latencyMs", "clientVersion", "permissions", "widgets",
+            "workstation", "proximity",
+        )}
+        result["online"] = bool(device.get("lastSeen") and int(time.time()) - int(device["lastSeen"]) <= 20)
+        return result
+
+    @staticmethod
+    def _append_activity(record, action, device=None, status="complete", detail=""):
+        item = {
+            "id": uuid.uuid4().hex,
+            "action": _clean_text(action, 64),
+            "device": _clean_text((device or {}).get("id"), 64),
+            "deviceName": _clean_text((device or {}).get("name") or "LCARS CORE", 48),
+            "status": _clean_text(status, 24),
+            "detail": _clean_text(detail, 160),
+            "createdAt": int(time.time()),
+        }
+        record["activity"] = [*record.get("activity", [])[-199:], item]
+        return item
+
+    def _refresh_presence(self, record):
+        changed = False
+        now = int(time.time())
+        for device in record["devices"]:
+            online = bool(device.get("lastSeen") and now - int(device["lastSeen"]) <= 20)
+            previous = self.presence.get(device["id"])
+            self.presence[device["id"]] = online
+            if previous is None or previous == online:
+                continue
+            event = {
+                "id": uuid.uuid4().hex,
+                "type": "device-connected" if online else "device-disconnected",
+                "device": device["id"],
+                "deviceName": device["name"],
+                "workstation": device.get("workstation", ""),
+                "proximity": bool(device.get("proximity", False)),
+                "createdAt": now,
+            }
+            self.events.append(event)
+            self._append_activity(record, event["type"], device, detail=device.get("network", ""))
+            changed = True
+        return changed
+
+    @staticmethod
+    def _capability(device, action):
+        required = ACTION_ROLES.get(action)
+        if not required or ROLES.get(device.get("role", "viewer"), 0) < ROLES[required]:
+            return False
+        override = (device.get("permissions") or {}).get(action)
+        return bool(override) if override is not None else True
 
     def status(self, include_pairing=False):
         with self.lock:
             record = self._load()
+            if self._refresh_presence(record):
+                self._save(record)
             active = self.pairing if self.pairing and self.pairing["expiresAt"] > time.time() else None
             if not active:
                 self.pairing = None
@@ -141,6 +245,16 @@ class PaddController:
                 "platform": self.platform,
                 "addresses": self._addresses(),
                 "devices": [self._public_device(item) for item in record["devices"]],
+                "clipboardEnabled": record["clipboardEnabled"],
+                "activity": list(reversed(record["activity"][-60:])),
+                "approvals": [{key: item.get(key) for key in ("id", "action", "value", "device", "deviceName", "createdAt")} for item in self.approvals],
+                "diagnostics": {
+                    "connected": sum(1 for item in record["devices"] if self._public_device(item)["online"]),
+                    "paired": len(record["devices"]),
+                    "pendingApprovals": len(self.approvals),
+                    "queuedCommands": len(self.commands),
+                    "eventBacklog": len(self.events),
+                },
                 "pairing": None,
             }
             if active:
@@ -169,7 +283,10 @@ class PaddController:
                 return {**self.status(True), "message": "PADD companion link disabled"}
             if operation == "revoke":
                 ident = _clean_text(data.get("id"), 64)
+                target = next((item for item in record["devices"] if item["id"] == ident), None)
                 record["devices"] = [item for item in record["devices"] if item["id"] != ident]
+                self.approvals = deque((item for item in self.approvals if item["device"] != ident), maxlen=100)
+                self._append_activity(record, "device-revoked", target, detail="Access token revoked")
                 self._save(record)
                 return {**self.status(True), "message": "Paired PADD access revoked"}
             if operation == "role":
@@ -183,8 +300,50 @@ class PaddController:
                         matched = True
                 if not matched:
                     raise ValueError("Paired PADD was not found")
+                self._append_activity(record, "role-changed", next(item for item in record["devices"] if item["id"] == ident), detail=role)
                 self._save(record)
                 return {**self.status(True), "message": f"PADD role changed to {role.upper()}"}
+            if operation in {"rename", "permissions", "profile", "layout", "proximity", "identify"}:
+                ident = _clean_text(data.get("id"), 64)
+                device = next((item for item in record["devices"] if item["id"] == ident), None)
+                if not device:
+                    raise ValueError("Paired PADD was not found")
+                if operation == "rename":
+                    device["name"] = _clean_text(data.get("value") or data.get("name") or "PADD", 48)
+                elif operation == "permissions":
+                    values = data.get("permissions", {}) if isinstance(data.get("permissions"), dict) else {}
+                    device["permissions"] = {name: bool(values[name]) for name in PERMISSION_NAMES if name in values}
+                elif operation == "profile":
+                    device["workstation"] = _clean_text(data.get("value") or data.get("workstation"), 64)
+                elif operation == "layout":
+                    values = data.get("widgets", []) if isinstance(data.get("widgets"), list) else []
+                    device["widgets"] = [str(item) for item in values if str(item) in DEFAULT_WIDGETS][:8] or list(DEFAULT_WIDGETS)
+                elif operation == "proximity":
+                    device["proximity"] = bool(data.get("enabled", data.get("value", False)))
+                else:
+                    self.signals[ident] = {"id": uuid.uuid4().hex, "type": "identify", "createdAt": int(time.time())}
+                self._append_activity(record, operation, device, detail=_clean_text(data.get("value"), 96))
+                self._save(record)
+                return {**self.status(True), "message": f"PADD {operation} updated"}
+            if operation == "clipboard":
+                record["clipboardEnabled"] = bool(data.get("enabled", data.get("value", False)))
+                self._append_activity(record, "clipboard-sharing", detail="enabled" if record["clipboardEnabled"] else "disabled")
+                self._save(record)
+                return {**self.status(True), "message": f"Text clipboard sharing {'enabled' if record['clipboardEnabled'] else 'disabled'}"}
+            if operation in {"approve", "deny"}:
+                ident = _clean_text(data.get("approvalId") or data.get("id"), 64)
+                pending = next((item for item in self.approvals if item["id"] == ident), None)
+                if not pending:
+                    raise ValueError("Approval request was not found")
+                self.approvals = deque((item for item in self.approvals if item["id"] != ident), maxlen=100)
+                if operation == "approve":
+                    pending["approvedAt"] = int(time.time())
+                    self.commands.append(pending)
+                device = next((item for item in record["devices"] if item["id"] == pending["device"]), None)
+                outcome = "approved" if operation == "approve" else "denied"
+                self._append_activity(record, f"request-{outcome}", device, status=outcome, detail=pending["action"])
+                self._save(record)
+                return {**self.status(True), "message": f"PADD request {outcome}"}
             return self.status(True)
 
     def pair(self, code, name, address):
@@ -208,13 +367,24 @@ class PaddController:
                 "tokenHash": hashlib.sha256(token.encode()).hexdigest(),
                 "createdAt": int(now),
                 "lastSeen": int(now),
+                "lastAddress": _clean_text(address, 64),
+                "connectionCount": 1,
+                "battery": -1,
+                "network": "local-network",
+                "latencyMs": 0,
+                "clientVersion": "",
+                "permissions": {},
+                "widgets": list(DEFAULT_WIDGETS),
+                "workstation": "",
+                "proximity": False,
             }
             record["devices"] = [*record["devices"][-23:], device]
+            self._append_activity(record, "device-paired", device, detail=address)
             self.pairing = None
             self._save(record)
             return {"ok": True, "token": token, "device": self._public_device(device), "version": self.version, "message": "PADD paired"}
 
-    def authenticate(self, token):
+    def authenticate(self, token, address=""):
         digest = hashlib.sha256(str(token or "").encode()).hexdigest()
         with self.lock:
             record = self._load()
@@ -223,11 +393,44 @@ class PaddController:
             for device in record["devices"]:
                 if hmac.compare_digest(device["tokenHash"], digest):
                     now = int(time.time())
-                    if now - device["lastSeen"] > 60:
+                    was_online = bool(device.get("lastSeen") and now - int(device["lastSeen"]) <= 20)
+                    if now - device["lastSeen"] > 5 or (address and address != device.get("lastAddress")):
                         device["lastSeen"] = now
+                        if address:
+                            device["lastAddress"] = _clean_text(address, 64)
+                        if not was_online:
+                            device["connectionCount"] = int(device.get("connectionCount", 0)) + 1
                         self._save(record)
                     return self._public_device(device)
         return None
+
+    def heartbeat(self, device, data, address=""):
+        with self.lock:
+            record = self._load()
+            target = next((item for item in record["devices"] if item["id"] == device["id"]), None)
+            if not target:
+                raise PermissionError("PADD authorization required")
+            target["lastSeen"] = int(time.time())
+            target["lastAddress"] = _clean_text(address or target.get("lastAddress"), 64)
+            target["battery"] = _bounded_int(data.get("battery", -1), -1, 100, -1)
+            target["network"] = _clean_text(data.get("network") or "local-network", 32)
+            target["latencyMs"] = max(0, min(60_000, int(data.get("latencyMs", 0) or 0)))
+            target["clientVersion"] = _clean_text(data.get("version"), 32)
+            self._refresh_presence(record)
+            self._save(record)
+            return {"ok": True, "device": self._public_device(target)}
+
+    def mobile_preferences(self, device, data):
+        with self.lock:
+            record = self._load()
+            target = next((item for item in record["devices"] if item["id"] == device["id"]), None)
+            if not target:
+                raise PermissionError("PADD authorization required")
+            widgets = data.get("widgets", []) if isinstance(data.get("widgets"), list) else []
+            target["widgets"] = [str(item) for item in widgets if str(item) in DEFAULT_WIDGETS][:8] or list(DEFAULT_WIDGETS)
+            self._append_activity(record, "padd-layout", target, detail=", ".join(target["widgets"]))
+            self._save(record)
+            return {"ok": True, "device": self._public_device(target), "message": "PADD layout saved"}
 
     def mobile_status(self):
         status = self.status(False)
@@ -236,14 +439,30 @@ class PaddController:
     def state_for(self, device):
         with self.lock:
             state = json.loads(json.dumps(self.shared_state))
-        if device["role"] != "command":
+            signal = self.signals.get(device["id"])
+            clipboard_enabled = self._load()["clipboardEnabled"]
+        if not self._capability(device, "app"):
             state["apps"] = []
-        return {"ok": True, "device": device, "capabilities": {name: ROLES[device["role"]] >= ROLES[role] for name, role in ACTION_ROLES.items()}, "state": state}
+        if not (device.get("permissions") or {}).get("communications", True):
+            state["notices"] = []
+        if not (device.get("permissions") or {}).get("telemetry", True):
+            state["meters"] = []
+        state["widgets"] = device.get("widgets") or list(DEFAULT_WIDGETS)
+        capabilities = {name: self._capability(device, name) for name in ACTION_ROLES}
+        capabilities["clipboard"] = capabilities["clipboard"] and clipboard_enabled
+        return {
+            "ok": True,
+            "device": device,
+            "capabilities": capabilities,
+            "approvalRequired": {name: name in APPROVAL_ACTIONS and not bool((device.get("permissions") or {}).get("autoApprove", False)) for name in ACTION_ROLES},
+            "signal": signal,
+            "state": state,
+        }
 
     def queue_action(self, device, data):
         action = str(data.get("action", ""))
         required = ACTION_ROLES.get(action)
-        if not required or ROLES[device["role"]] < ROLES[required]:
+        if not required or not self._capability(device, action):
             raise PermissionError("This PADD role cannot perform that action")
         value = data.get("value")
         if action == "navigate":
@@ -258,14 +477,30 @@ class PaddController:
             value = max(0, min(100, int(value)))
         elif action == "dnd":
             value = value if isinstance(value, bool) else str(value).strip().lower() in {"1", "true", "yes", "on"}
+        elif action == "clipboard":
+            if not self._load()["clipboardEnabled"]:
+                raise PermissionError("Text clipboard sharing is disabled on the desktop")
+            value = _clean_clipboard(value)
+            if not value:
+                raise ValueError("Clipboard text is empty")
         else:
             value = _clean_text(value, 96)
             if not value:
                 raise ValueError("A command target is required")
         command = {"id": uuid.uuid4().hex, "action": action, "value": value, "device": device["id"], "deviceName": device["name"], "createdAt": int(time.time())}
         with self.lock:
-            self.commands.append(command)
-        return {"ok": True, "message": "Command transmitted to LCARS", "commandId": command["id"]}
+            record = self._load()
+            requires_approval = action in APPROVAL_ACTIONS and not bool((device.get("permissions") or {}).get("autoApprove", False))
+            if requires_approval:
+                self.approvals.append(command)
+                self._append_activity(record, "approval-requested", device, status="pending", detail=action)
+                message = "Request waiting for desktop approval"
+            else:
+                self.commands.append(command)
+                self._append_activity(record, "command-queued", device, detail=action)
+                message = "Command transmitted to LCARS"
+            self._save(record)
+        return {"ok": True, "message": message, "commandId": command["id"], "approvalRequired": requires_approval}
 
     def sync(self, value):
         if not isinstance(value, dict):
@@ -281,6 +516,13 @@ class PaddController:
             "routines": value.get("routines", [])[:48] if isinstance(value.get("routines"), list) else [],
             "apps": value.get("apps", [])[:48] if isinstance(value.get("apps"), list) else [],
             "notices": value.get("notices", [])[:24] if isinstance(value.get("notices"), list) else [],
+            "activeWorkstation": _clean_text(value.get("activeWorkstation"), 64),
+            "workstations": value.get("workstations", [])[:32] if isinstance(value.get("workstations"), list) else [],
+            "quickActions": value.get("quickActions", [])[:16] if isinstance(value.get("quickActions"), list) else [],
+            "routineStatus": value.get("routineStatus", [])[:24] if isinstance(value.get("routineStatus"), list) else [],
+            "handoff": value.get("handoff") if isinstance(value.get("handoff"), dict) else None,
+            "accessibility": value.get("accessibility", {}) if isinstance(value.get("accessibility"), dict) else {},
+            "release": value.get("release", {}) if isinstance(value.get("release"), dict) else {},
             "updatedAt": int(time.time()),
         }
         payload = json.dumps(clean)
@@ -294,6 +536,15 @@ class PaddController:
         with self.lock:
             values = list(self.commands)
             self.commands.clear()
+        return values
+
+    def pop_events(self):
+        with self.lock:
+            record = self._load()
+            self._refresh_presence(record)
+            self._save(record)
+            values = list(self.events)
+            self.events.clear()
         return values
 
     def start(self, force=False):
@@ -329,7 +580,7 @@ class PaddController:
             def device(self):
                 header = self.headers.get("Authorization", "")
                 token = header[7:] if header.startswith("Bearer ") else ""
-                return controller.authenticate(token)
+                return controller.authenticate(token, self.client_address[0])
 
             def do_GET(self):
                 route = urlparse(self.path).path
@@ -359,6 +610,16 @@ class PaddController:
                         if not device:
                             return self.send_json({"ok": False, "error": "PADD authorization required"}, 401)
                         return self.send_json(controller.queue_action(device, data))
+                    if route == "/api/padd/heartbeat":
+                        device = self.device()
+                        if not device:
+                            return self.send_json({"ok": False, "error": "PADD authorization required"}, 401)
+                        return self.send_json(controller.heartbeat(device, data, self.client_address[0]))
+                    if route == "/api/padd/preferences":
+                        device = self.device()
+                        if not device:
+                            return self.send_json({"ok": False, "error": "PADD authorization required"}, 401)
+                        return self.send_json(controller.mobile_preferences(device, data))
                     return self.send_json({"error": "not found"}, 404)
                 except PermissionError as exc:
                     return self.send_json({"ok": False, "error": str(exc)}, 403)

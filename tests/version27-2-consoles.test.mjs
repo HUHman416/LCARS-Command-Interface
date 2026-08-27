@@ -50,7 +50,7 @@ test("PADD pairing is guided and Android owns the companion interface", () => {
 });
 
 test("update downloads lock in the renderer and serialize in the bridge", () => {
-  assert.match(page, /lcars-update-download-locked-v27/);
+  assert.match(page, /lcars-update-download-locked-v28/);
   assert.match(page, /operationLock=useRef\(false\)/);
   assert.match(page, /DOWNLOAD LOCKED · RESTART LCARS/);
   assert.match(page, /primaryDisabled=\{downloadBlocked\}/);

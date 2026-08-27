@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/padd_widget_background"
+    android:orientation="vertical"
+    android:padding="14dp">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LCARS 28 · CONNECTED OPERATIONS"
+        android:textColor="#FF9868"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/widget_page"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:text="LINK STANDBY"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/widget_media"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="OPEN THE PADD TO CONNECT"
+        android:textColor="#C9C5CF"
+        android:textSize="13sp" />
+    <TextView
+        android:id="@+id/widget_volume"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:text="MASTER 0%"
+        android:textColor="#829AF1"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+</LinearLayout>

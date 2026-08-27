@@ -13,7 +13,7 @@ from lcars_documents import read_document, write_document
 from lcars_padd import PaddController
 
 PORT=8765
-LCARS_VERSION="27.2.1-dev.1"
+LCARS_VERSION="28.1-dev.1"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -488,6 +488,7 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/tray":return self.send_json({"items":[],"supported":False,"reason":"Windows does not expose a supported API for re-hosting every third-party notification icon; LCARS quick controls remain available"})
         if route=="/api/padd-pairing":return self.send_json(PADD.status(True))
         if route=="/api/padd-commands":return self.send_json({"commands":PADD.pop_commands()})
+        if route=="/api/padd-events":return self.send_json({"events":PADD.pop_events()})
         if route=="/api/voice-status":return self.send_json(voice_status())
         if route=="/api/audio":return self.send_json(audio_data())
         if route=="/api/audio-devices":return self.send_json({"devices":audio_devices()})

@@ -4,8 +4,9 @@ import fs from "node:fs";
 
 const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const page = read("app/page.tsx");
-const connected = read("app/v27-connected.tsx");
-const css = read("app/v27-1.css");
+const connected = read("app/v28-connected.tsx");
+const css = read("app/v28.css");
+const legacyCss = read("app/v27-1.css");
 const linux = read("local/lcars_bridge.py");
 const windows = read("windows/lcars_bridge_windows.py");
 const padd = read("shared/lcars_padd.py");
@@ -13,13 +14,13 @@ const builder = read("electron-builder.yml");
 const companion = read("padd/app.js");
 const manifest = read("padd/manifest.webmanifest");
 
-test("Version 27 identity and connected settings are explicit", () => {
-  assert.match(page, /LCARS_VERSION="27\.2\.1-dev\.1"/);
-  assert.match(page, /27\.2\.1 DEV/);
-  assert.match(page, /PaddLinkPanel/);
-  assert.match(connected, /PADD COMPANION SETUP/);
+test("Connected settings remain explicit through the Version 28 migration", () => {
+  assert.match(page, /LCARS_VERSION="28\.1-dev\.1"/);
+  assert.match(page, /28\.1 DEV/);
+  assert.match(page, /ConnectedOperationsPanel/);
+  assert.match(connected, /PADD FLEET COMMAND/);
   assert.match(connected, /VIEWER.*OPERATOR.*COMMAND/s);
-  assert.match(css, /\.padd-link-panel/);
+  assert.match(css, /\.connected-operations-panel/);
 });
 
 test("PADD pairing is separate, role-gated, revocable, and packaged", () => {
@@ -29,7 +30,7 @@ test("PADD pairing is separate, role-gated, revocable, and packaged", () => {
   assert.match(windows, /PADD\.start\(\)/);
   assert.match(builder, /shared\/lcars_padd\.py[\s\S]*from: padd/);
   assert.match(manifest, /"display": "standalone"/);
-  assert.match(companion, /lcars-padd-token-v27/);
+  assert.match(companion, /lcars-padd-token-v28/);
   assert.doesNotMatch(read("padd/index.html"), /data-value="(?:terminal|files)"/);
 });
 
@@ -54,5 +55,5 @@ test("Linux tray exposes native StatusNotifier context actions", () => {
   assert.match(page, /onContextMenu=/);
   assert.match(page, /RIGHT-CLICK FOR APP ACTIONS/);
   assert.match(page, /Open \$\{item\.name\} context actions/);
-  assert.match(css, /\.tray-service-context/);
+  assert.match(legacyCss, /\.tray-service-context/);
 });

@@ -17,13 +17,14 @@ test("Version 27.2.1 publishes a directly installable Android companion", () => 
   assert.match(workflow, /sha256sum[^\n]*LCARS-PADD-Companion-v27\.2\.1-Android\.apk/);
 });
 
-test("Android companion declares only networking and a non-exported surface beyond its launcher", () => {
+test("Android companion declares guarded networking and only its launcher/widget surfaces", () => {
   assert.match(manifest, /android\.permission\.INTERNET/);
   assert.match(manifest, /android\.permission\.ACCESS_NETWORK_STATE/);
   assert.match(manifest, /android\.permission\.ACCESS_LOCAL_NETWORK/);
   assert.match(manifest, /android:networkSecurityConfig="@xml\/network_security_config"/);
   assert.match(manifest, /android:exported="true"[\s\S]*android\.intent\.category\.LAUNCHER/);
-  assert.doesNotMatch(manifest, /service|receiver|provider/);
+  assert.doesNotMatch(manifest, /<service|<provider/);
+  assert.match(manifest, /<receiver[\s\S]*PaddWidgetProvider[\s\S]*APPWIDGET_UPDATE/);
   assert.match(security, /cleartextTrafficPermitted="true"/);
 });
 

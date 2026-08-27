@@ -1,15 +1,29 @@
 package com.lcars.padd;
 
 import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Notification;
+import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.os.VibratorManager;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
@@ -22,6 +36,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -41,7 +56,11 @@ public final class MainActivity extends Activity {
     private static final String LAST_STATION = "last-station";
     private static final String DEVICE_NAME = "device-name";
     private static final String TOKEN = "station-token";
+    private static final String SIGNAL = "last-signal-v28";
+    private static final String NOTICE = "last-notice-v28";
+    private static final String CHANNEL = "lcars-connected-operations";
     private static final int LOCAL_NETWORK_REQUEST = 271;
+    private static final int NOTIFICATION_REQUEST = 281;
     private static final int BLACK = Color.rgb(0, 0, 0);
     private static final int PANEL = Color.rgb(18, 16, 22);
     private static final int DIM_PANEL = Color.rgb(28, 25, 32);
@@ -62,6 +81,7 @@ public final class MainActivity extends Activity {
     private LinearLayout consoleContent;
     private TextView linkBadge;
     private TextView consoleMessage;
+    private float remoteFontScale = 1f;
 
     private final Runnable poll = new Runnable() {
         @Override public void run() {
@@ -80,6 +100,7 @@ public final class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 29) getWindow().setNavigationBarContrastEnforced(false);
         if (Build.VERSION.SDK_INT >= 30) getWindow().setDecorFitsSystemWindows(false);
         requestLocalNetworkAccess();
+        prepareNotifications();
         stationRoot = preferences.getString(LAST_STATION, "");
         token = preferences.getString(TOKEN, "");
         if (!stationRoot.isEmpty() && !token.isEmpty()) showConsole();
@@ -90,6 +111,18 @@ public final class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 37
             && checkSelfPermission("android.permission.ACCESS_LOCAL_NETWORK") != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{"android.permission.ACCESS_LOCAL_NETWORK"}, LOCAL_NETWORK_REQUEST);
+        }
+    }
+
+    private void prepareNotifications() {
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (Build.VERSION.SDK_INT >= 26 && manager != null) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL, "LCARS Communications", NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription("Priority communications from a paired LCARS station");
+            manager.createNotificationChannel(channel);
+        }
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, NOTIFICATION_REQUEST);
         }
     }
 
@@ -193,14 +226,16 @@ public final class MainActivity extends Activity {
         consoleActive = true;
         poller.removeCallbacks(poll);
         LinearLayout shell = column(BLACK);
-        LinearLayout header = masthead("LCARS 27.2.1", "LINK");
+        LinearLayout header = masthead("LCARS 28.1 DEVELOPMENT", "LINK");
         linkBadge = (TextView) header.getChildAt(2);
         shell.addView(header, matchWrap(dp(5)));
 
         LinearLayout tabs = row(BLACK);
-        tabs.addView(tabButton("STATUS", "status", 0, 3), weightedWrap(1, dp(3)));
-        tabs.addView(tabButton("MEDIA", "media", 1, 3), weightedWrap(1, dp(3)));
-        tabs.addView(tabButton("COMMAND", "command", 2, 3), weightedWrap(1, 0));
+        tabs.addView(tabButton("STATUS", "status", 0, 5), weightedWrap(1, dp(3)));
+        tabs.addView(tabButton("MEDIA", "media", 1, 5), weightedWrap(1, dp(3)));
+        tabs.addView(tabButton("COMMS", "communications", 2, 5), weightedWrap(1, dp(3)));
+        tabs.addView(tabButton("COMMAND", "command", 3, 5), weightedWrap(1, dp(3)));
+        tabs.addView(tabButton("MORE", "more", 4, 5), weightedWrap(1, 0));
         shell.addView(tabs, matchWrap(dp(5)));
 
         consoleContent = column(BLACK);
@@ -220,7 +255,8 @@ public final class MainActivity extends Activity {
         shell.addView(footer, matchWrap(dp(4)));
         consoleMessage = label("ACQUIRING STATION STATE…", PEACH, 11, true);
         shell.addView(consoleMessage, matchWrap(0));
-        setInsetAwareContent(shell, 8, 10, 8, 8);
+        boolean expanded = getResources().getConfiguration().smallestScreenWidthDp >= 600 || getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+        setInsetAwareContent(shell, expanded ? 18 : 8, 10, expanded ? 18 : 8, 8);
         refreshState(true);
         poller.postDelayed(poll, 2500);
     }
@@ -244,8 +280,12 @@ public final class MainActivity extends Activity {
         if (announce && consoleMessage != null) consoleMessage.setText("REFRESHING LOCAL LINK…");
         network.execute(() -> {
             try {
+                long started = System.currentTimeMillis();
                 JSONObject result = request("GET", "api/padd/state", null, token);
+                long latency = Math.max(0, System.currentTimeMillis() - started);
+                sendHeartbeat(latency);
                 latest = result;
+                PaddWidgetProvider.updateAll(this, result.optJSONObject("state"));
                 runOnUiThread(() -> {
                     if (!consoleActive) return;
                     if (linkBadge != null) {
@@ -253,6 +293,8 @@ public final class MainActivity extends Activity {
                         linkBadge.setBackgroundColor(ORANGE);
                     }
                     if (consoleMessage != null) consoleMessage.setText(announce ? "STATION STATE SYNCHRONIZED" : "");
+                    processSignal(result.optJSONObject("signal"));
+                    processPriorityNotice(result.optJSONObject("state"));
                     renderConsole();
                 });
             } catch (Exception error) {
@@ -273,6 +315,79 @@ public final class MainActivity extends Activity {
         });
     }
 
+    private void sendHeartbeat(long latency) {
+        JSONObject body = new JSONObject();
+        try {
+            body.put("battery", batteryLevel());
+            body.put("network", networkLabel());
+            body.put("latencyMs", latency);
+            body.put("version", "28.1-development");
+            request("POST", "api/padd/heartbeat", body, token);
+        } catch (Exception ignored) {}
+    }
+
+    private int batteryLevel() {
+        BatteryManager battery = getSystemService(BatteryManager.class);
+        return battery == null ? -1 : battery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
+    }
+
+    private String networkLabel() {
+        ConnectivityManager manager = getSystemService(ConnectivityManager.class);
+        if (manager == null) return "unknown";
+        Network network = manager.getActiveNetwork();
+        NetworkCapabilities capabilities = manager.getNetworkCapabilities(network);
+        if (capabilities == null) return "offline";
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return "wifi";
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)) return "ethernet";
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)) return "cellular";
+        return "local-network";
+    }
+
+    private void processSignal(JSONObject signal) {
+        if (signal == null) return;
+        String id = signal.optString("id", "");
+        if (id.isEmpty() || id.equals(preferences.getString(SIGNAL, ""))) return;
+        preferences.edit().putString(SIGNAL, id).apply();
+        vibrate(180);
+        Toast.makeText(this, "LCARS IDENTIFY · THIS IS " + preferences.getString(DEVICE_NAME, "PADD"), Toast.LENGTH_LONG).show();
+    }
+
+    private void processPriorityNotice(JSONObject state) {
+        if (state == null) return;
+        JSONArray notices = state.optJSONArray("notices");
+        if (notices == null) return;
+        for (int index = 0; index < notices.length(); index++) {
+            JSONObject notice = notices.optJSONObject(index);
+            if (notice == null || notice.optBoolean("read", false)) continue;
+            String priority = notice.optString("priority", notice.optString("status", "")).toLowerCase();
+            if (!priority.contains("critical") && !priority.contains("priority") && !priority.contains("error")) continue;
+            String id = notice.optString("id", "");
+            if (id.isEmpty() || id.equals(preferences.getString(NOTICE, ""))) continue;
+            preferences.edit().putString(NOTICE, id).apply();
+            Intent open = new Intent(this, MainActivity.class);
+            PendingIntent intent = PendingIntent.getActivity(this, 28, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            Notification notification = new Notification.Builder(this, CHANNEL)
+                .setSmallIcon(android.R.drawable.stat_notify_more)
+                .setContentTitle(notice.optString("name", "LCARS PRIORITY SIGNAL"))
+                .setContentText(notice.optString("text", notice.optString("detail", "Open the PADD Communications console")))
+                .setContentIntent(intent).setAutoCancel(true).build();
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            if (manager != null && (Build.VERSION.SDK_INT < 33 || checkSelfPermission("android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED)) manager.notify(id.hashCode(), notification);
+            return;
+        }
+    }
+
+    private void vibrate(int milliseconds) {
+        Vibrator vibrator;
+        if (Build.VERSION.SDK_INT >= 31) {
+            VibratorManager manager = getSystemService(VibratorManager.class);
+            vibrator = manager == null ? null : manager.getDefaultVibrator();
+        } else vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator == null || !vibrator.hasVibrator()) return;
+        if (Build.VERSION.SDK_INT >= 26) vibrator.vibrate(VibrationEffect.createOneShot(milliseconds, VibrationEffect.DEFAULT_AMPLITUDE));
+        else vibrator.vibrate(milliseconds);
+    }
+
     private void renderConsole() {
         if (consoleContent == null || latest == null) return;
         consoleContent.removeAllViews();
@@ -281,28 +396,73 @@ public final class MainActivity extends Activity {
         JSONObject capabilities = latest.optJSONObject("capabilities");
         if (state == null) state = new JSONObject();
         if (capabilities == null) capabilities = new JSONObject();
+        JSONObject accessibility = state.optJSONObject("accessibility");
+        double requestedScale = accessibility == null ? 1 : accessibility.optDouble("fontScale", 1);
+        if (requestedScale > 2) requestedScale /= 100;
+        remoteFontScale = Math.max(.9f, Math.min(1.35f, (float) requestedScale));
         String role = device == null ? "PAIRED" : device.optString("role", "operator").toUpperCase();
         if (activeTab.equals("media")) renderMedia(state, capabilities, role);
+        else if (activeTab.equals("communications")) renderCommunications(state, capabilities, role);
         else if (activeTab.equals("command")) renderCommand(state, capabilities, role);
-        else renderStatus(state, role);
+        else if (activeTab.equals("more")) renderMore(state, capabilities, role, device);
+        else renderStatus(state, capabilities, role);
     }
 
-    private void renderStatus(JSONObject state, String role) {
+    private void renderStatus(JSONObject state, JSONObject capabilities, String role) {
         consoleContent.addView(sectionHeader("CONNECTED STATION", "STATUS", role), matchWrap(dp(5)));
-        LinearLayout cards = row(BLACK);
-        cards.addView(statusCard("ACTIVE PAGE", state.optString("page", "overview").toUpperCase(), ORANGE), weightedWrap(1, dp(3)));
-        cards.addView(statusCard("MASTER AUDIO", state.optInt("volume", 0) + "%", BLUE), weightedWrap(1, 0));
-        consoleContent.addView(cards, matchWrap(dp(5)));
+        JSONArray widgets = state.optJSONArray("widgets");
+        if (widgets == null || contains(widgets, "status")) {
+            LinearLayout cards = row(BLACK);
+            cards.addView(statusCard("ACTIVE PAGE", state.optString("page", "overview").toUpperCase(), ORANGE), weightedWrap(1, dp(3)));
+            cards.addView(statusCard("MASTER AUDIO", state.optInt("volume", 0) + "%", BLUE), weightedWrap(1, 0));
+            consoleContent.addView(cards, matchWrap(dp(5)));
+        }
         JSONArray meters = state.optJSONArray("meters");
-        if (meters != null) {
+        if ((widgets == null || contains(widgets, "telemetry")) && meters != null) {
             for (int index = 0; index < meters.length(); index++) {
                 JSONObject item = meters.optJSONObject(index);
                 if (item == null) continue;
                 consoleContent.addView(meter(item.optString("label", item.optString("name", "SYSTEM")), item.optInt("value", 0)), matchWrap(dp(3)));
             }
         }
-        consoleContent.addView(subhead("COMMUNICATIONS", count(state.optJSONArray("notices")) + " SIGNALS"), matchWrap(dp(3)));
-        addReadOnlyList(state.optJSONArray("notices"), "NO PRIORITY SIGNALS");
+        if (widgets == null || contains(widgets, "media")) {
+            consoleContent.addView(subhead("NOW PLAYING", count(state.optJSONArray("media")) + " SOURCES"), matchWrap(dp(3)));
+            addReadOnlyList(state.optJSONArray("media"), "NO ACTIVE MEDIA SOURCES");
+        }
+        if (widgets == null || contains(widgets, "communications")) {
+            consoleContent.addView(subhead("COMMUNICATIONS", count(state.optJSONArray("notices")) + " SIGNALS"), matchWrap(dp(3)));
+            addReadOnlyList(state.optJSONArray("notices"), "NO PRIORITY SIGNALS");
+        }
+        if (widgets == null || contains(widgets, "quick-actions")) {
+            consoleContent.addView(subhead("QUICK ACTIONS", capabilities.optBoolean("quick") ? "READY" : "OPERATOR ROLE REQUIRED"), matchWrap(dp(3)));
+            addCommandList(state.optJSONArray("quickActions"), "quick", capabilities.optBoolean("quick"), "NO QUICK ACTIONS SHARED");
+        }
+        JSONArray running = state.optJSONArray("routineStatus");
+        if (running != null && running.length() > 0) {
+            consoleContent.addView(subhead("ACTIVE OPERATIONS", running.length() + " RUNNING"), matchWrap(dp(3)));
+            addReadOnlyList(running, "NO ACTIVE ROUTINES");
+        }
+    }
+
+    private void renderCommunications(JSONObject state, JSONObject capabilities, String role) {
+        consoleContent.addView(sectionHeader("PRIORITY RELAY", "COMMUNICATIONS", role), matchWrap(dp(5)));
+        JSONArray notices = state.optJSONArray("notices");
+        if (notices == null || notices.length() == 0) {
+            consoleContent.addView(emptyState("NO ACTIVE COMMUNICATIONS"), matchWrap(dp(5)));
+            return;
+        }
+        for (int index = 0; index < notices.length(); index++) {
+            JSONObject item = notices.optJSONObject(index);
+            if (item == null) continue;
+            LinearLayout card = panel(index % 2 == 0 ? ORANGE : BLUE);
+            card.addView(label(item.optString("name", "LCARS CORE"), PEACH, 10, true), matchWrap(dp(2)));
+            card.addView(label(item.optString("text", item.optString("detail", "SIGNAL")), Color.WHITE, 15, false), matchWrap(dp(7)));
+            LinearLayout actions = row(PANEL);
+            actions.addView(actionButton("ACKNOWLEDGE", "notice-read", item.optString("id", ""), capabilities.optBoolean("notice-read"), BLUE), weightedHeight(1, dp(44), dp(3)));
+            actions.addView(actionButton("ARCHIVE", "notice-archive", item.optString("id", ""), capabilities.optBoolean("notice-archive"), VIOLET), weightedHeight(1, dp(44), 0));
+            card.addView(actions, matchWrap(0));
+            consoleContent.addView(card, matchWrap(dp(5)));
+        }
     }
 
     private void renderMedia(JSONObject state, JSONObject capabilities, String role) {
@@ -347,12 +507,74 @@ public final class MainActivity extends Activity {
         addCommandList(state.optJSONArray("routines"), "routine", capabilities.optBoolean("routine"), "NO ROUTINES SHARED");
         consoleContent.addView(subhead("APPLICATIONS", capabilities.optBoolean("app") ? "COMMAND READY" : "COMMAND ROLE REQUIRED"), matchWrap(dp(3)));
         addCommandList(state.optJSONArray("apps"), "app", capabilities.optBoolean("app"), "NO APPLICATIONS SHARED");
+        consoleContent.addView(subhead("CONNECTED WORKSTATIONS", capabilities.optBoolean("workstation") ? "APPROVAL-GUARDED" : "COMMAND ROLE REQUIRED"), matchWrap(dp(3)));
+        addCommandList(state.optJSONArray("workstations"), "workstation", capabilities.optBoolean("workstation"), "NO WORKSTATIONS SHARED");
+        consoleContent.addView(subhead("QUICK ACTIONS", capabilities.optBoolean("quick") ? "READY" : "OPERATOR ROLE REQUIRED"), matchWrap(dp(3)));
+        addCommandList(state.optJSONArray("quickActions"), "quick", capabilities.optBoolean("quick"), "NO QUICK ACTIONS SHARED");
+        JSONObject handoff = state.optJSONObject("handoff");
+        if (handoff != null) consoleContent.addView(actionButton("HAND OFF " + handoff.optString("title", "ACTIVE CONSOLE"), "handoff", handoff.optString("page", "overview"), capabilities.optBoolean("handoff"), ORANGE), matchWrap(dp(5)));
         Button forget = button("FORGET THIS STATION", PINK);
         forget.setOnClickListener(ignored -> {
             forgetToken();
             showSetup("THIS PADD FORGOT ITS TOKEN · REVOKE THE OLD DEVICE IN DESKTOP SETTINGS IF NEEDED");
         });
         consoleContent.addView(forget, matchWrap(0));
+    }
+
+    private void renderMore(JSONObject state, JSONObject capabilities, String role, JSONObject device) {
+        consoleContent.addView(sectionHeader("PERSONAL PADD", "LAYOUT + TOOLS", role), matchWrap(dp(5)));
+        JSONArray selected = state.optJSONArray("widgets");
+        String[][] choices = {{"status","STATION STATUS"},{"media","NOW PLAYING"},{"communications","COMMUNICATIONS"},{"telemetry","TELEMETRY"},{"quick-actions","QUICK ACTIONS"}};
+        LinearLayout widgetPanel = panel(VIOLET);
+        widgetPanel.addView(fieldLabel("PADD WIDGETS"), matchWrap(dp(5)));
+        for (String[] choice : choices) {
+            boolean enabled = contains(selected, choice[0]);
+            Button toggle = button((enabled ? "✓ " : "+ ") + choice[1], enabled ? BLUE : DIM_PANEL);
+            toggle.setTextColor(enabled ? BLACK : Color.LTGRAY);
+            toggle.setOnClickListener(ignored -> saveWidgetPreference(selected, choice[0], !enabled));
+            widgetPanel.addView(toggle, matchWrap(dp(3)));
+        }
+        consoleContent.addView(widgetPanel, matchWrap(dp(5)));
+        LinearLayout clipboard = panel(PINK);
+        clipboard.addView(fieldLabel("OPT-IN TEXT CLIPBOARD"), matchWrap(dp(4)));
+        EditText text = input("TEXT TO REQUEST ON THE DESKTOP", "", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        text.setSingleLine(false);text.setMaxLines(4);
+        Button transmit = actionButton("REQUEST DESKTOP CLIPBOARD", "clipboard", "", capabilities.optBoolean("clipboard"), PINK);
+        transmit.setOnClickListener(ignored -> sendAction("clipboard", text.getText().toString()));
+        clipboard.addView(text, matchWrap(dp(5)));clipboard.addView(transmit, matchWrap(0));
+        consoleContent.addView(clipboard, matchWrap(dp(5)));
+        JSONObject release = state.optJSONObject("release");
+        LinearLayout releasePanel = panel(BLUE);
+        releasePanel.addView(fieldLabel("RELEASE MATRIX"), matchWrap(dp(4)));
+        releasePanel.addView(label("STABLE · " + (release == null ? "UNKNOWN" : release.optString("stable", "UNKNOWN")), Color.WHITE, 17, true), matchWrap(dp(3)));
+        releasePanel.addView(label("DEVELOPMENT · " + (release == null ? "UNKNOWN" : release.optString("development", "UNKNOWN")), PEACH, 17, true), matchWrap(dp(3)));
+        releasePanel.addView(label("CLIENT · 28.1 DEVELOPMENT", Color.LTGRAY, 11, true), matchWrap(0));
+        consoleContent.addView(releasePanel, matchWrap(dp(5)));
+        if (device != null) {
+            String diagnostics = device.optString("network", "NETWORK UNKNOWN").toUpperCase() + " · " + device.optInt("latencyMs", 0) + " MS · " + device.optInt("battery", -1) + "% BATTERY";
+            consoleContent.addView(subhead("LINK DIAGNOSTICS", diagnostics), matchWrap(dp(5)));
+        }
+    }
+
+    private boolean contains(JSONArray values, String target) {
+        if (values == null) return false;
+        for (int index = 0; index < values.length(); index++) if (target.equals(values.optString(index))) return true;
+        return false;
+    }
+
+    private void saveWidgetPreference(JSONArray current, String id, boolean enabled) {
+        JSONArray next = new JSONArray();
+        if (current != null) for (int index = 0; index < current.length(); index++) {
+            String value = current.optString(index);
+            if (!value.equals(id)) next.put(value);
+        }
+        if (enabled) next.put(id);
+        JSONObject body = new JSONObject();
+        try { body.put("widgets", next); } catch (Exception ignored) {}
+        network.execute(() -> {
+            try { request("POST", "api/padd/preferences", body, token); runOnUiThread(() -> refreshState(true)); }
+            catch (Exception error) { runOnUiThread(() -> { if (consoleMessage != null) consoleMessage.setText("LAYOUT SAVE FAILED · " + error.getMessage()); }); }
+        });
     }
 
     private void addReadOnlyList(JSONArray items, String empty) {
@@ -392,6 +614,7 @@ public final class MainActivity extends Activity {
     private void sendAction(String action, Object value) {
         if (!consoleActive) return;
         if (consoleMessage != null) consoleMessage.setText("TRANSMITTING " + action.toUpperCase() + "…");
+        vibrate(45);
         JSONObject body = new JSONObject();
         try {
             body.put("action", action);
@@ -443,7 +666,7 @@ public final class MainActivity extends Activity {
 
     private LinearLayout masthead(String eyebrow, String badgeText) {
         LinearLayout header = row(BLACK);
-        TextView index = label("27", BLACK, 12, true);
+        TextView index = label("28", BLACK, 12, true);
         index.setGravity(Gravity.CENTER);
         index.setBackground(shape(ORANGE, 28, 3, 3, 28));
         LinearLayout titles = column(PANEL);
@@ -595,7 +818,7 @@ public final class MainActivity extends Activity {
         TextView view = new TextView(this);
         view.setText(text);
         view.setTextColor(color);
-        view.setTextSize(size);
+        view.setTextSize(size * remoteFontScale);
         view.setTypeface(Typeface.create("sans-serif-condensed", bold ? Typeface.BOLD : Typeface.NORMAL));
         view.setGravity(Gravity.CENTER_VERTICAL);
         return view;

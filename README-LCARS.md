@@ -69,10 +69,13 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Version 27 Connected LCARS with a separately paired, role-limited phone/tablet PADD companion
 - Directly installable Android PADD Companion APK with a private-station connection guard
 - Native context actions for compatible Linux StatusNotifier tray services, including application-provided quit controls
+- Version 28 PADD Fleet Command with live device telemetry, granular permissions, per-device layouts, Connected Workstations, identify, proximity profiles, activity history, approvals, and diagnostics
+- Native Android Communications, quick actions, current-console handoff, priority notifications, accessibility sync, haptic identify, and a home-screen status widget
+- Opt-in text-only clipboard requests that remain disabled by default and require desktop approval unless a trusted-device override is explicitly enabled
 
 ## Current stage
 
-Version 26 is the current stable release. Version 27.2.1 is an opt-in Development-channel preview with a standalone native Android PADD, guided pairing under Settings → Connected, repaired and polished category layouts for Settings and Updates, phone/tablet safe-area handling, and a session-long update-download lock backed by a serialized verified-artifact cache. Only hashed revocable tokens are stored, and Viewer, Operator, and Command roles are enforced by the local core. PADD devices never receive Terminal, file, process, or computer power access. Compatible Linux StatusNotifier services also expose their application-owned context actions through right-click, the keyboard menu key, or an Actions button.
+Version 27.2.1 is the current Stable release. Version 28.1 is an opt-in Development-channel preview focused on Connected Operations across desktop, native Android, and the browser PADD fallback. Only hashed revocable tokens are stored; Viewer, Operator, Command, granular permission, and explicit sensitive-action approval checks are enforced by the local core. PADD devices never receive Terminal, file, process, or computer power access.
 
 For one-click Linux installation, open `Install-LCARS-Linux.desktop` or run `Install-LCARS-Linux.run`. Your file manager may ask you to mark the desktop launcher as trusted the first time it is opened. The installer places the standalone application in `~/.local/opt/lcars-command-interface`; Node.js, npm, and an external browser are not required to run it.
 
