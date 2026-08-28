@@ -15,8 +15,8 @@ const manifest = read("mobile/android/app/src/main/AndroidManifest.xml");
 const workflow = read(".github/workflows/v28-development.yml");
 
 test("Version 28 identity and Connected Operations renderer are wired", () => {
-  assert.match(read("package.json"), /"version": "28\.1\.0-dev\.1"/);
-  assert.match(page, /LCARS_VERSION="28\.1-dev\.1"/);
+  assert.match(read("package.json"), /"version": "28\.2\.0-dev\.1"/);
+  assert.match(page, /LCARS_VERSION="28\.2-dev\.1"/);
   assert.match(page, /ConnectedOperationsPanel/);
   assert.match(page, /api\/padd-events/);
   assert.match(page, /activeWorkstation:activeProfile/);
@@ -43,7 +43,7 @@ test("PADD fleet uses revocable per-device policy and explicit approvals", () =>
 });
 
 test("native and browser PADDs expose the Connected Operations surfaces", () => {
-  assert.match(android, /STATUS.*MEDIA.*COMMS.*COMMAND.*MORE/s);
+  assert.match(android, /STATUS.*MEDIA.*COMMS.*CMD.*MORE/s);
   assert.match(android, /api\/padd\/heartbeat/);
   assert.match(android, /api\/padd\/preferences/);
   assert.match(android, /POST_NOTIFICATIONS/);
@@ -57,15 +57,33 @@ test("native and browser PADDs expose the Connected Operations surfaces", () => 
   assert.match(webPadd, /clipboard-request/);
   assert.match(webShell, /COMMUNICATIONS/);
   assert.match(webShell, /QUICK ACTIONS/);
+  assert.match(webShell, /dismiss-all-communications/);
+  assert.match(webPadd, /player:mediaTarget,command:button\.dataset\.value/);
   assert.doesNotMatch(webShell, /data-value="(?:terminal|files|shutdown|restart)"/);
 });
 
-test("Version 28.1 prerelease waits for all platform validation", () => {
+test("Version 28.2 device-testing fixes keep navigation, media, and communications usable", () => {
+  assert.match(android, /tabButton\("CMD"/);
+  assert.match(android, /showConsole\(false\)/);
+  assert.match(android, /linkBadge\.setBackground\(shape\(linkColor/);
+  assert.match(android, /fittedLabel\(value/);
+  assert.match(android, /mediaRequest\(playerId, "play-pause"\)/);
+  assert.match(android, /"notice-dismiss-all"/);
+  assert.match(padd, /"notice-dismiss-all": "operator"/);
+  assert.match(page, /expiresAt/);
+  assert.match(page, /command\.action==="notice-dismiss-all"/);
+  const toolbar = page.indexOf('className="media-quick-strip media-command-toolbar"');
+  const console = page.indexOf('className="media-console"', toolbar);
+  assert.ok(toolbar > 0 && console > toolbar, "media toolbar should be above the console");
+  assert.match(read("app/v24-1.css"), /\.media-command-toolbar/);
+});
+
+test("Version 28.2 prerelease waits for all platform validation", () => {
   assert.match(workflow, /branches: \[v28-development\]/);
   assert.match(workflow, /needs: \[linux, windows, android\]/);
   assert.match(workflow, /version28-connected-operations\.test\.mjs/);
-  assert.match(workflow, /LCARS-PADD-Companion-v28\.1-Android\.apk/);
+  assert.match(workflow, /LCARS-PADD-Companion-v28\.2-Android\.apk/);
   assert.match(workflow, /sha256sum --check SHA256SUMS\.txt/);
-  assert.match(workflow, /gh release (?:view|create) v28\.1/);
+  assert.match(workflow, /gh release (?:view|create) v28\.2/);
   assert.match(workflow, /--prerelease/);
 });

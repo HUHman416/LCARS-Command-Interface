@@ -487,6 +487,26 @@
   min-height: 34px;
 }
 
+.media-command-toolbar {
+  position: relative;
+  z-index: 3;
+  flex: 0 0 auto;
+  min-height: 42px;
+  margin: 0 0 7px;
+  padding: 4px;
+  border-top: 1px solid #473d4c;
+  border-bottom: 6px solid var(--orange);
+  background: #100d12;
+  box-shadow: 0 8px 18px #0009;
+}
+
+.media-command-toolbar button {
+  min-height: 34px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .35px;
+}
+
 .media-quick-strip button {
   min-width: 0;
   border: 0;

@@ -28,10 +28,10 @@
 > **Version 27.2.1 is the current stable release for Linux and Windows, with the Android PADD Companion.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
 
 > [!NOTE]
-> Existing installations can update from **Updates → LCARS Interface**. Development remains available for opt-in test builds such as Version 28.1.
+> Existing installations can update from **Updates → LCARS Interface**. Development remains available for opt-in test builds such as Version 28.2.
 
 > [!TIP]
-> **Version 28.1 is the Connected Operations development preview.** It turns paired PADDs into a manageable fleet with granular permissions, live telemetry, approval-gated remote actions, Communications, Workstation handoff, proximity profiles, customizable PADD layouts, Android notifications and a home-screen widget. Version 27.2.1 remains the Stable channel while Version 28 is tested.
+> **Version 28.2 is the Connected Operations development preview.** It turns paired PADDs into a manageable fleet with granular permissions, live telemetry, approval-gated remote actions, Communications, Workstation handoff, proximity profiles, customizable PADD layouts, Android notifications and a home-screen widget. Version 27.2.1 remains the Stable channel while Version 28 is tested.
 
 ## 📥 Choose your download
 
@@ -62,7 +62,7 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
 
-## 🧪 Version 28.1 Connected Operations development update
+## 🧪 Version 28.2 Connected Operations development update
 
 - Adds **PADD Fleet Command** with device renaming, online state, battery, network, latency, client version, connection counts, identify signals, revocation, and a persistent local activity journal.
 - Adds granular per-device permissions, configurable PADD widgets, Connected Workstations, optional arrival/departure proximity profiles, and distinct Viewer, Operator, and Command authority.
@@ -72,7 +72,9 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 - Brings the browser PADD fallback to the same Connected Operations protocol, including heartbeat telemetry and safe capability-aware controls.
 - Retains all Version 27 safeguards: one-use pairing codes, hashed revocable tokens, private-network address validation, and a hard block on remote Terminal, Files, process control, and computer power actions.
 
-To try Version 28.1 after its prerelease is published, select **Development** under Settings → System, save, and check for an LCARS update. Use the companion only on a network you trust; the local PADD service is not intended for internet exposure.
+To try Version 28.2 after its prerelease is published, select **Development** under Settings → System, save, and check for an LCARS update. Use the companion only on a network you trust; the local PADD service is not intended for internet exposure.
+
+Version 29 is reserved for an optional standalone Android LCARS experience that can act as a launcher/home-screen replacement as well as a paired companion. That larger mobile mode is documented for the next major development cycle and is not enabled in Version 28.2.
 
 ## 🆕 Version 27.2.1 stable update
 

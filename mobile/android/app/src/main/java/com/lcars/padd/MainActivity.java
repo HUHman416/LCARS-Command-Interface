@@ -25,6 +25,8 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.VibratorManager;
 import android.text.InputType;
+import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -82,6 +84,8 @@ public final class MainActivity extends Activity {
     private TextView linkBadge;
     private TextView consoleMessage;
     private float remoteFontScale = 1f;
+    private String linkStatus = "LINK";
+    private int linkColor = ORANGE;
 
     private final Runnable poll = new Runnable() {
         @Override public void run() {
@@ -223,19 +227,24 @@ public final class MainActivity extends Activity {
     }
 
     private void showConsole() {
+        showConsole(true);
+    }
+
+    private void showConsole(boolean requestRefresh) {
         consoleActive = true;
         poller.removeCallbacks(poll);
         LinearLayout shell = column(BLACK);
-        LinearLayout header = masthead("LCARS 28.1 DEVELOPMENT", "LINK");
+        LinearLayout header = masthead("LCARS 28.2 DEVELOPMENT", linkStatus);
         linkBadge = (TextView) header.getChildAt(2);
+        linkBadge.setBackground(shape(linkColor, 3, 28, 28, 3));
         shell.addView(header, matchWrap(dp(5)));
 
         LinearLayout tabs = row(BLACK);
-        tabs.addView(tabButton("STATUS", "status", 0, 5), weightedWrap(1, dp(3)));
-        tabs.addView(tabButton("MEDIA", "media", 1, 5), weightedWrap(1, dp(3)));
-        tabs.addView(tabButton("COMMS", "communications", 2, 5), weightedWrap(1, dp(3)));
-        tabs.addView(tabButton("COMMAND", "command", 3, 5), weightedWrap(1, dp(3)));
-        tabs.addView(tabButton("MORE", "more", 4, 5), weightedWrap(1, 0));
+        tabs.addView(tabButton("STATUS", "status", 0, 5), weightedHeight(1, dp(48), dp(3)));
+        tabs.addView(tabButton("MEDIA", "media", 1, 5), weightedHeight(1, dp(48), dp(3)));
+        tabs.addView(tabButton("COMMS", "communications", 2, 5), weightedHeight(1, dp(48), dp(3)));
+        tabs.addView(tabButton("CMD", "command", 3, 5), weightedHeight(1, dp(48), dp(3)));
+        tabs.addView(tabButton("MORE", "more", 4, 5), weightedHeight(1, dp(48), 0));
         shell.addView(tabs, matchWrap(dp(5)));
 
         consoleContent = column(BLACK);
@@ -257,7 +266,8 @@ public final class MainActivity extends Activity {
         shell.addView(consoleMessage, matchWrap(0));
         boolean expanded = getResources().getConfiguration().smallestScreenWidthDp >= 600 || getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
         setInsetAwareContent(shell, expanded ? 18 : 8, 10, expanded ? 18 : 8, 8);
-        refreshState(true);
+        if (latest != null) renderConsole();
+        if (requestRefresh || latest == null) refreshState(true);
         poller.postDelayed(poll, 2500);
     }
 
@@ -270,7 +280,7 @@ public final class MainActivity extends Activity {
         else button.setBackground(shape(color, 3, 3, 3, 3));
         button.setOnClickListener(ignored -> {
             activeTab = tab;
-            showConsole();
+            showConsole(false);
         });
         return button;
     }
@@ -289,8 +299,10 @@ public final class MainActivity extends Activity {
                 runOnUiThread(() -> {
                     if (!consoleActive) return;
                     if (linkBadge != null) {
-                        linkBadge.setText("ONLINE");
-                        linkBadge.setBackgroundColor(ORANGE);
+                        linkStatus = "ONLINE";
+                        linkColor = ORANGE;
+                        linkBadge.setText(linkStatus);
+                        linkBadge.setBackground(shape(linkColor, 3, 28, 28, 3));
                     }
                     if (consoleMessage != null) consoleMessage.setText(announce ? "STATION STATE SYNCHRONIZED" : "");
                     processSignal(result.optJSONObject("signal"));
@@ -306,8 +318,10 @@ public final class MainActivity extends Activity {
                         return;
                     }
                     if (linkBadge != null) {
-                        linkBadge.setText("OFFLINE");
-                        linkBadge.setBackgroundColor(PINK);
+                        linkStatus = "OFFLINE";
+                        linkColor = PINK;
+                        linkBadge.setText(linkStatus);
+                        linkBadge.setBackground(shape(linkColor, 3, 28, 28, 3));
                     }
                     if (consoleMessage != null) consoleMessage.setText("LINK STANDBY · " + error.getMessage());
                 });
@@ -321,7 +335,7 @@ public final class MainActivity extends Activity {
             body.put("battery", batteryLevel());
             body.put("network", networkLabel());
             body.put("latencyMs", latency);
-            body.put("version", "28.1-development");
+            body.put("version", "28.2-development");
             request("POST", "api/padd/heartbeat", body, token);
         } catch (Exception ignored) {}
     }
@@ -451,6 +465,7 @@ public final class MainActivity extends Activity {
             consoleContent.addView(emptyState("NO ACTIVE COMMUNICATIONS"), matchWrap(dp(5)));
             return;
         }
+        consoleContent.addView(actionButton("DISMISS ALL", "notice-dismiss-all", "all", capabilities.optBoolean("notice-dismiss-all"), PINK), matchWrap(dp(5)));
         for (int index = 0; index < notices.length(); index++) {
             JSONObject item = notices.optJSONObject(index);
             if (item == null) continue;
@@ -467,11 +482,16 @@ public final class MainActivity extends Activity {
 
     private void renderMedia(JSONObject state, JSONObject capabilities, String role) {
         consoleContent.addView(sectionHeader("REMOTE AUDIO BUS", "MEDIA CONTROL", role), matchWrap(dp(5)));
-        addReadOnlyList(state.optJSONArray("media"), "NO ACTIVE MEDIA SOURCES");
+        JSONArray media = state.optJSONArray("media");
+        JSONObject target = preferredMedia(media);
+        String playerId = target == null ? "" : target.optString("id", "");
+        boolean mediaReady = capabilities.optBoolean("media") && !playerId.isEmpty();
+        addReadOnlyList(media, "NO ACTIVE MEDIA SOURCES");
+        if (target != null) consoleContent.addView(subhead("CONTROL TARGET", target.optString("name", "ACTIVE PLAYER").toUpperCase()), matchWrap(dp(3)));
         LinearLayout transport = row(BLACK);
-        transport.addView(actionButton("|◀", "media", "previous", capabilities.optBoolean("media"), BLUE), weightedHeight(1, dp(52), dp(3)));
-        transport.addView(actionButton("▶ / Ⅱ", "media", "play-pause", capabilities.optBoolean("media"), ORANGE), weightedHeight(1, dp(52), dp(3)));
-        transport.addView(actionButton("▶|", "media", "next", capabilities.optBoolean("media"), BLUE), weightedHeight(1, dp(52), 0));
+        transport.addView(actionButton("|◀", "media", mediaRequest(playerId, "previous"), mediaReady, BLUE), weightedHeight(1, dp(52), dp(3)));
+        transport.addView(actionButton("▶ / Ⅱ", "media", mediaRequest(playerId, "play-pause"), mediaReady, ORANGE), weightedHeight(1, dp(52), dp(3)));
+        transport.addView(actionButton("▶|", "media", mediaRequest(playerId, "next"), mediaReady, BLUE), weightedHeight(1, dp(52), 0));
         consoleContent.addView(transport, matchWrap(dp(6)));
         LinearLayout volume = panel(VIOLET);
         TextView value = label(state.optInt("volume", 0) + "%", Color.WHITE, 24, true);
@@ -488,6 +508,27 @@ public final class MainActivity extends Activity {
         volume.addView(value, matchWrap(dp(2)));
         volume.addView(seek, matchWrap(0));
         consoleContent.addView(volume, matchWrap(0));
+    }
+
+    private JSONObject preferredMedia(JSONArray media) {
+        if (media == null) return null;
+        JSONObject fallback = null;
+        for (int index = 0; index < media.length(); index++) {
+            JSONObject item = media.optJSONObject(index);
+            if (item == null) continue;
+            if (fallback == null) fallback = item;
+            if ("playing".equalsIgnoreCase(item.optString("status", ""))) return item;
+        }
+        return fallback;
+    }
+
+    private JSONObject mediaRequest(String player, String command) {
+        JSONObject request = new JSONObject();
+        try {
+            request.put("player", player);
+            request.put("command", command);
+        } catch (Exception ignored) {}
+        return request;
     }
 
     private void renderCommand(JSONObject state, JSONObject capabilities, String role) {
@@ -548,7 +589,7 @@ public final class MainActivity extends Activity {
         releasePanel.addView(fieldLabel("RELEASE MATRIX"), matchWrap(dp(4)));
         releasePanel.addView(label("STABLE · " + (release == null ? "UNKNOWN" : release.optString("stable", "UNKNOWN")), Color.WHITE, 17, true), matchWrap(dp(3)));
         releasePanel.addView(label("DEVELOPMENT · " + (release == null ? "UNKNOWN" : release.optString("development", "UNKNOWN")), PEACH, 17, true), matchWrap(dp(3)));
-        releasePanel.addView(label("CLIENT · 28.1 DEVELOPMENT", Color.LTGRAY, 11, true), matchWrap(0));
+        releasePanel.addView(label("CLIENT · 28.2 DEVELOPMENT", Color.LTGRAY, 11, true), matchWrap(0));
         consoleContent.addView(releasePanel, matchWrap(dp(5)));
         if (device != null) {
             String diagnostics = device.optString("network", "NETWORK UNKNOWN").toUpperCase() + " · " + device.optInt("latencyMs", 0) + " MS · " + device.optInt("battery", -1) + "% BATTERY";
@@ -673,7 +714,7 @@ public final class MainActivity extends Activity {
         titles.setPadding(dp(12), dp(7), dp(8), dp(7));
         titles.setBackground(shape(PANEL, 3, 3, 3, 3));
         titles.addView(label(eyebrow, PEACH, 10, true), matchWrap(dp(1)));
-        titles.addView(label("PADD COMPANION", Color.WHITE, 21, true), matchWrap(0));
+        titles.addView(fittedLabel("PADD COMPANION", Color.WHITE, 14, 21, true), matchWrap(0));
         TextView badge = label(badgeText, BLACK, 11, true);
         badge.setBackground(shape(ORANGE, 3, 28, 28, 3));
         badge.setGravity(Gravity.CENTER);
@@ -695,7 +736,7 @@ public final class MainActivity extends Activity {
         text.setPadding(dp(11), dp(7), dp(8), dp(7));
         text.setBackground(shape(PANEL, 3, 3, 3, 3));
         text.addView(label(eyebrow, PEACH, 9, true), matchWrap(0));
-        text.addView(label(title, Color.WHITE, 21, true), matchWrap(0));
+        text.addView(fittedLabel(title, Color.WHITE, 13, 21, true), matchWrap(0));
         TextView badge = label(badgeText, BLUE, 11, true);
         badge.setBackground(shape(PANEL, 3, 20, 20, 3));
         badge.setGravity(Gravity.CENTER);
@@ -747,7 +788,7 @@ public final class MainActivity extends Activity {
         card.setPadding(dp(10), dp(10), dp(10), dp(10));
         card.setBackground(shape(PANEL, 18, 3, 18, 18));
         card.addView(label(title, PEACH, 9, true), matchWrap(dp(3)));
-        card.addView(label(value, Color.WHITE, 18, true), matchWrap(dp(6)));
+        card.addView(fittedLabel(value, Color.WHITE, 11, 18, true), matchWrap(dp(6)));
         TextView bar = new TextView(this);
         bar.setBackgroundColor(accent);
         card.addView(bar, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(6)));
@@ -821,6 +862,18 @@ public final class MainActivity extends Activity {
         view.setTextSize(size * remoteFontScale);
         view.setTypeface(Typeface.create("sans-serif-condensed", bold ? Typeface.BOLD : Typeface.NORMAL));
         view.setGravity(Gravity.CENTER_VERTICAL);
+        return view;
+    }
+
+    private TextView fittedLabel(String text, int color, int minimumSize, int maximumSize, boolean bold) {
+        TextView view = label(text, color, maximumSize, bold);
+        view.setSingleLine(true);
+        view.setEllipsize(TextUtils.TruncateAt.END);
+        if (Build.VERSION.SDK_INT >= 26) {
+            int minimum = Math.max(8, Math.round(minimumSize * remoteFontScale));
+            int maximum = Math.max(minimum, Math.round(maximumSize * remoteFontScale));
+            view.setAutoSizeTextTypeUniformWithConfiguration(minimum, maximum, 1, TypedValue.COMPLEX_UNIT_SP);
+        }
         return view;
     }
 

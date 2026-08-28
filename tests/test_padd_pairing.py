@@ -13,7 +13,7 @@ class PaddPairingTests(unittest.TestCase):
         assets = Path(folder) / "padd"
         assets.mkdir()
         (assets / "index.html").write_text("LCARS PADD", encoding="utf-8")
-        return PaddController(Path(folder) / "config", assets, "28.1-dev.1", "test", listen=False)
+        return PaddController(Path(folder) / "config", assets, "28.2-dev.1", "test", listen=False)
 
     def test_one_use_pairing_hashes_tokens_and_supports_revocation(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -63,6 +63,21 @@ class PaddPairingTests(unittest.TestCase):
             self.assertTrue(state["capabilities"]["media"])
             self.assertFalse(state["capabilities"]["app"])
 
+    def test_media_targets_and_dismiss_all_are_safely_queued(self):
+        with tempfile.TemporaryDirectory() as folder:
+            controller = self.make_controller(folder)
+            armed = controller.manage({"operation": "start"})
+            paired = controller.pair(armed["pairing"]["code"], "Media PADD", "192.168.1.12")
+            device = controller.authenticate(paired["token"])
+            controller.queue_action(device, {"action": "media", "value": {"player": "spotify.instance42", "command": "play-pause"}})
+            controller.queue_action(device, {"action": "notice-dismiss-all", "value": "ignored"})
+            commands = controller.pop_commands()
+            self.assertEqual(commands[0]["value"], {"player": "spotify.instance42", "command": "play-pause"})
+            self.assertEqual(commands[1]["action"], "notice-dismiss-all")
+            self.assertEqual(commands[1]["value"], "all")
+            with self.assertRaises(ValueError):
+                controller.queue_action(device, {"action": "media", "value": {"player": "spotify", "command": "delete"}})
+
     def test_granular_permissions_layout_heartbeat_and_identify(self):
         with tempfile.TemporaryDirectory() as folder:
             controller = self.make_controller(folder)
@@ -75,7 +90,7 @@ class PaddPairingTests(unittest.TestCase):
             controller.manage({"operation": "proximity", "id": ident, "enabled": True})
             controller.manage({"operation": "identify", "id": ident})
             device = controller.authenticate(paired["token"])
-            heartbeat = controller.heartbeat(device, {"battery": 0, "network": "wifi", "latencyMs": 14, "version": "28.1-test"}, "192.168.1.10")
+            heartbeat = controller.heartbeat(device, {"battery": 0, "network": "wifi", "latencyMs": 14, "version": "28.2-test"}, "192.168.1.10")
             self.assertEqual(heartbeat["device"]["battery"], 0)
             self.assertEqual(heartbeat["device"]["latencyMs"], 14)
             controller.sync({"notices": [{"id": "one", "text": "Priority"}], "meters": [{"label": "CPU", "value": 42}]})

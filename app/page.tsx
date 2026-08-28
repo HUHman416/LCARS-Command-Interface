@@ -39,7 +39,7 @@ import { ConnectedOperationsPanel } from "./v28-connected";
 import type { PaddDevice, PaddOperation, PaddStatus } from "./v28-connected";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="28.1-dev.1";
+const LCARS_VERSION="28.2-dev.1";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -89,6 +89,7 @@ type Notice = {
   read?: boolean;
   archived?: boolean;
   repeats?: number;
+  expiresAt?: number;
 };
 type WindowTask = {
   id: string;
@@ -671,6 +672,19 @@ export default function Home() {
     [disabledExtensions,setDisabledExtensions]=useState<string[]>([]);
   const routineTriggerGuard=useRef<Set<string>>(new Set()),workstationRestoreGuard=useRef(false);
   useEffect(()=>{const update=(event:Event)=>setWorkspaceWindows((event as CustomEvent<{active?:string[]}>).detail?.active||[]);window.addEventListener(workspaceStateEvent,update);return()=>window.removeEventListener(workspaceStateEvent,update);},[]);
+  useEffect(()=>{
+    const visible=notices.filter((notice)=>notice.id>0&&Number.isFinite(notice.expiresAt));
+    if(!visible.length)return;
+    const now=Date.now(),nextExpiry=Math.min(...visible.map((notice)=>notice.expiresAt||now));
+    const timer=window.setTimeout(()=>setNotices((old)=>{
+      const current=Date.now();let changed=false;
+      const next=old.map((notice)=>{if(notice.id>0&&notice.expiresAt!==undefined&&notice.expiresAt<=current){changed=true;return{...notice,id:-Math.abs(notice.id),read:true};}return notice;});
+      if(!changed)return old;
+      localStorage.setItem("lcars-notification-history",JSON.stringify(next));
+      return next;
+    }),Math.max(0,nextExpiry-now)+10);
+    return()=>window.clearTimeout(timer);
+  },[notices]);
   useEffect(() => {
     const launchParams=new URLSearchParams(window.location.search),requested=launchParams.get("section");
     const safeBoot=sessionStorage.getItem("lcars-safe-mode")==="1";
@@ -739,7 +753,7 @@ export default function Home() {
     if (destinationData) try { setAppDestinations(normalizeAppDestinations(JSON.parse(destinationData))); } catch {}
     if (routineData) try { setRoutines(normalizeRoutines(JSON.parse(routineData))); } catch {}
     if (activityData) try { setActivityLog(normalizeActivity(JSON.parse(activityData))); } catch {}
-    if (noticeData) try { const parsed=JSON.parse(noticeData);if(Array.isArray(parsed))setNotices(parsed.slice(0,100)); } catch {}
+    if (noticeData) try { const parsed=JSON.parse(noticeData);if(Array.isArray(parsed))setNotices(parsed.slice(0,100).map((item:Notice)=>({...item,id:-Math.abs(Number(item.id)||Date.now()),read:true,expiresAt:undefined}))); } catch {}
     if (trayShortcutData) try { setTrayShortcuts(normalizeTrayShortcuts(JSON.parse(trayShortcutData))); } catch {}
     if (mappingData) try { setControlMappings(normalizeControlMappings(JSON.parse(mappingData))); } catch {}
     if (disabledExtensionData) try { const parsed=JSON.parse(disabledExtensionData);if(Array.isArray(parsed))setDisabledExtensions(parsed.filter((item):item is string=>typeof item==="string").slice(0,128)); } catch {}
@@ -1078,8 +1092,9 @@ export default function Home() {
     priority: Notice["priority"] = kind === "error" ? "critical" : "routine",
   ) => {
     if (kind === "error" && playError) cue("error");
+    const createdAt=Date.now(),visibleFor=Math.max(1,prefs.notificationSeconds)*1000;
     const notice = {
-      id: doNotDisturb ? -Date.now() : Date.now() + Math.random(),
+      id: doNotDisturb ? -createdAt : createdAt + Math.random(),
       text,
       kind,
       time: new Date().toLocaleTimeString([], {
@@ -1088,18 +1103,9 @@ export default function Home() {
       }),
       source,
       priority,
+      expiresAt:doNotDisturb?undefined:createdAt+visibleFor,
     };
-    setNotices((old) => {const match=old.find((item)=>item.text===text&&item.source===source&&!item.archived),next=match?[{...match,id:notice.id,time:notice.time,kind,priority,read:false,repeats:(match.repeats||1)+1},...old.filter((item)=>item!==match)].slice(0,100):[{...notice,read:false,archived:false,repeats:1},...old].slice(0,100);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});
-    if (!doNotDisturb)
-      setTimeout(
-        () =>
-          setNotices((old) => {
-            const next=old.map((x) =>
-              x.id === notice.id ? { ...x, id: -Math.abs(x.id), read:true } : x,
-            );localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;
-          }),
-        Math.max(1, prefs.notificationSeconds) * 1000,
-      );
+    setNotices((old) => {const match=old.find((item)=>item.text===text&&item.source===source&&!item.archived),next=match?[{...match,id:notice.id,time:notice.time,kind,priority,read:false,expiresAt:notice.expiresAt,repeats:(match.repeats||1)+1},...old.filter((item)=>item!==match)].slice(0,100):[{...notice,read:false,archived:false,repeats:1},...old].slice(0,100);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});
   };
   const dismissNotice = (id: number) =>
     setNotices((old) => {
@@ -1593,7 +1599,7 @@ export default function Home() {
       workstations:profiles.map((profile)=>({id:profile.id,name:profile.name,detail:`${profile.widgets.length} MODULES · ${profile.theme.toUpperCase()}`})),
       quickActions,handoff:{page:section,title:`${section.toUpperCase()} CONSOLE`,updatedAt:Date.now()},
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
-      release:{stable:"27.2.1",development:"28.1",channel:prefs.updateChannel},
+      release:{stable:"27.2.1",development:"28.2",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -1601,13 +1607,19 @@ export default function Home() {
     };
     const receive=()=>fetch("http://127.0.0.1:8765/api/padd-commands").then((response)=>response.json()).then((result)=>{(Array.isArray(result.commands)?result.commands:[]).forEach((command:{action:string;value:unknown;deviceName?:string})=>{
       if(command.action==="navigate")setSection(String(command.value));
-      else if(command.action==="media"){const player=players[0];if(player)mediaControl(player.id,String(command.value));}
+      else if(command.action==="media"){
+        const request=command.value&&typeof command.value==="object"?command.value as {player?:unknown;command?:unknown}:null;
+        const requestedPlayer=String(request?.player||""),mediaCommand=String(request?.command||command.value||"");
+        const player=players.find((candidate)=>candidate.id===requestedPlayer)||players.find((candidate)=>candidate.status.toLowerCase()==="playing")||players[0];
+        if(player)mediaControl(player.id,mediaCommand);
+      }
       else if(command.action==="volume"){const next=Math.max(0,Math.min(100,Number(command.value)||0));setVolume(next);fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:next})}).catch(()=>{});}
       else if(command.action==="dnd")setDoNotDisturb(Boolean(command.value));
       else if(command.action==="routine"){const routine=routines.find((candidate)=>candidate.id===String(command.value));if(routine)requestRoutine(routine);}
       else if(command.action==="app"){const app=apps.find((candidate)=>candidate.id===String(command.value));if(app)launch(app);}
       else if(command.action==="workstation"){const profile=profiles.find((candidate)=>candidate.id===String(command.value));if(profile)applyProfile(profile);}
       else if(command.action==="notice-read"||command.action==="notice-archive"){setNotices((old)=>{const next=old.map((notice)=>String(notice.id)===String(command.value)?{...notice,read:true,archived:command.action==="notice-archive"?true:notice.archived}:notice);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});}
+      else if(command.action==="notice-dismiss-all"){setNotices((old)=>{const next=old.map((notice)=>({...notice,id:-Math.abs(notice.id),read:true,archived:true,expiresAt:undefined}));localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});}
       else if(command.action==="quick")runQuickAction(String(command.value));
       else if(command.action==="handoff"){const destination=String(command.value);if(nav.some((item)=>item[0]===destination))setSection(destination);}
       else if(command.action==="clipboard")navigator.clipboard?.writeText(String(command.value)).then(()=>notify("Approved PADD text copied to the desktop clipboard")).catch(()=>notify("Desktop clipboard access is unavailable","error"));
@@ -2079,7 +2091,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>28.1 DEV</small>
+          <small>28.2 DEV</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>
@@ -4727,6 +4739,13 @@ function MediaConsole({
           </button>
         ))}
       </nav>
+      <nav className="media-quick-strip media-command-toolbar" aria-label="Media quick controls">
+        <button onClick={openMedia}>OPEN MEDIA PLAYER</button>
+        <button onClick={openDevices}>AUDIO DEVICES</button>
+        <button onClick={refresh}>REFRESH / RESCAN</button>
+        <button disabled={!output} onClick={() => document.getElementById("media-output-device")?.focus()} title={output?.name || "No default output"}>DEFAULT OUTPUT</button>
+        <button disabled={!input} onClick={() => document.getElementById("media-input-device")?.focus()} title={input?.name || "No default input"}>DEFAULT INPUT</button>
+      </nav>
       <div className="media-console">
         <section
           className={`media-zone media-player-zone ${pane === "players" ? "active-pane" : ""}`}
@@ -4861,14 +4880,6 @@ function MediaConsole({
           platform={platform}
           active={pane === "mixer"}
         />
-
-        <nav className="media-quick-strip" aria-label="Media quick controls">
-          <button onClick={openMedia}>OPEN MEDIA PLAYER</button>
-          <button onClick={openDevices}>AUDIO DEVICES</button>
-          <button onClick={refresh}>REFRESH / RESCAN</button>
-          <button disabled={!output} onClick={() => document.getElementById("media-output-device")?.focus()} title={output?.name || "No default output"}>DEFAULT OUTPUT</button>
-          <button disabled={!input} onClick={() => document.getElementById("media-input-device")?.focus()} title={input?.name || "No default input"}>DEFAULT INPUT</button>
-        </nav>
       </div>
     </>
   );

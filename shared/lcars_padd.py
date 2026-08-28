@@ -30,6 +30,7 @@ ACTION_ROLES = {
     "workstation": "command",
     "notice-read": "operator",
     "notice-archive": "operator",
+    "notice-dismiss-all": "operator",
     "quick": "operator",
     "handoff": "operator",
     "clipboard": "command",
@@ -470,9 +471,15 @@ class PaddController:
             if value not in {"overview", "system", "media", "network", "updates", "settings"}:
                 raise ValueError("Unknown LCARS page")
         elif action == "media":
-            value = _clean_text(value, 24)
-            if value not in {"previous", "play-pause", "play", "pause", "next"}:
+            if isinstance(value, dict):
+                player = _clean_text(value.get("player"), 160)
+                command = _clean_text(value.get("command"), 24)
+            else:
+                player = ""
+                command = _clean_text(value, 24)
+            if command not in {"previous", "play-pause", "play", "pause", "next"}:
                 raise ValueError("Unknown media command")
+            value = {"player": player, "command": command} if player else command
         elif action == "volume":
             value = max(0, min(100, int(value)))
         elif action == "dnd":
@@ -483,6 +490,8 @@ class PaddController:
             value = _clean_clipboard(value)
             if not value:
                 raise ValueError("Clipboard text is empty")
+        elif action == "notice-dismiss-all":
+            value = "all"
         else:
             value = _clean_text(value, 96)
             if not value:

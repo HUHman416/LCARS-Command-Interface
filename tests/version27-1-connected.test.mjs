@@ -15,8 +15,8 @@ const companion = read("padd/app.js");
 const manifest = read("padd/manifest.webmanifest");
 
 test("Connected settings remain explicit through the Version 28 migration", () => {
-  assert.match(page, /LCARS_VERSION="28\.1-dev\.1"/);
-  assert.match(page, /28\.1 DEV/);
+  assert.match(page, /LCARS_VERSION="28\.2-dev\.1"/);
+  assert.match(page, /28\.2 DEV/);
   assert.match(page, /ConnectedOperationsPanel/);
   assert.match(connected, /PADD FLEET COMMAND/);
   assert.match(connected, /VIEWER.*OPERATOR.*COMMAND/s);
