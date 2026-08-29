@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v28-ff9866" alt="Stable Version 28">
-  <img src="https://img.shields.io/badge/development-v29.1-b8a2e8" alt="Version 29.1 Development">
+  <img src="https://img.shields.io/badge/development-v29.2-b8a2e8" alt="Version 29.2 Development">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -63,7 +63,21 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
 
-## 🚧 Version 29.1 Development — Mobile Command Environment
+## 🚧 Version 29.2 Development — LCARS Home Customization
+
+Version 29.2 completes the planned customization milestone for the optional Android Home environment:
+
+- Rebuilds standalone Home around the desktop LCARS masthead, persistent numbered sidebar, and focused page navigation.
+- Adds independent application decks and folders alongside the existing searchable library and Favorites.
+- Hosts installed Android widgets through the system widget picker, including provider configuration and removal.
+- Adds a mobile Display Matrix for Enterprise-D, Voyager, Enterprise-E/Nemesis, Picard-era Starfleet, Cerritos, and Defiant LCARS families, including geometry and density changes.
+- Adds controls for sidebar width, interface density, and application-grid columns.
+- Adds JSON backup and restore for themes, layout, Favorites, decks, and folders; device-specific Android widget bindings are deliberately excluded.
+- Prevents the native Companion and standalone Home mastheads from clipping after tab/page changes, accessibility scaling, rotation, or returning to Status.
+
+Version 29.3 RC remains planned for Connected Station Dock, multi-station support, notification-center integration, credential hardening, migration, battery testing, and polish.
+
+## Version 29.1 Development — Home Foundation
 
 Version 29.1 begins the optional standalone Android LCARS Home experience while preserving the paired PADD Companion:
 
@@ -76,7 +90,7 @@ Version 29.1 begins the optional standalone Android LCARS Home experience while 
 - Fixes wrapped Status-module edit headers being covered by the row above.
 - Restores full vertical resizing for Page Peeks, Communications/Notices, and the Tray Command Deck.
 
-Later Version 29 development milestones are planned to add LCARS decks and folders, widget hosting, mobile Display Matrix layouts, Connected Station Dock, multi-station support, notification-center integration, credential hardening, and release-grade signing.
+Version 29.1 established the Home-role, application-library, search, Favorites, safe switching, and offline-status foundation expanded by Version 29.2.
 
 ## ✨ Version 28 Connected Operations
 
@@ -92,7 +106,7 @@ Later Version 29 development milestones are planned to add LCARS decks and folde
 
 Version 28 is available on the **Stable** update channel. Use the companion only on a network you trust; the local PADD service is not intended for internet exposure.
 
-Version 29.1 Development now contains the first optional standalone Android LCARS Home foundation. Stable users remain on Version 28 until the complete Version 29 mobile sequence has finished testing.
+Version 29.2 Development now contains the complete launcher-customization milestone. Stable users remain on Version 28 until the Version 29.3 release-candidate and signing sequence has finished testing.
 
 ## 🆕 Version 27.2.1 stable update
 

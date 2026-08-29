@@ -110,7 +110,8 @@ public final class MainActivity extends Activity {
         prepareNotifications();
         stationRoot = preferences.getString(LAST_STATION, "");
         token = preferences.getString(TOKEN, "");
-        if (!stationRoot.isEmpty() && !token.isEmpty()) showConsole();
+        if (getIntent().getBooleanExtra("open-setup", false)) showSetup("");
+        else if (!stationRoot.isEmpty() && !token.isEmpty()) showConsole();
         else showSetup("");
     }
 
@@ -182,7 +183,7 @@ public final class MainActivity extends Activity {
         page.addView(form, matchWrap(dp(6)));
 
         LinearLayout standalone = panel(VIOLET);
-        standalone.addView(fieldLabel("VERSION 29.1 STANDALONE HOME"), matchWrap(dp(4)));
+        standalone.addView(fieldLabel("VERSION 29.2 STANDALONE HOME"), matchWrap(dp(4)));
         standalone.addView(label("Pairing is optional. Open the local LCARS application library now, or ask Android to make it the device Home screen.", Color.LTGRAY, 13, false), matchWrap(dp(7)));
         LinearLayout standaloneActions = row(PANEL);
         Button previewHome = button("OPEN LCARS HOME", VIOLET);
@@ -250,7 +251,7 @@ public final class MainActivity extends Activity {
         consoleActive = true;
         poller.removeCallbacks(poll);
         LinearLayout shell = column(BLACK);
-        LinearLayout header = masthead("LCARS VERSION 29.1 · DEVELOPMENT", linkStatus);
+        LinearLayout header = masthead("LCARS VERSION 29.2 · DEVELOPMENT", linkStatus);
         linkBadge = (TextView) header.getChildAt(2);
         linkBadge.setBackground(shape(linkColor, 3, 28, 28, 3));
         shell.addView(header, matchWrap(dp(5)));
@@ -351,7 +352,7 @@ public final class MainActivity extends Activity {
             body.put("battery", batteryLevel());
             body.put("network", networkLabel());
             body.put("latencyMs", latency);
-            body.put("version", "29.1.0-dev.1");
+            body.put("version", "29.2.0-dev.1");
             request("POST", "api/padd/heartbeat", body, token);
         } catch (Exception ignored) {}
     }
@@ -630,7 +631,7 @@ public final class MainActivity extends Activity {
         }
         consoleContent.addView(widgetPanel, matchWrap(dp(5)));
         LinearLayout home = panel(ORANGE);
-        home.addView(fieldLabel("VERSION 29.1 STANDALONE HOME"), matchWrap(dp(4)));
+        home.addView(fieldLabel("VERSION 29.2 STANDALONE HOME"), matchWrap(dp(4)));
         home.addView(label("Use LCARS as an optional Android Home environment with local device status, application search, and favorites. The paired PADD remains available at any time.", Color.LTGRAY, 13, false), matchWrap(dp(7)));
         LinearLayout homeActions = row(PANEL);
         Button openHome = button("OPEN HOME", VIOLET);
@@ -657,7 +658,7 @@ public final class MainActivity extends Activity {
         releasePanel.addView(fieldLabel("RELEASE MATRIX"), matchWrap(dp(4)));
         releasePanel.addView(label("STABLE · " + (release == null ? "UNKNOWN" : release.optString("stable", "UNKNOWN")), Color.WHITE, 17, true), matchWrap(dp(3)));
         releasePanel.addView(label("DEVELOPMENT · " + (release == null ? "UNKNOWN" : release.optString("development", "UNKNOWN")), PEACH, 17, true), matchWrap(dp(3)));
-        releasePanel.addView(label("CLIENT · VERSION 29.1 DEVELOPMENT", Color.LTGRAY, 11, true), matchWrap(0));
+        releasePanel.addView(label("CLIENT · VERSION 29.2 DEVELOPMENT", Color.LTGRAY, 11, true), matchWrap(0));
         consoleContent.addView(releasePanel, matchWrap(dp(5)));
         if (device != null) {
             String diagnostics = device.optString("network", "NETWORK UNKNOWN").toUpperCase() + " · " + device.optInt("latencyMs", 0) + " MS · " + device.optInt("battery", -1) + "% BATTERY";
@@ -668,7 +669,7 @@ public final class MainActivity extends Activity {
         LinearLayout recovery = panel(compatibility.equals("compatible") ? BLUE : PINK);
         recovery.addView(fieldLabel("CONNECTION RECOVERY"), matchWrap(dp(4)));
         recovery.addView(label(compatibility.equals("compatible") ? "CLIENT AND STATION VERSIONS ALIGNED" : "VERSION ATTENTION · " + compatibility.replace('-', ' ').toUpperCase(), compatibility.equals("compatible") ? BLUE : PINK, 13, true), matchWrap(dp(3)));
-        recovery.addView(label("STATION " + stationVersion.toUpperCase() + " · CLIENT VERSION 29.1", Color.LTGRAY, 10, true), matchWrap(dp(7)));
+        recovery.addView(label("STATION " + stationVersion.toUpperCase() + " · CLIENT VERSION 29.2", Color.LTGRAY, 10, true), matchWrap(dp(7)));
         LinearLayout recoveryActions = row(PANEL);
         Button retry = button("RETRY LINK", BLUE);
         retry.setOnClickListener(ignored -> refreshState(true));
@@ -812,24 +813,24 @@ public final class MainActivity extends Activity {
 
     private LinearLayout masthead(String eyebrow, String badgeText) {
         LinearLayout header = row(BLACK);
-        TextView index = label("28", BLACK, 12, true);
+        TextView index = fixedFittedLabel("29", BLACK, 12, 17, true);
         index.setGravity(Gravity.CENTER);
         index.setBackground(shape(ORANGE, 28, 3, 3, 28));
         LinearLayout titles = column(PANEL);
         titles.setPadding(dp(12), dp(7), dp(8), dp(7));
         titles.setBackground(shape(PANEL, 3, 3, 3, 3));
-        titles.addView(label(eyebrow, PEACH, 10, true), matchWrap(dp(1)));
-        titles.addView(fittedLabel("PADD COMPANION", Color.WHITE, 14, 21, true), matchWrap(0));
-        TextView badge = label(badgeText, BLACK, 11, true);
+        titles.addView(fixedFittedLabel(eyebrow, PEACH, 8, 10, true), matchWrap(dp(2)));
+        titles.addView(fixedFittedLabel("PADD COMPANION", Color.WHITE, 13, 20, true), matchWrap(0));
+        TextView badge = fixedFittedLabel(badgeText, BLACK, 9, 12, true);
         badge.setBackground(shape(ORANGE, 3, 28, 28, 3));
         badge.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams indexParams = new LinearLayout.LayoutParams(dp(42), dp(64));
+        LinearLayout.LayoutParams indexParams = new LinearLayout.LayoutParams(dp(46), dp(72));
         indexParams.rightMargin = dp(3);
-        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, dp(64), 1);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, dp(72), 1);
         titleParams.rightMargin = dp(3);
         header.addView(index, indexParams);
         header.addView(titles, titleParams);
-        header.addView(badge, new LinearLayout.LayoutParams(dp(82), dp(64)));
+        header.addView(badge, new LinearLayout.LayoutParams(dp(78), dp(72)));
         return header;
     }
 
@@ -979,6 +980,19 @@ public final class MainActivity extends Activity {
             int maximum = Math.max(minimum, Math.round(maximumSize * remoteFontScale));
             view.setAutoSizeTextTypeUniformWithConfiguration(minimum, maximum, 1, TypedValue.COMPLEX_UNIT_SP);
         }
+        return view;
+    }
+
+    private TextView fixedFittedLabel(String text, int color, int minimumSize, int maximumSize, boolean bold) {
+        TextView view = new TextView(this);
+        view.setText(text);
+        view.setTextColor(color);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, maximumSize);
+        view.setTypeface(Typeface.create("sans-serif-condensed", bold ? Typeface.BOLD : Typeface.NORMAL));
+        view.setGravity(Gravity.CENTER_VERTICAL);
+        view.setSingleLine(true);
+        view.setEllipsize(TextUtils.TruncateAt.END);
+        if (Build.VERSION.SDK_INT >= 26) view.setAutoSizeTextTypeUniformWithConfiguration(minimumSize, maximumSize, 1, TypedValue.COMPLEX_UNIT_SP);
         return view;
     }
 

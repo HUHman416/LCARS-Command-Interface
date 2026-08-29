@@ -1,4 +1,4 @@
-/* Version 29.1 launcher foundation and desktop workspace corrections. */
+/* Version 29.2 launcher foundation and desktop workspace corrections. */
 
 /* Editing controls occupy their own grid row. Previously the module's 100%
    height also included the control bar and overflowed across the next row. */

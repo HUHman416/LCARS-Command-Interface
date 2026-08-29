@@ -80,9 +80,9 @@ test("Stable and development update channels are explicit and stay silent in the
 });
 
 test("Version metadata advances for Version 26 while desktop recovery retains Version 25 state",()=>{
-  assert.ok(["29.1.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(pkg.version));
-  assert.match(linux,/LCARS_VERSION="(?:29\.1\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(windows,/LCARS_VERSION="(?:29\.1\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.ok(["29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(pkg.version));
+  assert.match(linux,/LCARS_VERSION="(?:29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(windows,/LCARS_VERSION="(?:29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
   assert.match(renderer,/lcars-routines/);
   assert.match(renderer,/lcars-tray-shortcuts/);
 });

@@ -18,9 +18,21 @@ Version 29.1 adds the first optional standalone Android Home surface. It can be 
 - Independent operation when no desktop is paired or reachable.
 - A separate Development package identity so Version 28 Stable can remain installed.
 
-Version 29.2 is planned for LCARS decks, folders, widgets, layouts, and mobile Display Matrix support. Version 29.3 is planned for Connected Station Dock, multi-station behavior, notification integration, security hardening, and release-candidate testing.
+## Version 29.2 Development
 
-The Version 29.1 GitHub workflow publishes a separately installable, debug-signed Development APK after desktop, Android, and regression validation succeeds. Android may ask for notification permission, permission to install an app downloaded outside Google Play, and explicit confirmation before making LCARS the Home application. Stable Version 29 will require a persistent release-signing identity.
+Version 29.2 expands the Home foundation into a customizable LCARS mobile environment:
+
+- A desktop-style masthead, numbered left sidebar, and focused Status, Apps, Favorites, Decks, Folders, Widgets, Displays, Settings, and Companion pages.
+- User-created launch decks and application folders that remain independent of Favorites.
+- Native Android widget selection, configuration, hosting, and removal through `AppWidgetHost`.
+- Six mobile Display Matrix families with different palette, corner geometry, borders, navigation, and density—not palette swaps alone.
+- Standard or compact sidebar and density modes plus automatic or fixed application-grid columns.
+- JSON backup and restore for portable Home settings, with device-bound widget IDs intentionally excluded.
+- Fixed-size, auto-fitting masthead text in both native Android surfaces so navigation and accessibility scaling cannot push titles outside their panels.
+
+Version 29.3 is planned for Connected Station Dock, multi-station behavior, notification-center integration, credential hardening, migration, battery testing, and release-candidate polish.
+
+The Version 29.2 GitHub workflow publishes a separately installable, debug-signed Development APK after desktop, Android, and regression validation succeeds. Android may ask for notification permission, permission to install an app downloaded outside Google Play, explicit widget-provider configuration, and explicit confirmation before making LCARS the Home application. Stable Version 29 will require a persistent release-signing identity.
 
 Build locally with Android SDK 35, Java 17, and Gradle 8.9:
 
