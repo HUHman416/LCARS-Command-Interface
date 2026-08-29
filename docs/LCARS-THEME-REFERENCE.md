@@ -1,6 +1,6 @@
-# Version 28.3 LCARS Display Matrix reference
+# Version 28 LCARS Display Matrix reference
 
-The Version 28.3 Display Matrix is limited to computer interfaces shown as Starfleet LCARS or an LCARS PADD. It does not treat every Star Trek computer graphic as LCARS, and it does not reproduce copyrighted screen captures or production artwork. The implementation translates recurring on-screen design traits into original CSS geometry around LCARSCI's real controls.
+The Version 28 Display Matrix is limited to computer interfaces shown as Starfleet LCARS. It does not treat every Star Trek computer graphic as LCARS, and it does not reproduce copyrighted screen captures or production artwork. The implementation translates recurring on-screen design traits into original CSS geometry around LCARSCI's real controls.
 
 ## Included families
 
@@ -34,19 +34,19 @@ The Version 28.3 Display Matrix is limited to computer interfaces shown as Starf
 - LCARSCI treatment: saturated flat color, bold dark outlines, larger pill shapes, exaggerated curves, and stronger selected states.
 - Production reference: TrekCore's [Lower Decks season-one art-design coverage](https://blog.trekcore.com/2021/05/star-trek-lower-decks-season1-bluray-review/) notes that even the Cerritos furniture was shaped to echo LCARS; the [Lower Decks screencap archive](https://lowerdecks.trekcore.com/gallery/) supplies episode-by-episode on-screen visual reference.
 
-### TNG PADD — handheld LCARS
+### Defiant — DS9 Starfleet LCARS
 
-- Basis: the handheld Personal Access Display Devices seen in TNG and an official functional LCARS PADD implementation approved by Michael and Denise Okuda.
-- LCARSCI treatment: a thick framed slab, compact button banks, touch-first navigation, and the desktop rail reorganized into a multi-row control bay.
-- Production references: StarTrek.com's [archive of communicators and PADDs](https://www.startrek.com/en-un/gallery/star-trek-archive-okudagrams) and [official Star Trek PADD feature](https://www.startrek.com/videos/star-trek-padd-app-available-today).
+- Basis: the compact Starfleet LCARS consoles shown aboard the USS Defiant in *Star Trek: Deep Space Nine*, not the Cardassian systems installed on the station.
+- LCARSCI treatment: a narrow tactical rail, compact squared controls, muted rust and violet bands, dense status divisions, and a conventional clickable desktop navigation structure.
+- Production references: StarTrek.com's [behind-the-scenes Defiant bridge photographs](https://www.startrek.com/news/startrek-com-vault-okudas-b-t-s-defiant-photos) identify Michael and Denise Okuda with the completed bridge set; the [DS9 LCARS screen catalog](https://www.lcars.org.uk/lcars_DS9_panels.htm) identifies Defiant bridge, helm, engineering, and Con/Ops displays from specific episodes; and [Propstore's production-used Defiant LCARS display](https://propstore.com/product/star-trek-deep-space-nine-t-v-series-1993-1999/lcars-warp-core-display/) confirms the LCARS designation for a panel used in the ship's engine room.
 
 ## Explicit exclusions
 
-- Deep Space 9 station controls are Cardassian interfaces, not LCARS. Federation systems aboard Starfleet vessels such as the Defiant are a separate case, but no “DS9 station” theme is included.
+- Deep Space 9 station controls are Cardassian interfaces, not LCARS. The Defiant theme is restricted to the Federation starship's own LCARS and does not borrow the station's visual language.
 - La Sirena's free-floating holographic controls are not used as the Picard LCARS reference. The Picard theme is restricted to identified Starfleet LCARS.
 - Enterprise NX-01, Discovery-era interfaces, Original Series consoles, Klingon, Romulan, Borg, Cardassian, and other alien systems are not presented as LCARS themes.
 - Fan-made LCARS is used only as a search lead when necessary, never as the authority for an era's visual definition.
 
 ## Implementation rule
 
-Every Display Matrix family must change at least four structural dimensions: shell geometry, navigation geometry, panel/border treatment, and information density. A palette-only variant does not qualify as a theme in Version 28.3.
+Every Display Matrix family must change at least four structural dimensions: shell geometry, navigation geometry, panel/border treatment, and information density. A palette-only variant does not qualify as a theme in Version 28.

@@ -75,7 +75,7 @@ Windows is distributed separately and is not included in the Universal Linux ins
 
 ## Current stage
 
-Version 27.2.1 is the current Stable release. Version 28.2 is an opt-in Development-channel preview focused on Connected Operations across desktop, native Android, and the browser PADD fallback. Only hashed revocable tokens are stored; Viewer, Operator, Command, granular permission, and explicit sensitive-action approval checks are enforced by the local core. PADD devices never receive Terminal, file, process, or computer power access.
+Version 28 is the current Stable release, focused on Connected Operations across desktop, native Android, and the browser PADD fallback. Only hashed revocable tokens are stored; Viewer, Operator, Command, granular permission, and explicit sensitive-action approval checks are enforced by the local core. PADD devices never receive Terminal, file, process, or computer power access.
 
 For one-click Linux installation, open `Install-LCARS-Linux.desktop` or run `Install-LCARS-Linux.run`. Your file manager may ask you to mark the desktop launcher as trusted the first time it is opened. The installer places the standalone application in `~/.local/opt/lcars-command-interface`; Node.js, npm, and an external browser are not required to run it.
 

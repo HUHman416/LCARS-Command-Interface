@@ -10,14 +10,14 @@ android {
         applicationId "com.lcars.padd"
         minSdk 26
         targetSdk 35
-        versionCode 28301
-        versionName "28.3-rc.1"
+        versionCode 28400
+        versionName "28"
     }
 
     buildTypes {
         debug {
-            applicationIdSuffix ".development"
-            versionNameSuffix "-development"
+            // Stable v28 remains debug-signed for direct distribution, but its
+            // package identity and visible version are the Stable application.
         }
         release {
             minifyEnabled false

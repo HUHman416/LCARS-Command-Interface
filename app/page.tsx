@@ -39,7 +39,7 @@ import { ConnectedOperationsPanel } from "./v28-connected";
 import type { PaddDevice, PaddOperation, PaddStatus } from "./v28-connected";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="28.3-rc.1";
+const LCARS_VERSION="28.0.0";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -283,8 +283,12 @@ const themes = [
   {id:"nemesis",name:"Enterprise-E",code:"NCC-1701-E",era:"2379",family:"NEMESIS LCARS",description:"Predominantly blue tactical framing, thin cyan divisions, and squared information panes."},
   {id:"picard",name:"Picard Starfleet",code:"LCARS 2.0",era:"2401",family:"TITAN-A / FLEET",description:"Dark 25th-century Starfleet LCARS with fine amber tracery and segmented control modules."},
   {id:"lower-decks",name:"Cerritos",code:"NCC-75567",era:"2380s",family:"CALIFORNIA-CLASS",description:"Saturated, flat-color LCARS with bold outlines and exaggerated animated geometry."},
-  {id:"padd",name:"TNG PADD",code:"PERSONAL DISPLAY",era:"2360s",family:"HANDHELD LCARS",description:"A framed portable control surface with compact button banks and touch-first navigation."},
+  {id:"defiant",name:"Defiant",code:"NX-74205",era:"2371–2375",family:"DS9 STARFLEET",description:"Compact, utilitarian Starfleet LCARS with muted tactical bands and dense angular control bays."},
 ] as const;
+const normalizeThemeId = (value: unknown) => {
+  const requested = value === "padd" ? "defiant" : String(value || "classic");
+  return themes.some((candidate) => candidate.id === requested) ? requested : "classic";
+};
 const fallback: App[] = [
   { id: "steam.desktop", name: "Steam", comment: "Gaming Library" },
   { id: "net.lutris.Lutris.desktop", name: "Lutris", comment: "Game Launcher" },
@@ -715,7 +719,11 @@ export default function Home() {
       disabledExtensionData = safeBoot?null:localStorage.getItem("lcars-disabled-extensions"),
       pagePeekData = safeBoot?null:localStorage.getItem(openPeeksStorageKey),
       defaultStation = safeBoot?"":localStorage.getItem("lcars-default-workstation") || "";
-    if (t) setTheme(t);
+    if (t) {
+      const restoredTheme=normalizeThemeId(t);
+      setTheme(restoredTheme);
+      if(restoredTheme!==t)localStorage.setItem("lcars-theme",restoredTheme);
+    }
     if (f)
       try {
         setFavoriteIds(JSON.parse(f));
@@ -741,10 +749,12 @@ export default function Home() {
     if (pr)
       try {
         const storedProfiles: WorkspaceProfile[] = JSON.parse(pr);
-        setProfiles(storedProfiles);
-        const preferred = storedProfiles.find((profile) => profile.id === defaultStation);
+        const migratedProfiles=storedProfiles.map((profile)=>({...profile,theme:normalizeThemeId(profile.theme)}));
+        setProfiles(migratedProfiles);
+        if(migratedProfiles.some((profile,index)=>profile.theme!==storedProfiles[index]?.theme))localStorage.setItem("lcars-workspaces",JSON.stringify(migratedProfiles));
+        const preferred = migratedProfiles.find((profile) => profile.id === defaultStation);
         if (preferred) {
-          setTheme(preferred.theme);setWidgets(preferred.widgets);setWidgetSizes(preferred.widgetSizes);setFavoriteIds(preferred.favoriteIds);setActiveProfile(preferred.id);
+          setTheme(normalizeThemeId(preferred.theme));setWidgets(preferred.widgets);setWidgetSizes(preferred.widgetSizes);setFavoriteIds(preferred.favoriteIds);setActiveProfile(preferred.id);
         }
       } catch {}
     if (u) setUserName(u);
@@ -1026,9 +1036,10 @@ export default function Home() {
   const choose = (id: string) => {
     createRecoverySnapshot("Before theme change");
     beep(true);
-    setTheme(id);
-    localStorage.setItem("lcars-theme", id);
-    recordActivity("Display matrix changed",`Theme ${id.toUpperCase()} activated`,"success","OPERATOR",true);
+    const selectedTheme=normalizeThemeId(id);
+    setTheme(selectedTheme);
+    localStorage.setItem("lcars-theme", selectedTheme);
+    recordActivity("Display matrix changed",`Theme ${selectedTheme.toUpperCase()} activated`,"success","OPERATOR",true);
   };
   const launch = (app: App, requested?: ApplicationDestination) => {
     beep(true);
@@ -1454,7 +1465,8 @@ export default function Home() {
   const applyProfile = (profile: WorkspaceProfile) => {
     createRecoverySnapshot("Before workstation profile change");
     const preset=profile.layoutPreset==="auto"?(displays.filter((display)=>display.enabled).length>1?"multi-monitor":window.innerWidth<760?(window.innerWidth>window.innerHeight?"landscape":"portrait"):"desktop"):profile.layoutPreset||"desktop";
-    setTheme(preset==="portrait"||preset==="landscape"?"padd":profile.theme);
+    const restoredTheme=normalizeThemeId(profile.theme);
+    setTheme(restoredTheme);
     setWidgets(profile.widgets);
     setWidgetSizes(profile.widgetSizes);
     setFavoriteIds(profile.favoriteIds);
@@ -1474,7 +1486,7 @@ export default function Home() {
     }
     [profile.outputDevice,profile.inputDevice].filter(Boolean).forEach((id)=>chooseAudioDevice(String(id)));
     setActiveProfile(profile.id);
-    localStorage.setItem("lcars-theme", profile.theme);
+    localStorage.setItem("lcars-theme", restoredTheme);
     localStorage.setItem(
       "lcars-overview-widgets",
       JSON.stringify(profile.widgets),
@@ -1599,7 +1611,7 @@ export default function Home() {
       workstations:profiles.map((profile)=>({id:profile.id,name:profile.name,detail:`${profile.widgets.length} MODULES · ${profile.theme.toUpperCase()}`})),
       quickActions,handoff:{page:section,title:`${section.toUpperCase()} CONSOLE`,updatedAt:Date.now()},
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
-      release:{stable:"27.2.1",development:"28.3 RC 1",channel:prefs.updateChannel},
+      release:{stable:"28",development:"28.3",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -1737,7 +1749,7 @@ export default function Home() {
       try {
         const d = JSON.parse(String(reader.result));
         createRecoverySnapshot("Before configuration import");
-        if (d.theme) {setTheme(d.theme);localStorage.setItem("lcars-theme",d.theme);}
+        if (d.theme) {const importedTheme=normalizeThemeId(d.theme);setTheme(importedTheme);localStorage.setItem("lcars-theme",importedTheme);}
         if (Array.isArray(d.favoriteIds)) {
           setFavoriteIds(d.favoriteIds);
           localStorage.setItem(
@@ -2091,7 +2103,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>28.3 RC 1</small>
+          <small>28 STABLE</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>

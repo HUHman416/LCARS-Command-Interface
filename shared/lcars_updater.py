@@ -19,7 +19,7 @@ from pathlib import Path
 REPOSITORY = "HUHman416/LCARS-Command-Interface"
 API_URL = f"https://api.github.com/repos/{REPOSITORY}/releases/latest"
 RELEASES_URL = f"https://api.github.com/repos/{REPOSITORY}/releases?per_page=30"
-USER_AGENT = "LCARS-Command-Interface-Updater/27.2.1"
+USER_AGENT = "LCARS-Command-Interface-Updater/28"
 _DOWNLOAD_LOCK = threading.Lock()
 _DOWNLOAD_CACHE: dict[tuple[str, str, str], dict] = {}
 

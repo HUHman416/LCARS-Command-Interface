@@ -13,10 +13,11 @@ const android = read("mobile/android/app/src/main/java/com/lcars/padd/MainActivi
 const widget = read("mobile/android/app/src/main/java/com/lcars/padd/PaddWidgetProvider.java");
 const manifest = read("mobile/android/app/src/main/AndroidManifest.xml");
 const workflow = read(".github/workflows/v28-development.yml");
+const stableWorkflow = read(".github/workflows/v28-stable.yml");
 
 test("Version 28 identity and Connected Operations renderer are wired", () => {
-  assert.match(read("package.json"), /"version": "28\.3\.0-rc\.1"/);
-  assert.match(page, /LCARS_VERSION="28\.3-rc\.1"/);
+  assert.match(read("package.json"), /"version": "28\.0\.0"/);
+  assert.match(page, /LCARS_VERSION="28\.0\.0"/);
   assert.match(page, /ConnectedOperationsPanel/);
   assert.match(page, /api\/padd-events/);
   assert.match(page, /activeWorkstation:activeProfile/);
@@ -93,6 +94,16 @@ test("Version 28.3 release candidate waits for all platform validation", () => {
   assert.match(workflow, /--prerelease/);
 });
 
+test("Version 28 Stable publishes a major-only cross-platform release", () => {
+  assert.match(stableWorkflow, /branches: \[28-stable\]/);
+  assert.match(stableWorkflow, /needs: \[linux, windows, android\]/);
+  assert.match(stableWorkflow, /LCARS-PADD-Companion-v28-Android\.apk/);
+  assert.match(stableWorkflow, /gh release (?:view|create) v28/);
+  assert.match(stableWorkflow, /LCARS Command Interface Version 28/);
+  assert.doesNotMatch(stableWorkflow, /v28\.3/);
+  assert.doesNotMatch(stableWorkflow, /--prerelease(?:\s|$)/);
+});
+
 test("Version 28.3 closes the Connected Operations release-candidate checklist", () => {
   for (const token of ["APPROVAL_TTL", "DEFAULT_NOTIFICATIONS", "PERMISSION_PRESETS", "copy-settings", "client-outdated", "request-expired"]) {
     assert.match(padd, new RegExp(token));
@@ -106,12 +117,17 @@ test("Version 28.3 closes the Connected Operations release-candidate checklist",
 });
 
 test("Display Matrix uses six researched structural LCARS families", () => {
-  for (const token of ["Enterprise-D", "Voyager", "Enterprise-E", "Picard Starfleet", "Cerritos", "TNG PADD"]) assert.match(page, new RegExp(token));
+  for (const token of ["Enterprise-D", "Voyager", "Enterprise-E", "Picard Starfleet", "Cerritos", "Defiant"]) assert.match(page, new RegExp(token));
   const globals = read("app/globals.css");
-  for (const selector of ["theme-voyager", "theme-nemesis", "theme-picard", "theme-lower-decks", "theme-padd"]) assert.match(globals, new RegExp(`\\.${selector}`));
+  for (const selector of ["theme-voyager", "theme-nemesis", "theme-picard", "theme-lower-decks", "theme-defiant"]) assert.match(globals, new RegExp(`\\.${selector}`));
   assert.match(globals, /researched LCARS families/);
+  assert.match(page, /value === "padd" \? "defiant"/);
+  assert.doesNotMatch(page, /id:"padd"/);
+  assert.match(globals, /\.theme-voyager \.brand,[\s\S]*\.theme-lower-decks \.brand[\s\S]*border-radius: 46px 3px 3px 3px/);
+  assert.match(globals, /\.theme-defiant \.shell[\s\S]*grid-template-columns: 166px minmax\(0, 1fr\)/);
   const reference = read("docs/LCARS-THEME-REFERENCE.md");
   assert.match(reference, /Explicit exclusions/);
   assert.match(reference, /La Sirena/);
   assert.match(reference, /Cardassian/);
+  assert.match(reference, /Defiant/);
 });

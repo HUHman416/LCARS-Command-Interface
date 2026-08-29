@@ -14,7 +14,7 @@ class PaddPairingTests(unittest.TestCase):
         assets = Path(folder) / "padd"
         assets.mkdir()
         (assets / "index.html").write_text("LCARS PADD", encoding="utf-8")
-        return PaddController(Path(folder) / "config", assets, "28.3-rc.1", "test", listen=False)
+        return PaddController(Path(folder) / "config", assets, "28.0.0", "test", listen=False)
 
     def test_one_use_pairing_hashes_tokens_and_supports_revocation(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -117,7 +117,11 @@ class PaddPairingTests(unittest.TestCase):
             self.assertEqual(copied["role"], "command")
             self.assertFalse(copied["notifications"]["priorityOnly"])
             controller.heartbeat(copied, {"version": "28.2", "network": "wifi"})
+            self.assertEqual(controller.authenticate(second["token"])["compatibility"], "compatible")
+            controller.heartbeat(copied, {"version": "27.2", "network": "wifi"})
             self.assertEqual(controller.authenticate(second["token"])["compatibility"], "client-outdated")
+            controller.heartbeat(copied, {"version": "29.1", "network": "wifi"})
+            self.assertEqual(controller.authenticate(second["token"])["compatibility"], "station-outdated")
 
     def test_text_clipboard_is_opt_in_bounded_and_approval_gated(self):
         with tempfile.TemporaryDirectory() as folder:

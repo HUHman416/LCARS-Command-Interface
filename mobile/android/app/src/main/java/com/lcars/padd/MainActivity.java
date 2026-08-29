@@ -235,7 +235,7 @@ public final class MainActivity extends Activity {
         consoleActive = true;
         poller.removeCallbacks(poll);
         LinearLayout shell = column(BLACK);
-        LinearLayout header = masthead("LCARS 28.3 RELEASE CANDIDATE", linkStatus);
+        LinearLayout header = masthead("LCARS VERSION 28 · STABLE", linkStatus);
         linkBadge = (TextView) header.getChildAt(2);
         linkBadge.setBackground(shape(linkColor, 3, 28, 28, 3));
         shell.addView(header, matchWrap(dp(5)));
@@ -336,7 +336,7 @@ public final class MainActivity extends Activity {
             body.put("battery", batteryLevel());
             body.put("network", networkLabel());
             body.put("latencyMs", latency);
-            body.put("version", "28.3-rc.1");
+            body.put("version", "28.0.0");
             request("POST", "api/padd/heartbeat", body, token);
         } catch (Exception ignored) {}
     }
@@ -627,7 +627,7 @@ public final class MainActivity extends Activity {
         releasePanel.addView(fieldLabel("RELEASE MATRIX"), matchWrap(dp(4)));
         releasePanel.addView(label("STABLE · " + (release == null ? "UNKNOWN" : release.optString("stable", "UNKNOWN")), Color.WHITE, 17, true), matchWrap(dp(3)));
         releasePanel.addView(label("DEVELOPMENT · " + (release == null ? "UNKNOWN" : release.optString("development", "UNKNOWN")), PEACH, 17, true), matchWrap(dp(3)));
-        releasePanel.addView(label("CLIENT · 28.3 RC 1", Color.LTGRAY, 11, true), matchWrap(0));
+        releasePanel.addView(label("CLIENT · VERSION 28 STABLE", Color.LTGRAY, 11, true), matchWrap(0));
         consoleContent.addView(releasePanel, matchWrap(dp(5)));
         if (device != null) {
             String diagnostics = device.optString("network", "NETWORK UNKNOWN").toUpperCase() + " · " + device.optInt("latencyMs", 0) + " MS · " + device.optInt("battery", -1) + "% BATTERY";
@@ -638,7 +638,7 @@ public final class MainActivity extends Activity {
         LinearLayout recovery = panel(compatibility.equals("compatible") ? BLUE : PINK);
         recovery.addView(fieldLabel("CONNECTION RECOVERY"), matchWrap(dp(4)));
         recovery.addView(label(compatibility.equals("compatible") ? "CLIENT AND STATION VERSIONS ALIGNED" : "VERSION ATTENTION · " + compatibility.replace('-', ' ').toUpperCase(), compatibility.equals("compatible") ? BLUE : PINK, 13, true), matchWrap(dp(3)));
-        recovery.addView(label("STATION " + stationVersion.toUpperCase() + " · CLIENT 28.3 RC 1", Color.LTGRAY, 10, true), matchWrap(dp(7)));
+        recovery.addView(label("STATION " + stationVersion.toUpperCase() + " · CLIENT VERSION 28", Color.LTGRAY, 10, true), matchWrap(dp(7)));
         LinearLayout recoveryActions = row(PANEL);
         Button retry = button("RETRY LINK", BLUE);
         retry.setOnClickListener(ignored -> refreshState(true));

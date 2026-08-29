@@ -10,14 +10,14 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/stable-v27.2.1-ff9866" alt="Stable version 27.2.1">
+  <img src="https://img.shields.io/badge/stable-v28-ff9866" alt="Stable Version 28">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
 </p>
 
 <p align="center">
-  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v27.2.1"><strong>🚀 Download Version 27.2.1</strong></a>
+  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v28"><strong>🚀 Download Version 28</strong></a>
   ·
   <a href="https://github.com/HUHman416/LCARS-Command-Interface/issues">🐞 Report an issue</a>
   ·
@@ -25,25 +25,25 @@
 </p>
 
 > [!IMPORTANT]
-> **Version 27.2.1 is the current stable release for Linux and Windows, with the Android PADD Companion.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
+> **Version 28 is the current stable release for Linux and Windows, with the Android PADD Companion.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
 
 > [!NOTE]
-> Existing installations can update from **Updates → LCARS Interface**. Development remains available for opt-in test builds such as the Version 28.3 release candidate.
+> Existing installations can update from **Updates → LCARS Interface**. Decimal releases are development milestones; Stable releases use the major version number.
 
 > [!TIP]
-> **Version 28.3 RC 1 is the Connected Operations release candidate.** It turns paired PADDs into a manageable fleet with granular permissions, live telemetry, approval-gated remote actions, Communications, Workstation handoff, proximity profiles, customizable PADD layouts, Android notifications and a home-screen widget. It also rebuilds the Display Matrix around six structurally distinct, researched on-screen LCARS families. Version 27.2.1 remains the Stable channel while Version 28 is tested.
+> **Version 28 is the Connected Operations stable release.** It turns paired PADDs into a manageable fleet with granular permissions, live telemetry, approval-gated remote actions, Communications, Workstation handoff, proximity profiles, customizable PADD layouts, Android notifications and a home-screen widget. It also rebuilds the Display Matrix around six structurally distinct, researched on-screen LCARS families.
 
 ## 📥 Choose your download
 
 | Platform | Download | Best for |
 | --- | --- | --- |
-| 🐧 Linux | [Universal Linux package](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.2.1/LCARS-Universal-Linux-Desktop-v27.2.1.zip) | Recommended installer bundle with desktop launcher, icon, uninstaller, dependencies, and integration tools |
-| 🐧 Linux | [Portable AppImage](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.2.1/LCARS-Command-Interface-v27.2.1-x86_64.AppImage) | Running LCARS directly without a traditional installation |
-| 🐧 Linux | [Search and autostart helper](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.2.1/LCARS-Linux-Integration-v27.2.1.sh) | Registering the portable AppImage in the application menu and optionally starting it at login |
-| 🪟 Windows | [One-click Windows setup](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.2.1/LCARS-Windows-Setup-v27.2.1.exe) | Normal Windows installation, Start Menu search, shortcuts, optional autostart, and clean uninstall |
-| 📱 Android | [PADD Companion APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.2.1/LCARS-PADD-Companion-v27.2.1-Android.apk) | Pairing a phone or tablet to LCARS over a trusted private network |
-| 💻 Developers | [Version 27.2.1 source](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.2.1/LCARS-Command-Interface-v27.2.1-Source.zip) | Reviewing, extending, or building the project |
-| 🔐 Verification | [SHA256SUMS.txt](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v27.2.1/SHA256SUMS.txt) | Confirming that a download is complete and authentic |
+| 🐧 Linux | [Universal Linux package](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-Universal-Linux-Desktop-v28.zip) | Recommended installer bundle with desktop launcher, icon, uninstaller, dependencies, and integration tools |
+| 🐧 Linux | [Portable AppImage](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-Command-Interface-v28-x86_64.AppImage) | Running LCARS directly without a traditional installation |
+| 🐧 Linux | [Search and autostart helper](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-Linux-Integration-v28.sh) | Registering the portable AppImage in the application menu and optionally starting it at login |
+| 🪟 Windows | [One-click Windows setup](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-Windows-Setup-v28.exe) | Normal Windows installation, Start Menu search, shortcuts, optional autostart, and clean uninstall |
+| 📱 Android | [PADD Companion APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-PADD-Companion-v28-Android.apk) | Pairing a phone or tablet to LCARS over a trusted private network |
+| 💻 Developers | [Version 28 source](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-Command-Interface-v28-Source.zip) | Reviewing, extending, or building the project |
+| 🔐 Verification | [SHA256SUMS.txt](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/SHA256SUMS.txt) | Confirming that a download is complete and authentic |
 
 The Universal Linux download contains **Linux files only**. Windows is distributed separately through the setup executable.
 
@@ -62,7 +62,7 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
 
-## 🧪 Version 28.3 Connected Operations release candidate
+## ✨ Version 28 Connected Operations
 
 - Adds **PADD Fleet Command** with device renaming, online state, battery, network, latency, client version, connection counts, identify signals, revocation, and a persistent local activity journal.
 - Adds granular per-device permissions, configurable PADD widgets, Connected Workstations, optional arrival/departure proximity profiles, and distinct Viewer, Operator, and Command authority.
@@ -70,13 +70,13 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 - Expands Communications with acknowledgment and archive actions, active routine status, quick actions, current-console handoff, release-channel status, and richer media/telemetry state.
 - Upgrades the native Android PADD with phone, tablet, and landscape layouts; priority notifications; haptic identify; accessibility synchronization; a home-screen status widget; live link diagnostics; and customizable panels.
 - Adds selectable Android and browser-PADD media sources, connection recovery guidance, per-device notification policies, reusable permission presets, policy copying, two-minute approval expiration, client/station version warnings, and privacy-safe Connected diagnostics exports.
-- Rebuilds Enterprise-D, Voyager, Enterprise-E/Nemesis, Picard-era Starfleet LCARS 2.0, Cerritos, and TNG PADD themes with their own geometry, density, borders, navigation, and panel behavior. Cardassian station controls, La Sirena holograms, and other non-LCARS systems are deliberately excluded.
+- Rebuilds Enterprise-D, Voyager, Enterprise-E/Nemesis, Picard-era Starfleet LCARS 2.0, Cerritos, and Defiant themes with their own geometry, density, borders, navigation, and panel behavior. Cardassian station controls, La Sirena holograms, and other non-LCARS systems are deliberately excluded.
 - Brings the browser PADD fallback to the same Connected Operations protocol, including heartbeat telemetry and safe capability-aware controls.
 - Retains all Version 27 safeguards: one-use pairing codes, hashed revocable tokens, private-network address validation, and a hard block on remote Terminal, Files, process control, and computer power actions.
 
-To try Version 28.3 RC 1 after its prerelease is published, select **Development** under Settings → System, save, and check for an LCARS update. Use the companion only on a network you trust; the local PADD service is not intended for internet exposure.
+Version 28 is available on the **Stable** update channel. Use the companion only on a network you trust; the local PADD service is not intended for internet exposure.
 
-Version 29 is reserved for an optional standalone Android LCARS experience that can act as a launcher/home-screen replacement as well as a paired companion. That larger mobile mode is documented for the next major development cycle and is not enabled in Version 28.3.
+Version 29 is reserved for an optional standalone Android LCARS experience that can act as a launcher/home-screen replacement as well as a paired companion. That larger mobile mode is documented for the next major development cycle and is not enabled in Version 28.
 
 ## 🆕 Version 27.2.1 stable update
 

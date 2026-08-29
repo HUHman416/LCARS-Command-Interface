@@ -207,9 +207,12 @@ class PaddController:
         station = self._version_tuple(self.version)
         if not client or not station:
             return "unknown"
-        if client == station:
+        # Decimal Version 28 identifiers are development milestones, not
+        # separate protocol generations. Devices remain compatible within the
+        # same major LCARS release and warn only across major versions.
+        if client[0] == station[0]:
             return "compatible"
-        return "client-outdated" if client < station else "station-outdated"
+        return "client-outdated" if client[0] < station[0] else "station-outdated"
 
     def _public_device(self, device):
         result = {key: device.get(key) for key in (
