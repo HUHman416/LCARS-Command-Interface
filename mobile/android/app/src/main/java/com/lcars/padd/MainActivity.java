@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Notification;
+import android.app.role.RoleManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,6 +25,7 @@ import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.os.VibratorManager;
+import android.provider.Settings;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -179,6 +181,19 @@ public final class MainActivity extends Activity {
         form.addView(message, matchWrap(0));
         page.addView(form, matchWrap(dp(6)));
 
+        LinearLayout standalone = panel(VIOLET);
+        standalone.addView(fieldLabel("VERSION 29.1 STANDALONE HOME"), matchWrap(dp(4)));
+        standalone.addView(label("Pairing is optional. Open the local LCARS application library now, or ask Android to make it the device Home screen.", Color.LTGRAY, 13, false), matchWrap(dp(7)));
+        LinearLayout standaloneActions = row(PANEL);
+        Button previewHome = button("OPEN LCARS HOME", VIOLET);
+        previewHome.setOnClickListener(ignored -> startActivity(new Intent(this, HomeActivity.class)));
+        Button chooseHome = button(homeRoleHeld() ? "CURRENT HOME" : "MAKE DEFAULT HOME", ORANGE);
+        chooseHome.setOnClickListener(ignored -> requestHomeRole());
+        standaloneActions.addView(previewHome, weightedHeight(1, dp(46), dp(4)));
+        standaloneActions.addView(chooseHome, weightedHeight(1, dp(46), 0));
+        standalone.addView(standaloneActions, matchWrap(0));
+        page.addView(standalone, matchWrap(dp(6)));
+
         TextView security = label("TRUSTED PRIVATE NETWORK ONLY · TOKENS ARE REVOCABLE · TERMINAL, FILE, PROCESS, AND POWER ACCESS ARE NEVER EXPOSED", BLUE, 10, true);
         security.setPadding(dp(8), dp(8), dp(8), dp(8));
         security.setBackgroundColor(PANEL);
@@ -235,7 +250,7 @@ public final class MainActivity extends Activity {
         consoleActive = true;
         poller.removeCallbacks(poll);
         LinearLayout shell = column(BLACK);
-        LinearLayout header = masthead("LCARS VERSION 28 · STABLE", linkStatus);
+        LinearLayout header = masthead("LCARS VERSION 29.1 · DEVELOPMENT", linkStatus);
         linkBadge = (TextView) header.getChildAt(2);
         linkBadge.setBackground(shape(linkColor, 3, 28, 28, 3));
         shell.addView(header, matchWrap(dp(5)));
@@ -336,7 +351,7 @@ public final class MainActivity extends Activity {
             body.put("battery", batteryLevel());
             body.put("network", networkLabel());
             body.put("latencyMs", latency);
-            body.put("version", "28.0.0");
+            body.put("version", "29.1.0-dev.1");
             request("POST", "api/padd/heartbeat", body, token);
         } catch (Exception ignored) {}
     }
@@ -614,6 +629,21 @@ public final class MainActivity extends Activity {
             widgetPanel.addView(toggle, matchWrap(dp(3)));
         }
         consoleContent.addView(widgetPanel, matchWrap(dp(5)));
+        LinearLayout home = panel(ORANGE);
+        home.addView(fieldLabel("VERSION 29.1 STANDALONE HOME"), matchWrap(dp(4)));
+        home.addView(label("Use LCARS as an optional Android Home environment with local device status, application search, and favorites. The paired PADD remains available at any time.", Color.LTGRAY, 13, false), matchWrap(dp(7)));
+        LinearLayout homeActions = row(PANEL);
+        Button openHome = button("OPEN HOME", VIOLET);
+        openHome.setOnClickListener(ignored -> startActivity(new Intent(this, HomeActivity.class)));
+        Button defaultHome = button(homeRoleHeld() ? "CURRENT HOME" : "MAKE DEFAULT", ORANGE);
+        defaultHome.setOnClickListener(ignored -> requestHomeRole());
+        Button homeSettings = button("HOME SETTINGS", BLUE);
+        homeSettings.setOnClickListener(ignored -> openHomeSettings());
+        homeActions.addView(openHome, weightedHeight(1, dp(44), dp(3)));
+        homeActions.addView(defaultHome, weightedHeight(1, dp(44), dp(3)));
+        homeActions.addView(homeSettings, weightedHeight(1, dp(44), 0));
+        home.addView(homeActions, matchWrap(0));
+        consoleContent.addView(home, matchWrap(dp(5)));
         LinearLayout clipboard = panel(PINK);
         clipboard.addView(fieldLabel("OPT-IN TEXT CLIPBOARD"), matchWrap(dp(4)));
         EditText text = input("TEXT TO REQUEST ON THE DESKTOP", "", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
@@ -627,7 +657,7 @@ public final class MainActivity extends Activity {
         releasePanel.addView(fieldLabel("RELEASE MATRIX"), matchWrap(dp(4)));
         releasePanel.addView(label("STABLE · " + (release == null ? "UNKNOWN" : release.optString("stable", "UNKNOWN")), Color.WHITE, 17, true), matchWrap(dp(3)));
         releasePanel.addView(label("DEVELOPMENT · " + (release == null ? "UNKNOWN" : release.optString("development", "UNKNOWN")), PEACH, 17, true), matchWrap(dp(3)));
-        releasePanel.addView(label("CLIENT · VERSION 28 STABLE", Color.LTGRAY, 11, true), matchWrap(0));
+        releasePanel.addView(label("CLIENT · VERSION 29.1 DEVELOPMENT", Color.LTGRAY, 11, true), matchWrap(0));
         consoleContent.addView(releasePanel, matchWrap(dp(5)));
         if (device != null) {
             String diagnostics = device.optString("network", "NETWORK UNKNOWN").toUpperCase() + " · " + device.optInt("latencyMs", 0) + " MS · " + device.optInt("battery", -1) + "% BATTERY";
@@ -638,7 +668,7 @@ public final class MainActivity extends Activity {
         LinearLayout recovery = panel(compatibility.equals("compatible") ? BLUE : PINK);
         recovery.addView(fieldLabel("CONNECTION RECOVERY"), matchWrap(dp(4)));
         recovery.addView(label(compatibility.equals("compatible") ? "CLIENT AND STATION VERSIONS ALIGNED" : "VERSION ATTENTION · " + compatibility.replace('-', ' ').toUpperCase(), compatibility.equals("compatible") ? BLUE : PINK, 13, true), matchWrap(dp(3)));
-        recovery.addView(label("STATION " + stationVersion.toUpperCase() + " · CLIENT VERSION 28", Color.LTGRAY, 10, true), matchWrap(dp(7)));
+        recovery.addView(label("STATION " + stationVersion.toUpperCase() + " · CLIENT VERSION 29.1", Color.LTGRAY, 10, true), matchWrap(dp(7)));
         LinearLayout recoveryActions = row(PANEL);
         Button retry = button("RETRY LINK", BLUE);
         retry.setOnClickListener(ignored -> refreshState(true));
@@ -648,6 +678,28 @@ public final class MainActivity extends Activity {
         recoveryActions.addView(repair, weightedHeight(1, dp(44), 0));
         recovery.addView(recoveryActions, matchWrap(0));
         consoleContent.addView(recovery, matchWrap(dp(5)));
+    }
+
+    private boolean homeRoleHeld() {
+        if (Build.VERSION.SDK_INT < 29) return false;
+        RoleManager manager = getSystemService(RoleManager.class);
+        return manager != null && manager.isRoleHeld(RoleManager.ROLE_HOME);
+    }
+
+    private void requestHomeRole() {
+        if (Build.VERSION.SDK_INT >= 29) {
+            RoleManager manager = getSystemService(RoleManager.class);
+            if (manager != null && manager.isRoleAvailable(RoleManager.ROLE_HOME) && !manager.isRoleHeld(RoleManager.ROLE_HOME)) {
+                startActivityForResult(manager.createRequestRoleIntent(RoleManager.ROLE_HOME), 291);
+                return;
+            }
+        }
+        openHomeSettings();
+    }
+
+    private void openHomeSettings() {
+        try { startActivity(new Intent(Settings.ACTION_HOME_SETTINGS)); }
+        catch (RuntimeException ignored) { startActivity(new Intent(Settings.ACTION_SETTINGS)); }
     }
 
     private boolean contains(JSONArray values, String target) {

@@ -72,10 +72,12 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Version 28 PADD Fleet Command with live device telemetry, granular permissions, per-device layouts, Connected Workstations, identify, proximity profiles, activity history, approvals, and diagnostics
 - Native Android Communications, quick actions, current-console handoff, priority notifications, accessibility sync, haptic identify, and a home-screen status widget
 - Opt-in text-only clipboard requests that remain disabled by default and require desktop approval unless a trusted-device override is explicitly enabled
+- Version 29.1 optional Android Home foundation with application search, favorites, offline device status, and explicit safe launcher switching
+- Corrected multi-row Status module edit controls and full-height Page Peek, Communications, and Tray resizing
 
 ## Current stage
 
-Version 28 is the current Stable release, focused on Connected Operations across desktop, native Android, and the browser PADD fallback. Only hashed revocable tokens are stored; Viewer, Operator, Command, granular permission, and explicit sensitive-action approval checks are enforced by the local core. PADD devices never receive Terminal, file, process, or computer power access.
+Version 28 remains the current Stable release. Version 29.1 is the first Development milestone for the Mobile Command Environment and is designed to install separately. Only hashed revocable tokens are stored; Viewer, Operator, Command, granular permission, and explicit sensitive-action approval checks are enforced by the local core. PADD devices never receive Terminal, file, process, or computer power access.
 
 For one-click Linux installation, open `Install-LCARS-Linux.desktop` or run `Install-LCARS-Linux.run`. Your file manager may ask you to mark the desktop launcher as trusted the first time it is opened. The installer places the standalone application in `~/.local/opt/lcars-command-interface`; Node.js, npm, and an external browser are not required to run it.
 

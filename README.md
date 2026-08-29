@@ -11,6 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v28-ff9866" alt="Stable Version 28">
+  <img src="https://img.shields.io/badge/development-v29.1-b8a2e8" alt="Version 29.1 Development">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -62,6 +63,21 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
 
+## 🚧 Version 29.1 Development — Mobile Command Environment
+
+Version 29.1 begins the optional standalone Android LCARS Home experience while preserving the paired PADD Companion:
+
+- Adds a genuine Android Home-role surface that the operator may preview before explicitly choosing it as the device launcher.
+- Adds a profile-aware installed-application library using Android's launcher service, with live search and direct launching.
+- Adds persistent favorite applications with explicit star controls and long-press toggling.
+- Adds offline battery, network, storage, and application status so LCARS remains useful without a paired desktop.
+- Keeps Companion setup and every Version 28 Connected Operations feature available from the Home interface.
+- Keeps Stable Version 28 installed separately by giving the Development APK its own package identity.
+- Fixes wrapped Status-module edit headers being covered by the row above.
+- Restores full vertical resizing for Page Peeks, Communications/Notices, and the Tray Command Deck.
+
+Later Version 29 development milestones are planned to add LCARS decks and folders, widget hosting, mobile Display Matrix layouts, Connected Station Dock, multi-station support, notification-center integration, credential hardening, and release-grade signing.
+
 ## ✨ Version 28 Connected Operations
 
 - Adds **PADD Fleet Command** with device renaming, online state, battery, network, latency, client version, connection counts, identify signals, revocation, and a persistent local activity journal.
@@ -76,7 +92,7 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 
 Version 28 is available on the **Stable** update channel. Use the companion only on a network you trust; the local PADD service is not intended for internet exposure.
 
-Version 29 is reserved for an optional standalone Android LCARS experience that can act as a launcher/home-screen replacement as well as a paired companion. That larger mobile mode is documented for the next major development cycle and is not enabled in Version 28.
+Version 29.1 Development now contains the first optional standalone Android LCARS Home foundation. Stable users remain on Version 28 until the complete Version 29 mobile sequence has finished testing.
 
 ## 🆕 Version 27.2.1 stable update
 

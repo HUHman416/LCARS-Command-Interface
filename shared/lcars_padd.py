@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guarded local-network PADD companion service for LCARS Version 28."""
+"""Guarded local-network PADD and mobile Home service for LCARS Version 29."""
 from __future__ import annotations
 
 import hashlib
@@ -207,9 +207,9 @@ class PaddController:
         station = self._version_tuple(self.version)
         if not client or not station:
             return "unknown"
-        # Decimal Version 28 identifiers are development milestones, not
-        # separate protocol generations. Devices remain compatible within the
-        # same major LCARS release and warn only across major versions.
+        # Decimal identifiers are development milestones, not separate protocol
+        # generations. Devices remain compatible within the same major LCARS
+        # release and warn only across major versions.
         if client[0] == station[0]:
             return "compatible"
         return "client-outdated" if client[0] < station[0] else "station-outdated"

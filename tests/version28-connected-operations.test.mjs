@@ -16,8 +16,8 @@ const workflow = read(".github/workflows/v28-development.yml");
 const stableWorkflow = read(".github/workflows/v28-stable.yml");
 
 test("Version 28 identity and Connected Operations renderer are wired", () => {
-  assert.match(read("package.json"), /"version": "28\.0\.0"/);
-  assert.match(page, /LCARS_VERSION="28\.0\.0"/);
+  assert.match(read("package.json"), /"version": "(?:29\.1\.0-dev\.1|28\.0\.0)"/);
+  assert.match(page, /LCARS_VERSION="(?:29\.1\.0-dev\.1|28\.0\.0)"/);
   assert.match(page, /ConnectedOperationsPanel/);
   assert.match(page, /api\/padd-events/);
   assert.match(page, /activeWorkstation:activeProfile/);

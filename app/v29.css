@@ -1,0 +1,51 @@
+/* Version 29.1 launcher foundation and desktop workspace corrections. */
+
+/* Editing controls occupy their own grid row. Previously the module's 100%
+   height also included the control bar and overflowed across the next row. */
+.overview-editing .overview-modules .widget-wrap {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-self: stretch;
+}
+
+.overview-editing .overview-modules .widget-wrap > .overview-widget {
+  height: auto;
+  min-height: 0;
+}
+
+.overview-editing .widget-controls {
+  position: relative;
+  z-index: 3;
+}
+
+/* ResizablePopup already clamps geometry to the viewport. Remove the older
+   surface-specific caps that made north/south resizing appear ineffective. */
+.workspace-window.resizable-popup:not(.workspace-minimized):not(.workspace-snapped),
+.speed-dial-page-peek.resizable-popup-floating:not(.workspace-minimized),
+.notice-history.resizable-popup-floating:not(.workspace-minimized),
+.tray-drawer.resizable-popup-floating:not(.workspace-minimized) {
+  max-height: calc(100vh - 24px) !important;
+}
+
+.speed-dial-page-peek.resizable-popup-floating,
+.notice-history.resizable-popup-floating,
+.tray-drawer.resizable-popup-floating {
+  min-height: 0;
+}
+
+.tray-drawer.resizable-popup {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.tray-drawer.resizable-popup > .tray-scroll-region {
+  min-height: 0;
+  overflow: auto;
+}
+
+@media (max-width: 760px) {
+  .workspace-window.resizable-popup:not(.workspace-minimized) {
+    max-height: none !important;
+  }
+}

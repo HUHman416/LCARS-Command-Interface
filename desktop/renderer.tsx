@@ -14,6 +14,7 @@ import "../app/v26-3.css";
 import "../app/v27-1.css";
 import "../app/v27-2.css";
 import "../app/v28.css";
+import "../app/v29.css";
 
 const nativeFetch: typeof window.fetch = window.fetch.bind(window);
 const compatFallback = {
