@@ -60,6 +60,7 @@ public final class MainActivity extends Activity {
     private static final String TOKEN = "station-token";
     private static final String SIGNAL = "last-signal-v28";
     private static final String NOTICE = "last-notice-v28";
+    private static final String MEDIA_TARGET = "media-target-v28";
     private static final String CHANNEL = "lcars-connected-operations";
     private static final int LOCAL_NETWORK_REQUEST = 271;
     private static final int NOTIFICATION_REQUEST = 281;
@@ -234,7 +235,7 @@ public final class MainActivity extends Activity {
         consoleActive = true;
         poller.removeCallbacks(poll);
         LinearLayout shell = column(BLACK);
-        LinearLayout header = masthead("LCARS 28.2 DEVELOPMENT", linkStatus);
+        LinearLayout header = masthead("LCARS 28.3 RELEASE CANDIDATE", linkStatus);
         linkBadge = (TextView) header.getChildAt(2);
         linkBadge.setBackground(shape(linkColor, 3, 28, 28, 3));
         shell.addView(header, matchWrap(dp(5)));
@@ -335,7 +336,7 @@ public final class MainActivity extends Activity {
             body.put("battery", batteryLevel());
             body.put("network", networkLabel());
             body.put("latencyMs", latency);
-            body.put("version", "28.2-development");
+            body.put("version", "28.3-rc.1");
             request("POST", "api/padd/heartbeat", body, token);
         } catch (Exception ignored) {}
     }
@@ -370,11 +371,20 @@ public final class MainActivity extends Activity {
         if (state == null) return;
         JSONArray notices = state.optJSONArray("notices");
         if (notices == null) return;
+        JSONObject device = latest == null ? null : latest.optJSONObject("device");
+        JSONObject settings = device == null ? null : device.optJSONObject("notifications");
+        boolean priorityOnly = settings == null || settings.optBoolean("priorityOnly", true);
+        boolean connectionEvents = settings == null || settings.optBoolean("connectionEvents", true);
+        boolean routineResults = settings == null || settings.optBoolean("routineResults", true);
         for (int index = 0; index < notices.length(); index++) {
             JSONObject notice = notices.optJSONObject(index);
             if (notice == null || notice.optBoolean("read", false)) continue;
             String priority = notice.optString("priority", notice.optString("status", "")).toLowerCase();
-            if (!priority.contains("critical") && !priority.contains("priority") && !priority.contains("error")) continue;
+            boolean urgent = priority.contains("critical") || priority.contains("priority") || priority.contains("error");
+            if (priorityOnly && !urgent) continue;
+            String category = (notice.optString("source", "") + " " + notice.optString("name", "") + " " + notice.optString("kind", "")).toLowerCase();
+            if (!connectionEvents && (category.contains("connection") || category.contains("link"))) continue;
+            if (!routineResults && category.contains("routine")) continue;
             String id = notice.optString("id", "");
             if (id.isEmpty() || id.equals(preferences.getString(NOTICE, ""))) continue;
             preferences.edit().putString(NOTICE, id).apply();
@@ -486,7 +496,7 @@ public final class MainActivity extends Activity {
         JSONObject target = preferredMedia(media);
         String playerId = target == null ? "" : target.optString("id", "");
         boolean mediaReady = capabilities.optBoolean("media") && !playerId.isEmpty();
-        addReadOnlyList(media, "NO ACTIVE MEDIA SOURCES");
+        addMediaSourceList(media);
         if (target != null) consoleContent.addView(subhead("CONTROL TARGET", target.optString("name", "ACTIVE PLAYER").toUpperCase()), matchWrap(dp(3)));
         LinearLayout transport = row(BLACK);
         transport.addView(actionButton("|◀", "media", mediaRequest(playerId, "previous"), mediaReady, BLUE), weightedHeight(1, dp(52), dp(3)));
@@ -512,14 +522,42 @@ public final class MainActivity extends Activity {
 
     private JSONObject preferredMedia(JSONArray media) {
         if (media == null) return null;
+        String selected = preferences.getString(MEDIA_TARGET, "");
         JSONObject fallback = null;
         for (int index = 0; index < media.length(); index++) {
             JSONObject item = media.optJSONObject(index);
             if (item == null) continue;
             if (fallback == null) fallback = item;
-            if ("playing".equalsIgnoreCase(item.optString("status", ""))) return item;
+            if (!selected.isEmpty() && selected.equals(item.optString("id", ""))) return item;
+        }
+        for (int index = 0; index < media.length(); index++) {
+            JSONObject item = media.optJSONObject(index);
+            if (item != null && "playing".equalsIgnoreCase(item.optString("status", ""))) return item;
         }
         return fallback;
+    }
+
+    private void addMediaSourceList(JSONArray media) {
+        if (media == null || media.length() == 0) {
+            consoleContent.addView(emptyState("NO ACTIVE MEDIA SOURCES"), matchWrap(dp(5)));
+            return;
+        }
+        String selected = preferredMedia(media) == null ? "" : preferredMedia(media).optString("id", "");
+        for (int index = 0; index < media.length(); index++) {
+            JSONObject item = media.optJSONObject(index);
+            if (item == null) continue;
+            String id = item.optString("id", "");
+            boolean active = id.equals(selected);
+            String title = (active ? "✓ " : "") + String.format("%02d · %s · %s", index + 1, item.optString("name", "MEDIA"), item.optString("status", "READY"));
+            Button source = button(title, active ? ORANGE : DIM_PANEL);
+            source.setTextColor(active ? BLACK : Color.LTGRAY);
+            source.setOnClickListener(ignored -> {
+                preferences.edit().putString(MEDIA_TARGET, id).apply();
+                renderConsole();
+                if (consoleMessage != null) consoleMessage.setText("MEDIA TARGET SELECTED · " + item.optString("name", "MEDIA"));
+            });
+            consoleContent.addView(source, matchWrap(dp(3)));
+        }
     }
 
     private JSONObject mediaRequest(String player, String command) {
@@ -589,12 +627,27 @@ public final class MainActivity extends Activity {
         releasePanel.addView(fieldLabel("RELEASE MATRIX"), matchWrap(dp(4)));
         releasePanel.addView(label("STABLE · " + (release == null ? "UNKNOWN" : release.optString("stable", "UNKNOWN")), Color.WHITE, 17, true), matchWrap(dp(3)));
         releasePanel.addView(label("DEVELOPMENT · " + (release == null ? "UNKNOWN" : release.optString("development", "UNKNOWN")), PEACH, 17, true), matchWrap(dp(3)));
-        releasePanel.addView(label("CLIENT · 28.2 DEVELOPMENT", Color.LTGRAY, 11, true), matchWrap(0));
+        releasePanel.addView(label("CLIENT · 28.3 RC 1", Color.LTGRAY, 11, true), matchWrap(0));
         consoleContent.addView(releasePanel, matchWrap(dp(5)));
         if (device != null) {
             String diagnostics = device.optString("network", "NETWORK UNKNOWN").toUpperCase() + " · " + device.optInt("latencyMs", 0) + " MS · " + device.optInt("battery", -1) + "% BATTERY";
             consoleContent.addView(subhead("LINK DIAGNOSTICS", diagnostics), matchWrap(dp(5)));
         }
+        String compatibility = latest == null ? "unknown" : latest.optString("compatibility", "unknown");
+        String stationVersion = latest == null ? "unknown" : latest.optString("stationVersion", "unknown");
+        LinearLayout recovery = panel(compatibility.equals("compatible") ? BLUE : PINK);
+        recovery.addView(fieldLabel("CONNECTION RECOVERY"), matchWrap(dp(4)));
+        recovery.addView(label(compatibility.equals("compatible") ? "CLIENT AND STATION VERSIONS ALIGNED" : "VERSION ATTENTION · " + compatibility.replace('-', ' ').toUpperCase(), compatibility.equals("compatible") ? BLUE : PINK, 13, true), matchWrap(dp(3)));
+        recovery.addView(label("STATION " + stationVersion.toUpperCase() + " · CLIENT 28.3 RC 1", Color.LTGRAY, 10, true), matchWrap(dp(7)));
+        LinearLayout recoveryActions = row(PANEL);
+        Button retry = button("RETRY LINK", BLUE);
+        retry.setOnClickListener(ignored -> refreshState(true));
+        Button repair = button("PAIR AGAIN", VIOLET);
+        repair.setOnClickListener(ignored -> showSetup("REPAIR MODE · ARM A NEW ONE-USE CODE ON THE DESKTOP"));
+        recoveryActions.addView(retry, weightedHeight(1, dp(44), dp(3)));
+        recoveryActions.addView(repair, weightedHeight(1, dp(44), 0));
+        recovery.addView(recoveryActions, matchWrap(0));
+        consoleContent.addView(recovery, matchWrap(dp(5)));
     }
 
     private boolean contains(JSONArray values, String target) {

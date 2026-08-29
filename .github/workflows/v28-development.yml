@@ -1,4 +1,4 @@
-name: Version 28.2 Connected Operations Development
+name: Version 28.3 Release Candidate
 
 on:
   push:
@@ -37,7 +37,7 @@ jobs:
           appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
           test -n "$appimage"
           checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          stage="prerelease/LCARS-Universal-Linux-Desktop-v28.2"
+          stage="prerelease/LCARS-Universal-Linux-Desktop-v28.3"
           mkdir -p "$stage/local"
           cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
           cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
@@ -46,17 +46,17 @@ jobs:
           sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
           sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
           chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh"
-          cp "$appimage" prerelease/LCARS-Command-Interface-v28.2-x86_64.AppImage
-          cp install-autostart.sh prerelease/LCARS-Linux-Integration-v28.2.sh
-          chmod +x prerelease/LCARS-Linux-Integration-v28.2.sh
-          (cd prerelease && zip -qr LCARS-Universal-Linux-Desktop-v28.2.zip LCARS-Universal-Linux-Desktop-v28.2)
+          cp "$appimage" prerelease/LCARS-Command-Interface-v28.3-x86_64.AppImage
+          cp install-autostart.sh prerelease/LCARS-Linux-Integration-v28.3.sh
+          chmod +x prerelease/LCARS-Linux-Integration-v28.3.sh
+          (cd prerelease && zip -qr LCARS-Universal-Linux-Desktop-v28.3.zip LCARS-Universal-Linux-Desktop-v28.3)
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v28-2-linux
+          name: LCARS-v28-3-linux
           path: |
-            prerelease/LCARS-Command-Interface-v28.2-x86_64.AppImage
-            prerelease/LCARS-Universal-Linux-Desktop-v28.2.zip
-            prerelease/LCARS-Linux-Integration-v28.2.sh
+            prerelease/LCARS-Command-Interface-v28.3-x86_64.AppImage
+            prerelease/LCARS-Universal-Linux-Desktop-v28.3.zip
+            prerelease/LCARS-Linux-Integration-v28.3.sh
           retention-days: 14
 
   windows:
@@ -84,11 +84,11 @@ jobs:
           New-Item -ItemType Directory -Force prerelease | Out-Null
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName prerelease/LCARS-Windows-Setup-v28.2.exe
+          Copy-Item $installer.FullName prerelease/LCARS-Windows-Setup-v28.3.exe
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v28-2-windows
-          path: prerelease/LCARS-Windows-Setup-v28.2.exe
+          name: LCARS-v28-3-windows
+          path: prerelease/LCARS-Windows-Setup-v28.3.exe
           retention-days: 14
 
   android:
@@ -112,12 +112,12 @@ jobs:
       - name: Prepare Android companion
         run: |
           mkdir -p prerelease
-          cp mobile/android/app/build/outputs/apk/debug/app-debug.apk prerelease/LCARS-PADD-Companion-v28.2-Android.apk
-          test -s prerelease/LCARS-PADD-Companion-v28.2-Android.apk
+          cp mobile/android/app/build/outputs/apk/debug/app-debug.apk prerelease/LCARS-PADD-Companion-v28.3-Android.apk
+          test -s prerelease/LCARS-PADD-Companion-v28.3-Android.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v28-2-android
-          path: prerelease/LCARS-PADD-Companion-v28.2-Android.apk
+          name: LCARS-v28-3-android
+          path: prerelease/LCARS-PADD-Companion-v28.3-Android.apk
           retention-days: 14
 
   publish-development-release:
@@ -134,28 +134,28 @@ jobs:
       - name: Create source archive and updater checksums
         run: |
           set -euo pipefail
-          git archive --format=zip --output=prerelease/LCARS-Command-Interface-v28.2-Source.zip HEAD
-          (cd prerelease && sha256sum LCARS-Command-Interface-v28.2-x86_64.AppImage LCARS-Universal-Linux-Desktop-v28.2.zip LCARS-Linux-Integration-v28.2.sh LCARS-Windows-Setup-v28.2.exe LCARS-PADD-Companion-v28.2-Android.apk LCARS-Command-Interface-v28.2-Source.zip > SHA256SUMS.txt)
+          git archive --format=zip --output=prerelease/LCARS-Command-Interface-v28.3-Source.zip HEAD
+          (cd prerelease && sha256sum LCARS-Command-Interface-v28.3-x86_64.AppImage LCARS-Universal-Linux-Desktop-v28.3.zip LCARS-Linux-Integration-v28.3.sh LCARS-Windows-Setup-v28.3.exe LCARS-PADD-Companion-v28.3-Android.apk LCARS-Command-Interface-v28.3-Source.zip > SHA256SUMS.txt)
       - name: Verify prerelease assets
         run: |
           set -euo pipefail
           cd prerelease
-          test -s LCARS-Command-Interface-v28.2-x86_64.AppImage
-          test -s LCARS-Universal-Linux-Desktop-v28.2.zip
-          test -s LCARS-Linux-Integration-v28.2.sh
-          test -s LCARS-Windows-Setup-v28.2.exe
-          test -s LCARS-PADD-Companion-v28.2-Android.apk
-          test -s LCARS-Command-Interface-v28.2-Source.zip
+          test -s LCARS-Command-Interface-v28.3-x86_64.AppImage
+          test -s LCARS-Universal-Linux-Desktop-v28.3.zip
+          test -s LCARS-Linux-Integration-v28.3.sh
+          test -s LCARS-Windows-Setup-v28.3.exe
+          test -s LCARS-PADD-Companion-v28.3-Android.apk
+          test -s LCARS-Command-Interface-v28.3-Source.zip
           sha256sum --check SHA256SUMS.txt
-      - name: Publish updater-visible Version 28.2 prerelease
+      - name: Publish updater-visible Version 28.3 release candidate
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          notes='Version 28.2 refines Connected Operations after device testing. Android now keeps the rounded link badge and loaded console stable while switching tabs, uses equal-height navigation with a compact CMD label, scales long status labels to fit, targets the active media player, and adds Dismiss All to Communications. The browser PADD receives the targeted media and dismissal behavior too. Desktop notification popups now honor their configured lifetime reliably, including across restarts, and the Media quick-action strip has moved from the obscured bottom edge to a prominent toolbar above the console. Version 29 is reserved for the optional standalone Android launcher/home experience. Version 27.2.1 remains Stable while Version 28 is tested.'
-          if gh release view v28.2 >/dev/null 2>&1; then
-            gh release upload v28.2 prerelease/* --clobber
-            gh release edit v28.2 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 28.2" --notes "$notes" --prerelease
+          notes='Version 28.3 RC 1 completes the Connected Operations candidate with selectable PADD media sources, connection recovery guidance, per-device notification policies, reusable permission presets, settings copy, two-minute approval expiry, client/station compatibility warnings, and privacy-safe diagnostic exports. The Display Matrix is rebuilt around six distinct on-screen LCARS families: Enterprise-D, Voyager, Enterprise-E/Nemesis, Picard-era Starfleet LCARS 2.0, Cerritos, and TNG PADD. Each now changes geometry, density, borders, navigation, and panel behavior instead of acting as a recolor. Non-LCARS systems are intentionally excluded. Version 27.2.1 remains Stable while this release candidate is tested; Version 29 remains reserved for the optional standalone Android launcher/home experience.'
+          if gh release view v28.3 >/dev/null 2>&1; then
+            gh release upload v28.3 prerelease/* --clobber
+            gh release edit v28.3 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 28.3 RC 1" --notes "$notes" --prerelease
           else
-            gh release create v28.2 prerelease/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 28.2" --notes "$notes" --prerelease
+            gh release create v28.3 prerelease/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 28.3 RC 1" --notes "$notes" --prerelease
           fi

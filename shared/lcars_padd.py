@@ -37,7 +37,24 @@ ACTION_ROLES = {
 }
 PERMISSION_NAMES = tuple(ACTION_ROLES) + ("autoApprove", "communications", "telemetry")
 APPROVAL_ACTIONS = {"routine", "app", "workstation", "handoff", "clipboard"}
+APPROVAL_TTL = 120
 DEFAULT_WIDGETS = ["status", "media", "communications", "telemetry", "quick-actions"]
+DEFAULT_NOTIFICATIONS = {"priorityOnly": True, "connectionEvents": True, "routineResults": True}
+PERMISSION_PRESETS = {
+    "viewer": {"role": "viewer", "permissions": {"communications": True, "telemetry": True}},
+    "operator": {"role": "operator", "permissions": {
+        "navigate": True, "media": True, "volume": True, "quick": True,
+        "communications": True, "telemetry": True, "notice-read": True,
+        "notice-archive": True, "notice-dismiss-all": True, "handoff": True,
+    }},
+    "command": {"role": "command", "permissions": {
+        "navigate": True, "media": True, "volume": True, "quick": True,
+        "communications": True, "telemetry": True, "notice-read": True,
+        "notice-archive": True, "notice-dismiss-all": True, "handoff": True,
+        "dnd": True, "routine": True, "app": True, "workstation": True,
+        "clipboard": True, "autoApprove": False,
+    }},
+}
 
 
 class ReusableThreadingHTTPServer(ThreadingHTTPServer):
@@ -112,6 +129,7 @@ class PaddController:
                     continue
                 role = str(device.get("role", "viewer"))
                 permissions = device.get("permissions", {}) if isinstance(device.get("permissions"), dict) else {}
+                notifications = device.get("notifications", {}) if isinstance(device.get("notifications"), dict) else {}
                 clean.append({
                     "id": _clean_text(device.get("id"), 64),
                     "name": _clean_text(device.get("name") or "PADD", 48),
@@ -129,18 +147,19 @@ class PaddController:
                     "widgets": [str(item) for item in device.get("widgets", DEFAULT_WIDGETS) if str(item) in DEFAULT_WIDGETS][:8] or list(DEFAULT_WIDGETS),
                     "workstation": _clean_text(device.get("workstation"), 64),
                     "proximity": bool(device.get("proximity", False)),
+                    "notifications": {name: bool(notifications.get(name, default)) for name, default in DEFAULT_NOTIFICATIONS.items()},
                 })
             activity = value.get("activity", []) if isinstance(value.get("activity"), list) else []
             activity = [item for item in activity[-200:] if isinstance(item, dict)]
             return {
-                "schema": 2,
+                "schema": 3,
                 "enabled": bool(value.get("enabled", False)),
                 "clipboardEnabled": bool(value.get("clipboardEnabled", False)),
                 "devices": clean,
                 "activity": activity,
             }
         except Exception:
-            return {"schema": 2, "enabled": False, "clipboardEnabled": False, "devices": [], "activity": []}
+            return {"schema": 3, "enabled": False, "clipboardEnabled": False, "devices": [], "activity": []}
 
     def _save(self, value):
         self.config_dir.mkdir(parents=True, exist_ok=True)
@@ -174,13 +193,32 @@ class PaddController:
         return [f"http://{address}:{PADD_PORT}" for address in sorted(found)]
 
     @staticmethod
-    def _public_device(device):
+    def _version_tuple(value):
+        pieces = []
+        for part in str(value or "").replace("v", "", 1).split(".")[:2]:
+            digits = "".join(character for character in part if character.isdigit())
+            if not digits:
+                break
+            pieces.append(int(digits))
+        return tuple(pieces) if len(pieces) == 2 else None
+
+    def _compatibility(self, client_version):
+        client = self._version_tuple(client_version)
+        station = self._version_tuple(self.version)
+        if not client or not station:
+            return "unknown"
+        if client == station:
+            return "compatible"
+        return "client-outdated" if client < station else "station-outdated"
+
+    def _public_device(self, device):
         result = {key: device.get(key) for key in (
             "id", "name", "role", "createdAt", "lastSeen", "lastAddress", "connectionCount",
             "battery", "network", "latencyMs", "clientVersion", "permissions", "widgets",
-            "workstation", "proximity",
+            "workstation", "proximity", "notifications",
         )}
         result["online"] = bool(device.get("lastSeen") and int(time.time()) - int(device["lastSeen"]) <= 20)
+        result["compatibility"] = self._compatibility(device.get("clientVersion"))
         return result
 
     @staticmethod
@@ -220,6 +258,20 @@ class PaddController:
             changed = True
         return changed
 
+    def _expire_approvals(self, record):
+        now = int(time.time())
+        active = deque(maxlen=100)
+        changed = False
+        for item in self.approvals:
+            if int(item.get("expiresAt", int(item.get("createdAt", now)) + APPROVAL_TTL)) > now:
+                active.append(item)
+                continue
+            device = next((candidate for candidate in record["devices"] if candidate["id"] == item.get("device")), None)
+            self._append_activity(record, "request-expired", device, status="expired", detail=item.get("action", "request"))
+            changed = True
+        self.approvals = active
+        return changed
+
     @staticmethod
     def _capability(device, action):
         required = ACTION_ROLES.get(action)
@@ -231,7 +283,10 @@ class PaddController:
     def status(self, include_pairing=False):
         with self.lock:
             record = self._load()
+            expired = self._expire_approvals(record)
             if self._refresh_presence(record):
+                self._save(record)
+            elif expired:
                 self._save(record)
             active = self.pairing if self.pairing and self.pairing["expiresAt"] > time.time() else None
             if not active:
@@ -248,7 +303,7 @@ class PaddController:
                 "devices": [self._public_device(item) for item in record["devices"]],
                 "clipboardEnabled": record["clipboardEnabled"],
                 "activity": list(reversed(record["activity"][-60:])),
-                "approvals": [{key: item.get(key) for key in ("id", "action", "value", "device", "deviceName", "createdAt")} for item in self.approvals],
+                "approvals": [{key: item.get(key) for key in ("id", "action", "value", "device", "deviceName", "createdAt", "expiresAt")} for item in self.approvals],
                 "diagnostics": {
                     "connected": sum(1 for item in record["devices"] if self._public_device(item)["online"]),
                     "paired": len(record["devices"]),
@@ -268,6 +323,8 @@ class PaddController:
         operation = str(data.get("operation", "status"))
         with self.lock:
             record = self._load()
+            if self._expire_approvals(record):
+                self._save(record)
             if operation in ("enable", "start"):
                 record["enabled"] = True
                 code = f"{secrets.randbelow(1_000_000):06d}"
@@ -304,7 +361,7 @@ class PaddController:
                 self._append_activity(record, "role-changed", next(item for item in record["devices"] if item["id"] == ident), detail=role)
                 self._save(record)
                 return {**self.status(True), "message": f"PADD role changed to {role.upper()}"}
-            if operation in {"rename", "permissions", "profile", "layout", "proximity", "identify"}:
+            if operation in {"rename", "permissions", "profile", "layout", "proximity", "identify", "notifications", "preset", "copy-settings"}:
                 ident = _clean_text(data.get("id"), 64)
                 device = next((item for item in record["devices"] if item["id"] == ident), None)
                 if not device:
@@ -321,6 +378,23 @@ class PaddController:
                     device["widgets"] = [str(item) for item in values if str(item) in DEFAULT_WIDGETS][:8] or list(DEFAULT_WIDGETS)
                 elif operation == "proximity":
                     device["proximity"] = bool(data.get("enabled", data.get("value", False)))
+                elif operation == "notifications":
+                    values = data.get("notifications", {}) if isinstance(data.get("notifications"), dict) else {}
+                    device["notifications"] = {name: bool(values.get(name, device.get("notifications", DEFAULT_NOTIFICATIONS).get(name, default))) for name, default in DEFAULT_NOTIFICATIONS.items()}
+                elif operation == "preset":
+                    preset_name = str(data.get("preset", data.get("value", ""))).lower()
+                    preset = PERMISSION_PRESETS.get(preset_name)
+                    if not preset:
+                        raise ValueError("Unknown permission preset")
+                    device["role"] = preset["role"]
+                    device["permissions"] = dict(preset["permissions"])
+                elif operation == "copy-settings":
+                    source_id = _clean_text(data.get("sourceId"), 64)
+                    source = next((item for item in record["devices"] if item["id"] == source_id and item["id"] != ident), None)
+                    if not source:
+                        raise ValueError("Source PADD was not found")
+                    for name in ("role", "permissions", "widgets", "notifications"):
+                        device[name] = json.loads(json.dumps(source.get(name, {} if name in {"permissions", "notifications"} else [])))
                 else:
                     self.signals[ident] = {"id": uuid.uuid4().hex, "type": "identify", "createdAt": int(time.time())}
                 self._append_activity(record, operation, device, detail=_clean_text(data.get("value"), 96))
@@ -378,6 +452,7 @@ class PaddController:
                 "widgets": list(DEFAULT_WIDGETS),
                 "workstation": "",
                 "proximity": False,
+                "notifications": dict(DEFAULT_NOTIFICATIONS),
             }
             record["devices"] = [*record["devices"][-23:], device]
             self._append_activity(record, "device-paired", device, detail=address)
@@ -454,6 +529,8 @@ class PaddController:
         return {
             "ok": True,
             "device": device,
+            "stationVersion": self.version,
+            "compatibility": self._compatibility(device.get("clientVersion")),
             "capabilities": capabilities,
             "approvalRequired": {name: name in APPROVAL_ACTIONS and not bool((device.get("permissions") or {}).get("autoApprove", False)) for name in ACTION_ROLES},
             "signal": signal,
@@ -496,7 +573,8 @@ class PaddController:
             value = _clean_text(value, 96)
             if not value:
                 raise ValueError("A command target is required")
-        command = {"id": uuid.uuid4().hex, "action": action, "value": value, "device": device["id"], "deviceName": device["name"], "createdAt": int(time.time())}
+        created_at = int(time.time())
+        command = {"id": uuid.uuid4().hex, "action": action, "value": value, "device": device["id"], "deviceName": device["name"], "createdAt": created_at, "expiresAt": created_at + APPROVAL_TTL}
         with self.lock:
             record = self._load()
             requires_approval = action in APPROVAL_ACTIONS and not bool((device.get("permissions") or {}).get("autoApprove", False))

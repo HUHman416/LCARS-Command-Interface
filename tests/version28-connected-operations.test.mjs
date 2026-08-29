@@ -15,8 +15,8 @@ const manifest = read("mobile/android/app/src/main/AndroidManifest.xml");
 const workflow = read(".github/workflows/v28-development.yml");
 
 test("Version 28 identity and Connected Operations renderer are wired", () => {
-  assert.match(read("package.json"), /"version": "28\.2\.0-dev\.1"/);
-  assert.match(page, /LCARS_VERSION="28\.2-dev\.1"/);
+  assert.match(read("package.json"), /"version": "28\.3\.0-rc\.1"/);
+  assert.match(page, /LCARS_VERSION="28\.3-rc\.1"/);
   assert.match(page, /ConnectedOperationsPanel/);
   assert.match(page, /api\/padd-events/);
   assert.match(page, /activeWorkstation:activeProfile/);
@@ -62,12 +62,15 @@ test("native and browser PADDs expose the Connected Operations surfaces", () => 
   assert.doesNotMatch(webShell, /data-value="(?:terminal|files|shutdown|restart)"/);
 });
 
-test("Version 28.2 device-testing fixes keep navigation, media, and communications usable", () => {
+test("Version 28.3 PADD controls keep navigation, media, communications, and recovery usable", () => {
   assert.match(android, /tabButton\("CMD"/);
   assert.match(android, /showConsole\(false\)/);
   assert.match(android, /linkBadge\.setBackground\(shape\(linkColor/);
   assert.match(android, /fittedLabel\(value/);
   assert.match(android, /mediaRequest\(playerId, "play-pause"\)/);
+  assert.match(android, /MEDIA_TARGET/);
+  assert.match(android, /addMediaSourceList/);
+  assert.match(android, /CONNECTION RECOVERY/);
   assert.match(android, /"notice-dismiss-all"/);
   assert.match(padd, /"notice-dismiss-all": "operator"/);
   assert.match(page, /expiresAt/);
@@ -76,14 +79,39 @@ test("Version 28.2 device-testing fixes keep navigation, media, and communicatio
   const console = page.indexOf('className="media-console"', toolbar);
   assert.ok(toolbar > 0 && console > toolbar, "media toolbar should be above the console");
   assert.match(read("app/v24-1.css"), /\.media-command-toolbar/);
+  assert.match(webPadd, /data-media-target/);
+  assert.match(webShell, /compatibility-state/);
 });
 
-test("Version 28.2 prerelease waits for all platform validation", () => {
+test("Version 28.3 release candidate waits for all platform validation", () => {
   assert.match(workflow, /branches: \[v28-development\]/);
   assert.match(workflow, /needs: \[linux, windows, android\]/);
   assert.match(workflow, /version28-connected-operations\.test\.mjs/);
-  assert.match(workflow, /LCARS-PADD-Companion-v28\.2-Android\.apk/);
+  assert.match(workflow, /LCARS-PADD-Companion-v28\.3-Android\.apk/);
   assert.match(workflow, /sha256sum --check SHA256SUMS\.txt/);
-  assert.match(workflow, /gh release (?:view|create) v28\.2/);
+  assert.match(workflow, /gh release (?:view|create) v28\.3/);
   assert.match(workflow, /--prerelease/);
+});
+
+test("Version 28.3 closes the Connected Operations release-candidate checklist", () => {
+  for (const token of ["APPROVAL_TTL", "DEFAULT_NOTIFICATIONS", "PERMISSION_PRESETS", "copy-settings", "client-outdated", "request-expired"]) {
+    assert.match(padd, new RegExp(token));
+  }
+  assert.match(connected, /PERMISSION PRESET/);
+  assert.match(connected, /COPY POLICY FROM/);
+  assert.match(connected, /NOTIFICATIONS/);
+  assert.match(connected, /EXPORT PRIVATE DIAGNOSTICS/);
+  assert.match(connected, /CONNECTION RECOVERY/);
+  assert.match(connected, /EXPIRES IN/);
+});
+
+test("Display Matrix uses six researched structural LCARS families", () => {
+  for (const token of ["Enterprise-D", "Voyager", "Enterprise-E", "Picard Starfleet", "Cerritos", "TNG PADD"]) assert.match(page, new RegExp(token));
+  const globals = read("app/globals.css");
+  for (const selector of ["theme-voyager", "theme-nemesis", "theme-picard", "theme-lower-decks", "theme-padd"]) assert.match(globals, new RegExp(`\\.${selector}`));
+  assert.match(globals, /researched LCARS families/);
+  const reference = read("docs/LCARS-THEME-REFERENCE.md");
+  assert.match(reference, /Explicit exclusions/);
+  assert.match(reference, /La Sirena/);
+  assert.match(reference, /Cardassian/);
 });

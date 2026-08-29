@@ -1,6 +1,7 @@
 import json
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -13,7 +14,7 @@ class PaddPairingTests(unittest.TestCase):
         assets = Path(folder) / "padd"
         assets.mkdir()
         (assets / "index.html").write_text("LCARS PADD", encoding="utf-8")
-        return PaddController(Path(folder) / "config", assets, "28.2-dev.1", "test", listen=False)
+        return PaddController(Path(folder) / "config", assets, "28.3-rc.1", "test", listen=False)
 
     def test_one_use_pairing_hashes_tokens_and_supports_revocation(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -90,7 +91,7 @@ class PaddPairingTests(unittest.TestCase):
             controller.manage({"operation": "proximity", "id": ident, "enabled": True})
             controller.manage({"operation": "identify", "id": ident})
             device = controller.authenticate(paired["token"])
-            heartbeat = controller.heartbeat(device, {"battery": 0, "network": "wifi", "latencyMs": 14, "version": "28.2-test"}, "192.168.1.10")
+            heartbeat = controller.heartbeat(device, {"battery": 0, "network": "wifi", "latencyMs": 14, "version": "28.3-test"}, "192.168.1.10")
             self.assertEqual(heartbeat["device"]["battery"], 0)
             self.assertEqual(heartbeat["device"]["latencyMs"], 14)
             controller.sync({"notices": [{"id": "one", "text": "Priority"}], "meters": [{"label": "CPU", "value": 42}]})
@@ -101,6 +102,22 @@ class PaddPairingTests(unittest.TestCase):
             self.assertEqual(state["device"]["workstation"], "bridge-station")
             self.assertTrue(state["device"]["proximity"])
             self.assertEqual(state["signal"]["type"], "identify")
+
+    def test_presets_notifications_copy_and_version_compatibility(self):
+        with tempfile.TemporaryDirectory() as folder:
+            controller = self.make_controller(folder)
+            armed = controller.manage({"operation": "start"})
+            first = controller.pair(armed["pairing"]["code"], "One", "192.168.1.20")
+            armed = controller.manage({"operation": "start"})
+            second = controller.pair(armed["pairing"]["code"], "Two", "192.168.1.21")
+            controller.manage({"operation": "preset", "id": first["device"]["id"], "preset": "command"})
+            controller.manage({"operation": "notifications", "id": first["device"]["id"], "notifications": {"priorityOnly": False, "connectionEvents": False, "routineResults": True}})
+            controller.manage({"operation": "copy-settings", "id": second["device"]["id"], "sourceId": first["device"]["id"]})
+            copied = controller.authenticate(second["token"])
+            self.assertEqual(copied["role"], "command")
+            self.assertFalse(copied["notifications"]["priorityOnly"])
+            controller.heartbeat(copied, {"version": "28.2", "network": "wifi"})
+            self.assertEqual(controller.authenticate(second["token"])["compatibility"], "client-outdated")
 
     def test_text_clipboard_is_opt_in_bounded_and_approval_gated(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -122,6 +139,18 @@ class PaddPairingTests(unittest.TestCase):
             controller.manage({"operation": "deny", "approvalId": approval["id"]})
             self.assertEqual(controller.pop_commands(), [])
             self.assertTrue(any(item["action"] == "request-denied" for item in controller.status()["activity"]))
+
+    def test_sensitive_approvals_expire_without_entering_the_command_queue(self):
+        with tempfile.TemporaryDirectory() as folder:
+            controller = self.make_controller(folder)
+            armed = controller.manage({"operation": "start"})
+            paired = controller.pair(armed["pairing"]["code"], "Command PADD", "192.168.1.30")
+            controller.manage({"operation": "role", "id": paired["device"]["id"], "role": "command"})
+            controller.queue_action(controller.authenticate(paired["token"]), {"action": "routine", "value": "routine-1"})
+            controller.approvals[0]["expiresAt"] = int(time.time()) - 1
+            self.assertEqual(controller.status()["approvals"], [])
+            self.assertEqual(controller.pop_commands(), [])
+            self.assertTrue(any(item["action"] == "request-expired" for item in controller.status()["activity"]))
 
 
 if __name__ == "__main__":

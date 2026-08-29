@@ -83,7 +83,7 @@ def check_update(current_version: str, system: str | None = None, channel: str =
     asset = _platform_asset(assets, system)
     checksums = next((item for item in assets if str(item.get("name", "")).lower() in {"sha256sums.txt", "checksums-sha256.txt"}), None)
     available = bool(tag and _release_key(tag) > _release_key(current_version))
-    if stable_transition and tag and ("dev" in current_version.lower() or "beta" in current_version.lower()):available=_version(tag)[0]>=_version(current_version)[0]
+    if stable_transition and tag and any(marker in current_version.lower() for marker in ("dev", "beta", "rc")):available=_version(tag)[0]>=_version(current_version)[0]
     return {
         "ok": True,
         "channel": channel,

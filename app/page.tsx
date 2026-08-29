@@ -39,7 +39,7 @@ import { ConnectedOperationsPanel } from "./v28-connected";
 import type { PaddDevice, PaddOperation, PaddStatus } from "./v28-connected";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="28.2-dev.1";
+const LCARS_VERSION="28.3-rc.1";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -278,13 +278,13 @@ const widgetInfo: Record<BuiltinWidgetId, { name: string; description: string }>
 };
 const defaultWidgets: WidgetId[] = ["system", "favorites", "operations"];
 const themes = [
-  ["classic", "Classic", "1701-D"],
-  ["voyager", "Voyager", "74656"],
-  ["nemesis", "Nemesis Blue", "2379"],
-  ["picard", "Picard", "2401"],
-  ["lower-decks", "Lower Decks", "75567"],
-  ["padd", "PADD", "MOBILE"],
-];
+  {id:"classic",name:"Enterprise-D",code:"NCC-1701-D",era:"2364–2370",family:"TNG GALAXY-CLASS",description:"Warm, broad Okudagram bands and high-contrast rounded control bays."},
+  {id:"voyager",name:"Voyager",code:"NCC-74656",era:"2371–2378",family:"INTREPID-CLASS",description:"Compact late-24th-century panels with cooler blue structure and dense data rails."},
+  {id:"nemesis",name:"Enterprise-E",code:"NCC-1701-E",era:"2379",family:"NEMESIS LCARS",description:"Predominantly blue tactical framing, thin cyan divisions, and squared information panes."},
+  {id:"picard",name:"Picard Starfleet",code:"LCARS 2.0",era:"2401",family:"TITAN-A / FLEET",description:"Dark 25th-century Starfleet LCARS with fine amber tracery and segmented control modules."},
+  {id:"lower-decks",name:"Cerritos",code:"NCC-75567",era:"2380s",family:"CALIFORNIA-CLASS",description:"Saturated, flat-color LCARS with bold outlines and exaggerated animated geometry."},
+  {id:"padd",name:"TNG PADD",code:"PERSONAL DISPLAY",era:"2360s",family:"HANDHELD LCARS",description:"A framed portable control surface with compact button banks and touch-first navigation."},
+] as const;
 const fallback: App[] = [
   { id: "steam.desktop", name: "Steam", comment: "Gaming Library" },
   { id: "net.lutris.Lutris.desktop", name: "Lutris", comment: "Game Launcher" },
@@ -1599,7 +1599,7 @@ export default function Home() {
       workstations:profiles.map((profile)=>({id:profile.id,name:profile.name,detail:`${profile.widgets.length} MODULES · ${profile.theme.toUpperCase()}`})),
       quickActions,handoff:{page:section,title:`${section.toUpperCase()} CONSOLE`,updatedAt:Date.now()},
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
-      release:{stable:"27.2.1",development:"28.2",channel:prefs.updateChannel},
+      release:{stable:"27.2.1",development:"28.3 RC 1",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2091,7 +2091,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>28.2 DEV</small>
+          <small>28.3 RC 1</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>
@@ -2208,7 +2208,7 @@ export default function Home() {
         <section className={"content page-" + section}>
           <div className="heading">
             <div>
-              <small>LCARS / {themes.find((t) => t[0] === theme)?.[2]}</small>
+              <small>LCARS / {themes.find((candidate) => candidate.id === theme)?.code}</small>
               <h2>
                 {section === "overview"
                   ? "SYSTEM OVERVIEW"
@@ -2439,18 +2439,18 @@ export default function Home() {
                 <div className="setting-block settings-display-matrix">
                   <header>
                     <span>DISPLAY MATRIX</span>
-                    <small>SELECT VISUAL THEME</small>
+                    <small>SELECT VERIFIED ON-SCREEN LCARS FAMILY</small>
                   </header>
+                  <p className="display-matrix-brief">Each selection now changes geometry, information density, borders, navigation, and panel behavior—not only color. Non-LCARS systems such as Cardassian station controls and La Sirena holograms are intentionally excluded.</p>
                   <div className="settings-themes">
                     {themes.map((t, i) => (
                       <button
-                        className={theme === t[0] ? "selected" : ""}
-                        key={t[0]}
-                        onClick={() => choose(t[0])}
+                        className={`${theme === t.id ? "selected" : ""} theme-preview-${t.id}`}
+                        key={t.id}
+                        onClick={() => choose(t.id)}
                       >
-                        <i>0{i + 1}</i>
-                        <b>{t[1]}</b>
-                        <small>{t[2]}</small>
+                        <i>0{i + 1}</i><span className="theme-preview-screen" aria-hidden="true"><em/><em/><em/><em/></span>
+                        <span className="theme-preview-copy"><small>{t.family} · {t.era}</small><b>{t.name}</b><strong>{t.code}</strong><p>{t.description}</p></span>
                       </button>
                     ))}
                   </div>
@@ -4235,7 +4235,7 @@ function RoutineCenter({routines,apps,profiles,devices,players,running,history,s
   const update=(patch:Partial<Routine>)=>{if(!routine)return;save(routines.map((item)=>item.id===routine.id?{...item,...patch}:item));};
   const add=()=>{const item:Routine={id:createV25Id("routine"),name:`ROUTINE ${routines.length+1}`,description:"Operator-defined LCARS command sequence",folder:"GENERAL",color:"orange",enabled:true,trigger:{type:"manual"},steps:[{id:createV25Id("step"),kind:"page",target:"overview",delayMs:0,retries:0,onFailure:"stop"}]};save([...routines,item]);setSelected(item.id);setShowHistory(false);};
   const duplicate=()=>{if(!routine)return;const copy:Routine={...routine,id:createV25Id("routine"),name:`${routine.name} COPY`.slice(0,40),steps:routine.steps.map((step)=>({...step,id:createV25Id("step")}))};save([...routines,copy]);setSelected(copy.id);};
-  const stepChoices=(kind:RoutineStepKind)=>kind==="page"?nav.map((page)=>({value:page[0],label:page[2]})):kind==="app"?apps.map((app)=>({value:app.id,label:app.name})):kind==="workstation"?profiles.map((profile)=>({value:profile.id,label:profile.name})):kind==="theme"?themes.map((theme)=>({value:theme[0],label:theme[1]})):kind==="dnd"?[{value:"true",label:"ENABLE"},{value:"false",label:"DISABLE"}]:kind==="audio-device"?devices.map((device)=>({value:device.id,label:`${device.kind.toUpperCase()} · ${device.name}`})):kind==="media"?[...players.flatMap((player)=>["play-pause","previous","next","stop"].map((command)=>({value:`${player.id}|${command}`,label:`${player.name} · ${command.toUpperCase()}`}))),{value:"play-pause",label:"ACTIVE PLAYER · PLAY/PAUSE"}]:kind==="system"?[{value:"sleep",label:"SLEEP COMPUTER"},{value:"reboot",label:"RESTART COMPUTER"},{value:"poweroff",label:"SHUT DOWN COMPUTER"}]:kind==="command"?[{value:"refresh-applications",label:"REFRESH APPLICATION INVENTORY"},{value:"integration-recheck",label:"RECHECK LOCAL INTEGRATIONS"},{value:"open-system-monitor",label:"OPEN SYSTEM MONITOR"},{value:"open-software-center",label:"OPEN SOFTWARE CENTER"}]:[];
+  const stepChoices=(kind:RoutineStepKind)=>kind==="page"?nav.map((page)=>({value:page[0],label:page[2]})):kind==="app"?apps.map((app)=>({value:app.id,label:app.name})):kind==="workstation"?profiles.map((profile)=>({value:profile.id,label:profile.name})):kind==="theme"?themes.map((theme)=>({value:theme.id,label:theme.name})):kind==="dnd"?[{value:"true",label:"ENABLE"},{value:"false",label:"DISABLE"}]:kind==="audio-device"?devices.map((device)=>({value:device.id,label:`${device.kind.toUpperCase()} · ${device.name}`})):kind==="media"?[...players.flatMap((player)=>["play-pause","previous","next","stop"].map((command)=>({value:`${player.id}|${command}`,label:`${player.name} · ${command.toUpperCase()}`}))),{value:"play-pause",label:"ACTIVE PLAYER · PLAY/PAUSE"}]:kind==="system"?[{value:"sleep",label:"SLEEP COMPUTER"},{value:"reboot",label:"RESTART COMPUTER"},{value:"poweroff",label:"SHUT DOWN COMPUTER"}]:kind==="command"?[{value:"refresh-applications",label:"REFRESH APPLICATION INVENTORY"},{value:"integration-recheck",label:"RECHECK LOCAL INTEGRATIONS"},{value:"open-system-monitor",label:"OPEN SYSTEM MONITOR"},{value:"open-software-center",label:"OPEN SOFTWARE CENTER"}]:[];
   const addStep=()=>{if(!routine||routine.steps.length>=24)return;update({steps:[...routine.steps,{id:createV25Id("step"),kind:"page",target:"overview",delayMs:0,retries:0,onFailure:"stop"}]});};
   const updateStep=(id:string,patch:Partial<RoutineStep>)=>routine&&update({steps:routine.steps.map((step)=>step.id===id?{...step,...patch}:step)});
   const moveStep=(index:number,direction:number)=>{if(!routine)return;const target=index+direction;if(target<0||target>=routine.steps.length)return;const steps=[...routine.steps];[steps[index],steps[target]]=[steps[target],steps[index]];update({steps});};
