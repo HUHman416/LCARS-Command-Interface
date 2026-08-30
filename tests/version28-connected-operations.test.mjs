@@ -16,15 +16,15 @@ const workflow = read(".github/workflows/v28-development.yml");
 const stableWorkflow = read(".github/workflows/v28-stable.yml");
 
 test("Version 28 identity and Connected Operations renderer are wired", () => {
-  assert.match(read("package.json"), /"version": "(?:30\.1\.0-dev\.2|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0)"/);
-  assert.match(page, /LCARS_VERSION="(?:30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0)"/);
+  assert.match(read("package.json"), /"version": "(?:30\.2\.0-dev\.1|30\.1\.0-dev\.2|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0)"/);
+  assert.match(page, /LCARS_VERSION="(?:30\.2|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0)"/);
   assert.match(page, /ConnectedOperationsPanel/);
   assert.match(page, /api\/padd-events/);
   assert.match(page, /activeWorkstation:activeProfile/);
   assert.match(page, /quickActions/);
   assert.match(page, /handoff/);
-  assert.match(connected, /PADD FLEET COMMAND/);
-  assert.match(connected, /PADD FLEET.*APPROVALS.*ACTIVITY.*DIAGNOSTICS/s);
+  assert.match(connected, /(?:PADD FLEET COMMAND|FEDERATION OPERATIONS)/);
+  assert.match(connected, /(?:PADD FLEET|FEDERATION).*APPROVALS.*ACTIVITY.*DIAGNOSTICS/s);
   assert.match(css, /\.connected-operations-panel/);
   assert.match(read("desktop/renderer.tsx"), /v28\.css/);
 });
@@ -109,7 +109,7 @@ test("Version 28.3 closes the Connected Operations release-candidate checklist",
   }
   assert.match(connected, /PERMISSION PRESET/);
   assert.match(connected, /COPY POLICY FROM/);
-  assert.match(connected, /NOTIFICATIONS/);
+  assert.match(connected, /NOTIFICATION ROUTE/);
   assert.match(connected, /EXPORT PRIVATE DIAGNOSTICS/);
   assert.match(connected, /CONNECTION RECOVERY/);
   assert.match(connected, /EXPIRES IN/);

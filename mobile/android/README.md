@@ -2,7 +2,7 @@
 
 This installable Android application contains the native, touch-first PADD Companion and the optional Version 29 standalone LCARS Home environment. The companion talks directly to the guarded PADD JSON API on private IPv4 networks and port `8766`; it does not contain the privileged LCARS desktop bridge.
 
-First launch is a guided setup: open **Settings → Connected** on the desktop, arm a one-use code, then enter the displayed private station address and code. The app stores the station and revocable PADD token locally and reconnects automatically. Viewer, Operator, granular per-device permissions, and Command approvals are enforced by the desktop.
+First launch is a guided setup: open **Settings → Connected** on the desktop, arm a one-use code, then scan the local network or enter the displayed private station address and code. The app stores the station and revocable PADD token locally and reconnects automatically. Viewer, Operator, granular per-device permissions, and Command approvals are enforced by the desktop.
 
 Version 28 includes phone, tablet, and landscape layouts; Communications; quick actions; current-console handoff; Connected Workstations; live battery/network/latency heartbeat; policy-aware notifications; haptic identify; accessibility synchronization; customizable panels; text-only approval requests; release status; and a home-screen status widget.
 
@@ -44,6 +44,16 @@ Version 29 completes the planned Mobile Command Environment:
 - Adds a Mobile Update Console that downloads the newest published APK, verifies it against `SHA256SUMS.txt`, and hands it to Android's installer with one tap. Android still requires the operator's installation confirmation.
 
 The Version 29 Stable workflow builds Linux and Windows packages plus a persistently signed Android release APK, runs regression and battery checks, verifies the APK signature, publishes combined checksums, and marks Version 29 as the latest Stable GitHub release. Version 28 and Version 29 development packages used disposable or separate development identities, so Android may require their one-time removal before the Stable package can be installed; Version 29 then establishes the signing identity used by future in-place mobile updates.
+
+## Version 30.2 Development
+
+Version 30.2 adds the native Federation transport while retaining the complete Version 29 Home environment:
+
+- Discovers explicitly enabled LCARS stations over the trusted local network.
+- Stores the station identity and readable fingerprint beside the existing Keystore-protected credential.
+- Signs requests and encrypts native request and response bodies with AES-256-GCM after pairing, including timestamp and replay protection.
+- Receives page handoff, priority notices, clipboard text, and opt-in files up to 512 KiB, and acknowledges queued deliveries after handling them.
+- Preserves multi-station switching and migrates existing Version 29 pairings to the secure Federation protocol on their first successful refresh.
 
 Build locally with Android SDK 35, Java 17, and Gradle 8.9:
 

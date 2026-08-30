@@ -36,6 +36,6 @@ test('desktop renderer loads Version 26.1 styling after Version 25',()=>{
 });
 
 test('newer candidates retain Version 26.1 repository coverage',()=>{
-  assert.ok(['30.1.0-dev.2','29.0.0','29.3.0-rc.1','29.2.0-dev.1','28.0.0','28.3.0-rc.1','28.2.0-dev.1','27.2.1-dev.1','27.2.0-dev.1','27.1.1-dev.1','26.3.0-dev.1','26.0.0'].includes(packageJson.version));
-  assert.match(page,/30\.1 DEV|29 STABLE|29\.3 RC 1|29\.2 DEVELOPMENT|28 STABLE|28\.3 RC 1|28\.2 DEV|27\.2(?:\.1)? DEV|27\.1(?:\.1)? DEV|26\.3 RC|26 STABLE/);
+  assert.ok(['30.2.0-dev.1','30.1.0-dev.2','29.0.0','29.3.0-rc.1','29.2.0-dev.1','28.0.0','28.3.0-rc.1','28.2.0-dev.1','27.2.1-dev.1','27.2.0-dev.1','27.1.1-dev.1','26.3.0-dev.1','26.0.0'].includes(packageJson.version));
+  assert.match(page,/30\.2 DEV|30\.1 DEV|29 STABLE|29\.3 RC 1|29\.2 DEVELOPMENT|28 STABLE|28\.3 RC 1|28\.2 DEV|27\.2(?:\.1)? DEV|27\.1(?:\.1)? DEV|26\.3 RC|26 STABLE/);
 });

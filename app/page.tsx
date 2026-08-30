@@ -49,7 +49,7 @@ import {
 import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, ComputerPlan, ComputerPlanStep, ComputerUndoSnapshot } from "./v30-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="30.1-A";
+const LCARS_VERSION="30.2";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -169,6 +169,7 @@ type ShellPrefs = {
   terminalTarget: string;
   notificationSeconds: number;
   voiceEnabled: boolean;
+  voicePushToTalk: boolean;
   voiceWakePhrase: boolean;
   voiceEngine: string;
   voiceModel: string;
@@ -351,7 +352,7 @@ const speedDialChoices: { id: SpeedDialItem; label: string; description: string 
   { id:"action:tray", label:"TRAY", description:"Open the desktop system tray" },
   { id:"action:routines", label:"ROUTINES", description:"Open Operations Automation" },
   { id:"action:communications", label:"COMMS", description:"Open Communications Center" },
-  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.1 Computer Core" },
+  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.2 Computer Core" },
 ];
 const defaultPrefs: ShellPrefs = {
   taskHover: true,
@@ -369,6 +370,7 @@ const defaultPrefs: ShellPrefs = {
   terminalTarget: "current",
   notificationSeconds: 4,
   voiceEnabled: false,
+  voicePushToTalk: true,
   voiceWakePhrase: false,
   voiceEngine: "",
   voiceModel: "",
@@ -805,7 +807,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-1"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-2"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1729,7 +1731,7 @@ export default function Home() {
       workstations:profiles.map((profile)=>({id:profile.id,name:profile.name,detail:`${profile.widgets.length} MODULES · ${profile.theme.toUpperCase()}`})),
       quickActions,handoff:{page:section,title:`${section.toUpperCase()} CONSOLE`,updatedAt:Date.now()},
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
-      release:{stable:"29",development:"30.1",channel:prefs.updateChannel},
+      release:{stable:"29",development:"30.2",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2228,7 +2230,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>30.1 DEV</small>
+          <small>30.2 DEV</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>
@@ -2687,8 +2689,8 @@ export default function Home() {
                   <small>LEARN THE LCARS DESKTOP CONTROLS</small>
                 </button>
                 <button onClick={()=>setWhatsNewOpen(true)}>
-                  <b>WHAT&apos;S NEW IN VERSION 30.1</b>
-                  <small>COMPUTER CORE DEVELOPMENT ORIENTATION</small>
+                  <b>WHAT&apos;S NEW IN VERSION 30.2</b>
+                  <small>FEDERATION DEVELOPMENT ORIENTATION</small>
                 </button>
                 <button onClick={() => coreAction("shell-mode-off")}>
                   <b>RECOVERY CONTROL</b>
@@ -2779,7 +2781,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-1","1");setWhatsNewOpen(false);}} openComputer={()=>{localStorage.setItem("lcars-whats-new-v30-1","1");setWhatsNewOpen(false);setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);}}/>}
+      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-2","1");setWhatsNewOpen(false);}} openComputer={()=>{localStorage.setItem("lcars-whats-new-v30-2","1");setWhatsNewOpen(false);setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {computerOpen&&<ComputerCoreConsole
         bridge={bridge}
@@ -4211,9 +4213,10 @@ function ShellSettings({
         </section>
         <section>
           <h4>OFFLINE VOICE CONTROL</h4>
-          <Toggle label="Enable push-to-talk" description="Shows a local microphone control. Audio is sent only to the loopback bridge and processed by whisper.cpp on this PC." checked={prefs.voiceEnabled} change={(v) => set("voiceEnabled", v)} />
-          <Toggle label="Require 'Computer' wake phrase" description="Ignores recognized commands that do not begin with Computer." checked={prefs.voiceWakePhrase} change={(v) => set("voiceWakePhrase", v)} />
-          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30.1 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
+          <Toggle label="Enable offline voice commands" description="Audio stays on this station and is processed by the bundled whisper.cpp Computer Core." checked={prefs.voiceEnabled} change={(v) => set("voiceEnabled", v)} />
+          <Toggle label="Use push-to-talk" description="When disabled, LCARS keeps a local hands-free microphone watch active. Switching to hands-free automatically enables the Computer wake word." checked={prefs.voicePushToTalk} change={(v) => setPrefs((old)=>({...old,voicePushToTalk:v,voiceWakePhrase:v?old.voiceWakePhrase:true}))} />
+          <Toggle label="Require 'Computer' wake word" description={prefs.voicePushToTalk?"Optional in push-to-talk mode. Commands without Computer are ignored when enabled.":"Recommended for hands-free operation. Disable this only if every recognized phrase should be treated as a command."} checked={prefs.voiceWakePhrase} change={(v) => set("voiceWakePhrase", v)} />
+          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30.2 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
           <label>LOCAL MODEL FILE · OPTIONAL OVERRIDE<small>The bundled English command model works out of the box. A custom GGML model remains entirely local.</small><input value={prefs.voiceModel} placeholder="BUNDLED TINY.EN MODEL (AUTOMATIC)" onChange={(e) => set("voiceModel", e.target.value)} /></label>
           <VoiceDeviceSelect value={prefs.voiceDevice} change={(value) => set("voiceDevice", value)} />
           <label>VOICE AUTHORITY<small>Higher levels permit more command categories; power and unmount commands always require confirmation.</small><select value={prefs.voiceSecurity} onChange={(e) => set("voiceSecurity", e.target.value as ShellPrefs["voiceSecurity"])}><option value="navigation">NAVIGATION ONLY</option><option value="applications">NAVIGATION + APPLICATIONS</option><option value="system">SYSTEM CONTROL</option></select></label>
@@ -4405,7 +4408,7 @@ function ProcedureCenter({routines,apps,profiles,devices,players,running,history
   const triggerPlaceholder=procedure?.trigger.type==="app"?"APPLICATION NAME":procedure?.trigger.type==="device"?"AUDIO DEVICE":procedure?.trigger.type==="battery-below"?"BATTERY PERCENT":procedure?.trigger.type==="network"?"NETWORK NAME OR BLANK":procedure?.trigger.type==="notice"?"NOTICE TEXT OR SOURCE":procedure?.trigger.type==="media"?"PLAYER, ARTIST, OR TITLE":procedure?.trigger.type==="station"?"PADD NAME OR BLANK":procedure?.trigger.type==="interval"?"MINUTES":"TRIGGER VALUE";
   return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
     <section className="routine-center procedure-center" role="dialog" aria-modal="true" aria-label="Computer Core Procedure Builder">
-      <header><div><small>VERSION 30.1 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
+      <header><div><small>VERSION 30.2 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
       <div className="routine-center-layout">
         <aside><button onClick={add}>+ NEW PROCEDURE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO PROCEDURES CONFIGURED</p>}</aside>
         {showHistory?<main className="routine-run-history"><header><small>COMPUTER CORE EXECUTION JOURNAL</small><h3>PROCEDURE HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO PROCEDURE EXECUTIONS RECORDED</p>}</main>:procedure?<main>
@@ -4530,7 +4533,7 @@ function Toggle({
 
 function ExtensionSettings({extensions}:{extensions:ExtensionManifest[]}){const configurable=extensions.filter((extension)=>extension.settings.length);if(!configurable.length)return null;return <section className="extension-settings"><header><b>EXTENSION CONFIGURATION</b><small>HOST-RENDERED · NAMESPACED LOCAL STATE</small></header>{configurable.map((extension)=><ExtensionSettingGroup key={extension.id} extension={extension}/>)}</section>;}
 function ExtensionSettingGroup({extension}:{extension:ExtensionManifest}){const key=`lcars-extension-state:${extension.id}`,[values,setValues]=useState<Record<string,unknown>>(()=>{try{return JSON.parse(localStorage.getItem(key)||"{}");}catch{return{};}});const save=(name:string,value:unknown)=>{const next={...values,[name]:value};setValues(next);localStorage.setItem(key,JSON.stringify(next));fetch("http://127.0.0.1:8765/api/extension-state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:extension.id,state:next})}).catch(()=>{});};return <article><h4>{extension.name.toUpperCase()} <small>API {extension.apiVersion}</small></h4>{extension.settings.map((setting)=>{const value=values[setting.key]??setting.default??"";return <label key={setting.key}>{setting.label}<small>{setting.description}</small>{setting.type==="toggle"?<input type="checkbox" checked={Boolean(value)} onChange={(event)=>save(setting.key,event.target.checked)}/>:setting.type==="select"?<select value={String(value)} onChange={(event)=>save(setting.key,event.target.value)}>{setting.options?.map((option)=><option key={option}>{option}</option>)}</select>:<input type={setting.type==="number"?"number":"text"} value={String(value)} onChange={(event)=>save(setting.key,setting.type==="number"?Number(event.target.value):event.target.value)}/>}</label>;})}</article>;}
-function VoiceDeviceSelect({value,change}:{value:string;change:(value:string)=>void}) { const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);useEffect(()=>{navigator.mediaDevices?.enumerateDevices().then((items)=>setDevices(items.filter((item)=>item.kind==="audioinput"))).catch(()=>{});},[]);return <label>VOICE MICROPHONE<small>Select the input used by push-to-talk. Grant microphone permission once to reveal device names.</small><select value={value} onChange={(event)=>change(event.target.value)}><option value="">SYSTEM DEFAULT</option>{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`MICROPHONE ${index+1}`}</option>)}</select></label>; }
+function VoiceDeviceSelect({value,change}:{value:string;change:(value:string)=>void}) { const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);useEffect(()=>{navigator.mediaDevices?.enumerateDevices().then((items)=>setDevices(items.filter((item)=>item.kind==="audioinput"))).catch(()=>{});},[]);return <label>VOICE MICROPHONE<small>Select the input used by push-to-talk or hands-free listening. Grant microphone permission once to reveal device names.</small><select value={value} onChange={(event)=>change(event.target.value)}><option value="">SYSTEM DEFAULT</option>{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`MICROPHONE ${index+1}`}</option>)}</select></label>; }
 
 function resampleVoicePcm(frames:Float32Array[],inputRate:number,outputRate=16000){
   const inputLength=frames.reduce((sum,frame)=>sum+frame.length,0),input=new Float32Array(inputLength);let inputOffset=0;
@@ -4554,32 +4557,48 @@ function pcmWavBlob(frames:Float32Array[],sampleRate:number){
 function blobDataUrl(blob:Blob){return new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(reader.error);reader.onload=()=>resolve(String(reader.result));reader.readAsDataURL(blob);});}
 
 function VoiceControl({ prefs, computer, notify }: { prefs: ShellPrefs; computer: (command:string,authorized:boolean) => void; notify: (text: string, kind?: "info" | "error") => void }) {
-  const [listening, setListening] = useState(false), [busy, setBusy] = useState(false), [history, setHistory] = useState<string[]>([]);
-  const stopRecorder = useRef<null|(()=>void)>(null);
-  if (!prefs.voiceEnabled) return null;
+  const [listening, setListening] = useState(false), [busy, setBusy] = useState(false), [history, setHistory] = useState<string[]>([]), [armed,setArmed]=useState(!prefs.voicePushToTalk);
+  const stopRecorder = useRef<null|(()=>void)>(null),capture=useRef<{stream:MediaStream;context:AudioContext;source:MediaStreamAudioSourceNode;processor:ScriptProcessorNode;timer?:number;frames:Float32Array[];speech:number;sampleRate:number}|null>(null),processing=useRef(false),prefsRef=useRef(prefs),computerRef=useRef(computer),notifyRef=useRef(notify);
+  useEffect(()=>{prefsRef.current=prefs;computerRef.current=computer;notifyRef.current=notify;},[prefs,computer,notify]);
   const affirmative = () => { const audio = new Audio("/assets/sounds/voice-affirmative.mp3"); audio.volume = 0.5; audio.play().catch(() => {}); };
-  const execute = async (raw: string) => {
+  const execute = async (raw: string,ambient=false) => {
+    const voicePrefs=prefsRef.current;
     let text = raw.trim().toLowerCase().replace(/[.,!?]/g, "");
-    if (prefs.voiceWakePhrase) { if (!text.startsWith("computer")) return notify("Voice phrase ignored — say Computer first", "error"); text=text.replace(/^computer\s*/, ""); }
+    if (voicePrefs.voiceWakePhrase) { if (!text.startsWith("computer")){if(!ambient)notifyRef.current("Voice phrase ignored — say Computer first", "error");return;} text=text.replace(/^computer\s*/, ""); }
     const authorization=text.match(/\s+authorization\s+(.+)$/),phrase=authorization?.[1]?.trim()||"";if(authorization)text=text.slice(0,authorization.index).trim();
-    if(!text)return notify("No command was detected","error");
-    let authorized=false;if(prefs.voiceAuthorizationEnabled&&prefs.voiceAuthorizationCredential&&phrase)authorized=await verifyLockCredential(phrase,prefs.voiceAuthorizationCredential).catch(()=>false);
-    setHistory((old) => [text, ...old].slice(0, 8));affirmative();computer(text,authorized);
-    notify(prefs.voiceAuthorizationEnabled&&phrase&&!authorized?"Voice command received, but the authorization code was not verified":"Voice command transferred to Computer Core for preview",prefs.voiceAuthorizationEnabled&&phrase&&!authorized?"error":"info");
+    if(!text){if(!ambient)notifyRef.current("No command was detected","error");return;}
+    let authorized=false;if(voicePrefs.voiceAuthorizationEnabled&&voicePrefs.voiceAuthorizationCredential&&phrase)authorized=await verifyLockCredential(phrase,voicePrefs.voiceAuthorizationCredential).catch(()=>false);
+    setHistory((old) => [text, ...old].slice(0, 8));affirmative();computerRef.current(text,authorized);
+    notifyRef.current(voicePrefs.voiceAuthorizationEnabled&&phrase&&!authorized?"Voice command received, but the authorization code was not verified":"Voice command transferred to Computer Core for preview",voicePrefs.voiceAuthorizationEnabled&&phrase&&!authorized?"error":"info");
   };
-  const start = async () => {
+  const stopCapture=(finalize=false)=>{
+    const active=capture.current;if(!active)return;capture.current=null;if(active.timer)window.clearInterval(active.timer);active.processor.disconnect();active.source.disconnect();active.stream.getTracks().forEach((track)=>track.stop());void active.context.close().catch(()=>{});setListening(false);stopRecorder.current=null;if(finalize)void transcribe(active.frames,active.sampleRate,false);
+  };
+  const transcribe=async(frames:Float32Array[],sampleRate:number,ambient:boolean)=>{
+    if(processing.current||!frames.length)return;processing.current=true;setBusy(true);
+    try{const audio=await blobDataUrl(pcmWavBlob(frames,sampleRate));const response=await fetch("http://127.0.0.1:8765/api/voice-transcribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({audio})});const result=await response.json();if(result.ok&&result.text)await execute(result.text,ambient);else if(!ambient)notifyRef.current(result.message||"Voice recognition failed","error");}
+    catch{if(!ambient)notifyRef.current("Local voice core did not respond","error");}
+    finally{processing.current=false;setBusy(false);}
+  };
+  const start = async (ambient=false) => {
     try {
+      if(capture.current)return;
       if(!navigator.mediaDevices?.getUserMedia)throw new Error("Microphone capture is unavailable in this environment");
       const statusResponse=await fetch("http://127.0.0.1:8765/api/voice-status"),status=await statusResponse.json();
       if(!statusResponse.ok||!status.available)throw new Error(status.reason||"The bundled offline voice runtime is unavailable");
       const stream=await navigator.mediaDevices.getUserMedia({audio:prefs.voiceDevice?{deviceId:{exact:prefs.voiceDevice}}:true});
-      const context=new AudioContext(),source=context.createMediaStreamSource(stream),processor=context.createScriptProcessor(4096,1,1),frames:Float32Array[]=[];let stopped=false;
-      processor.onaudioprocess=(event)=>frames.push(new Float32Array(event.inputBuffer.getChannelData(0)));source.connect(processor);processor.connect(context.destination);
-      const finish=async()=>{if(stopped)return;stopped=true;setListening(false);setBusy(true);processor.disconnect();source.disconnect();stream.getTracks().forEach((track)=>track.stop());await context.close().catch(()=>{});try{const audio=await blobDataUrl(pcmWavBlob(frames,context.sampleRate));const response=await fetch("http://127.0.0.1:8765/api/voice-transcribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({audio})});const result=await response.json();result.ok&&result.text?await execute(result.text):notify(result.message||"Voice recognition failed","error");}catch{notify("Local voice core did not respond","error");}finally{setBusy(false);stopRecorder.current=null;}};
-      stopRecorder.current=()=>void finish();setListening(true);window.setTimeout(()=>void finish(),15000);
-    } catch(error) { notify(error instanceof Error?error.message:"Microphone access was denied", "error"); }
+      const context=new AudioContext(),source=context.createMediaStreamSource(stream),processor=context.createScriptProcessor(4096,1,1),active={stream,context,source,processor,frames:[] as Float32Array[],speech:0,sampleRate:context.sampleRate,timer:undefined as number|undefined};capture.current=active;
+      processor.onaudioprocess=(event)=>{const frame=new Float32Array(event.inputBuffer.getChannelData(0));active.frames.push(frame);let energy=0;for(const sample of frame)energy+=sample*sample;if(Math.sqrt(energy/frame.length)>.012)active.speech++;if(active.frames.length>Math.ceil(active.sampleRate*12/frame.length))active.frames.splice(0,Math.floor(active.frames.length/3));};source.connect(processor);processor.connect(context.destination);setListening(true);
+      if(ambient){active.timer=window.setInterval(()=>{if(processing.current||!capture.current)return;const frames=active.frames.splice(0),speech=active.speech;active.speech=0;if(speech>=3)void transcribe(frames,active.sampleRate,true);},4500);stopRecorder.current=()=>stopCapture(false);}
+      else{stopRecorder.current=()=>stopCapture(true);window.setTimeout(()=>capture.current===active&&stopCapture(true),15000);}
+    } catch(error) { setArmed(false);notifyRef.current(error instanceof Error?error.message:"Microphone access was denied", "error"); }
   };
-  return <aside className={(listening ? "listening " : "")+"voice-control"}><button aria-label={listening?"Stop listening":"Push to talk"} onClick={() => listening ? stopRecorder.current?.() : void start()} disabled={busy}><i>●</i>{busy?"PROCESSING":listening?"LISTENING — STOP":"VOICE"}</button>{history.length>0&&<small title={history.join("\n")}>LAST: {history[0]}</small>}</aside>;
+  useEffect(()=>{if(!prefs.voiceEnabled||prefs.voicePushToTalk){setArmed(false);stopCapture(false);return;}setArmed(true);return()=>stopCapture(false);},[prefs.voiceEnabled,prefs.voicePushToTalk,prefs.voiceDevice]);
+  useEffect(()=>{if(prefs.voiceEnabled&&!prefs.voicePushToTalk&&armed&&!capture.current)void start(true);else if((!armed||prefs.voicePushToTalk)&&capture.current)stopCapture(false);return()=>{};},[armed,prefs.voiceEnabled,prefs.voicePushToTalk,prefs.voiceDevice]);
+  useEffect(()=>()=>stopCapture(false),[]);
+  if (!prefs.voiceEnabled) return null;
+  const handsFree=!prefs.voicePushToTalk,label=handsFree?(armed?(busy?"COMPUTER PROCESSING":listening?(prefs.voiceWakePhrase?"COMPUTER ARMED":"HANDS-FREE LIVE"):"ARMING VOICE"):"VOICE MUTED"):(busy?"PROCESSING":listening?"LISTENING — STOP":"VOICE");
+  return <aside className={(listening ? "listening " : "")+(handsFree?"hands-free ":"")+"voice-control"}><button aria-label={handsFree?(armed?"Mute hands-free voice":"Arm hands-free voice"):(listening?"Stop listening":"Push to talk")} onClick={() => handsFree?setArmed((value)=>!value):listening?stopRecorder.current?.():void start(false)} disabled={!handsFree&&busy}><i>●</i>{label}</button>{handsFree&&<small>{prefs.voiceWakePhrase?'WAKE WORD · "COMPUTER"':'DIRECT COMMAND MODE · WAKE WORD OFF'}</small>}{history.length>0&&<small title={history.join("\n")}>LAST: {history[0]}</small>}</aside>;
 }
 
 function SpeedDial({
@@ -4711,14 +4730,14 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
 
 function Version30Welcome({close,openComputer}:{close:()=>void;openComputer:()=>void}){
   const features=[
-    {code:"01",title:"COMPUTER CORE",text:"Plain-language commands become visible multi-step plans with confidence, bridge requirements, risk labels, protected gates, and dry runs."},
-    {code:"02",title:"PROCEDURES",text:"Operations automation now supports 48-step procedures, expanded event triggers, cooldowns, runtime limits, branch conditions, retries, and simulation."},
-    {code:"03",title:"AUDIT + UNDO",text:"Computer Core plans, dry runs, failures, and reversals are kept in a local execution journal. Fully reversible plans can restore the prior operating snapshot."},
-    {code:"04",title:"VOICE OUT OF THE BOX",text:"Desktop packages include a pinned whisper.cpp runtime and local English command model. Microphone audio stays on the station."},
-    {code:"05",title:"VOCAL AUTHORIZATION",text:"An optional hashed vocal code can add a second gate to protected voice plans while preserving the visible operator confirmation."},
-    {code:"06",title:"LOCAL-FIRST AUTHORITY",text:"No cloud account is required for command interpretation, procedures, transcription, auditing, or the permission model."},
+    {code:"01",title:"FEDERATION IDENTITY",text:"Every station now keeps a durable local identity and public fingerprint, while the Android Home can discover nearby LCARS stations automatically."},
+    {code:"02",title:"ENCRYPTED SYNCHRONIZATION",text:"Native station traffic uses signed AES-256-GCM envelopes with replay rejection and per-device controls for every synchronized data category."},
+    {code:"03",title:"OPERATIONAL HANDOFF",text:"Send Status, Media, or Communications to a trusted PADD and retain a bounded delivery queue while that device is offline."},
+    {code:"04",title:"GUARDED TRANSFERS",text:"Route priority notices, opt-in clipboard text, and small files to encrypted native links without exposing unrestricted desktop file access."},
+    {code:"05",title:"HANDS-FREE COMPUTER",text:"Turn push-to-talk off for continuous local listening. The Computer wake word is enabled automatically and can still be disabled in Voice settings."},
+    {code:"06",title:"COMPUTER CORE RETAINED",text:"Plain-language plans, Procedures, dry runs, audit, undo, bundled whisper.cpp, and protected vocal authorization all remain available."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.1 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.1 · COMPUTER CORE</h2><p>The first Version 30 milestone turns LCARS into a coordinated, explainable operating environment.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openComputer}>OPEN COMPUTER CORE</button><button autoFocus onClick={close}>BEGIN 30.1 DEVELOPMENT</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.2 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.2 · FEDERATION</h2><p>One operator, many trusted stations, one encrypted LCARS environment.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openComputer}>OPEN COMPUTER CORE</button><button autoFocus onClick={close}>BEGIN 30.2 DEVELOPMENT</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guarded local-network PADD and mobile Home service for LCARS Version 30.1."""
+"""Guarded local-network PADD and Federation service for LCARS Version 30.2."""
 from __future__ import annotations
 
 import hashlib
@@ -12,13 +12,18 @@ import socket
 import threading
 import time
 import uuid
+import base64
 from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
+from lcars_federation_crypto import open_json, request_signature, seal_json
+
 PADD_PORT = 8766
-MAX_BODY = 65_536
+DISCOVERY_PORT = 8767
+DISCOVERY_QUERY = b"LCARS_FEDERATION_DISCOVER_V1"
+MAX_BODY = 1_048_576
 ROLES = {"viewer": 0, "operator": 1, "command": 2}
 ACTION_ROLES = {
     "navigate": "operator",
@@ -34,12 +39,23 @@ ACTION_ROLES = {
     "quick": "operator",
     "handoff": "operator",
     "clipboard": "command",
+    "file-receive": "command",
 }
 PERMISSION_NAMES = tuple(ACTION_ROLES) + ("autoApprove", "communications", "telemetry")
 APPROVAL_ACTIONS = {"routine", "app", "workstation", "handoff", "clipboard"}
 APPROVAL_TTL = 120
 DEFAULT_WIDGETS = ["status", "media", "communications", "telemetry", "quick-actions"]
-DEFAULT_NOTIFICATIONS = {"priorityOnly": True, "connectionEvents": True, "routineResults": True}
+DEFAULT_NOTIFICATIONS = {"enabled": True, "priorityOnly": True, "connectionEvents": True, "routineResults": True}
+DEFAULT_SYNC = {
+    "page": True,
+    "media": True,
+    "notifications": True,
+    "telemetry": True,
+    "workstations": True,
+    "applications": True,
+    "procedures": True,
+    "accessibility": True,
+}
 PERMISSION_PRESETS = {
     "viewer": {"role": "viewer", "permissions": {"communications": True, "telemetry": True}},
     "operator": {"role": "operator", "permissions": {
@@ -53,6 +69,7 @@ PERMISSION_PRESETS = {
         "notice-archive": True, "notice-dismiss-all": True, "handoff": True,
         "dnd": True, "routine": True, "app": True, "workstation": True,
         "clipboard": True, "autoApprove": False,
+        "file-receive": True,
     }},
 }
 
@@ -94,6 +111,7 @@ class PaddController:
         self.approvals = deque(maxlen=100)
         self.events = deque(maxlen=100)
         self.signals = {}
+        self.used_nonces = {}
         self.presence = {}
         self.shared_state = {
             "page": "overview",
@@ -117,6 +135,14 @@ class PaddController:
         }
         self.server = None
         self.server_error = ""
+        self.discovery_socket = None
+        self.discovery_thread = None
+        # Materialize the Version 30.2 station identity once so discovery and
+        # pairing always expose the same fingerprint.
+        try:
+            self._save(self._load())
+        except Exception:
+            pass
 
     def _load(self):
         try:
@@ -130,6 +156,7 @@ class PaddController:
                 role = str(device.get("role", "viewer"))
                 permissions = device.get("permissions", {}) if isinstance(device.get("permissions"), dict) else {}
                 notifications = device.get("notifications", {}) if isinstance(device.get("notifications"), dict) else {}
+                sync = device.get("sync", {}) if isinstance(device.get("sync"), dict) else {}
                 clean.append({
                     "id": _clean_text(device.get("id"), 64),
                     "name": _clean_text(device.get("name") or "PADD", 48),
@@ -143,29 +170,56 @@ class PaddController:
                     "network": _clean_text(device.get("network"), 32),
                     "latencyMs": max(0, min(60_000, int(device.get("latencyMs", 0) or 0))),
                     "clientVersion": _clean_text(device.get("clientVersion"), 32),
+                    "secureTransport": bool(device.get("secureTransport", False)),
                     "permissions": {name: bool(permissions[name]) for name in PERMISSION_NAMES if name in permissions},
                     "widgets": [str(item) for item in device.get("widgets", DEFAULT_WIDGETS) if str(item) in DEFAULT_WIDGETS][:8] or list(DEFAULT_WIDGETS),
                     "workstation": _clean_text(device.get("workstation"), 64),
                     "proximity": bool(device.get("proximity", False)),
                     "notifications": {name: bool(notifications.get(name, default)) for name, default in DEFAULT_NOTIFICATIONS.items()},
+                    "sync": {name: bool(sync.get(name, default)) for name, default in DEFAULT_SYNC.items()},
                 })
             activity = value.get("activity", []) if isinstance(value.get("activity"), list) else []
             activity = [item for item in activity[-200:] if isinstance(item, dict)]
+            station = value.get("station", {}) if isinstance(value.get("station"), dict) else {}
+            station_id = _clean_text(station.get("id"), 64) or "station-" + uuid.uuid4().hex[:20]
+            station_secret = str(station.get("secret") or secrets.token_urlsafe(32))
+            station_name = _clean_text(station.get("name") or socket.gethostname() or "LCARS Station", 48)
             return {
-                "schema": 3,
+                "schema": 4,
                 "enabled": bool(value.get("enabled", False)),
                 "clipboardEnabled": bool(value.get("clipboardEnabled", False)),
+                "fileTransferEnabled": bool(value.get("fileTransferEnabled", False)),
+                "station": {"id": station_id, "name": station_name, "secret": station_secret, "createdAt": int(station.get("createdAt", time.time()))},
                 "devices": clean,
                 "activity": activity,
             }
         except Exception:
-            return {"schema": 3, "enabled": False, "clipboardEnabled": False, "devices": [], "activity": []}
+            return {
+                "schema": 4,
+                "enabled": False,
+                "clipboardEnabled": False,
+                "fileTransferEnabled": False,
+                "station": {"id": "station-" + uuid.uuid4().hex[:20], "name": _clean_text(socket.gethostname() or "LCARS Station", 48), "secret": secrets.token_urlsafe(32), "createdAt": int(time.time())},
+                "devices": [],
+                "activity": [],
+            }
 
     def _save(self, value):
         self.config_dir.mkdir(parents=True, exist_ok=True)
         temporary = self.device_file.with_suffix(".tmp")
         temporary.write_text(json.dumps(value, indent=2), encoding="utf-8")
         temporary.replace(self.device_file)
+
+    @staticmethod
+    def _station_public(record):
+        station = record["station"]
+        fingerprint = hashlib.sha256((station["id"] + ":" + station["secret"]).encode()).hexdigest().upper()
+        return {
+            "id": station["id"],
+            "name": station["name"],
+            "fingerprint": ":".join(fingerprint[index:index + 4] for index in range(0, 24, 4)),
+            "createdAt": station["createdAt"],
+        }
 
     def _addresses(self):
         found = set()
@@ -218,10 +272,12 @@ class PaddController:
         result = {key: device.get(key) for key in (
             "id", "name", "role", "createdAt", "lastSeen", "lastAddress", "connectionCount",
             "battery", "network", "latencyMs", "clientVersion", "permissions", "widgets",
-            "workstation", "proximity", "notifications",
+            "workstation", "proximity", "notifications", "sync",
         )}
         result["online"] = bool(device.get("lastSeen") and int(time.time()) - int(device["lastSeen"]) <= 20)
         result["compatibility"] = self._compatibility(device.get("clientVersion"))
+        result["transport"] = "aes-256-gcm" if device.get("secureTransport", False) else "legacy-bearer"
+        result["queuedDeliveries"] = len(self.signals.get(device.get("id", ""), []))
         return result
 
     @staticmethod
@@ -302,9 +358,12 @@ class PaddController:
                 "port": PADD_PORT,
                 "version": self.version,
                 "platform": self.platform,
+                "station": self._station_public(record),
                 "addresses": self._addresses(),
                 "devices": [self._public_device(item) for item in record["devices"]],
                 "clipboardEnabled": record["clipboardEnabled"],
+                "fileTransferEnabled": record["fileTransferEnabled"],
+                "discovery": {"enabled": self.discovery_socket is not None, "port": DISCOVERY_PORT},
                 "activity": list(reversed(record["activity"][-60:])),
                 "approvals": [{key: item.get(key) for key in ("id", "action", "value", "device", "deviceName", "createdAt", "expiresAt")} for item in self.approvals],
                 "diagnostics": {
@@ -312,6 +371,7 @@ class PaddController:
                     "paired": len(record["devices"]),
                     "pendingApprovals": len(self.approvals),
                     "queuedCommands": len(self.commands),
+                    "queuedDeliveries": sum(len(queue) for queue in self.signals.values()),
                     "eventBacklog": len(self.events),
                 },
                 "pairing": None,
@@ -342,6 +402,14 @@ class PaddController:
                 self._save(record)
                 self.stop()
                 return {**self.status(True), "message": "PADD companion link disabled"}
+            if operation == "station-rename":
+                name = _clean_text(data.get("value") or data.get("name"), 48)
+                if not name:
+                    raise ValueError("Station name is required")
+                record["station"]["name"] = name
+                self._append_activity(record, "station-renamed", detail=name)
+                self._save(record)
+                return {**self.status(True), "message": f"Federation identity renamed to {name}"}
             if operation == "revoke":
                 ident = _clean_text(data.get("id"), 64)
                 target = next((item for item in record["devices"] if item["id"] == ident), None)
@@ -364,7 +432,7 @@ class PaddController:
                 self._append_activity(record, "role-changed", next(item for item in record["devices"] if item["id"] == ident), detail=role)
                 self._save(record)
                 return {**self.status(True), "message": f"PADD role changed to {role.upper()}"}
-            if operation in {"rename", "permissions", "profile", "layout", "proximity", "identify", "notifications", "preset", "copy-settings"}:
+            if operation in {"rename", "permissions", "profile", "layout", "proximity", "identify", "notifications", "sync-policy", "preset", "copy-settings", "delivery", "clear-queue"}:
                 ident = _clean_text(data.get("id"), 64)
                 device = next((item for item in record["devices"] if item["id"] == ident), None)
                 if not device:
@@ -384,6 +452,9 @@ class PaddController:
                 elif operation == "notifications":
                     values = data.get("notifications", {}) if isinstance(data.get("notifications"), dict) else {}
                     device["notifications"] = {name: bool(values.get(name, device.get("notifications", DEFAULT_NOTIFICATIONS).get(name, default))) for name, default in DEFAULT_NOTIFICATIONS.items()}
+                elif operation == "sync-policy":
+                    values = data.get("sync", {}) if isinstance(data.get("sync"), dict) else {}
+                    device["sync"] = {name: bool(values.get(name, device.get("sync", DEFAULT_SYNC).get(name, default))) for name, default in DEFAULT_SYNC.items()}
                 elif operation == "preset":
                     preset_name = str(data.get("preset", data.get("value", ""))).lower()
                     preset = PERMISSION_PRESETS.get(preset_name)
@@ -396,10 +467,55 @@ class PaddController:
                     source = next((item for item in record["devices"] if item["id"] == source_id and item["id"] != ident), None)
                     if not source:
                         raise ValueError("Source PADD was not found")
-                    for name in ("role", "permissions", "widgets", "notifications"):
-                        device[name] = json.loads(json.dumps(source.get(name, {} if name in {"permissions", "notifications"} else [])))
+                    for name in ("role", "permissions", "widgets", "notifications", "sync"):
+                        fallback = {} if name in {"permissions", "notifications", "sync"} else []
+                        device[name] = json.loads(json.dumps(source.get(name, fallback)))
+                elif operation == "delivery":
+                    kind = _clean_text(data.get("kind"), 32)
+                    if kind not in {"page", "clipboard", "notice", "file"}:
+                        raise ValueError("Unknown Federation delivery type")
+                    if kind == "clipboard" and not record["clipboardEnabled"]:
+                        raise PermissionError("Text clipboard sharing is disabled")
+                    if kind == "file" and not record["fileTransferEnabled"]:
+                        raise PermissionError("Small-file transfer is disabled")
+                    if kind == "file" and not self._capability(device, "file-receive"):
+                        raise PermissionError("This station cannot receive files")
+                    if kind in {"clipboard", "file"} and not device.get("secureTransport", False):
+                        raise PermissionError("Sensitive transfers require an encrypted native Federation link")
+                    payload = data.get("payload", {}) if isinstance(data.get("payload"), dict) else {}
+                    if kind == "page":
+                        payload = {"page": _clean_text(payload.get("page"), 48), "title": _clean_text(payload.get("title"), 96)}
+                    elif kind == "clipboard":
+                        text = _clean_clipboard(payload.get("text"))
+                        if not text:
+                            raise ValueError("Clipboard text is empty")
+                        payload = {"text": text}
+                    elif kind == "notice":
+                        payload = {"title": _clean_text(payload.get("title") or "LCARS TRANSMISSION", 96), "text": _clean_text(payload.get("text"), 240), "priority": _clean_text(payload.get("priority") or "priority", 24)}
+                    else:
+                        name = _clean_text(payload.get("name") or "lcars-transfer.bin", 96)
+                        mime = _clean_text(payload.get("mime") or "application/octet-stream", 96)
+                        content = str(payload.get("content") or "")
+                        try:
+                            decoded_size = len(base64.b64decode(content, validate=True))
+                        except Exception as exc:
+                            raise ValueError("File transfer payload is invalid") from exc
+                        if decoded_size <= 0 or decoded_size > 524_288:
+                            raise ValueError("Federation file transfers are limited to 512 KiB")
+                        payload = {"name": name, "mime": mime, "content": content, "size": decoded_size}
+                    queue = self.signals.setdefault(ident, deque(maxlen=32))
+                    queue.append({"id": uuid.uuid4().hex, "type": kind, "payload": payload, "createdAt": int(time.time()), "expiresAt": int(time.time()) + 86_400})
+                    self._append_activity(record, "delivery-queued", device, status="queued", detail=f"{kind} · {len(queue)} pending")
+                    self._save(record)
+                    return {**self.status(True), "message": f"{kind.replace('-', ' ').title()} queued for {device['name']}"}
+                elif operation == "clear-queue":
+                    self.signals.pop(ident, None)
+                    self._append_activity(record, "delivery-queue-cleared", device)
+                    self._save(record)
+                    return {**self.status(True), "message": f"Offline delivery queue cleared for {device['name']}"}
                 else:
-                    self.signals[ident] = {"id": uuid.uuid4().hex, "type": "identify", "createdAt": int(time.time())}
+                    queue = self.signals.setdefault(ident, deque(maxlen=32))
+                    queue.append({"id": uuid.uuid4().hex, "type": "identify", "payload": {}, "createdAt": int(time.time()), "expiresAt": int(time.time()) + 300})
                 self._append_activity(record, operation, device, detail=_clean_text(data.get("value"), 96))
                 self._save(record)
                 return {**self.status(True), "message": f"PADD {operation} updated"}
@@ -408,6 +524,11 @@ class PaddController:
                 self._append_activity(record, "clipboard-sharing", detail="enabled" if record["clipboardEnabled"] else "disabled")
                 self._save(record)
                 return {**self.status(True), "message": f"Text clipboard sharing {'enabled' if record['clipboardEnabled'] else 'disabled'}"}
+            if operation == "file-transfer":
+                record["fileTransferEnabled"] = bool(data.get("enabled", data.get("value", False)))
+                self._append_activity(record, "file-transfer", detail="enabled" if record["fileTransferEnabled"] else "disabled")
+                self._save(record)
+                return {**self.status(True), "message": f"Small-file transfer {'enabled' if record['fileTransferEnabled'] else 'disabled'}"}
             if operation in {"approve", "deny"}:
                 ident = _clean_text(data.get("approvalId") or data.get("id"), 64)
                 pending = next((item for item in self.approvals if item["id"] == ident), None)
@@ -451,17 +572,19 @@ class PaddController:
                 "network": "local-network",
                 "latencyMs": 0,
                 "clientVersion": "",
+                "secureTransport": False,
                 "permissions": {},
                 "widgets": list(DEFAULT_WIDGETS),
                 "workstation": "",
                 "proximity": False,
                 "notifications": dict(DEFAULT_NOTIFICATIONS),
+                "sync": dict(DEFAULT_SYNC),
             }
             record["devices"] = [*record["devices"][-23:], device]
             self._append_activity(record, "device-paired", device, detail=address)
             self.pairing = None
             self._save(record)
-            return {"ok": True, "token": token, "device": self._public_device(device), "version": self.version, "message": "PADD paired"}
+            return {"ok": True, "token": token, "device": self._public_device(device), "station": self._station_public(record), "version": self.version, "transport": "aes-256-gcm", "message": "PADD paired with encrypted Federation transport"}
 
     def authenticate(self, token, address=""):
         digest = hashlib.sha256(str(token or "").encode()).hexdigest()
@@ -482,6 +605,72 @@ class PaddController:
                         self._save(record)
                     return self._public_device(device)
         return None
+
+    def authenticate_request(self, headers, method, route, body=b"", address=""):
+        """Authenticate a signed 30.2 request, retaining legacy bearer access."""
+        ident = _clean_text(headers.get("X-LCARS-Device"), 64)
+        timestamp = str(headers.get("X-LCARS-Time") or "")
+        nonce = _clean_text(headers.get("X-LCARS-Nonce"), 96)
+        signature = str(headers.get("X-LCARS-Signature") or "")
+        if ident and timestamp and nonce and signature:
+            try:
+                stamp = int(timestamp)
+            except ValueError:
+                return None, None, False
+            if abs(int(time.time()) - stamp) > 120:
+                return None, None, False
+            with self.lock:
+                record = self._load()
+                target = next((item for item in record["devices"] if item["id"] == ident), None)
+                if not target:
+                    return None, None, False
+                key = bytes.fromhex(target["tokenHash"])
+                expected = request_signature(key, timestamp, nonce, method, route, body)
+                if not hmac.compare_digest(expected, signature):
+                    return None, None, False
+                now = int(time.time())
+                cache = self.used_nonces.setdefault(ident, {})
+                self.used_nonces[ident] = {value: seen for value, seen in cache.items() if now - seen < 300}
+                if nonce in self.used_nonces[ident]:
+                    return None, None, False
+                self.used_nonces[ident][nonce] = now
+                if not target.get("secureTransport", False):
+                    target["secureTransport"] = True
+                    self._save(record)
+            device = self.authenticate_by_id(ident, address)
+            return device, key, bool(device)
+        header = headers.get("Authorization", "")
+        token = header[7:] if header.startswith("Bearer ") else ""
+        return self.authenticate(token, address), None, False
+
+    def authenticate_by_id(self, ident, address=""):
+        with self.lock:
+            record = self._load()
+            if not record["enabled"]:
+                return None
+            target = next((item for item in record["devices"] if item["id"] == ident), None)
+            if not target:
+                return None
+            now = int(time.time())
+            was_online = bool(target.get("lastSeen") and now - int(target["lastSeen"]) <= 20)
+            target["lastSeen"] = now
+            if address:
+                target["lastAddress"] = _clean_text(address, 64)
+            if not was_online:
+                target["connectionCount"] = int(target.get("connectionCount", 0)) + 1
+            self._save(record)
+            return self._public_device(target)
+
+    @staticmethod
+    def decode_secure_body(key, method, route, device, raw):
+        value = json.loads(raw or b"{}")
+        if key:
+            return open_json(key, value, f"{method.upper()}:{route}:{device['id']}")
+        return value
+
+    @staticmethod
+    def encode_secure_response(key, route, device, value):
+        return seal_json(key, value, f"RESPONSE:{route}:{device['id']}") if key else value
 
     def heartbeat(self, device, data, address=""):
         with self.lock:
@@ -511,6 +700,18 @@ class PaddController:
             self._save(record)
             return {"ok": True, "device": self._public_device(target), "message": "PADD layout saved"}
 
+    def acknowledge_signal(self, device, signal_id):
+        ident = device["id"]
+        signal_id = _clean_text(signal_id, 64)
+        with self.lock:
+            queue = self.signals.get(ident, deque(maxlen=32))
+            self.signals[ident] = deque((item for item in queue if item.get("id") != signal_id), maxlen=32)
+            record = self._load()
+            target = next((item for item in record["devices"] if item["id"] == ident), None)
+            self._append_activity(record, "delivery-received", target, detail=signal_id[:12])
+            self._save(record)
+        return {"ok": True, "message": "Federation delivery acknowledged"}
+
     def mobile_status(self):
         status = self.status(False)
         return {key: status[key] for key in ("enabled", "online", "version", "platform")}
@@ -518,25 +719,62 @@ class PaddController:
     def state_for(self, device):
         with self.lock:
             state = json.loads(json.dumps(self.shared_state))
-            signal = self.signals.get(device["id"])
-            clipboard_enabled = self._load()["clipboardEnabled"]
+            now = int(time.time())
+            queue = self.signals.get(device["id"], deque(maxlen=32))
+            queue = deque((item for item in queue if int(item.get("expiresAt", now + 1)) > now), maxlen=32)
+            self.signals[device["id"]] = queue
+            signal = queue[0] if queue else None
+            record = self._load()
+            clipboard_enabled = record["clipboardEnabled"]
+            file_transfer_enabled = record["fileTransferEnabled"]
+            station = self._station_public(record)
+        sync = {**DEFAULT_SYNC, **(device.get("sync") or {})}
+        if not sync["page"]:
+            state["page"] = "private"
+            state["handoff"] = None
+        if not sync["media"]:
+            state["media"] = []
+        if not sync["notifications"]:
+            state["notices"] = []
+        if not sync["telemetry"]:
+            state["meters"] = []
+        if not sync["workstations"]:
+            state["activeWorkstation"] = ""
+            state["workstations"] = []
+        if not sync["applications"]:
+            state["apps"] = []
+        if not sync["procedures"]:
+            state["routines"] = []
+            state["routineStatus"] = []
+            state["quickActions"] = []
+        if not sync["accessibility"]:
+            state["accessibility"] = {}
         if not self._capability(device, "app"):
             state["apps"] = []
         if not (device.get("permissions") or {}).get("communications", True):
             state["notices"] = []
+        notification_route = {**DEFAULT_NOTIFICATIONS, **(device.get("notifications") or {})}
+        if not notification_route["enabled"]:
+            state["notices"] = []
+        elif notification_route["priorityOnly"]:
+            state["notices"] = [item for item in state.get("notices", []) if str(item.get("priority", item.get("kind", ""))).lower() in {"priority", "critical", "error"}]
         if not (device.get("permissions") or {}).get("telemetry", True):
             state["meters"] = []
         state["widgets"] = device.get("widgets") or list(DEFAULT_WIDGETS)
         capabilities = {name: self._capability(device, name) for name in ACTION_ROLES}
         capabilities["clipboard"] = capabilities["clipboard"] and clipboard_enabled
+        capabilities["file-receive"] = capabilities["file-receive"] and file_transfer_enabled
         return {
             "ok": True,
             "device": device,
+            "station": station,
             "stationVersion": self.version,
             "compatibility": self._compatibility(device.get("clientVersion")),
             "capabilities": capabilities,
             "approvalRequired": {name: name in APPROVAL_ACTIONS and not bool((device.get("permissions") or {}).get("autoApprove", False)) for name in ACTION_ROLES},
             "signal": signal,
+            "queueDepth": len(queue),
+            "transport": device.get("transport", "legacy-bearer"),
             "state": state,
         }
 
@@ -637,6 +875,56 @@ class PaddController:
             self.events.clear()
         return values
 
+    def _start_discovery(self):
+        if self.discovery_socket or not self.listen:
+            return
+        try:
+            discovery = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            discovery.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            discovery.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+            discovery.bind(("0.0.0.0", DISCOVERY_PORT))
+            discovery.settimeout(1.0)
+            self.discovery_socket = discovery
+        except Exception:
+            self.discovery_socket = None
+            return
+
+        def receive():
+            while self.discovery_socket is discovery:
+                try:
+                    value, address = discovery.recvfrom(512)
+                    if value.strip() != DISCOVERY_QUERY:
+                        continue
+                    record = self._load()
+                    if not record["enabled"]:
+                        continue
+                    response = {
+                        "protocol": "lcars-federation-v1",
+                        "station": self._station_public(record),
+                        "version": self.version,
+                        "platform": self.platform,
+                        "port": PADD_PORT,
+                        "pairing": bool(self.pairing and self.pairing.get("expiresAt", 0) > time.time()),
+                    }
+                    discovery.sendto(json.dumps(response, separators=(",", ":")).encode("utf-8"), address)
+                except socket.timeout:
+                    continue
+                except OSError:
+                    break
+                except Exception:
+                    continue
+
+        self.discovery_thread = threading.Thread(target=receive, name="lcars-federation-discovery", daemon=True)
+        self.discovery_thread.start()
+
+    def _stop_discovery(self):
+        discovery, self.discovery_socket = self.discovery_socket, None
+        if discovery:
+            try:
+                discovery.close()
+            except Exception:
+                pass
+
     def start(self, force=False):
         if not self.listen or self.server:
             return
@@ -661,24 +949,25 @@ class PaddController:
                 self.send_headers(status, "application/json; charset=utf-8", len(body))
                 self.wfile.write(body)
 
-            def body_json(self):
+            def body_raw(self):
                 length = int(self.headers.get("Content-Length", "0") or 0)
                 if length < 0 or length > MAX_BODY:
                     raise ValueError("Request exceeds the PADD limit")
-                return json.loads(self.rfile.read(length) or b"{}")
+                return self.rfile.read(length) or b"{}"
 
-            def device(self):
-                header = self.headers.get("Authorization", "")
-                token = header[7:] if header.startswith("Bearer ") else ""
-                return controller.authenticate(token, self.client_address[0])
+            def authorized(self, method, route, raw=b""):
+                return controller.authenticate_request(self.headers, method, route, raw, self.client_address[0])
+
+            def send_device_json(self, route, device, key, value, status=200):
+                return self.send_json(controller.encode_secure_response(key, route, device, value), status)
 
             def do_GET(self):
                 route = urlparse(self.path).path
                 if route == "/api/padd/status":
                     return self.send_json(controller.mobile_status())
                 if route == "/api/padd/state":
-                    device = self.device()
-                    return self.send_json(controller.state_for(device), 200) if device else self.send_json({"ok": False, "error": "PADD authorization required"}, 401)
+                    device, key, _secure = self.authorized("GET", route)
+                    return self.send_device_json(route, device, key, controller.state_for(device), 200) if device else self.send_json({"ok": False, "error": "PADD authorization required"}, 401)
                 names = {"/": "index.html", "/index.html": "index.html", "/app.js": "app.js", "/styles.css": "styles.css", "/manifest.webmanifest": "manifest.webmanifest", "/sw.js": "sw.js", "/icon.png": "icon.png"}
                 name = names.get(route)
                 path = controller.asset_dir / name if name else None
@@ -692,24 +981,22 @@ class PaddController:
             def do_POST(self):
                 route = urlparse(self.path).path
                 try:
-                    data = self.body_json()
+                    raw = self.body_raw()
                     if route == "/api/padd/pair":
+                        data = json.loads(raw)
                         return self.send_json(controller.pair(data.get("code"), data.get("name"), self.client_address[0]))
+                    device, key, _secure = self.authorized("POST", route, raw)
+                    if not device:
+                        return self.send_json({"ok": False, "error": "PADD authorization required"}, 401)
+                    data = controller.decode_secure_body(key, "POST", route, device, raw)
                     if route == "/api/padd/action":
-                        device = self.device()
-                        if not device:
-                            return self.send_json({"ok": False, "error": "PADD authorization required"}, 401)
-                        return self.send_json(controller.queue_action(device, data))
+                        return self.send_device_json(route, device, key, controller.queue_action(device, data))
                     if route == "/api/padd/heartbeat":
-                        device = self.device()
-                        if not device:
-                            return self.send_json({"ok": False, "error": "PADD authorization required"}, 401)
-                        return self.send_json(controller.heartbeat(device, data, self.client_address[0]))
+                        return self.send_device_json(route, device, key, controller.heartbeat(device, data, self.client_address[0]))
                     if route == "/api/padd/preferences":
-                        device = self.device()
-                        if not device:
-                            return self.send_json({"ok": False, "error": "PADD authorization required"}, 401)
-                        return self.send_json(controller.mobile_preferences(device, data))
+                        return self.send_device_json(route, device, key, controller.mobile_preferences(device, data))
+                    if route == "/api/padd/signal-ack":
+                        return self.send_device_json(route, device, key, controller.acknowledge_signal(device, data.get("id")))
                     return self.send_json({"error": "not found"}, 404)
                 except PermissionError as exc:
                     return self.send_json({"ok": False, "error": str(exc)}, 403)
@@ -723,11 +1010,13 @@ class PaddController:
             self.server_error = ""
             self.server = ReusableThreadingHTTPServer(("0.0.0.0", PADD_PORT), Handler)
             threading.Thread(target=self.server.serve_forever, name="lcars-padd", daemon=True).start()
+            self._start_discovery()
         except Exception as exc:
             self.server = None
             self.server_error = str(exc)
 
     def stop(self):
+        self._stop_discovery()
         server, self.server = self.server, None
         if not server:
             return

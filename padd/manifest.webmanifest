@@ -1,7 +1,7 @@
 {
   "name": "LCARS PADD Companion",
   "short_name": "LCARS PADD",
-  "description": "A paired Computer Core companion for LCARS Command Interface Version 30.1 Development.",
+  "description": "A paired Federation companion for LCARS Command Interface Version 30.2 Development.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

@@ -79,10 +79,12 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Corrected multi-row Status module edit controls and full-height Page Peek, Communications, and Tray resizing
 - Version 30.1 Computer Core with local plain-language plans, dry runs, authority/risk previews, Computer Audit, reversible-plan undo, and expanded Procedures
 - Verified bundled whisper.cpp desktop transcription with direct PCM WAV capture, custom model overrides, and optional hashed vocal authorization for protected plans
+- Version 30.2 Federation with durable station fingerprints, automatic discovery, signed and encrypted native synchronization, per-device routes, operational handoff, and offline delivery queues
+- Optional hands-free offline voice with push-to-talk retained and an independently configurable Computer wake word
 
 ## Current stage
 
-Version 30.1 is the current Development milestone and Version 29 remains Stable. Computer Core adds an explainable local command model, Procedure triggers and safety limits, dry-run simulation, audit history, reversible-plan undo, and out-of-box desktop voice transcription. Protected actions keep their visible confirmation gate; enabling a vocal authorization phrase adds a second gate and does not grant unrestricted shell or sudo access.
+Version 30.2 is the current Development milestone and Version 29 remains Stable. Federation gives each station a durable fingerprint, discovers stations over the local network, signs and encrypts native Android traffic with AES-256-GCM, exposes per-device synchronization and notification policies, and adds page handoff plus guarded clipboard, small-file, notice, and offline-queue delivery. Hands-free offline voice joins push-to-talk; disabling push-to-talk automatically enables the independently optional Computer wake word. The Version 30.1 Computer Core, Procedure, audit, undo, bundled transcription, and protected authorization safeguards remain intact.
 
 Version 29 is the current Stable Mobile Command Environment release. It assembles the Version 29.1 Home foundation, Version 29.2 customization milestone, and the final Connected Station Dock, multi-station, notification, credential-migration, battery, performance, calendar, Favorites, and mobile-update work. The Android package begins the persistent Version 29 signing line; older disposable development-signed packages may require a one-time uninstall before Stable can be installed. Only hashed revocable tokens are stored by the desktop core; Android station tokens are encrypted with Android Keystore AES-GCM. Viewer, Operator, Command, granular permission, and explicit sensitive-action approval checks remain enforced, and PADD devices never receive Terminal, file, process, or computer power access.
 

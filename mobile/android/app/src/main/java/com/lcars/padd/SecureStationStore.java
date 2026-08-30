@@ -20,7 +20,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 
-/** Encrypted, migration-aware registry for the Version 29 Connected Station Dock. */
+/** Encrypted, migration-aware registry for the Version 30.2 Federation Dock. */
 final class SecureStationStore {
     private static final String PREFS = "lcars-stations-v29";
     private static final String REGISTRY = "registry";
@@ -37,14 +37,20 @@ final class SecureStationStore {
         final String label;
         final String deviceName;
         final String token;
+        final String deviceId;
+        final String stationId;
+        final String fingerprint;
         final long updatedAt;
 
-        Station(String id, String address, String label, String deviceName, String token, long updatedAt) {
+        Station(String id, String address, String label, String deviceName, String token, String deviceId, String stationId, String fingerprint, long updatedAt) {
             this.id = id;
             this.address = address;
             this.label = label;
             this.deviceName = deviceName;
             this.token = token;
+            this.deviceId = deviceId;
+            this.stationId = stationId;
+            this.fingerprint = fingerprint;
             this.updatedAt = updatedAt;
         }
     }
@@ -74,7 +80,7 @@ final class SecureStationStore {
                     item.optString("id", stationId(address)), address,
                     clean(item.optString("label", address), 48),
                     clean(item.optString("deviceName", "Personal PADD"), 48),
-                    token, item.optLong("updatedAt", 0)
+                    token, clean(item.optString("deviceId"), 64), clean(item.optString("stationId"), 64), clean(item.optString("fingerprint"), 64), item.optLong("updatedAt", 0)
                 ));
             } catch (Exception ignored) {}
         }
@@ -90,23 +96,46 @@ final class SecureStationStore {
         return stations.get(0);
     }
 
-    synchronized Station save(String rawAddress, String label, String deviceName, String token) throws Exception {
+    synchronized Station save(String rawAddress, String label, String deviceName, String token, String deviceId, String stationId, String fingerprint) throws Exception {
         String address = StationAddress.normalize(rawAddress);
         String id = stationId(address);
         JSONObject root = readRoot();
         JSONArray old = root.optJSONArray("stations");
         JSONArray next = new JSONArray();
-        JSONObject saved = stationJson(id, address, label, deviceName, token, System.currentTimeMillis());
+        JSONObject saved = stationJson(id, address, label, deviceName, token, deviceId, stationId, fingerprint, System.currentTimeMillis());
         next.put(saved);
         if (old != null) for (int index = 0; index < old.length() && next.length() < MAX_STATIONS; index++) {
             JSONObject item = old.optJSONObject(index);
             if (item != null && !id.equals(item.optString("id"))) next.put(item);
         }
-        root.put("schema", 2);
+        root.put("schema", 3);
         root.put("active", id);
         root.put("stations", next);
         writeRoot(root);
-        return new Station(id, address, clean(label.isEmpty() ? address : label, 48), clean(deviceName, 48), token, System.currentTimeMillis());
+        return new Station(id, address, clean(label.isEmpty() ? address : label, 48), clean(deviceName, 48), token, clean(deviceId,64), clean(stationId,64), clean(fingerprint,64), System.currentTimeMillis());
+    }
+
+    synchronized Station save(String rawAddress, String label, String deviceName, String token) throws Exception {
+        return save(rawAddress, label, deviceName, token, "", "", "");
+    }
+
+    synchronized void attachIdentity(String id, String deviceId, String stationId, String fingerprint) {
+        JSONObject root = readRoot();
+        JSONArray values = root.optJSONArray("stations");
+        if (values == null) return;
+        for (int index = 0; index < values.length(); index++) {
+            JSONObject item = values.optJSONObject(index);
+            if (item == null || !id.equals(item.optString("id"))) continue;
+            try {
+                item.put("deviceId", clean(deviceId, 64));
+                item.put("stationId", clean(stationId, 64));
+                item.put("fingerprint", clean(fingerprint, 64));
+                item.put("updatedAt", System.currentTimeMillis());
+                root.put("schema", 3);
+                writeRoot(root);
+            } catch (Exception ignored) {}
+            return;
+        }
     }
 
     synchronized void activate(String id) {
@@ -146,13 +175,16 @@ final class SecureStationStore {
         }
     }
 
-    private JSONObject stationJson(String id, String address, String label, String deviceName, String token, long updatedAt) throws Exception {
+    private JSONObject stationJson(String id, String address, String label, String deviceName, String token, String deviceId, String stationId, String fingerprint, long updatedAt) throws Exception {
         JSONObject item = new JSONObject();
         item.put("id", id);
         item.put("address", address);
         item.put("label", clean(label.isEmpty() ? address : label, 48));
         item.put("deviceName", clean(deviceName.isEmpty() ? "Personal PADD" : deviceName, 48));
         item.put("credential", encrypt(token));
+        item.put("deviceId", clean(deviceId, 64));
+        item.put("stationId", clean(stationId, 64));
+        item.put("fingerprint", clean(fingerprint, 64));
         item.put("updatedAt", updatedAt);
         return item;
     }
@@ -164,7 +196,7 @@ final class SecureStationStore {
             return root;
         } catch (Exception ignored) {
             JSONObject root = new JSONObject();
-            try { root.put("schema", 2); root.put("stations", new JSONArray()); } catch (Exception ignoredAgain) {}
+            try { root.put("schema", 3); root.put("stations", new JSONArray()); } catch (Exception ignoredAgain) {}
             return root;
         }
     }

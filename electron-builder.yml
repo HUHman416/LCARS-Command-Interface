@@ -26,6 +26,8 @@ linux:
       to: shared/lcars_documents.py
     - from: shared/lcars_padd.py
       to: shared/lcars_padd.py
+    - from: shared/lcars_federation_crypto.py
+      to: shared/lcars_federation_crypto.py
     - from: padd
       to: padd
     - from: extensions
@@ -56,6 +58,8 @@ win:
       to: shared/lcars_documents.py
     - from: shared/lcars_padd.py
       to: shared/lcars_padd.py
+    - from: shared/lcars_federation_crypto.py
+      to: shared/lcars_federation_crypto.py
     - from: padd
       to: padd
     - from: extensions

@@ -1,12 +1,15 @@
 import json
+import hashlib
 import sys
 import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "shared"))
 from lcars_padd import PaddController
+from lcars_federation_crypto import encrypt, open_json, request_signature, seal_json
 
 
 class PaddPairingTests(unittest.TestCase):
@@ -15,6 +18,13 @@ class PaddPairingTests(unittest.TestCase):
         assets.mkdir()
         (assets / "index.html").write_text("LCARS PADD", encoding="utf-8")
         return PaddController(Path(folder) / "config", assets, "28.0.0", "test", listen=False)
+
+    def test_aes_256_gcm_matches_nist_vector(self):
+        with patch("lcars_federation_crypto.os.urandom", return_value=b"\0" * 12):
+            nonce, ciphertext, tag = encrypt(b"\0" * 32, b"\0" * 16)
+        self.assertEqual(nonce, b"\0" * 12)
+        self.assertEqual(ciphertext.hex(), "cea7403d4d606b6e074ec5d3baf39d18")
+        self.assertEqual(tag.hex(), "d0d1c8a799996bf0265b98b5d48ab919")
 
     def test_one_use_pairing_hashes_tokens_and_supports_revocation(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -155,6 +165,49 @@ class PaddPairingTests(unittest.TestCase):
             self.assertEqual(controller.status()["approvals"], [])
             self.assertEqual(controller.pop_commands(), [])
             self.assertTrue(any(item["action"] == "request-expired" for item in controller.status()["activity"]))
+
+    def test_federation_identity_selective_sync_and_offline_delivery(self):
+        with tempfile.TemporaryDirectory() as folder:
+            controller = self.make_controller(folder)
+            armed = controller.manage({"operation": "start"})
+            paired = controller.pair(armed["pairing"]["code"], "Federation PADD", "192.168.1.40")
+            ident = paired["device"]["id"]
+            self.assertTrue(paired["station"]["id"].startswith("station-"))
+            self.assertEqual(paired["transport"], "aes-256-gcm")
+            controller.manage({"operation": "sync-policy", "id": ident, "sync": {"media": False, "telemetry": False, "notifications": True}})
+            controller.sync({"page": "media", "media": [{"id": "spotify"}], "meters": [{"label": "CPU", "value": 50}], "notices": [{"id": "priority", "priority": "priority", "text": "Red alert"}, {"id": "routine", "priority": "routine", "text": "Routine"}]})
+            state = controller.state_for(controller.authenticate(paired["token"]))
+            self.assertEqual(state["state"]["media"], [])
+            self.assertEqual(state["state"]["meters"], [])
+            self.assertEqual([item["id"] for item in state["state"]["notices"]], ["priority"])
+            controller.manage({"operation": "delivery", "id": ident, "kind": "page", "payload": {"page": "media", "title": "Media Console"}})
+            queued = controller.state_for(controller.authenticate(paired["token"]))
+            self.assertEqual(queued["queueDepth"], 1)
+            self.assertEqual(queued["signal"]["type"], "page")
+            controller.acknowledge_signal(queued["device"], queued["signal"]["id"])
+            self.assertEqual(controller.state_for(controller.authenticate(paired["token"]))["queueDepth"], 0)
+
+    def test_signed_aes_gcm_transport_rejects_replay(self):
+        with tempfile.TemporaryDirectory() as folder:
+            controller = self.make_controller(folder)
+            armed = controller.manage({"operation": "start"})
+            paired = controller.pair(armed["pairing"]["code"], "Secure PADD", "192.168.1.41")
+            device, token = paired["device"], paired["token"]
+            key = hashlib.sha256(token.encode()).digest()
+            route, timestamp, nonce = "/api/padd/action", str(int(time.time())), "nonce-001"
+            envelope = seal_json(key, {"action": "media", "value": "play-pause"}, f"POST:{route}:{device['id']}")
+            raw = json.dumps(envelope, separators=(",", ":")).encode()
+            headers = {"X-LCARS-Device": device["id"], "X-LCARS-Time": timestamp, "X-LCARS-Nonce": nonce, "X-LCARS-Signature": request_signature(key, timestamp, nonce, "POST", route, raw)}
+            authenticated, authenticated_key, secure = controller.authenticate_request(headers, "POST", route, raw, "192.168.1.41")
+            self.assertTrue(secure)
+            self.assertEqual(authenticated["id"], device["id"])
+            self.assertEqual(authenticated["transport"], "aes-256-gcm")
+            self.assertEqual(controller.status()["devices"][0]["transport"], "aes-256-gcm")
+            self.assertEqual(controller.decode_secure_body(authenticated_key, "POST", route, authenticated, raw)["action"], "media")
+            response = controller.encode_secure_response(authenticated_key, route, authenticated, {"ok": True})
+            self.assertTrue(open_json(key, response, f"RESPONSE:{route}:{device['id']}")["ok"])
+            replayed, _, _ = controller.authenticate_request(headers, "POST", route, raw, "192.168.1.41")
+            self.assertIsNone(replayed)
 
 
 if __name__ == "__main__":
