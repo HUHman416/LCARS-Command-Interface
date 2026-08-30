@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.1-b69de8" alt="Development Version 30.1">
+  <img src="https://img.shields.io/badge/development-v30.1--A-b69de8" alt="Development Version 30.1 Revision A">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -35,7 +35,7 @@
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
 
 > [!NOTE]
-> **Version 30.1 Development begins Computer Core.** It adds local plain-language command plans, dry runs, explicit risk and authority gates, an audit journal, reversible-plan undo, expanded Procedures and triggers, a bundled verified whisper.cpp desktop runtime, and optional hashed vocal authorization for protected voice plans. Test packages are published at the [Version 30.1 prerelease](https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v30.1); Version 29 remains Stable.
+> **Version 30.1 Development begins Computer Core.** Revision A fixes packaged microphone capture and adds one-tap hotfix discovery while retaining local plain-language command plans, dry runs, explicit risk and authority gates, an audit journal, reversible-plan undo, expanded Procedures and triggers, a bundled verified whisper.cpp desktop runtime, and optional hashed vocal authorization for protected voice plans. Test packages are published at the [Version 30.1 Revision A prerelease](https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v30.1-A); Version 29 remains Stable.
 
 ## 🧪 Version 30.1 Development — Computer Core
 

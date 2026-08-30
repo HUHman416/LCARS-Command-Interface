@@ -161,15 +161,15 @@ jobs:
           git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.1-Source.zip HEAD
           (cd release-assets && sha256sum LCARS-Command-Interface-v30.1-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.1.zip LCARS-Linux-Integration-v30.1.sh LCARS-Windows-Setup-v30.1.exe LCARS-Mobile-Environment-v30.1-Android.apk LCARS-Command-Interface-v30.1-Source.zip > SHA256SUMS.txt)
           (cd release-assets && sha256sum --check SHA256SUMS.txt)
-      - name: Publish Version 30.1 development release
+      - name: Publish Version 30.1 Revision A development release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          notes='Version 30.1 Development begins the Federation Operating Environment with Computer Core. Plain operator language is translated locally into visible multi-step plans with confidence, risk, reversibility, Local Core requirements, dry-run simulation, explicit protected-action confirmation, an execution audit, and single-plan undo for fully reversible operations. Operations Routines evolve into 48-step Procedures with battery, network, notice, media, PADD station, interval, application, audio-device, time, and startup triggers plus cooldowns, runtime limits, conditions, retries, failure paths, and trigger-safe dry runs. Desktop packages now include a pinned, verified whisper.cpp runtime and local tiny.en command model, use direct PCM WAV capture without an FFmpeg requirement, and retain custom engine/model overrides. Optional vocal authorization stores only a salted hash and adds a second gate to protected voice plans without replacing visible confirmation. This prerelease is intended for testing on Linux, Windows, and Android before the next Version 30 milestone.'
-          if gh release view v30.1 >/dev/null 2>&1; then
-            gh release upload v30.1 release-assets/* --clobber
-            gh release edit v30.1 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.1 Development · Computer Core" --notes "$notes" --prerelease
+          notes='Version 30.1 Revision A fixes offline voice capture across packaged desktop installations. LCARS now grants microphone access only to its own secure app interface, validates the bundled voice runtime before recording, normalizes microphone audio to the local recognizer format, and reports the actual microphone or runtime error when a command cannot be processed. It retains the full Version 30.1 Computer Core, Procedure, dry-run, audit, undo, bundled whisper.cpp, and optional hashed vocal-authorization feature set. The revision tag also allows existing Version 30.1 installations and the signed Android client to discover this hotfix through their one-tap development update channel.'
+          if gh release view v30.1-A >/dev/null 2>&1; then
+            gh release upload v30.1-A release-assets/* --clobber
+            gh release edit v30.1-A --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.1 Revision A · Voice Hotfix" --notes "$notes" --prerelease
           else
-            gh release create v30.1 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.1 Development · Computer Core" --notes "$notes" --prerelease
+            gh release create v30.1-A release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.1 Revision A · Voice Hotfix" --notes "$notes" --prerelease
           fi

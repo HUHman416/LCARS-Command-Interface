@@ -69,12 +69,13 @@ test("audit and undo storage reject malformed records", () => {
 });
 
 test("desktop voice package is pinned, verified, and does not require FFmpeg for 30.1 WAV capture", async () => {
-  const [script, linuxBridge, windowsBridge, page, builder] = await Promise.all([
+  const [script, linuxBridge, windowsBridge, page, builder, workflow] = await Promise.all([
     readFile(new URL("../scripts/prepare-voice-runtime.sh", import.meta.url), "utf8"),
     readFile(new URL("../local/lcars_bridge.py", import.meta.url), "utf8"),
     readFile(new URL("../windows/lcars_bridge_windows.py", import.meta.url), "utf8"),
     readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../electron-builder.yml", import.meta.url), "utf8"),
+    readFile(new URL("../.github/workflows/v30-development.yml", import.meta.url), "utf8"),
   ]);
   assert.match(script, /release="b4938"/);
   assert.match(script, /sha256sum --check/);
@@ -88,4 +89,5 @@ test("desktop voice package is pinned, verified, and does not require FFmpeg for
   assert.match(page, /voiceAuthorizationCredential/);
   assert.match(builder, /voice-runtime\/linux/);
   assert.match(builder, /voice-runtime\/windows/);
+  assert.match(workflow, /gh release (?:view|create) v30\.1-A/);
 });

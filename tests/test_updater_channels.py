@@ -11,6 +11,8 @@ class UpdaterChannelTests(unittest.TestCase):
     def test_letter_stable_releases_sort_after_the_base_major(self):
         self.assertGreater(updater._release_key("v25-B"),updater._release_key("v25"))
         self.assertGreater(updater._release_key("v26"),updater._release_key("v25-B"))
+        self.assertGreater(updater._release_key("v30.1-A"),updater._release_key("30.1.0-dev.1"))
+        self.assertEqual(updater._release_key("v30.1-A"),updater._release_key("30.1-A"))
 
     def test_development_candidate_can_transition_to_same_major_stable(self):
         release={"tag_name":"v26","draft":False,"prerelease":False,"html_url":"https://github.com/example/releases/v26","assets":[]}

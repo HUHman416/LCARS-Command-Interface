@@ -1,5 +1,5 @@
 LCARS Universal Linux Desktop v30.1 Development
-Application version: 30.1.0-dev.1
+Application version: 30.1.0-dev.2
 AppImage SHA-256: GENERATED-DURING-PACKAGING
 
 The installer verifies this checksum before replacing the installed application.

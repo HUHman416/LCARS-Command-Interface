@@ -49,7 +49,7 @@ import {
 import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, ComputerPlan, ComputerPlanStep, ComputerUndoSnapshot } from "./v30-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="30.1.0-dev.1";
+const LCARS_VERSION="30.1-A";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
