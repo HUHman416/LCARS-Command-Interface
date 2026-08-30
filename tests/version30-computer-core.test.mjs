@@ -82,6 +82,9 @@ test("desktop voice package is pinned, verified, and does not require FFmpeg for
   assert.match(linuxBridge, /raw\[:4\]==b"RIFF"/);
   assert.match(windowsBridge, /raw\[:4\]==b"RIFF"/);
   assert.match(page, /pcmWavBlob/);
+  assert.match(page, /resampleVoicePcm/);
+  assert.match(page, /targetRate=16000/);
+  assert.match(page, /api\/voice-status/);
   assert.match(page, /voiceAuthorizationCredential/);
   assert.match(builder, /voice-runtime\/linux/);
   assert.match(builder, /voice-runtime\/windows/);

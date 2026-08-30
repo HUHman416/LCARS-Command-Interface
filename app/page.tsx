@@ -4532,11 +4532,23 @@ function ExtensionSettings({extensions}:{extensions:ExtensionManifest[]}){const 
 function ExtensionSettingGroup({extension}:{extension:ExtensionManifest}){const key=`lcars-extension-state:${extension.id}`,[values,setValues]=useState<Record<string,unknown>>(()=>{try{return JSON.parse(localStorage.getItem(key)||"{}");}catch{return{};}});const save=(name:string,value:unknown)=>{const next={...values,[name]:value};setValues(next);localStorage.setItem(key,JSON.stringify(next));fetch("http://127.0.0.1:8765/api/extension-state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:extension.id,state:next})}).catch(()=>{});};return <article><h4>{extension.name.toUpperCase()} <small>API {extension.apiVersion}</small></h4>{extension.settings.map((setting)=>{const value=values[setting.key]??setting.default??"";return <label key={setting.key}>{setting.label}<small>{setting.description}</small>{setting.type==="toggle"?<input type="checkbox" checked={Boolean(value)} onChange={(event)=>save(setting.key,event.target.checked)}/>:setting.type==="select"?<select value={String(value)} onChange={(event)=>save(setting.key,event.target.value)}>{setting.options?.map((option)=><option key={option}>{option}</option>)}</select>:<input type={setting.type==="number"?"number":"text"} value={String(value)} onChange={(event)=>save(setting.key,setting.type==="number"?Number(event.target.value):event.target.value)}/>}</label>;})}</article>;}
 function VoiceDeviceSelect({value,change}:{value:string;change:(value:string)=>void}) { const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);useEffect(()=>{navigator.mediaDevices?.enumerateDevices().then((items)=>setDevices(items.filter((item)=>item.kind==="audioinput"))).catch(()=>{});},[]);return <label>VOICE MICROPHONE<small>Select the input used by push-to-talk. Grant microphone permission once to reveal device names.</small><select value={value} onChange={(event)=>change(event.target.value)}><option value="">SYSTEM DEFAULT</option>{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`MICROPHONE ${index+1}`}</option>)}</select></label>; }
 
+function resampleVoicePcm(frames:Float32Array[],inputRate:number,outputRate=16000){
+  const inputLength=frames.reduce((sum,frame)=>sum+frame.length,0),input=new Float32Array(inputLength);let inputOffset=0;
+  for(const frame of frames){input.set(frame,inputOffset);inputOffset+=frame.length;}
+  if(!input.length||inputRate===outputRate)return input;
+  const ratio=inputRate/outputRate,output=new Float32Array(Math.max(1,Math.floor(input.length/ratio)));
+  for(let index=0;index<output.length;index++){
+    const start=index*ratio,end=Math.min(input.length,(index+1)*ratio),first=Math.floor(start),last=Math.max(first+1,Math.ceil(end));let total=0,weight=0;
+    for(let source=first;source<last&&source<input.length;source++){const sampleWeight=Math.min(end,source+1)-Math.max(start,source);if(sampleWeight>0){total+=input[source]*sampleWeight;weight+=sampleWeight;}}
+    output[index]=weight?total/weight:input[Math.min(first,input.length-1)];
+  }
+  return output;
+}
 function pcmWavBlob(frames:Float32Array[],sampleRate:number){
-  const length=frames.reduce((sum,frame)=>sum+frame.length,0),buffer=new ArrayBuffer(44+length*2),view=new DataView(buffer);
+  const targetRate=16000,pcm=resampleVoicePcm(frames,sampleRate,targetRate),buffer=new ArrayBuffer(44+pcm.length*2),view=new DataView(buffer);
   const text=(offset:number,value:string)=>Array.from(value).forEach((character,index)=>view.setUint8(offset+index,character.charCodeAt(0)));
-  text(0,"RIFF");view.setUint32(4,36+length*2,true);text(8,"WAVE");text(12,"fmt ");view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);text(36,"data");view.setUint32(40,length*2,true);
-  let offset=44;for(const frame of frames)for(const sample of frame){const clamped=Math.max(-1,Math.min(1,sample));view.setInt16(offset,clamped<0?clamped*32768:clamped*32767,true);offset+=2;}
+  text(0,"RIFF");view.setUint32(4,36+pcm.length*2,true);text(8,"WAVE");text(12,"fmt ");view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,targetRate,true);view.setUint32(28,targetRate*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);text(36,"data");view.setUint32(40,pcm.length*2,true);
+  let offset=44;for(const sample of pcm){const clamped=Math.max(-1,Math.min(1,sample));view.setInt16(offset,clamped<0?clamped*32768:clamped*32767,true);offset+=2;}
   return new Blob([buffer],{type:"audio/wav"});
 }
 function blobDataUrl(blob:Blob){return new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(reader.error);reader.onload=()=>resolve(String(reader.result));reader.readAsDataURL(blob);});}
@@ -4557,12 +4569,15 @@ function VoiceControl({ prefs, computer, notify }: { prefs: ShellPrefs; computer
   };
   const start = async () => {
     try {
+      if(!navigator.mediaDevices?.getUserMedia)throw new Error("Microphone capture is unavailable in this environment");
+      const statusResponse=await fetch("http://127.0.0.1:8765/api/voice-status"),status=await statusResponse.json();
+      if(!statusResponse.ok||!status.available)throw new Error(status.reason||"The bundled offline voice runtime is unavailable");
       const stream=await navigator.mediaDevices.getUserMedia({audio:prefs.voiceDevice?{deviceId:{exact:prefs.voiceDevice}}:true});
       const context=new AudioContext(),source=context.createMediaStreamSource(stream),processor=context.createScriptProcessor(4096,1,1),frames:Float32Array[]=[];let stopped=false;
       processor.onaudioprocess=(event)=>frames.push(new Float32Array(event.inputBuffer.getChannelData(0)));source.connect(processor);processor.connect(context.destination);
       const finish=async()=>{if(stopped)return;stopped=true;setListening(false);setBusy(true);processor.disconnect();source.disconnect();stream.getTracks().forEach((track)=>track.stop());await context.close().catch(()=>{});try{const audio=await blobDataUrl(pcmWavBlob(frames,context.sampleRate));const response=await fetch("http://127.0.0.1:8765/api/voice-transcribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({audio})});const result=await response.json();result.ok&&result.text?await execute(result.text):notify(result.message||"Voice recognition failed","error");}catch{notify("Local voice core did not respond","error");}finally{setBusy(false);stopRecorder.current=null;}};
       stopRecorder.current=()=>void finish();setListening(true);window.setTimeout(()=>void finish(),15000);
-    } catch { notify("Microphone access was denied", "error"); }
+    } catch(error) { notify(error instanceof Error?error.message:"Microphone access was denied", "error"); }
   };
   return <aside className={(listening ? "listening " : "")+"voice-control"}><button aria-label={listening?"Stop listening":"Push to talk"} onClick={() => listening ? stopRecorder.current?.() : void start()} disabled={busy}><i>●</i>{busy?"PROCESSING":listening?"LISTENING — STOP":"VOICE"}</button>{history.length>0&&<small title={history.join("\n")}>LAST: {history[0]}</small>}</aside>;
 }
