@@ -9,4 +9,6 @@ release-desktop/
 __pycache__/
 *.py[cod]
 *.log
+*.jks
+*.keystore
 .DS_Store

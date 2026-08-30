@@ -1,7 +1,7 @@
 {
   "name": "LCARS PADD Companion",
   "short_name": "LCARS PADD",
-  "description": "A paired Connected Operations companion for LCARS Command Interface Version 29.3 RC 1.",
+  "description": "A paired Connected Operations companion for LCARS Command Interface Version 29 Stable.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

@@ -30,11 +30,11 @@ Version 29.2 expands the Home foundation into a customizable LCARS mobile enviro
 - JSON backup and restore for portable Home settings, with device-bound widget IDs intentionally excluded.
 - Fixed-size, auto-fitting masthead text in both native Android surfaces so navigation and accessibility scaling cannot push titles outside their panels.
 
-These Version 29.2 capabilities remain included in the Version 29.3 release candidate.
+These Version 29.2 capabilities remain included in Version 29 Stable.
 
-## Version 29.3 RC 1
+## Version 29 Stable
 
-Version 29.3 completes the planned release-candidate pass:
+Version 29 completes the planned Mobile Command Environment:
 
 - Embeds Companion as a first-class Home page and adds a Connected Station Dock with up to eight saved stations.
 - Migrates legacy pairing data and encrypts revocable credentials using Android Keystore AES-GCM.
@@ -43,10 +43,10 @@ Version 29.3 completes the planned release-candidate pass:
 - Opens an LCARS calendar from the clock and places up to twenty independent Favorites above application folders.
 - Adds a Mobile Update Console that downloads the newest published APK, verifies it against `SHA256SUMS.txt`, and hands it to Android's installer with one tap. Android still requires the operator's installation confirmation.
 
-The Version 29.3 workflow builds Linux, Windows, and the separately installable debug-signed Android RC, runs regression and battery checks, publishes checksums, and marks the GitHub release as a prerelease. Stable Version 29 still requires a persistent signing identity and the complete phone, tablet, landscape, upgrade, migration, battery, and endurance test matrix.
+The Version 29 Stable workflow builds Linux and Windows packages plus a persistently signed Android release APK, runs regression and battery checks, verifies the APK signature, publishes combined checksums, and marks Version 29 as the latest Stable GitHub release. Version 28 and Version 29 development packages used disposable or separate development identities, so Android may require their one-time removal before the Stable package can be installed; Version 29 then establishes the signing identity used by future in-place mobile updates.
 
 Build locally with Android SDK 35, Java 17, and Gradle 8.9:
 
 ```bash
-gradle -p mobile/android :app:assembleDebug
+gradle -p mobile/android :app:assembleRelease
 ```

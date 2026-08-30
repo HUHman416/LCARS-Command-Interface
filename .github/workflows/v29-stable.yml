@@ -1,0 +1,183 @@
+name: Version 29 Cross-Platform Stable Release
+
+on:
+  push:
+    branches: [29-stable]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build hosted renderer
+        run: npm run build
+      - name: Regression suite
+        run: |
+          node --test 'tests/*.test.mjs'
+          python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Bridge and script validation
+        run: |
+          python3 -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/*.py
+          bash -n install.sh install-autostart.sh uninstall-linux.sh start-local.sh local/lcars-recovery.sh
+          node --check desktop/main.cjs
+      - name: Build Linux AppImage
+        run: npm run desktop:package:linux -- --publish never
+      - name: Assemble Linux stable package
+        run: |
+          set -euo pipefail
+          appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
+          test -n "$appimage"
+          checksum="$(sha256sum "$appimage" | awk '{print $1}')"
+          stage="release-assets/LCARS-Universal-Linux-Desktop-v29"
+          mkdir -p "$stage/local"
+          cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
+          cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
+          cp desktop/icons/512x512.png "$stage/lcars-command-interface.png"
+          cp local/lcars-recovery.sh "$stage/local/"
+          sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
+          sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
+          chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh"
+          cp "$appimage" release-assets/LCARS-Command-Interface-v29-x86_64.AppImage
+          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v29.sh
+          chmod +x release-assets/LCARS-Linux-Integration-v29.sh
+          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v29.zip LCARS-Universal-Linux-Desktop-v29)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v29-linux
+          path: |
+            release-assets/LCARS-Command-Interface-v29-x86_64.AppImage
+            release-assets/LCARS-Universal-Linux-Desktop-v29.zip
+            release-assets/LCARS-Linux-Integration-v29.sh
+          retention-days: 30
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Regression suite
+        run: |
+          node --test tests/accessibility-css.test.mjs tests/version23-features.test.mjs tests/version23-1-features.test.mjs tests/version23-2-regressions.test.mjs tests/version24-regressions.test.mjs tests/version24-1-regressions.test.mjs tests/version25-features.test.mjs tests/version25-1-regressions.test.mjs tests/version25-windows-bridge-hotfix.test.mjs tests/version26-1-module-repository.test.mjs tests/version26-workspace.test.mjs tests/version26-2-regressions.test.mjs tests/version26-3-stable-readiness.test.mjs tests/version27-1-connected.test.mjs tests/version27-1-android.test.mjs tests/version27-2-consoles.test.mjs tests/version28-connected-operations.test.mjs tests/version29-launcher.test.mjs
+          python -m unittest discover -s tests -p 'test_*.py'
+      - name: Validate Windows bridge and shared Python syntax
+        run: python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py shared/lcars_padd.py
+      - name: Validate Electron main process syntax
+        run: node --check desktop/main.cjs
+      - name: Build Windows installer
+        run: npm run desktop:package:windows -- --publish never
+      - name: Prepare Windows stable installer
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release-assets | Out-Null
+          $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
+          if (-not $installer) { throw 'Windows installer was not produced.' }
+          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v29.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v29-windows
+          path: release-assets/LCARS-Windows-Setup-v29.exe
+          retention-days: 30
+
+  android:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
+      ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+      ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+      - name: Validate private-station address and battery guards
+        run: |
+          mkdir -p mobile/android/build/address-test
+          javac -d mobile/android/build/address-test mobile/android/app/src/main/java/com/lcars/padd/StationAddress.java mobile/android/app/src/main/java/com/lcars/padd/BatteryStatus.java mobile/android/tools/StationAddressSelfTest.java mobile/android/tools/BatteryStatusSelfTest.java
+          java -cp mobile/android/build/address-test com.lcars.padd.StationAddressSelfTest
+          java -cp mobile/android/build/address-test com.lcars.padd.BatteryStatusSelfTest
+      - name: Restore persistent Android signing identity
+        run: |
+          set -euo pipefail
+          test -n "$ANDROID_SIGNING_KEY_BASE64"
+          test -n "$ANDROID_SIGNING_STORE_PASSWORD"
+          test -n "$ANDROID_SIGNING_KEY_ALIAS"
+          test -n "$ANDROID_SIGNING_KEY_PASSWORD"
+          printf '%s' "$ANDROID_SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/lcars-release.jks"
+          test -s "$RUNNER_TEMP/lcars-release.jks"
+      - name: Build signed Android Stable APK
+        env:
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/lcars-release.jks
+        run: gradle -p mobile/android --no-daemon :app:assembleRelease
+      - name: Verify Android signature and prepare Mobile Command Environment
+        run: |
+          set -euo pipefail
+          apk="mobile/android/app/build/outputs/apk/release/app-release.apk"
+          signer="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
+          test -n "$signer"
+          "$signer" verify --verbose --print-certs "$apk"
+          mkdir -p release-assets
+          cp "$apk" release-assets/LCARS-Mobile-Environment-v29-Android.apk
+          test -s release-assets/LCARS-Mobile-Environment-v29-Android.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v29-android
+          path: release-assets/LCARS-Mobile-Environment-v29-Android.apk
+          retention-days: 30
+
+  publish-stable-release:
+    needs: [linux, windows, android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Create source archive and updater checksums
+        run: |
+          set -euo pipefail
+          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v29-Source.zip HEAD
+          (cd release-assets && sha256sum LCARS-Command-Interface-v29-x86_64.AppImage LCARS-Universal-Linux-Desktop-v29.zip LCARS-Linux-Integration-v29.sh LCARS-Windows-Setup-v29.exe LCARS-Mobile-Environment-v29-Android.apk LCARS-Command-Interface-v29-Source.zip > SHA256SUMS.txt)
+      - name: Verify Stable assets
+        run: |
+          set -euo pipefail
+          cd release-assets
+          test -s LCARS-Command-Interface-v29-x86_64.AppImage
+          test -s LCARS-Universal-Linux-Desktop-v29.zip
+          test -s LCARS-Linux-Integration-v29.sh
+          test -s LCARS-Windows-Setup-v29.exe
+          test -s LCARS-Mobile-Environment-v29-Android.apk
+          test -s LCARS-Command-Interface-v29-Source.zip
+          sha256sum --check SHA256SUMS.txt
+      - name: Publish updater-visible Version 29 Stable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          notes='Version 29 is the Stable Mobile Command Environment release for Linux, Windows, and Android. It adds the optional standalone Android Home role with an application library, search, offline status, up to twenty independent Favorites, LCARS decks, folders, native widgets, six Display Matrix families, layout customization, and portable backup. Companion is now a first-class Home page, while Connected Station Dock adds up to eight encrypted station pairings, fast switching, live Status, Media, Communications and Command controls, priority notifications, credential migration, revocation recovery, and battery-aware heartbeats. Desktop and mobile clocks open matching LCARS calendars; long compact titles remain inside their panels; Home unlock and application launching are faster; and the Mobile Update Console performs a one-tap, SHA-256-verified APK handoff to Android. The desktop also retains the corrected multi-row module controls and full vertical resizing for Page Peeks, Notices, and the System Tray. This release begins the persistent Android signing line used for future in-place updates. Version 28 and Version 29 development packages used disposable or separate development identities, so Android may require their one-time removal before Version 29 Stable can be installed.'
+          if gh release view v29 >/dev/null 2>&1; then
+            gh release upload v29 release-assets/* --clobber
+            gh release edit v29 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 29" --notes "$notes" --prerelease=false --latest
+          else
+            gh release create v29 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 29" --notes "$notes" --latest
+          fi

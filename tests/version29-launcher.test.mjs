@@ -18,15 +18,17 @@ const credentials=read("../mobile/android/app/src/main/java/com/lcars/padd/Secur
 const updater=read("../mobile/android/app/src/main/java/com/lcars/padd/MobileUpdateManager.java");
 const battery=read("../mobile/android/app/src/main/java/com/lcars/padd/BatteryStatus.java");
 const workflow=read("../.github/workflows/v29-development.yml");
+const stableWorkflow=read("../.github/workflows/v29-stable.yml");
 
-test("Version 29.3 RC identity is explicit and coexists with Stable Version 28",()=>{
-  assert.equal(packageJson.version,"29.3.0-rc.1");
-  assert.match(page,/LCARS_VERSION="29\.3\.0-rc\.1"/);
-  assert.match(page,/29\.3 RC 1/);
-  assert.match(gradle,/versionCode 29301/);
-  assert.match(gradle,/versionName "29\.3-rc\.1"/);
+test("Version 29 Stable identity uses the major release number",()=>{
+  assert.equal(packageJson.version,"29.0.0");
+  assert.match(page,/LCARS_VERSION="29\.0\.0"/);
+  assert.match(page,/29 STABLE/);
+  assert.match(gradle,/versionCode 290000/);
+  assert.match(gradle,/versionName "29\.0\.0"/);
   assert.match(gradle,/applicationIdSuffix "\.dev"/);
   assert.match(gradle,/versionNameSuffix "-development"/);
+  assert.match(gradle,/signingConfig signingConfigs\.release/);
 });
 
 test("Android keeps the genuine Home role and routes Companion into the unified shell",()=>{
@@ -93,7 +95,7 @@ test("wrapped module controls and desktop popup families retain vertical resizin
   assert.match(css,/max-height:\s*calc\(100vh - 24px\) !important/);
 });
 
-test("Version 29.3 RC automation validates and publishes every platform",()=>{
+test("Version 29.3 RC automation remains available for historical development builds",()=>{
   assert.match(workflow,/branches:\s*\[29-development\]/);
   assert.match(workflow,/BatteryStatusSelfTest/);
   for(const job of ["linux:","windows:","android:","publish-development-release:"])assert.ok(workflow.includes(job),job);
@@ -109,4 +111,26 @@ test("Version 29.3 RC automation validates and publishes every platform",()=>{
   assert.match(workflow,/gh release create v29\.3/);
   assert.match(workflow,/Version 29\.3 RC 1/);
   assert.match(workflow,/--prerelease/);
+});
+
+test("Version 29 Stable automation signs and publishes every platform",()=>{
+  assert.match(stableWorkflow,/branches:\s*\[29-stable\]/);
+  assert.match(stableWorkflow,/BatteryStatusSelfTest/);
+  for(const job of ["linux:","windows:","android:","publish-stable-release:"])assert.ok(stableWorkflow.includes(job),job);
+  for(const secret of ["ANDROID_SIGNING_KEY_BASE64","ANDROID_SIGNING_STORE_PASSWORD","ANDROID_SIGNING_KEY_ALIAS","ANDROID_SIGNING_KEY_PASSWORD"])assert.ok(stableWorkflow.includes(secret),secret);
+  for(const asset of [
+    "LCARS-Command-Interface-v29-x86_64.AppImage",
+    "LCARS-Universal-Linux-Desktop-v29.zip",
+    "LCARS-Linux-Integration-v29.sh",
+    "LCARS-Windows-Setup-v29.exe",
+    "LCARS-Mobile-Environment-v29-Android.apk",
+    "LCARS-Command-Interface-v29-Source.zip",
+    "SHA256SUMS.txt",
+  ])assert.ok(stableWorkflow.includes(asset),asset);
+  assert.match(stableWorkflow,/:app:assembleRelease/);
+  assert.match(stableWorkflow,/apksigner[\s\S]*verify/);
+  assert.match(stableWorkflow,/gh release create v29/);
+  assert.match(stableWorkflow,/LCARS Command Interface Version 29/);
+  assert.match(stableWorkflow,/--latest/);
+  assert.doesNotMatch(stableWorkflow,/--prerelease(?:\s|$)/);
 });

@@ -69,7 +69,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/** Version 29.3 RC Android Home surface with an integrated native Companion page. */
+/** Version 29 Stable Android Home surface with an integrated native Companion page. */
 public final class HomeActivity extends Activity {
     private static final String PREFS="lcars-home-v29", FAVORITES="favorite-components";
     private static final String DECKS="decks-json", FOLDERS="folders-json", WIDGET_IDS="widget-ids";
@@ -170,7 +170,7 @@ public final class HomeActivity extends Activity {
         brand.setGravity(Gravity.CENTER_VERTICAL|Gravity.RIGHT);brand.setPadding(dp(8),dp(7),dp(10),dp(7));
         brand.setBackground(shape(ORANGE,34,3,3,34));
         TextView brandName=fittedLabel("LCARS",BLACK,13,19,true);brandName.setGravity(Gravity.RIGHT|Gravity.CENTER_VERTICAL);
-        TextView version=fittedLabel("29.3 RC 1",BLACK,6,10,true);version.setGravity(Gravity.RIGHT|Gravity.CENTER_VERTICAL);
+        TextView version=fittedLabel("29 STABLE",BLACK,6,10,true);version.setGravity(Gravity.RIGHT|Gravity.CENTER_VERTICAL);
         brand.addView(brandName,matchWrap(0));brand.addView(version,matchWrap(0));
         LinearLayout.LayoutParams brandParams=new LinearLayout.LayoutParams(dp(sidebarWidth()),dp(74));brandParams.rightMargin=dp(4);
         header.addView(brand,brandParams);
@@ -254,7 +254,7 @@ public final class HomeActivity extends Activity {
         addStatus(grid,"BATTERY",battery<0?"UNKNOWN":battery+"% · "+batteryState,batteryState.equals(BatteryStatus.CRITICAL)||batteryState.equals(BatteryStatus.LOW)?ORANGE:BLUE);
         addStatus(grid,"NETWORK",networkLabel(),VIOLET);addStatus(grid,"STORAGE FREE",storageFree(),PINK);addStatus(grid,"APPLICATIONS",Integer.toString(allApps.size()),ORANGE);
         pageContent.addView(grid,matchWrap(dp(6)));
-        LinearLayout summary=panel(ORANGE);summary.addView(fieldLabel("VERSION 29.3 RC HOME CONFIGURATION"),matchWrap(dp(4)));
+        LinearLayout summary=panel(ORANGE);summary.addView(fieldLabel("VERSION 29 STABLE HOME CONFIGURATION"),matchWrap(dp(4)));
         summary.addView(label(collections(DECKS,"PRIMARY").size()+" DECKS · "+collections(FOLDERS,null).size()+" FOLDERS · "+widgetIds().size()+" WIDGETS",Color.WHITE,16,true),matchWrap(dp(5)));
         summary.addView(label("DISPLAY MATRIX · "+themeLabel(preferences.getString("display-theme","enterprise-d"))+" · "+(compactLayout()?"COMPACT":"STANDARD")+" LAYOUT",PEACH,10,true),matchWrap(0));
         pageContent.addView(summary,matchWrap(dp(6)));
@@ -404,7 +404,7 @@ public final class HomeActivity extends Activity {
         LinearLayout backupActions=row(PANEL);Button export=button("EXPORT",BLUE);export.setOnClickListener(v->exportBackup());Button restore=button("RESTORE",VIOLET);restore.setOnClickListener(v->importBackup());
         backupActions.addView(export,weightedHeight(1,dp(44),dp(3)));backupActions.addView(restore,weightedHeight(1,dp(44),0));backup.addView(backupActions,matchWrap(0));pageContent.addView(backup,matchWrap(dp(6)));
         LinearLayout updates=panel(GOLD);updates.addView(fieldLabel("MOBILE UPDATE CONSOLE"),matchWrap(dp(3)));updates.addView(label("One tap checks GitHub, downloads the current Android package, verifies its published SHA-256 checksum, and opens Android's required installation confirmation.",Color.LTGRAY,11,false),matchWrap(dp(6)));
-        updateStatus=containedLabel("UPDATE CHANNEL READY · VERSION 29.3 RC 1",PEACH,7,11,true,2);updates.addView(updateStatus,matchWrap(dp(5)));Button check=button("CHECK + INSTALL MOBILE UPDATE",GOLD);check.setOnClickListener(v->{check.setEnabled(false);MobileUpdateManager.checkAndInstall(this,(message,error)->{if(updateStatus!=null){updateStatus.setText(message);updateStatus.setTextColor(error?PINK:PEACH);}check.setEnabled(true);});});updates.addView(check,matchWrap(0));pageContent.addView(updates,matchWrap(dp(6)));
+        updateStatus=containedLabel("UPDATE CHANNEL READY · VERSION 29 STABLE",PEACH,7,11,true,2);updates.addView(updateStatus,matchWrap(dp(5)));Button check=button("CHECK + INSTALL MOBILE UPDATE",GOLD);check.setOnClickListener(v->{check.setEnabled(false);MobileUpdateManager.checkAndInstall(this,(message,error)->{if(updateStatus!=null){updateStatus.setText(message);updateStatus.setTextColor(error?PINK:PEACH);}check.setEnabled(true);});});updates.addView(check,matchWrap(0));pageContent.addView(updates,matchWrap(dp(6)));
         LinearLayout role=panel(BLUE);role.addView(fieldLabel("ANDROID HOME CONTROL"),matchWrap(dp(5)));
         Button home=button(homeRoleHeld()?"LCARS IS CURRENT HOME":"MAKE LCARS DEFAULT HOME",homeRoleHeld()?BLUE:ORANGE);home.setOnClickListener(v->requestHomeRole());role.addView(home,matchWrap(dp(4)));
         Button system=button("OPEN ANDROID HOME SETTINGS",VIOLET);system.setOnClickListener(v->openHomeSettings());role.addView(system,matchWrap(dp(4)));
@@ -476,11 +476,11 @@ public final class HomeActivity extends Activity {
         }
     }
 
-    private void exportBackup(){Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("application/json");intent.putExtra(Intent.EXTRA_TITLE,"LCARS-Home-v29.3-backup.json");startActivityForResult(intent,EXPORT_BACKUP_REQUEST);}
+    private void exportBackup(){Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("application/json");intent.putExtra(Intent.EXTRA_TITLE,"LCARS-Home-v29-backup.json");startActivityForResult(intent,EXPORT_BACKUP_REQUEST);}
     private void importBackup(){Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("application/json");startActivityForResult(intent,IMPORT_BACKUP_REQUEST);}
     private void writeBackup(Uri target){
         if(target==null)return;try(OutputStream stream=getContentResolver().openOutputStream(target)){if(stream==null)throw new IllegalStateException("Document unavailable");JSONObject backup=new JSONObject();
-            backup.put("format","lcars-home-backup");backup.put("version","29.3");backup.put("favorites",new JSONArray(favoriteKeys()));backup.put("decks",new JSONArray(preferences.getString(DECKS,"[]")));backup.put("folders",new JSONArray(preferences.getString(FOLDERS,"[]")));
+            backup.put("format","lcars-home-backup");backup.put("version","29");backup.put("favorites",new JSONArray(favoriteKeys()));backup.put("decks",new JSONArray(preferences.getString(DECKS,"[]")));backup.put("folders",new JSONArray(preferences.getString(FOLDERS,"[]")));
             backup.put("displayTheme",preferences.getString("display-theme","enterprise-d"));backup.put("sidebarSize",preferences.getString("sidebar-size","standard"));backup.put("layoutDensity",preferences.getString("layout-density","comfortable"));backup.put("appColumns",preferences.getString("app-columns","auto"));
             stream.write(backup.toString(2).getBytes(StandardCharsets.UTF_8));Toast.makeText(this,"LCARS HOME BACKUP EXPORTED",Toast.LENGTH_LONG).show();
         }catch(Exception error){Toast.makeText(this,"BACKUP FAILED · "+error.getMessage(),Toast.LENGTH_LONG).show();}

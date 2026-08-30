@@ -10,8 +10,17 @@ android {
         applicationId "com.lcars.padd"
         minSdk 26
         targetSdk 35
-        versionCode 29301
-        versionName "29.3-rc.1"
+        versionCode 290000
+        versionName "29.0.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(System.getenv("ANDROID_SIGNING_STORE_FILE") ?: "missing-release-keystore.jks")
+            storePassword System.getenv("ANDROID_SIGNING_STORE_PASSWORD")
+            keyAlias System.getenv("ANDROID_SIGNING_KEY_ALIAS")
+            keyPassword System.getenv("ANDROID_SIGNING_KEY_PASSWORD")
+        }
     }
 
     buildTypes {
@@ -20,6 +29,7 @@ android {
             versionNameSuffix "-development"
         }
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
         }
     }

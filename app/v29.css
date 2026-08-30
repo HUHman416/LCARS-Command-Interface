@@ -1,4 +1,4 @@
-/* Version 29.3 release-candidate mobile shell and desktop workspace corrections. */
+/* Version 29 Stable mobile shell and desktop workspace corrections. */
 
 /* Editing controls occupy their own grid row. Previously the module's 100%
    height also included the control bar and overflowed across the next row. */
@@ -50,7 +50,7 @@
   }
 }
 
-/* The masthead time is a real temporal control in Version 29.3. */
+/* The masthead time is a real temporal control in Version 29. */
 .top > button.clock {
   appearance: none;
   border: 0;

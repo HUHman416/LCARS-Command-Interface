@@ -5,7 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 /**
- * Launcher entry retained for upgrades and shortcuts. Version 29.3 presents the
+ * Launcher entry retained for upgrades and shortcuts. Version 29 presents the
  * Companion as a first-class page inside the unified Home activity.
  */
 public final class MainActivity extends Activity {

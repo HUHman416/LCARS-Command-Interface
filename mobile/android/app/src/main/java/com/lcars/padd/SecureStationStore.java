@@ -20,7 +20,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 
-/** Encrypted, migration-aware registry for the Version 29.3 Connected Station Dock. */
+/** Encrypted, migration-aware registry for the Version 29 Connected Station Dock. */
 final class SecureStationStore {
     private static final String PREFS = "lcars-stations-v29";
     private static final String REGISTRY = "registry";

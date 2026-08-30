@@ -10,15 +10,14 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/stable-v28-ff9866" alt="Stable Version 28">
-  <img src="https://img.shields.io/badge/release_candidate-v29.3-b8a2e8" alt="Version 29.3 Release Candidate">
+  <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
 </p>
 
 <p align="center">
-  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v28"><strong>🚀 Download Version 28</strong></a>
+  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v29"><strong>🚀 Download Version 29</strong></a>
   ·
   <a href="https://github.com/HUHman416/LCARS-Command-Interface/issues">🐞 Report an issue</a>
   ·
@@ -26,25 +25,25 @@
 </p>
 
 > [!IMPORTANT]
-> **Version 28 is the current stable release for Linux and Windows, with the Android PADD Companion.** LCARS runs as its own Electron desktop application. It does not require Cloudflare, a hosted website, or an external browser.
+> **Version 29 is the current stable release for Linux, Windows, and Android.** LCARS runs as its own Electron desktop application, while the Android package can operate as both a paired Companion and an optional Home replacement. It does not require Cloudflare, a hosted website, or an external browser.
 
 > [!NOTE]
 > Existing installations can update from **Updates → LCARS Interface**. Decimal releases are development milestones; Stable releases use the major version number.
 
 > [!TIP]
-> **Version 28 is the Connected Operations stable release.** It turns paired PADDs into a manageable fleet with granular permissions, live telemetry, approval-gated remote actions, Communications, Workstation handoff, proximity profiles, customizable PADD layouts, Android notifications and a home-screen widget. It also rebuilds the Display Matrix around six structurally distinct, researched on-screen LCARS families.
+> **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
 
 ## 📥 Choose your download
 
 | Platform | Download | Best for |
 | --- | --- | --- |
-| 🐧 Linux | [Universal Linux package](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-Universal-Linux-Desktop-v28.zip) | Recommended installer bundle with desktop launcher, icon, uninstaller, dependencies, and integration tools |
-| 🐧 Linux | [Portable AppImage](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-Command-Interface-v28-x86_64.AppImage) | Running LCARS directly without a traditional installation |
-| 🐧 Linux | [Search and autostart helper](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-Linux-Integration-v28.sh) | Registering the portable AppImage in the application menu and optionally starting it at login |
-| 🪟 Windows | [One-click Windows setup](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-Windows-Setup-v28.exe) | Normal Windows installation, Start Menu search, shortcuts, optional autostart, and clean uninstall |
-| 📱 Android | [PADD Companion APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-PADD-Companion-v28-Android.apk) | Pairing a phone or tablet to LCARS over a trusted private network |
-| 💻 Developers | [Version 28 source](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/LCARS-Command-Interface-v28-Source.zip) | Reviewing, extending, or building the project |
-| 🔐 Verification | [SHA256SUMS.txt](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v28/SHA256SUMS.txt) | Confirming that a download is complete and authentic |
+| 🐧 Linux | [Universal Linux package](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Universal-Linux-Desktop-v29.zip) | Recommended installer bundle with desktop launcher, icon, uninstaller, dependencies, and integration tools |
+| 🐧 Linux | [Portable AppImage](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Command-Interface-v29-x86_64.AppImage) | Running LCARS directly without a traditional installation |
+| 🐧 Linux | [Search and autostart helper](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Linux-Integration-v29.sh) | Registering the portable AppImage in the application menu and optionally starting it at login |
+| 🪟 Windows | [One-click Windows setup](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Windows-Setup-v29.exe) | Normal Windows installation, Start Menu search, shortcuts, optional autostart, and clean uninstall |
+| 📱 Android | [Mobile Command Environment APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Mobile-Environment-v29-Android.apk) | Using LCARS as an optional Android Home or pairing a phone or tablet to a trusted station |
+| 💻 Developers | [Version 29 source](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Command-Interface-v29-Source.zip) | Reviewing, extending, or building the project |
+| 🔐 Verification | [SHA256SUMS.txt](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/SHA256SUMS.txt) | Confirming that a download is complete and authentic |
 
 The Universal Linux download contains **Linux files only**. Windows is distributed separately through the setup executable.
 
@@ -63,9 +62,9 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
 
-## 🚧 Version 29.3 RC 1 — Connected Station Dock
+## ✨ Version 29 Stable — Mobile Command Environment
 
-Version 29.3 assembles the complete Version 29 feature set for final device testing:
+Version 29 assembles the complete mobile Home, customization, and Connected Station Dock feature set:
 
 - Makes Companion a first-class page inside the standalone Home interface, with Status, Media, Communications, Command, and station management in one shell.
 - Adds a Connected Station Dock with up to eight saved stations and fast active-station switching.
@@ -77,7 +76,7 @@ Version 29.3 assembles the complete Version 29 feature set for final device test
 - Places up to twenty folder-independent Favorites above folders on the Applications page.
 - Adds a one-tap Mobile Update Console that downloads the newest Android package, verifies its published SHA-256 checksum, and opens Android's required installer confirmation.
 
-This remains a separately installable, debug-signed release candidate. Version 29 Stable still requires persistent Android release signing plus phone, tablet, landscape, upgrade, migration, battery, and endurance testing.
+The Stable Android package begins LCARSCI's persistent release-signing line for dependable Version 29-and-later updates. Because Version 28 and the Version 29 RC were produced with disposable development signatures or a separate development package identity, Android may require their one-time removal before Version 29 Stable can be installed.
 
 ## Version 29.2 Development — LCARS Home Customization
 
@@ -91,7 +90,7 @@ Version 29.2 completes the planned customization milestone for the optional Andr
 - Adds JSON backup and restore for themes, layout, Favorites, decks, and folders; device-specific Android widget bindings are deliberately excluded.
 - Prevents the native Companion and standalone Home mastheads from clipping after tab/page changes, accessibility scaling, rotation, or returning to Status.
 
-These Version 29.2 features remain part of the Version 29.3 release candidate.
+These Version 29.2 features are included in Version 29 Stable.
 
 ## Version 29.1 Development — Home Foundation
 
@@ -122,7 +121,7 @@ Version 29.1 established the Home-role, application-library, search, Favorites, 
 
 Version 28 is available on the **Stable** update channel. Use the companion only on a network you trust; the local PADD service is not intended for internet exposure.
 
-Version 29.3 RC 1 now contains the complete Version 29 feature set. Stable users remain on Version 28 until the release-candidate signing and device-test sequence has finished.
+Version 29 is available on the **Stable** update channel and contains the complete Home, customization, Connected Station Dock, security, performance, calendar, Favorites, and mobile-update feature set.
 
 ## 🆕 Version 27.2.1 stable update
 
