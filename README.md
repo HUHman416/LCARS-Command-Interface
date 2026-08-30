@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v28-ff9866" alt="Stable Version 28">
-  <img src="https://img.shields.io/badge/development-v29.2-b8a2e8" alt="Version 29.2 Development">
+  <img src="https://img.shields.io/badge/release_candidate-v29.3-b8a2e8" alt="Version 29.3 Release Candidate">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -63,7 +63,23 @@ The Universal Linux download contains **Linux files only**. Windows is distribut
 | 🔒 **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
 | 🧩 **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
 
-## 🚧 Version 29.2 Development — LCARS Home Customization
+## 🚧 Version 29.3 RC 1 — Connected Station Dock
+
+Version 29.3 assembles the complete Version 29 feature set for final device testing:
+
+- Makes Companion a first-class page inside the standalone Home interface, with Status, Media, Communications, Command, and station management in one shell.
+- Adds a Connected Station Dock with up to eight saved stations and fast active-station switching.
+- Migrates legacy pairings and encrypts revocable station tokens through Android Keystore AES-GCM instead of keeping them in ordinary preferences.
+- Adds priority station notifications, charging-aware battery reporting, revocation recovery, and a battery-policy self-test.
+- Keeps long and compact masthead/page titles contained inside their LCARS panels.
+- Retains the Home task across phone unlocks, discovers installed apps away from the interface thread, and uses a direct current-profile launch path.
+- Opens a matching LCARS calendar from the desktop or mobile clock.
+- Places up to twenty folder-independent Favorites above folders on the Applications page.
+- Adds a one-tap Mobile Update Console that downloads the newest Android package, verifies its published SHA-256 checksum, and opens Android's required installer confirmation.
+
+This remains a separately installable, debug-signed release candidate. Version 29 Stable still requires persistent Android release signing plus phone, tablet, landscape, upgrade, migration, battery, and endurance testing.
+
+## Version 29.2 Development — LCARS Home Customization
 
 Version 29.2 completes the planned customization milestone for the optional Android Home environment:
 
@@ -75,7 +91,7 @@ Version 29.2 completes the planned customization milestone for the optional Andr
 - Adds JSON backup and restore for themes, layout, Favorites, decks, and folders; device-specific Android widget bindings are deliberately excluded.
 - Prevents the native Companion and standalone Home mastheads from clipping after tab/page changes, accessibility scaling, rotation, or returning to Status.
 
-Version 29.3 RC remains planned for Connected Station Dock, multi-station support, notification-center integration, credential hardening, migration, battery testing, and polish.
+These Version 29.2 features remain part of the Version 29.3 release candidate.
 
 ## Version 29.1 Development — Home Foundation
 
@@ -106,7 +122,7 @@ Version 29.1 established the Home-role, application-library, search, Favorites, 
 
 Version 28 is available on the **Stable** update channel. Use the companion only on a network you trust; the local PADD service is not intended for internet exposure.
 
-Version 29.2 Development now contains the complete launcher-customization milestone. Stable users remain on Version 28 until the Version 29.3 release-candidate and signing sequence has finished testing.
+Version 29.3 RC 1 now contains the complete Version 29 feature set. Stable users remain on Version 28 until the release-candidate signing and device-test sequence has finished.
 
 ## 🆕 Version 27.2.1 stable update
 

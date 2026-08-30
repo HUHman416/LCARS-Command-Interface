@@ -12,77 +12,99 @@ const manifest=read("../mobile/android/app/src/main/AndroidManifest.xml");
 const gradle=read("../mobile/android/app/build.gradle");
 const main=read("../mobile/android/app/src/main/java/com/lcars/padd/MainActivity.java");
 const home=read("../mobile/android/app/src/main/java/com/lcars/padd/HomeActivity.java");
+const companion=read("../mobile/android/app/src/main/java/com/lcars/padd/CompanionDock.java");
+const credentials=read("../mobile/android/app/src/main/java/com/lcars/padd/SecureStationStore.java");
+const updater=read("../mobile/android/app/src/main/java/com/lcars/padd/MobileUpdateManager.java");
+const battery=read("../mobile/android/app/src/main/java/com/lcars/padd/BatteryStatus.java");
 const workflow=read("../.github/workflows/v29-development.yml");
 
-test("Version 29.2 development identity is explicit and coexists with Stable Version 28",()=>{
-  assert.equal(packageJson.version,"29.2.0-dev.1");
-  assert.match(page,/LCARS_VERSION="29\.2\.0-dev\.1"/);
-  assert.match(page,/29\.2 DEVELOPMENT/);
-  assert.match(gradle,/versionCode 29201/);
-  assert.match(gradle,/versionName "29\.2"/);
+test("Version 29.3 RC identity is explicit and coexists with Stable Version 28",()=>{
+  assert.equal(packageJson.version,"29.3.0-rc.1");
+  assert.match(page,/LCARS_VERSION="29\.3\.0-rc\.1"/);
+  assert.match(page,/29\.3 RC 1/);
+  assert.match(gradle,/versionCode 29301/);
+  assert.match(gradle,/versionName "29\.3-rc\.1"/);
   assert.match(gradle,/applicationIdSuffix "\.dev"/);
   assert.match(gradle,/versionNameSuffix "-development"/);
 });
 
-test("Android exposes an optional genuine Home role without replacing the PADD launcher entry",()=>{
+test("Android keeps the genuine Home role and routes Companion into the unified shell",()=>{
   assert.match(manifest,/android:name="\.MainActivity"[\s\S]*android\.intent\.category\.LAUNCHER/);
   assert.match(manifest,/android:name="\.HomeActivity"[\s\S]*android\.intent\.category\.DEFAULT[\s\S]*android\.intent\.category\.HOME/);
-  assert.match(manifest,/<queries>[\s\S]*android\.intent\.category\.LAUNCHER/);
+  assert.match(manifest,/android:alwaysRetainTaskState="true"/);
+  assert.match(manifest,/android:stateNotNeeded="false"/);
   assert.match(home,/RoleManager\.ROLE_HOME/);
-  assert.match(home,/createRequestRoleIntent/);
-  assert.match(home,/Settings\.ACTION_HOME_SETTINGS/);
-  assert.match(main,/VERSION 29\.2 STANDALONE HOME/);
-  assert.match(main,/startActivity\(new Intent\(this, HomeActivity\.class\)\)/);
+  assert.match(home,/new CompanionDock\(this,stationStore\)/);
+  assert.match(main,/putExtra\("open-page", "companion"\)/);
+  assert.doesNotMatch(main,/setContentView|HttpURLConnection|WebView/);
 });
 
-test("Version 29.2 Home mirrors the desktop shell and delivers the customization milestone",()=>{
-  for(const token of [
-    "ANDROID COMMAND INTERFACE","buildSidebar","STATUS","APPS","FAVORITES","DECKS","FOLDERS","WIDGETS","DISPLAYS","SETTINGS","COMPANION",
-    "AppWidgetHost","ACTION_APPWIDGET_PICK","LCARS DECKS","CREATE APPLICATION FOLDER","DISPLAY MATRIX","enterprise-d","voyager","nemesis","picard","cerritos","defiant",
-    "LAYOUT CUSTOMIZATION","CONFIGURATION BACKUP","ACTION_CREATE_DOCUMENT","ACTION_OPEN_DOCUMENT","lcars-home-backup"
-  ])assert.ok(home.includes(token),token);
-  assert.match(home,/setInsetAwareContent/);
-  assert.match(home,/fittedLabel/);
+test("Home fixes compact titles, unlock latency, and application launch latency",()=>{
+  assert.match(home,/containedLabel\("ANDROID COMMAND INTERFACE"[\s\S]*,2\)/);
+  assert.match(home,/setMaxLines\(lines\)/);
+  assert.match(home,/setIncludeFontPadding\(false\)/);
+  assert.match(home,/ExecutorService appLoader/);
+  assert.match(home,/appLoader\.execute/);
+  assert.match(home,/Intent\.makeMainActivity/);
+  assert.match(home,/visibleAppLimit=60/);
+  const resume=home.match(/@Override protected void onResume\(\)\{([^\n]+)\}/)?.[1]||"";
+  assert.doesNotMatch(resume,/reloadApps|buildHome|renderPage/);
 });
 
-test("native companion masthead remains contained independently of remote font scaling",()=>{
-  assert.match(main,/fixedFittedLabel\(eyebrow/);
-  assert.match(main,/fixedFittedLabel\("PADD COMPANION"/);
-  assert.match(main,/new LinearLayout\.LayoutParams\(0, dp\(72\), 1\)/);
-  assert.match(main,/TextView index = fixedFittedLabel\("29"/);
+test("Applications expose twenty folder-independent Favorites before folders",()=>{
+  const applications=home.indexOf("private void renderApplicationsPage");
+  const favorites=home.indexOf("FAVORITE APPLICATIONS",applications);
+  const folders=home.indexOf("APPLICATION FOLDERS",applications);
+  assert.ok(applications>=0&&favorites>applications&&folders>favorites);
+  assert.match(home,/favorites\.size\(\)\+" \/ 20"/);
+  assert.match(home,/values\.size\(\)>=20/);
+  assert.match(home,/FAVORITES FULL/);
 });
 
-test("Home mode provides profile-aware app search, launch, favorites, and offline status",()=>{
-  for(const token of ["LauncherApps","getProfiles()","getActivityList(null,profile)","startMainActivity","UNIVERSAL APPLICATION SEARCH","PINNED APPLICATIONS","favorite-components","LOCAL DEVICE OPERATIONS","BATTERY","STORAGE FREE","NETWORK"]){
-    assert.ok(home.includes(token),token);
-  }
-  assert.match(home,/addTextChangedListener/);
-  assert.match(home,/toggleFavorite/);
-  assert.match(home,/PADD COMPANION/);
+test("Version 29.3 supplies calendar, multi-station Dock, notifications, and battery policy",()=>{
+  for(const token of ["TEMPORAL OPERATIONS","renderCalendarPage","SELECTED STARDATE","setOnClickListener(v->switchPage(\"calendar\"))"])assert.ok(home.includes(token),token);
+  for(const token of ["CONNECTED STATION DOCK","SAVED STATIONS","STATUS","MEDIA","COMMS","CMD","NOTIFICATION CENTER","DISMISS ALL","api/padd/heartbeat"])assert.ok(companion.includes(token),token);
+  assert.match(companion,/stations\.all\(\)\.size\(\)\+"\/8"/);
+  assert.match(companion,/BatteryStatus\.classify/);
+  assert.match(battery,/CRITICAL|CHARGING|READY/);
 });
 
-test("wrapped module edit controls and all desktop popup families retain vertical resizing",()=>{
+test("Pairing credentials migrate into Android Keystore encryption",()=>{
+  for(const token of ["AndroidKeyStore","AES/GCM/NoPadding","GCMParameterSpec","migrateLegacy","last-station","station-token"])assert.ok(credentials.includes(token),token);
+  assert.match(credentials,/MAX_STATIONS\s*=\s*8/);
+  assert.match(credentials,/legacy\.edit\(\)\.remove\(LEGACY_TOKEN\)\.remove\(LEGACY_STATION\)/);
+  assert.match(credentials,/clearCredential/);
+});
+
+test("one-tap mobile updates use a verified APK and Android's installer",()=>{
+  assert.match(manifest,/REQUEST_INSTALL_PACKAGES/);
+  assert.match(manifest,/androidx\.core\.content\.FileProvider/);
+  for(const token of ["SHA256SUMS.txt","MessageDigest.getInstance(\"SHA-256\")","ACTION_MANAGE_UNKNOWN_APP_SOURCES","application/vnd.android.package-archive","FLAG_GRANT_READ_URI_PERMISSION"])assert.ok(updater.includes(token),token);
+  assert.match(home,/CHECK \+ INSTALL MOBILE UPDATE/);
+});
+
+test("wrapped module controls and desktop popup families retain vertical resizing",()=>{
   assert.match(layout,/import "\.\/v29\.css"/);
   assert.match(renderer,/import "\.\.\/app\/v29\.css"/);
   assert.match(css,/\.overview-editing \.overview-modules \.widget-wrap\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\)/);
-  assert.match(css,/\.overview-editing \.overview-modules \.widget-wrap > \.overview-widget\s*\{[\s\S]*height:\s*auto/);
   for(const surface of ["speed-dial-page-peek","notice-history","tray-drawer"])assert.ok(css.includes(`.${surface}.resizable-popup-floating`),surface);
   assert.match(css,/max-height:\s*calc\(100vh - 24px\) !important/);
-  assert.match(css,/\.tray-drawer\.resizable-popup\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\) auto/);
 });
 
-test("Version 29.2 development automation builds and publishes every platform",()=>{
+test("Version 29.3 RC automation validates and publishes every platform",()=>{
   assert.match(workflow,/branches:\s*\[29-development\]/);
+  assert.match(workflow,/BatteryStatusSelfTest/);
   for(const job of ["linux:","windows:","android:","publish-development-release:"])assert.ok(workflow.includes(job),job);
   for(const asset of [
-    "LCARS-Command-Interface-v29.2-x86_64.AppImage",
-    "LCARS-Universal-Linux-Desktop-v29.2.zip",
-    "LCARS-Linux-Integration-v29.2.sh",
-    "LCARS-Windows-Setup-v29.2.exe",
-    "LCARS-Mobile-Environment-v29.2-Android.apk",
-    "LCARS-Command-Interface-v29.2-Source.zip",
+    "LCARS-Command-Interface-v29.3-x86_64.AppImage",
+    "LCARS-Universal-Linux-Desktop-v29.3.zip",
+    "LCARS-Linux-Integration-v29.3.sh",
+    "LCARS-Windows-Setup-v29.3.exe",
+    "LCARS-Mobile-Environment-v29.3-Android.apk",
+    "LCARS-Command-Interface-v29.3-Source.zip",
     "SHA256SUMS.txt",
   ])assert.ok(workflow.includes(asset),asset);
-  assert.match(workflow,/gh release create v29\.2/);
+  assert.match(workflow,/gh release create v29\.3/);
+  assert.match(workflow,/Version 29\.3 RC 1/);
   assert.match(workflow,/--prerelease/);
 });

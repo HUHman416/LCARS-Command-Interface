@@ -13,10 +13,10 @@ const developmentWorkflow = read(".github/workflows/v26-3-test.yml");
 const stableWorkflow = read(".github/workflows/v26-stable.yml");
 
 test("26.3 RC and Version 26 stable identities remain explicit", () => {
-  assert.ok(["29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1", "27.2.1-dev.1", "27.2.0-dev.1", "27.1.1-dev.1", "26.3.0-dev.1", "26.0.0"].includes(packageJson.version));
-  assert.match(page, /const LCARS_VERSION="(?:29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(linux, /LCARS_VERSION="(?:29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(windows, /LCARS_VERSION="(?:29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.ok(["29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1", "27.2.1-dev.1", "27.2.0-dev.1", "27.1.1-dev.1", "26.3.0-dev.1", "26.0.0"].includes(packageJson.version));
+  assert.match(page, /const LCARS_VERSION="(?:29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(linux, /LCARS_VERSION="(?:29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(windows, /LCARS_VERSION="(?:29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
   assert.doesNotMatch(page, /VERSION 25 ENGINEERING OPERATIONS|AUTO-25|ENG-25|COM-25|LOG-25/);
 });
 
@@ -30,11 +30,11 @@ test("configuration backup covers workspace and community repository state", () 
 });
 
 test("upgraded operators receive a one-time current-version orientation", () => {
-  assert.match(page, /lcars-whats-new-v(?:29-[12]|28)/);
-  assert.match(page, /(?:WELCOME TO VERSION 29\.2|WELCOME TO VERSION 28)/);
-  assert.match(page, /(?:WHAT'S NEW IN VERSION 29\.2|WHAT'S NEW IN VERSION 28)/);
-  assert.match(page, /DESKTOP-STYLE MOBILE SHELL/);
-  assert.match(page, /NATIVE ANDROID WIDGETS/);
+  assert.match(page, /lcars-whats-new-v(?:29-[123]|28)/);
+  assert.match(page, /(?:WELCOME TO VERSION 29\.3 RC 1|WELCOME TO VERSION 29\.2|WELCOME TO VERSION 28)/);
+  assert.match(page, /(?:WHAT'S NEW IN VERSION 29\.3 RC 1|WHAT'S NEW IN VERSION 29\.2|WHAT'S NEW IN VERSION 28)/);
+  assert.match(page, /CONNECTED STATION DOCK/);
+  assert.match(page, /VERIFIED MOBILE UPDATES/);
 });
 
 test("Version 26.3 styling is the final renderer layer", () => {

@@ -23,18 +23,16 @@ test("Android companion declares guarded networking and only its launcher/widget
   assert.match(manifest, /android\.permission\.ACCESS_LOCAL_NETWORK/);
   assert.match(manifest, /android:networkSecurityConfig="@xml\/network_security_config"/);
   assert.match(manifest, /android:exported="true"[\s\S]*android\.intent\.category\.LAUNCHER/);
-  assert.doesNotMatch(manifest, /<service|<provider/);
+  assert.doesNotMatch(manifest, /<service/);
+  assert.match(manifest, /androidx\.core\.content\.FileProvider/);
   assert.match(manifest, /<receiver[\s\S]*PaddWidgetProvider[\s\S]*APPWIDGET_UPDATE/);
   assert.match(security, /cleartextTrafficPermitted="true"/);
 });
 
-test("Android companion owns its native UI and is pinned to the paired private station", () => {
+test("Android Companion remains native, private-station guarded, and embedded in Home", () => {
   for (const source of ["10", "172", "192", "PADD_PORT = 8766"]) assert.match(guard, new RegExp(source));
   assert.match(guard, /isAllowedUrl/);
-  assert.match(activity, /HttpURLConnection/);
-  assert.match(activity, /api\/padd\/(?:pair|state|action)/);
-  assert.match(activity, /STANDALONE PADD/);
-  assert.match(activity, /STATUS.*MEDIA.*COMMAND/s);
+  assert.match(activity, /HomeActivity\.class/);
+  assert.match(activity, /putExtra\("open-page", "companion"\)/);
   assert.doesNotMatch(activity, /WebView|addJavascriptInterface/);
-  assert.match(activity, /LAST_STATION/);
 });

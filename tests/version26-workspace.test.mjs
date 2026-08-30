@@ -54,7 +54,7 @@ test("Communications uses one quiet accessible scrolling feed", () => {
 });
 
 test("Version 26.3 styling loads last on desktop", () => {
-  assert.ok(["29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(packageJson.version));
+  assert.ok(["29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(packageJson.version));
   const repository = renderer.indexOf('import "../app/v26-1.css"');
   const workspace = renderer.indexOf('import "../app/v26.css"');
   const current = renderer.indexOf('import "../app/v26-3.css"');

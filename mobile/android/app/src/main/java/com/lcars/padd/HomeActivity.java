@@ -16,6 +16,7 @@ import android.content.pm.LauncherApps;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -60,13 +61,17 @@ import java.nio.charset.StandardCharsets;
 import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-/** Version 29.2 optional Android Home surface. Pairing and guarded station controls remain in MainActivity. */
+/** Version 29.3 RC Android Home surface with an integrated native Companion page. */
 public final class HomeActivity extends Activity {
-    private static final String PREFS="lcars-home-v29", FAVORITES="favorite-components", PADD_PREFS="lcars-padd";
+    private static final String PREFS="lcars-home-v29", FAVORITES="favorite-components";
     private static final String DECKS="decks-json", FOLDERS="folders-json", WIDGET_IDS="widget-ids";
     private static final int HOME_ROLE_REQUEST=291, PICK_WIDGET_REQUEST=292, CONFIGURE_WIDGET_REQUEST=293;
     private static final int EXPORT_BACKUP_REQUEST=294, IMPORT_BACKUP_REQUEST=295, APP_WIDGET_HOST_ID=2902;
@@ -76,6 +81,8 @@ public final class HomeActivity extends Activity {
     private int BLUE=Color.rgb(130,154,241),VIOLET=Color.rgb(182,157,232),outerRadius=28,innerRadius=3,panelStroke=2;
     private final Handler clockHandler=new Handler(Looper.getMainLooper());
     private final ArrayList<LaunchEntry> allApps=new ArrayList<>();
+    private final HashMap<String,Drawable> iconCache=new HashMap<>();
+    private final ExecutorService appLoader=Executors.newSingleThreadExecutor();
     private SharedPreferences preferences;
     private LauncherApps launcherApps;
     private UserManager userManager;
@@ -84,10 +91,15 @@ public final class HomeActivity extends Activity {
     private LinearLayout sidebar,pageContent;
     private ScrollView pageScroll;
     private TextView pageEyebrow,pageTitle,pageBadge,clock;
+    private TextView updateStatus;
     private EditText search;
     private GridLayout applicationGrid;
+    private SecureStationStore stationStore;
+    private CompanionDock companionDock;
     private int pendingWidgetId=AppWidgetManager.INVALID_APPWIDGET_ID;
+    private int visibleAppLimit=60;
     private String activePage,activeDeckId,activeFolderId;
+    private Calendar calendarMonth=Calendar.getInstance(),selectedDate=Calendar.getInstance();
 
     private final Runnable updateClock=new Runnable(){
         @Override public void run(){
@@ -110,21 +122,25 @@ public final class HomeActivity extends Activity {
         userManager=(UserManager)getSystemService(Context.USER_SERVICE);
         appWidgetManager=AppWidgetManager.getInstance(this);
         appWidgetHost=new AppWidgetHost(this,APP_WIDGET_HOST_ID);
-        activePage=preferences.getString("active-page","status");
+        stationStore=new SecureStationStore(this);
+        activePage=getIntent().getStringExtra("open-page");
+        if(activePage==null||activePage.isEmpty())activePage=preferences.getString("active-page","status");
         applyDisplayMatrix();
         getWindow().setStatusBarColor(BLACK);
         getWindow().setNavigationBarColor(BLACK);
         if(Build.VERSION.SDK_INT>=29)getWindow().setNavigationBarContrastEnforced(false);
         if(Build.VERSION.SDK_INT>=30)getWindow().setDecorFitsSystemWindows(false);
+        if(Build.VERSION.SDK_INT>=33&&checkSelfPermission("android.permission.POST_NOTIFICATIONS")!=android.content.pm.PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},296);
         buildHome();
         if(launcherApps!=null)launcherApps.registerCallback(packageCallback,new Handler(Looper.getMainLooper()));
         reloadApps();
     }
-    @Override protected void onStart(){super.onStart();try{appWidgetHost.startListening();}catch(RuntimeException ignored){}}
-    @Override protected void onResume(){super.onResume();reloadApps();renderPage();clockHandler.removeCallbacks(updateClock);clockHandler.post(updateClock);}
-    @Override protected void onStop(){try{appWidgetHost.stopListening();}catch(RuntimeException ignored){}super.onStop();}
-    @Override protected void onDestroy(){if(launcherApps!=null)launcherApps.unregisterCallback(packageCallback);clockHandler.removeCallbacks(updateClock);super.onDestroy();}
+    @Override protected void onStart(){super.onStart();try{appWidgetHost.startListening();}catch(RuntimeException ignored){}if(companionDock!=null)companionDock.start();}
+    @Override protected void onResume(){super.onResume();clockHandler.removeCallbacks(updateClock);clockHandler.post(updateClock);if(updateStatus!=null)MobileUpdateManager.resumePendingInstall(this,(message,error)->{if(updateStatus!=null){updateStatus.setText(message);updateStatus.setTextColor(error?PINK:PEACH);}});}
+    @Override protected void onStop(){if(companionDock!=null)companionDock.stop();try{appWidgetHost.stopListening();}catch(RuntimeException ignored){}super.onStop();}
+    @Override protected void onDestroy(){if(launcherApps!=null)launcherApps.unregisterCallback(packageCallback);if(companionDock!=null)companionDock.destroy();appLoader.shutdownNow();clockHandler.removeCallbacks(updateClock);super.onDestroy();}
     @Override public void onConfigurationChanged(Configuration config){super.onConfigurationChanged(config);buildHome();}
+    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);String requested=intent.getStringExtra("open-page");if(requested!=null&&!requested.isEmpty()){activePage=requested;preferences.edit().putString("active-page",activePage).apply();buildHome();}}
 
     private void buildHome(){
         LinearLayout root=column(BLACK);
@@ -154,17 +170,17 @@ public final class HomeActivity extends Activity {
         brand.setGravity(Gravity.CENTER_VERTICAL|Gravity.RIGHT);brand.setPadding(dp(8),dp(7),dp(10),dp(7));
         brand.setBackground(shape(ORANGE,34,3,3,34));
         TextView brandName=fittedLabel("LCARS",BLACK,13,19,true);brandName.setGravity(Gravity.RIGHT|Gravity.CENTER_VERTICAL);
-        TextView version=fittedLabel("29.2 DEVELOPMENT",BLACK,7,10,true);version.setGravity(Gravity.RIGHT|Gravity.CENTER_VERTICAL);
+        TextView version=fittedLabel("29.3 RC 1",BLACK,6,10,true);version.setGravity(Gravity.RIGHT|Gravity.CENTER_VERTICAL);
         brand.addView(brandName,matchWrap(0));brand.addView(version,matchWrap(0));
         LinearLayout.LayoutParams brandParams=new LinearLayout.LayoutParams(dp(sidebarWidth()),dp(74));brandParams.rightMargin=dp(4);
         header.addView(brand,brandParams);
         LinearLayout titles=column(PANEL);
         titles.setGravity(Gravity.CENTER_VERTICAL);titles.setPadding(dp(11),dp(7),dp(8),dp(7));titles.setBackground(shape(PANEL,3,3,3,3));
-        titles.addView(fittedLabel("MOBILE OPERATING ENVIRONMENT",PEACH,7,10,true),matchWrap(dp(2)));
-        titles.addView(fittedLabel("ANDROID COMMAND INTERFACE",Color.WHITE,12,20,true),matchWrap(0));
+        titles.addView(containedLabel("MOBILE OPERATING ENVIRONMENT",PEACH,6,10,true,1),matchWrap(dp(2)));
+        titles.addView(containedLabel("ANDROID COMMAND INTERFACE",Color.WHITE,7,20,true,2),matchWrap(0));
         LinearLayout.LayoutParams titleParams=new LinearLayout.LayoutParams(0,dp(74),1);titleParams.rightMargin=dp(4);
         header.addView(titles,titleParams);
-        clock=fittedLabel("--:--",BLACK,11,18,true);clock.setGravity(Gravity.CENTER);clock.setBackground(shape(BLUE,3,34,34,3));
+        clock=containedLabel("--:--",BLACK,8,18,true,1);clock.setGravity(Gravity.CENTER);clock.setBackground(shape(BLUE,3,34,34,3));clock.setContentDescription("Open LCARS calendar");clock.setOnClickListener(v->switchPage("calendar"));
         header.addView(clock,new LinearLayout.LayoutParams(dp(clockWidth()),dp(74)));
         return header;
     }
@@ -174,10 +190,10 @@ public final class HomeActivity extends Activity {
         View rail=new View(this);rail.setBackground(shape(ORANGE,18,3,3,18));
         LinearLayout.LayoutParams railParams=new LinearLayout.LayoutParams(dp(17),dp(62));railParams.rightMargin=dp(3);header.addView(rail,railParams);
         LinearLayout text=column(PANEL);text.setGravity(Gravity.CENTER_VERTICAL);text.setPadding(dp(10),dp(5),dp(7),dp(5));text.setBackground(shape(PANEL,3,3,3,3));
-        pageEyebrow=fittedLabel("LOCAL DEVICE",PEACH,8,10,true);pageTitle=fittedLabel("STATUS",Color.WHITE,16,25,true);
+        pageEyebrow=containedLabel("LOCAL DEVICE",PEACH,6,10,true,1);pageTitle=containedLabel("STATUS",Color.WHITE,7,25,true,2);
         text.addView(pageEyebrow,matchWrap(0));text.addView(pageTitle,matchWrap(0));
         LinearLayout.LayoutParams textParams=new LinearLayout.LayoutParams(0,dp(62),1);textParams.rightMargin=dp(3);header.addView(text,textParams);
-        pageBadge=fittedLabel("HOME",BLUE,8,11,true);pageBadge.setGravity(Gravity.CENTER);pageBadge.setBackground(shape(PANEL,3,20,20,3));
+        pageBadge=containedLabel("HOME",BLUE,6,11,true,2);pageBadge.setGravity(Gravity.CENTER);pageBadge.setBackground(shape(PANEL,3,20,20,3));
         header.addView(pageBadge,new LinearLayout.LayoutParams(dp(74),dp(62)));
         return header;
     }
@@ -216,7 +232,8 @@ public final class HomeActivity extends Activity {
 
     private void renderPage(){
         if(pageContent==null)return;
-        pageContent.removeAllViews();search=null;applicationGrid=null;if(pageScroll!=null)pageScroll.scrollTo(0,0);
+        if(companionDock!=null&&!activePage.equals("companion")){companionDock.destroy();companionDock=null;}
+        pageContent.removeAllViews();search=null;applicationGrid=null;updateStatus=null;if(pageScroll!=null)pageScroll.scrollTo(0,0);
         if(activePage.equals("applications"))renderApplicationsPage();
         else if(activePage.equals("favorites"))renderFavoritesPage();
         else if(activePage.equals("decks"))renderDecksPage();
@@ -225,6 +242,7 @@ public final class HomeActivity extends Activity {
         else if(activePage.equals("display"))renderDisplayPage();
         else if(activePage.equals("settings"))renderSettingsPage();
         else if(activePage.equals("companion"))renderCompanionPage();
+        else if(activePage.equals("calendar"))renderCalendarPage();
         else renderStatusPage();
     }
 
@@ -232,16 +250,17 @@ public final class HomeActivity extends Activity {
         heading("LOCAL DEVICE OPERATIONS","STATUS",homeRoleHeld()?"HOME ACTIVE":"HOME READY");
         GridLayout grid=new GridLayout(this);grid.setColumnCount(statusColumns());
         int battery=batteryPercent();
-        addStatus(grid,"BATTERY",battery<0?"UNKNOWN":battery+"%",battery>=30?BLUE:ORANGE);
+        String batteryState=BatteryStatus.classify(battery,isCharging());
+        addStatus(grid,"BATTERY",battery<0?"UNKNOWN":battery+"% · "+batteryState,batteryState.equals(BatteryStatus.CRITICAL)||batteryState.equals(BatteryStatus.LOW)?ORANGE:BLUE);
         addStatus(grid,"NETWORK",networkLabel(),VIOLET);addStatus(grid,"STORAGE FREE",storageFree(),PINK);addStatus(grid,"APPLICATIONS",Integer.toString(allApps.size()),ORANGE);
         pageContent.addView(grid,matchWrap(dp(6)));
-        LinearLayout summary=panel(ORANGE);summary.addView(fieldLabel("VERSION 29.2 HOME CONFIGURATION"),matchWrap(dp(4)));
+        LinearLayout summary=panel(ORANGE);summary.addView(fieldLabel("VERSION 29.3 RC HOME CONFIGURATION"),matchWrap(dp(4)));
         summary.addView(label(collections(DECKS,"PRIMARY").size()+" DECKS · "+collections(FOLDERS,null).size()+" FOLDERS · "+widgetIds().size()+" WIDGETS",Color.WHITE,16,true),matchWrap(dp(5)));
         summary.addView(label("DISPLAY MATRIX · "+themeLabel(preferences.getString("display-theme","enterprise-d"))+" · "+(compactLayout()?"COMPACT":"STANDARD")+" LAYOUT",PEACH,10,true),matchWrap(0));
         pageContent.addView(summary,matchWrap(dp(6)));
         LinearLayout controls=panel(BLUE);controls.addView(fieldLabel("HOME ROLE CONTROL"),matchWrap(dp(5)));
         Button home=button(homeRoleHeld()?"LCARS IS CURRENT HOME":"MAKE LCARS DEFAULT HOME",homeRoleHeld()?BLUE:ORANGE);home.setOnClickListener(v->requestHomeRole());
-        Button companion=button("OPEN PADD COMPANION",VIOLET);companion.setOnClickListener(v->startActivity(new Intent(this,MainActivity.class)));
+        Button companion=button("OPEN COMPANION PAGE",VIOLET);companion.setOnClickListener(v->switchPage("companion"));
         controls.addView(home,matchWrap(dp(4)));controls.addView(companion,matchWrap(0));pageContent.addView(controls,matchWrap(0));
     }
 
@@ -249,11 +268,31 @@ public final class HomeActivity extends Activity {
         LinearLayout card=panel(color);card.addView(label(title,PEACH,9,true),matchWrap(dp(3)));card.addView(fittedLabel(value,Color.WHITE,15,23,true),matchWrap(0));grid.addView(card,gridCell(dp(3)));
     }
 
+    private void renderCalendarPage(){
+        heading("TEMPORAL OPERATIONS","CALENDAR",new SimpleDateFormat("MMM yyyy",Locale.getDefault()).format(calendarMonth.getTime()).toUpperCase(Locale.ROOT));
+        LinearLayout controls=row(BLACK);Button previous=button("‹ PREVIOUS",VIOLET),today=button("TODAY",ORANGE),next=button("NEXT ›",BLUE);
+        previous.setOnClickListener(v->{calendarMonth.add(Calendar.MONTH,-1);renderPage();});today.setOnClickListener(v->{calendarMonth=Calendar.getInstance();selectedDate=Calendar.getInstance();renderPage();});next.setOnClickListener(v->{calendarMonth.add(Calendar.MONTH,1);renderPage();});
+        controls.addView(previous,weightedHeight(1,dp(42),dp(3)));controls.addView(today,weightedHeight(1,dp(42),dp(3)));controls.addView(next,weightedHeight(1,dp(42),0));pageContent.addView(controls,matchWrap(dp(6)));
+        LinearLayout month=panel(ORANGE);TextView monthName=containedLabel(new SimpleDateFormat("MMMM yyyy",Locale.getDefault()).format(calendarMonth.getTime()).toUpperCase(Locale.ROOT),Color.WHITE,10,24,true,1);monthName.setGravity(Gravity.CENTER);month.addView(monthName,matchWrap(dp(6)));
+        GridLayout grid=new GridLayout(this);grid.setColumnCount(7);String[] weekdays={"SUN","MON","TUE","WED","THU","FRI","SAT"};for(String weekday:weekdays){TextView label=containedLabel(weekday,PEACH,6,9,true,1);label.setGravity(Gravity.CENTER);grid.addView(label,calendarCell(dp(28),dp(2)));}
+        Calendar first=(Calendar)calendarMonth.clone();first.set(Calendar.DAY_OF_MONTH,1);int offset=first.get(Calendar.DAY_OF_WEEK)-Calendar.SUNDAY;for(int index=0;index<offset;index++)grid.addView(new View(this),calendarCell(dp(42),dp(2)));
+        int maximum=first.getActualMaximum(Calendar.DAY_OF_MONTH);Calendar now=Calendar.getInstance();for(int day=1;day<=maximum;day++){Calendar date=(Calendar)first.clone();date.set(Calendar.DAY_OF_MONTH,day);boolean selected=sameDay(date,selectedDate),current=sameDay(date,now);Button cell=button(Integer.toString(day),selected?ORANGE:current?BLUE:DIM);cell.setTextColor(selected||current?BLACK:Color.LTGRAY);cell.setContentDescription(new SimpleDateFormat("EEEE, MMMM d, yyyy",Locale.getDefault()).format(date.getTime()));cell.setOnClickListener(v->{selectedDate=date;renderPage();});grid.addView(cell,calendarCell(dp(46),dp(2)));}
+        month.addView(grid,matchWrap(0));pageContent.addView(month,matchWrap(dp(6)));
+        LinearLayout selected=panel(BLUE);selected.addView(fieldLabel("SELECTED STARDATE"),matchWrap(dp(3)));selected.addView(containedLabel(new SimpleDateFormat("EEEE",Locale.getDefault()).format(selectedDate.getTime()).toUpperCase(Locale.ROOT),Color.WHITE,11,22,true,1),matchWrap(dp(2)));selected.addView(label(new SimpleDateFormat("MMMM d, yyyy",Locale.getDefault()).format(selectedDate.getTime()).toUpperCase(Locale.ROOT),PEACH,13,true),matchWrap(dp(3)));selected.addView(label("LOCAL TIME · "+new SimpleDateFormat("h:mm a · z",Locale.getDefault()).format(System.currentTimeMillis()).toUpperCase(Locale.ROOT),Color.LTGRAY,10,true),matchWrap(0));pageContent.addView(selected,matchWrap(0));
+    }
+
+    private boolean sameDay(Calendar first,Calendar second){return first.get(Calendar.ERA)==second.get(Calendar.ERA)&&first.get(Calendar.YEAR)==second.get(Calendar.YEAR)&&first.get(Calendar.DAY_OF_YEAR)==second.get(Calendar.DAY_OF_YEAR);}
+
     private void renderApplicationsPage(){
         heading("LOCAL LAUNCH SERVICE","APPLICATIONS",allApps.size()+" INSTALLED");
+        Set<String> favorites=favoriteKeys();pageContent.addView(sectionHeader("FAVORITE APPLICATIONS",favorites.size()+" / 20"),matchWrap(dp(4)));
+        GridLayout favoriteGrid=new GridLayout(this);favoriteGrid.setColumnCount(appColumns());int favoriteCount=0;for(LaunchEntry entry:allApps)if(favorites.contains(entry.key)&&favoriteCount++<20)favoriteGrid.addView(appCard(entry,true,true),gridCell(dp(3)));if(favoriteCount==0)favoriteGrid.addView(emptyState("NO FAVORITES YET · USE ☆ FAV ON ANY APPLICATION"),fullGridCell(appColumns()));pageContent.addView(favoriteGrid,matchWrap(dp(7)));
+        ArrayList<CollectionEntry> folders=collections(FOLDERS,null);pageContent.addView(sectionHeader("APPLICATION FOLDERS",folders.size()+" FOLDERS"),matchWrap(dp(4)));
+        if(folders.isEmpty()){Button create=button("+ CREATE FIRST FOLDER",VIOLET);create.setOnClickListener(v->createCollection(FOLDERS,"NEW FOLDER"));pageContent.addView(create,matchWrap(dp(7)));}
+        else{LinearLayout folderList=column(BLACK);for(CollectionEntry folder:folders){Button open=button(folder.name+" · "+folder.apps.size()+" APPS",VIOLET);open.setOnClickListener(v->{activeFolderId=folder.id;switchPage("folders");});folderList.addView(open,matchWrap(dp(3)));}pageContent.addView(folderList,matchWrap(dp(7)));}
         LinearLayout searchDeck=panel(BLUE);searchDeck.addView(fieldLabel("UNIVERSAL APPLICATION SEARCH"),matchWrap(dp(4)));
         search=input("SEARCH INSTALLED APPLICATIONS…");search.setSingleLine(true);search.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
-        search.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int a,int b,int c){}public void afterTextChanged(Editable s){}public void onTextChanged(CharSequence s,int a,int b,int c){renderApplicationGrid(null);}});
+        search.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int a,int b,int c){}public void afterTextChanged(Editable s){}public void onTextChanged(CharSequence s,int a,int b,int c){visibleAppLimit=60;renderApplicationGrid(null);}});
         searchDeck.addView(search,matchWrap(0));pageContent.addView(searchDeck,matchWrap(dp(6)));
         applicationGrid=new GridLayout(this);pageContent.addView(applicationGrid,matchWrap(dp(16)));renderApplicationGrid(null);
     }
@@ -272,20 +311,20 @@ public final class HomeActivity extends Activity {
             visible.add(entry);
         }
         int columns=appColumns();applicationGrid.removeAllViews();applicationGrid.setColumnCount(columns);
-        if(visible.isEmpty())applicationGrid.addView(emptyState(filter==null?"NO APPLICATIONS MATCH THIS SEARCH":"NO FAVORITES YET · STAR AN APPLICATION"),fullGridCell(columns));
-        else for(LaunchEntry entry:visible)applicationGrid.addView(appCard(entry,favorites.contains(entry.key),true),gridCell(dp(3)));
+        if(visible.isEmpty())applicationGrid.addView(emptyState(filter==null?"NO APPLICATIONS MATCH THIS SEARCH":"NO FAVORITES YET · USE ☆ FAV ON AN APPLICATION"),fullGridCell(columns));
+        else{int shown=Math.min(visible.size(),visibleAppLimit);for(int index=0;index<shown;index++){LaunchEntry entry=visible.get(index);applicationGrid.addView(appCard(entry,favorites.contains(entry.key),true),gridCell(dp(3)));}if(shown<visible.size()){Button more=button("SHOW "+Math.min(60,visible.size()-shown)+" MORE · "+shown+" / "+visible.size(),BLUE);more.setOnClickListener(v->{visibleAppLimit+=60;renderApplicationGrid(filter);});applicationGrid.addView(more,fullGridCell(columns));}}
     }
 
     private View appCard(LaunchEntry entry,boolean favorite,boolean folderControl){
         LinearLayout card=column(PANEL);card.setPadding(dp(cardInset()),dp(cardInset()),dp(cardInset()),dp(cardInset()));card.setBackground(shape(PANEL,22,3,22,22));card.setMinimumHeight(dp(compactLayout()?126:146));
         card.setContentDescription("Open "+entry.label());card.setOnClickListener(v->launch(entry));card.setOnLongClickListener(v->{toggleFavorite(entry);return true;});
-        ImageView icon=new ImageView(this);try{icon.setImageDrawable(entry.info.getBadgedIcon(getResources().getDisplayMetrics().densityDpi));}catch(RuntimeException ignored){}
+        ImageView icon=new ImageView(this);try{Drawable drawable=iconCache.get(entry.key);if(drawable==null){drawable=entry.info.getBadgedIcon(getResources().getDisplayMetrics().densityDpi);if(drawable!=null)iconCache.put(entry.key,drawable);}icon.setImageDrawable(drawable);}catch(RuntimeException ignored){}
         LinearLayout.LayoutParams iconParams=new LinearLayout.LayoutParams(dp(compactLayout()?36:42),dp(compactLayout()?36:42));iconParams.gravity=Gravity.CENTER_HORIZONTAL;card.addView(icon,iconParams);
         TextView name=fittedLabel(entry.label().toUpperCase(Locale.ROOT),Color.WHITE,9,13,true);name.setGravity(Gravity.CENTER);card.addView(name,matchWrap(dp(2)));
         TextView profile=label(entry.serial==currentUserSerial()?"PERSONAL":"PROFILE",PEACH,8,true);profile.setGravity(Gravity.CENTER);card.addView(profile,matchWrap(dp(4)));
-        LinearLayout actions=row(PANEL);Button star=button(favorite?"★":"☆",favorite?ORANGE:DIM);star.setOnClickListener(v->toggleFavorite(entry));
+        LinearLayout actions=row(PANEL);Button star=button(favorite?"★ FAV":"☆ FAV",favorite?ORANGE:DIM);star.setOnClickListener(v->toggleFavorite(entry));
         actions.addView(star,weightedHeight(1,dp(34),folderControl?dp(2):0));
-        if(folderControl){Button folder=button("F+",VIOLET);folder.setOnClickListener(v->chooseFolder(entry));actions.addView(folder,weightedHeight(1,dp(34),0));}
+        if(folderControl){Button folder=button("FOLDER",VIOLET);folder.setOnClickListener(v->chooseFolder(entry));actions.addView(folder,weightedHeight(1,dp(34),0));}
         card.addView(actions,matchWrap(0));return card;
     }
 
@@ -364,6 +403,8 @@ public final class HomeActivity extends Activity {
         LinearLayout backup=panel(VIOLET);backup.addView(fieldLabel("CONFIGURATION BACKUP"),matchWrap(dp(3)));backup.addView(label("Export or restore Display Matrix, layout, favorites, decks, and folders. Android widget bindings remain device-specific.",Color.LTGRAY,11,false),matchWrap(dp(6)));
         LinearLayout backupActions=row(PANEL);Button export=button("EXPORT",BLUE);export.setOnClickListener(v->exportBackup());Button restore=button("RESTORE",VIOLET);restore.setOnClickListener(v->importBackup());
         backupActions.addView(export,weightedHeight(1,dp(44),dp(3)));backupActions.addView(restore,weightedHeight(1,dp(44),0));backup.addView(backupActions,matchWrap(0));pageContent.addView(backup,matchWrap(dp(6)));
+        LinearLayout updates=panel(GOLD);updates.addView(fieldLabel("MOBILE UPDATE CONSOLE"),matchWrap(dp(3)));updates.addView(label("One tap checks GitHub, downloads the current Android package, verifies its published SHA-256 checksum, and opens Android's required installation confirmation.",Color.LTGRAY,11,false),matchWrap(dp(6)));
+        updateStatus=containedLabel("UPDATE CHANNEL READY · VERSION 29.3 RC 1",PEACH,7,11,true,2);updates.addView(updateStatus,matchWrap(dp(5)));Button check=button("CHECK + INSTALL MOBILE UPDATE",GOLD);check.setOnClickListener(v->{check.setEnabled(false);MobileUpdateManager.checkAndInstall(this,(message,error)->{if(updateStatus!=null){updateStatus.setText(message);updateStatus.setTextColor(error?PINK:PEACH);}check.setEnabled(true);});});updates.addView(check,matchWrap(0));pageContent.addView(updates,matchWrap(dp(6)));
         LinearLayout role=panel(BLUE);role.addView(fieldLabel("ANDROID HOME CONTROL"),matchWrap(dp(5)));
         Button home=button(homeRoleHeld()?"LCARS IS CURRENT HOME":"MAKE LCARS DEFAULT HOME",homeRoleHeld()?BLUE:ORANGE);home.setOnClickListener(v->requestHomeRole());role.addView(home,matchWrap(dp(4)));
         Button system=button("OPEN ANDROID HOME SETTINGS",VIOLET);system.setOnClickListener(v->openHomeSettings());role.addView(system,matchWrap(dp(4)));
@@ -376,22 +417,21 @@ public final class HomeActivity extends Activity {
     }
 
     private void renderCompanionPage(){
-        heading("CONNECTED OPERATIONS","PADD COMPANION",pairedStatus());
-        LinearLayout card=panel(VIOLET);card.addView(fieldLabel("PAIRED COMMAND SURFACE"),matchWrap(dp(3)));card.addView(label("Status, Media, Communications, Command, and More remain separate from Home and retain their station permissions.",Color.LTGRAY,12,false),matchWrap(dp(7)));
-        Button open=button("OPEN PADD COMPANION",VIOLET);open.setOnClickListener(v->startActivity(new Intent(this,MainActivity.class)));card.addView(open,matchWrap(dp(4)));
-        Button setup=button("COMPANION SETUP / STATION",BLUE);setup.setOnClickListener(v->{Intent intent=new Intent(this,MainActivity.class);intent.putExtra("open-setup",true);startActivity(intent);});card.addView(setup,matchWrap(0));
-        pageContent.addView(card,matchWrap(dp(6)));pageContent.addView(instruction("Home works offline. Station commands remain available only while the paired desktop is reachable on the trusted private network."),matchWrap(0));
+        heading("CONNECTED OPERATIONS","COMPANION",pairedStatus());
+        if(companionDock!=null)companionDock.destroy();companionDock=new CompanionDock(this,stationStore);pageContent.addView(companionDock,matchWrap(dp(6)));companionDock.start();
     }
 
     private void reloadApps(){
         if(launcherApps==null||userManager==null)return;
-        runOnUiThread(()->{allApps.clear();try{
-            for(UserHandle profile:launcherApps.getProfiles()){long serial=userManager.getSerialNumberForUser(profile);for(LauncherActivityInfo info:launcherApps.getActivityList(null,profile)){ComponentName component=info.getComponentName();if(component.getPackageName().equals(getPackageName())&&component.getClassName().equals(HomeActivity.class.getName()))continue;allApps.add(new LaunchEntry(info,serial+"|"+component.flattenToString(),serial));}}
-            Collator collator=Collator.getInstance();allApps.sort((a,b)->collator.compare(a.label(),b.label()));
-        }catch(RuntimeException error){Toast.makeText(this,"APPLICATION LIBRARY UNAVAILABLE",Toast.LENGTH_LONG).show();}renderPage();});
+        appLoader.execute(()->{ArrayList<LaunchEntry> discovered=new ArrayList<>();try{
+            for(UserHandle profile:launcherApps.getProfiles()){long serial=userManager.getSerialNumberForUser(profile);for(LauncherActivityInfo info:launcherApps.getActivityList(null,profile)){ComponentName component=info.getComponentName();if(component.getPackageName().equals(getPackageName())&&(component.getClassName().equals(HomeActivity.class.getName())||component.getClassName().equals(MainActivity.class.getName())))continue;discovered.add(new LaunchEntry(info,serial+"|"+component.flattenToString(),serial));}}
+            Collator collator=Collator.getInstance();discovered.sort((a,b)->collator.compare(a.label(),b.label()));
+            runOnUiThread(()->{allApps.clear();allApps.addAll(discovered);iconCache.keySet().retainAll(new HashSet<>(applicationKeys(discovered)));if(activePage.equals("applications")||activePage.equals("favorites")||activePage.equals("decks")||activePage.equals("folders")||activePage.equals("status"))renderPage();});
+        }catch(RuntimeException error){runOnUiThread(()->Toast.makeText(this,"APPLICATION LIBRARY UNAVAILABLE",Toast.LENGTH_LONG).show());}});
     }
-    private void launch(LaunchEntry entry){try{launcherApps.startMainActivity(entry.info.getComponentName(),entry.info.getUser(),null,null);}catch(RuntimeException error){Toast.makeText(this,"COULD NOT OPEN "+entry.label().toUpperCase(Locale.ROOT),Toast.LENGTH_SHORT).show();}}
-    private void toggleFavorite(LaunchEntry entry){Set<String> values=favoriteKeys();if(!values.add(entry.key))values.remove(entry.key);preferences.edit().putStringSet(FAVORITES,values).apply();renderPage();}
+    private ArrayList<String> applicationKeys(ArrayList<LaunchEntry> entries){ArrayList<String> keys=new ArrayList<>();for(LaunchEntry entry:entries)keys.add(entry.key);return keys;}
+    private void launch(LaunchEntry entry){try{if(entry.info.getUser().equals(android.os.Process.myUserHandle())){Intent intent=Intent.makeMainActivity(entry.info.getComponentName());intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);startActivity(intent);overridePendingTransition(0,0);}else launcherApps.startMainActivity(entry.info.getComponentName(),entry.info.getUser(),null,null);}catch(RuntimeException error){Toast.makeText(this,"COULD NOT OPEN "+entry.label().toUpperCase(Locale.ROOT),Toast.LENGTH_SHORT).show();}}
+    private void toggleFavorite(LaunchEntry entry){Set<String> values=favoriteKeys();if(values.contains(entry.key))values.remove(entry.key);else if(values.size()>=20){Toast.makeText(this,"FAVORITES FULL · REMOVE ONE OF 20 FIRST",Toast.LENGTH_LONG).show();return;}else values.add(entry.key);preferences.edit().putStringSet(FAVORITES,values).apply();renderPage();}
 
     private void chooseFolder(LaunchEntry app){
         ArrayList<CollectionEntry> folders=collections(FOLDERS,null);if(folders.isEmpty()){Toast.makeText(this,"CREATE A FOLDER FIRST",Toast.LENGTH_SHORT).show();switchPage("folders");return;}
@@ -436,11 +476,11 @@ public final class HomeActivity extends Activity {
         }
     }
 
-    private void exportBackup(){Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("application/json");intent.putExtra(Intent.EXTRA_TITLE,"LCARS-Home-v29.2-backup.json");startActivityForResult(intent,EXPORT_BACKUP_REQUEST);}
+    private void exportBackup(){Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("application/json");intent.putExtra(Intent.EXTRA_TITLE,"LCARS-Home-v29.3-backup.json");startActivityForResult(intent,EXPORT_BACKUP_REQUEST);}
     private void importBackup(){Intent intent=new Intent(Intent.ACTION_OPEN_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType("application/json");startActivityForResult(intent,IMPORT_BACKUP_REQUEST);}
     private void writeBackup(Uri target){
         if(target==null)return;try(OutputStream stream=getContentResolver().openOutputStream(target)){if(stream==null)throw new IllegalStateException("Document unavailable");JSONObject backup=new JSONObject();
-            backup.put("format","lcars-home-backup");backup.put("version","29.2");backup.put("favorites",new JSONArray(favoriteKeys()));backup.put("decks",new JSONArray(preferences.getString(DECKS,"[]")));backup.put("folders",new JSONArray(preferences.getString(FOLDERS,"[]")));
+            backup.put("format","lcars-home-backup");backup.put("version","29.3");backup.put("favorites",new JSONArray(favoriteKeys()));backup.put("decks",new JSONArray(preferences.getString(DECKS,"[]")));backup.put("folders",new JSONArray(preferences.getString(FOLDERS,"[]")));
             backup.put("displayTheme",preferences.getString("display-theme","enterprise-d"));backup.put("sidebarSize",preferences.getString("sidebar-size","standard"));backup.put("layoutDensity",preferences.getString("layout-density","comfortable"));backup.put("appColumns",preferences.getString("app-columns","auto"));
             stream.write(backup.toString(2).getBytes(StandardCharsets.UTF_8));Toast.makeText(this,"LCARS HOME BACKUP EXPORTED",Toast.LENGTH_LONG).show();
         }catch(Exception error){Toast.makeText(this,"BACKUP FAILED · "+error.getMessage(),Toast.LENGTH_LONG).show();}
@@ -461,8 +501,9 @@ public final class HomeActivity extends Activity {
     }
     private boolean homeRoleHeld(){if(Build.VERSION.SDK_INT<29)return false;RoleManager roles=getSystemService(RoleManager.class);return roles!=null&&roles.isRoleHeld(RoleManager.ROLE_HOME);}
     private void openHomeSettings(){try{startActivity(new Intent(Settings.ACTION_HOME_SETTINGS));}catch(RuntimeException ignored){startActivity(new Intent(Settings.ACTION_SETTINGS));}}
-    private String pairedStatus(){return getSharedPreferences(PADD_PREFS,MODE_PRIVATE).getString("station-token","").isEmpty()?"NOT PAIRED":"PAIRED";}
+    private String pairedStatus(){return stationStore==null||stationStore.active()==null?"NOT PAIRED":stationStore.all().size()+" STATION"+(stationStore.all().size()==1?"":"S");}
     private int batteryPercent(){BatteryManager manager=(BatteryManager)getSystemService(BATTERY_SERVICE);return manager==null?-1:manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);}
+    private boolean isCharging(){BatteryManager manager=(BatteryManager)getSystemService(BATTERY_SERVICE);return manager!=null&&manager.isCharging();}
     private String networkLabel(){ConnectivityManager manager=(ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);if(manager==null)return"OFFLINE";Network network=manager.getActiveNetwork();NetworkCapabilities caps=network==null?null:manager.getNetworkCapabilities(network);if(caps==null)return"OFFLINE";if(caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI))return"WI-FI";if(caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR))return"CELLULAR";if(caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET))return"ETHERNET";return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)?"ONLINE":"LOCAL";}
     private String storageFree(){StatFs stats=new StatFs(Environment.getDataDirectory().getAbsolutePath());long bytes=stats.getAvailableBytes();if(bytes>=1024L*1024L*1024L)return String.format(Locale.ROOT,"%.1f GB",bytes/(1024d*1024d*1024d));return Math.max(0,bytes/(1024L*1024L))+" MB";}
     private long currentUserSerial(){return userManager==null?-1:userManager.getSerialNumberForUser(android.os.Process.myUserHandle());}
@@ -494,6 +535,7 @@ public final class HomeActivity extends Activity {
     private TextView fieldLabel(String text){return label(text,PEACH,10,true);}
     private TextView label(String text,int color,int size,boolean bold){TextView view=new TextView(this);view.setText(text);view.setTextColor(color);view.setTextSize(TypedValue.COMPLEX_UNIT_SP,size);view.setTypeface(Typeface.create("sans-serif-condensed",bold?Typeface.BOLD:Typeface.NORMAL));view.setGravity(Gravity.CENTER_VERTICAL);return view;}
     private TextView fittedLabel(String text,int color,int minimum,int maximum,boolean bold){TextView view=label(text,color,maximum,bold);view.setSingleLine(true);view.setEllipsize(TextUtils.TruncateAt.END);if(Build.VERSION.SDK_INT>=26)view.setAutoSizeTextTypeUniformWithConfiguration(minimum,maximum,1,TypedValue.COMPLEX_UNIT_SP);return view;}
+    private TextView containedLabel(String text,int color,int minimum,int maximum,boolean bold,int lines){TextView view=label(text,color,maximum,bold);view.setMaxLines(lines);view.setEllipsize(TextUtils.TruncateAt.END);view.setBreakStrategy(android.text.Layout.BREAK_STRATEGY_SIMPLE);view.setHyphenationFrequency(android.text.Layout.HYPHENATION_FREQUENCY_NONE);view.setIncludeFontPadding(false);view.setGravity(Gravity.CENTER_VERTICAL);if(Build.VERSION.SDK_INT>=26)view.setAutoSizeTextTypeUniformWithConfiguration(minimum,maximum,1,TypedValue.COMPLEX_UNIT_SP);return view;}
     private LinearLayout row(int color){LinearLayout view=new LinearLayout(this);view.setOrientation(LinearLayout.HORIZONTAL);view.setGravity(Gravity.CENTER_VERTICAL);view.setBackgroundColor(color);return view;}
     private LinearLayout column(int color){LinearLayout view=new LinearLayout(this);view.setOrientation(LinearLayout.VERTICAL);view.setBackgroundColor(color);return view;}
     private GradientDrawable shape(int color,int tl,int tr,int br,int bl){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadii(new float[]{radius(tl),radius(tl),radius(tr),radius(tr),radius(br),radius(br),radius(bl),radius(bl)});return d;}
@@ -508,6 +550,7 @@ public final class HomeActivity extends Activity {
     private LinearLayout.LayoutParams matchHeight(int height,int bottom){LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,height);p.bottomMargin=bottom;return p;}
     private LinearLayout.LayoutParams weightedHeight(float weight,int height,int right){LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,height,weight);p.rightMargin=right;return p;}
     private GridLayout.LayoutParams gridCell(int margin){GridLayout.LayoutParams p=new GridLayout.LayoutParams();p.width=0;p.height=ViewGroup.LayoutParams.WRAP_CONTENT;p.columnSpec=GridLayout.spec(GridLayout.UNDEFINED,1f);p.setGravity(Gravity.FILL);p.setMargins(0,0,margin,margin);return p;}
+    private GridLayout.LayoutParams calendarCell(int height,int margin){GridLayout.LayoutParams p=new GridLayout.LayoutParams();p.width=0;p.height=height;p.columnSpec=GridLayout.spec(GridLayout.UNDEFINED,1f);p.setGravity(Gravity.FILL);p.setMargins(0,0,margin,margin);return p;}
     private GridLayout.LayoutParams fullGridCell(int columns){GridLayout.LayoutParams p=new GridLayout.LayoutParams();p.width=0;p.columnSpec=GridLayout.spec(0,columns,1f);p.setGravity(Gravity.FILL);p.bottomMargin=dp(4);return p;}
     private int dp(int value){return Math.round(value*getResources().getDisplayMetrics().density);}
 

@@ -7,7 +7,7 @@ const page = read("app/page.tsx");
 const connected = read("app/v27-connected.tsx");
 const css = read("app/v27-2.css");
 const updater = read("shared/lcars_updater.py");
-const android = read("mobile/android/app/src/main/java/com/lcars/padd/MainActivity.java");
+const android = read("mobile/android/app/src/main/java/com/lcars/padd/MainActivity.java") + read("mobile/android/app/src/main/java/com/lcars/padd/HomeActivity.java") + read("mobile/android/app/src/main/java/com/lcars/padd/CompanionDock.java") + read("mobile/android/app/src/main/java/com/lcars/padd/SecureStationStore.java");
 const renderer = read("desktop/renderer.tsx");
 const workflow = read(".github/workflows/v27-2-development.yml");
 

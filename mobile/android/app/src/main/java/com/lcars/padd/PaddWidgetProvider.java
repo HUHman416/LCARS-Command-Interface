@@ -46,7 +46,8 @@ public final class PaddWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.widget_page, preferences.getString(PAGE, "LINK STANDBY"));
         views.setTextViewText(R.id.widget_media, preferences.getString(MEDIA, "OPEN THE PADD TO CONNECT"));
         views.setTextViewText(R.id.widget_volume, "MASTER " + preferences.getInt(VOLUME, 0) + "%");
-        Intent launch = new Intent(context, MainActivity.class);
+        Intent launch = new Intent(context, HomeActivity.class);
+        launch.putExtra("open-page", "companion");
         PendingIntent pending = PendingIntent.getActivity(context, 280, launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         views.setOnClickPendingIntent(R.id.widget_root, pending);
         return views;

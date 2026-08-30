@@ -9,15 +9,15 @@ const css = read("app/v28.css");
 const padd = read("shared/lcars_padd.py");
 const webPadd = read("padd/app.js");
 const webShell = read("padd/index.html");
-const android = read("mobile/android/app/src/main/java/com/lcars/padd/MainActivity.java");
+const android = read("mobile/android/app/src/main/java/com/lcars/padd/MainActivity.java") + read("mobile/android/app/src/main/java/com/lcars/padd/HomeActivity.java") + read("mobile/android/app/src/main/java/com/lcars/padd/CompanionDock.java");
 const widget = read("mobile/android/app/src/main/java/com/lcars/padd/PaddWidgetProvider.java");
 const manifest = read("mobile/android/app/src/main/AndroidManifest.xml");
 const workflow = read(".github/workflows/v28-development.yml");
 const stableWorkflow = read(".github/workflows/v28-stable.yml");
 
 test("Version 28 identity and Connected Operations renderer are wired", () => {
-  assert.match(read("package.json"), /"version": "(?:29\.2\.0-dev\.1|28\.0\.0)"/);
-  assert.match(page, /LCARS_VERSION="(?:29\.2\.0-dev\.1|28\.0\.0)"/);
+  assert.match(read("package.json"), /"version": "(?:29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0)"/);
+  assert.match(page, /LCARS_VERSION="(?:29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0)"/);
   assert.match(page, /ConnectedOperationsPanel/);
   assert.match(page, /api\/padd-events/);
   assert.match(page, /activeWorkstation:activeProfile/);
@@ -64,11 +64,10 @@ test("native and browser PADDs expose the Connected Operations surfaces", () => 
 });
 
 test("Version 28.3 PADD controls keep navigation, media, communications, and recovery usable", () => {
-  assert.match(android, /tabButton\("CMD"/);
-  assert.match(android, /showConsole\(false\)/);
-  assert.match(android, /linkBadge\.setBackground\(shape\(linkColor/);
-  assert.match(android, /fittedLabel\(value/);
-  assert.match(android, /mediaRequest\(playerId, "play-pause"\)/);
+  assert.match(android, /\{"CMD","command"\}/);
+  assert.match(android, /new CompanionDock\(this,stationStore\)/);
+  assert.match(android, /setIncludeFontPadding\(false\)/);
+  assert.match(android, /mediaValue\(id,"play-pause"\)/);
   assert.match(android, /MEDIA_TARGET/);
   assert.match(android, /addMediaSourceList/);
   assert.match(android, /CONNECTION RECOVERY/);
