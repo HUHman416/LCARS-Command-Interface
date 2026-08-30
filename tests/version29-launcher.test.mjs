@@ -10,6 +10,7 @@ const renderer=read("../desktop/renderer.tsx");
 const css=read("../app/v29.css");
 const manifest=read("../mobile/android/app/src/main/AndroidManifest.xml");
 const gradle=read("../mobile/android/app/build.gradle");
+const gradleProperties=read("../mobile/android/gradle.properties");
 const main=read("../mobile/android/app/src/main/java/com/lcars/padd/MainActivity.java");
 const home=read("../mobile/android/app/src/main/java/com/lcars/padd/HomeActivity.java");
 const companion=read("../mobile/android/app/src/main/java/com/lcars/padd/CompanionDock.java");
@@ -77,6 +78,7 @@ test("Pairing credentials migrate into Android Keystore encryption",()=>{
 });
 
 test("one-tap mobile updates use a verified APK and Android's installer",()=>{
+  assert.match(gradleProperties,/android\.useAndroidX=true/);
   assert.match(manifest,/REQUEST_INSTALL_PACKAGES/);
   assert.match(manifest,/androidx\.core\.content\.FileProvider/);
   for(const token of ["SHA256SUMS.txt","MessageDigest.getInstance(\"SHA-256\")","ACTION_MANAGE_UNKNOWN_APP_SOURCES","application/vnd.android.package-archive","FLAG_GRANT_READ_URI_PERMISSION"])assert.ok(updater.includes(token),token);
