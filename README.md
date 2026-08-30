@@ -11,6 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
+  <img src="https://img.shields.io/badge/development-v30.1-b69de8" alt="Development Version 30.1">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -32,6 +33,23 @@
 
 > [!TIP]
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
+
+> [!NOTE]
+> **Version 30.1 Development begins Computer Core.** It adds local plain-language command plans, dry runs, explicit risk and authority gates, an audit journal, reversible-plan undo, expanded Procedures and triggers, a bundled verified whisper.cpp desktop runtime, and optional hashed vocal authorization for protected voice plans. Test packages are published at the [Version 30.1 prerelease](https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v30.1); Version 29 remains Stable.
+
+## 🧪 Version 30.1 Development — Computer Core
+
+- Translates plain operator language into a visible ordered plan before system state changes.
+- Resolves live LCARS pages, installed applications, saved Workstations, Display Matrix families, and Procedures locally.
+- Labels safe, operating, and protected actions; shows Local Core dependencies; and keeps an explicit confirmation gate for power and allowlisted privileged operations.
+- Provides true dry runs, a 300-record local Computer Audit, and single-plan undo when every action is reversible.
+- Expands Operations Automation into 48-step Procedures with battery, network, notice, media, PADD station, interval, startup, time, application, and audio-device triggers.
+- Adds trigger cooldowns, runtime limits, dry-run-only triggers, branch conditions, retries, operator prompts, and failure policies.
+- Bundles the official pinned whisper.cpp desktop runtime and a verified local English command model, while preserving custom executable and model overrides.
+- Records microphone input directly as PCM WAV, avoiding an FFmpeg requirement for the normal Version 30.1 voice path.
+- Adds an optional vocal authorization phrase for protected voice plans. Only a salted PBKDF2 hash is stored, the phrase is removed before command history, and visible protected-action confirmation remains mandatory.
+
+Version 30.1 does not add unrestricted shell or sudo execution. Local commands remain allowlisted, and a vocal code never becomes an operating-system password.
 
 ## 📥 Choose your download
 

@@ -1,0 +1,175 @@
+name: Version 30.1 Computer Core Development
+
+on:
+  push:
+    branches: [30-development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build hosted renderer
+        run: npm run build
+      - name: Computer Core and regression suite
+        run: |
+          node --test tests/*.test.mjs
+          python3 -m unittest discover -s tests -p 'test_*.py'
+      - name: Bridge and packaging validation
+        run: |
+          python3 -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/*.py
+          bash -n scripts/prepare-voice-runtime.sh install.sh install-autostart.sh uninstall-linux.sh start-local.sh local/lcars-recovery.sh
+          node --check desktop/main.cjs
+      - name: Build Linux AppImage with verified offline voice runtime
+        run: npm run desktop:package:linux -- --publish never
+      - name: Verify bundled Computer Core voice resources
+        run: |
+          set -euo pipefail
+          test -x voice-runtime/linux/whisper-cli
+          test -s voice-runtime/linux/ggml-tiny.en-q5_1.bin
+          voice-runtime/linux/whisper-cli --version
+      - name: Assemble Linux development package
+        run: |
+          set -euo pipefail
+          appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
+          test -n "$appimage"
+          checksum="$(sha256sum "$appimage" | awk '{print $1}')"
+          stage="release-assets/LCARS-Universal-Linux-Desktop-v30.1"
+          mkdir -p "$stage/local"
+          cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
+          cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
+          cp desktop/icons/512x512.png "$stage/lcars-command-interface.png"
+          cp local/lcars-recovery.sh "$stage/local/"
+          sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
+          sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
+          chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh"
+          cp "$appimage" release-assets/LCARS-Command-Interface-v30.1-x86_64.AppImage
+          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.1.sh
+          chmod +x release-assets/LCARS-Linux-Integration-v30.1.sh
+          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.1.zip LCARS-Universal-Linux-Desktop-v30.1)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v30.1-development-linux
+          path: |
+            release-assets/LCARS-Command-Interface-v30.1-x86_64.AppImage
+            release-assets/LCARS-Universal-Linux-Desktop-v30.1.zip
+            release-assets/LCARS-Linux-Integration-v30.1.sh
+          retention-days: 30
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Computer Core regression suite
+        run: node --test tests/version30-computer-core.test.mjs tests/version29-launcher.test.mjs tests/accessibility-css.test.mjs
+      - name: Validate Windows bridge and desktop process
+        run: |
+          python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py shared/lcars_padd.py
+          node --check desktop/main.cjs
+      - name: Build Windows installer with verified offline voice runtime
+        run: npm run desktop:package:windows -- --publish never
+      - name: Verify and prepare Windows development installer
+        shell: pwsh
+        run: |
+          if (-not (Test-Path voice-runtime/windows/whisper-cli.exe)) { throw 'whisper.cpp executable is missing' }
+          if (-not (Test-Path voice-runtime/windows/ggml-tiny.en-q5_1.bin)) { throw 'Whisper model is missing' }
+          New-Item -ItemType Directory -Force release-assets | Out-Null
+          $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
+          if (-not $installer) { throw 'Windows installer was not produced.' }
+          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.1.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v30.1-development-windows
+          path: release-assets/LCARS-Windows-Setup-v30.1.exe
+          retention-days: 30
+
+  android:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
+      ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+      ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+      - name: Validate station address and battery guards
+        run: |
+          mkdir -p mobile/android/build/address-test
+          javac -d mobile/android/build/address-test mobile/android/app/src/main/java/com/lcars/padd/StationAddress.java mobile/android/app/src/main/java/com/lcars/padd/BatteryStatus.java mobile/android/tools/StationAddressSelfTest.java mobile/android/tools/BatteryStatusSelfTest.java
+          java -cp mobile/android/build/address-test com.lcars.padd.StationAddressSelfTest
+          java -cp mobile/android/build/address-test com.lcars.padd.BatteryStatusSelfTest
+      - name: Restore persistent Android development identity
+        run: |
+          set -euo pipefail
+          test -n "$ANDROID_SIGNING_KEY_BASE64"
+          printf '%s' "$ANDROID_SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/lcars-release.jks"
+          test -s "$RUNNER_TEMP/lcars-release.jks"
+      - name: Build signed Android development APK
+        env:
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/lcars-release.jks
+        run: gradle -p mobile/android --no-daemon :app:assembleDebug
+      - name: Verify Android signature and prepare Mobile Environment
+        run: |
+          set -euo pipefail
+          apk="mobile/android/app/build/outputs/apk/debug/app-debug.apk"
+          signer="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
+          test -n "$signer"
+          "$signer" verify --verbose --print-certs "$apk"
+          mkdir -p release-assets
+          cp "$apk" release-assets/LCARS-Mobile-Environment-v30.1-Android.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v30.1-development-android
+          path: release-assets/LCARS-Mobile-Environment-v30.1-Android.apk
+          retention-days: 30
+
+  publish-development-release:
+    needs: [linux, windows, android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Create source archive and checksums
+        run: |
+          set -euo pipefail
+          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.1-Source.zip HEAD
+          (cd release-assets && sha256sum LCARS-Command-Interface-v30.1-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.1.zip LCARS-Linux-Integration-v30.1.sh LCARS-Windows-Setup-v30.1.exe LCARS-Mobile-Environment-v30.1-Android.apk LCARS-Command-Interface-v30.1-Source.zip > SHA256SUMS.txt)
+          (cd release-assets && sha256sum --check SHA256SUMS.txt)
+      - name: Publish Version 30.1 development release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          notes='Version 30.1 Development begins the Federation Operating Environment with Computer Core. Plain operator language is translated locally into visible multi-step plans with confidence, risk, reversibility, Local Core requirements, dry-run simulation, explicit protected-action confirmation, an execution audit, and single-plan undo for fully reversible operations. Operations Routines evolve into 48-step Procedures with battery, network, notice, media, PADD station, interval, application, audio-device, time, and startup triggers plus cooldowns, runtime limits, conditions, retries, failure paths, and trigger-safe dry runs. Desktop packages now include a pinned, verified whisper.cpp runtime and local tiny.en command model, use direct PCM WAV capture without an FFmpeg requirement, and retain custom engine/model overrides. Optional vocal authorization stores only a salted hash and adds a second gate to protected voice plans without replacing visible confirmation. This prerelease is intended for testing on Linux, Windows, and Android before the next Version 30 milestone.'
+          if gh release view v30.1 >/dev/null 2>&1; then
+            gh release upload v30.1 release-assets/* --clobber
+            gh release edit v30.1 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.1 Development · Computer Core" --notes "$notes" --prerelease
+          else
+            gh release create v30.1 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.1 Development · Computer Core" --notes "$notes" --prerelease
+          fi

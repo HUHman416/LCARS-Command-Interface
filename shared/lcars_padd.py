@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guarded local-network PADD and mobile Home service for LCARS Version 29."""
+"""Guarded local-network PADD and mobile Home service for LCARS Version 30.1."""
 from __future__ import annotations
 
 import hashlib

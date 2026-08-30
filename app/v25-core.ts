@@ -31,7 +31,7 @@ export type RoutineStep = {
 };
 
 export type RoutineTrigger = {
-  type: "manual" | "startup" | "time" | "app" | "device";
+  type: "manual" | "startup" | "time" | "app" | "device" | "battery-below" | "network" | "notice" | "media" | "station" | "interval";
   value?: string;
 };
 
@@ -44,6 +44,9 @@ export type Routine = {
   enabled: boolean;
   trigger: RoutineTrigger;
   steps: RoutineStep[];
+  cooldownSeconds?: number;
+  maxRuntimeSeconds?: number;
+  dryRunByDefault?: boolean;
 };
 
 export type ActivityEntry = {
@@ -168,9 +171,9 @@ export const normalizeRoutines = (value: unknown): Routine[] => {
     "page", "app", "workstation", "theme", "dnd", "volume", "audio-device",
     "media", "system", "command", "prompt", "wait",
   ]);
-  const triggers = new Set(["manual", "startup", "time", "app", "device"]);
+  const triggers = new Set(["manual", "startup", "time", "app", "device", "battery-below", "network", "notice", "media", "station", "interval"]);
   const colors = new Set(["orange", "gold", "violet", "blue", "pink"]);
-  return value.slice(0, 32).flatMap((candidate): Routine[] => {
+  return value.slice(0, 64).flatMap((candidate): Routine[] => {
     if (!candidate || typeof candidate !== "object") return [];
     const item = candidate as Partial<Routine>;
     const id = cleanText(item.id, 64).replace(/[^a-z0-9-]/gi, "-");
@@ -179,7 +182,7 @@ export const normalizeRoutines = (value: unknown): Routine[] => {
     const trigger = item.trigger && typeof item.trigger === "object" && triggers.has(String(item.trigger.type))
       ? { type: item.trigger.type as RoutineTrigger["type"], value: cleanText(item.trigger.value, 120) || undefined }
       : { type: "manual" as const };
-    const steps = Array.isArray(item.steps) ? item.steps.slice(0, 24).flatMap((candidateStep): RoutineStep[] => {
+    const steps = Array.isArray(item.steps) ? item.steps.slice(0, 48).flatMap((candidateStep): RoutineStep[] => {
       if (!candidateStep || typeof candidateStep !== "object") return [];
       const step = candidateStep as Partial<RoutineStep>;
       if (!kinds.has(step.kind as RoutineStepKind)) return [];
@@ -208,6 +211,9 @@ export const normalizeRoutines = (value: unknown): Routine[] => {
       enabled: item.enabled !== false,
       trigger,
       steps,
+      cooldownSeconds: Math.max(0,Math.min(86400,Number(item.cooldownSeconds)||0)),
+      maxRuntimeSeconds: Math.max(5,Math.min(3600,Number(item.maxRuntimeSeconds)||120)),
+      dryRunByDefault: Boolean(item.dryRunByDefault),
     }];
   });
 };

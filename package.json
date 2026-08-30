@@ -1,6 +1,6 @@
 {
   "name": "lcars-command-interface",
-  "version": "29.0.0",
+  "version": "30.1.0-dev.1",
   "description": "A standalone LCARS desktop command environment for Windows and Linux.",
   "author": "LCARS Command Interface Project",
   "desktopName": "lcars-command-interface.desktop",
@@ -19,8 +19,10 @@
     "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate",
     "desktop:build": "vite build --config desktop/vite.config.ts",
-    "desktop:package:linux": "npm run desktop:build && electron-builder --linux AppImage",
-    "desktop:package:windows": "npm run desktop:build && electron-builder --win nsis"
+    "voice:prepare:linux": "bash scripts/prepare-voice-runtime.sh linux",
+    "voice:prepare:windows": "bash scripts/prepare-voice-runtime.sh windows",
+    "desktop:package:linux": "npm run voice:prepare:linux && npm run desktop:build && electron-builder --linux AppImage",
+    "desktop:package:windows": "npm run voice:prepare:windows && npm run desktop:build && electron-builder --win nsis"
   },
   "dependencies": {
     "drizzle-orm": "0.45.2",

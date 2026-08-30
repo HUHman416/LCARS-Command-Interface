@@ -36,6 +36,10 @@ linux:
       to: recovery/register-app.sh
     - from: desktop/icons/512x512.png
       to: icons/lcars-command-interface.png
+    - from: voice-runtime/linux
+      to: voice
+    - from: voice-runtime/LICENSES
+      to: voice/licenses
 win:
   signAndEditExecutable: false
   icon: desktop/icons/lcars-command-interface.ico
@@ -60,6 +64,10 @@ win:
       to: windows/install-runtime.ps1
     - from: desktop/icons/lcars-command-interface.ico
       to: icons/lcars-command-interface.ico
+    - from: voice-runtime/windows
+      to: voice
+    - from: voice-runtime/LICENSES
+      to: voice/licenses
 nsis:
   oneClick: false
   perMachine: false

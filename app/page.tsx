@@ -37,9 +37,19 @@ import {
 import type { PagePeekState, PopupGeometry, PopupLayoutMap, PopupSnap } from "./v26-core";
 import { ConnectedOperationsPanel } from "./v28-connected";
 import type { PaddDevice, PaddOperation, PaddStatus } from "./v28-connected";
+import { ComputerCoreConsole } from "./v30-computer-core";
+import {
+  computerProcedureReversible,
+  computerProcedureRisk,
+  highestComputerRisk,
+  interpretComputerCommand,
+  normalizeComputerAudit,
+  normalizeComputerUndo,
+} from "./v30-core";
+import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, ComputerPlan, ComputerPlanStep, ComputerUndoSnapshot } from "./v30-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="29.0.0";
+const LCARS_VERSION="30.1.0-dev.1";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -164,6 +174,8 @@ type ShellPrefs = {
   voiceModel: string;
   voiceDevice: string;
   voiceSecurity: "navigation" | "applications" | "system";
+  voiceAuthorizationEnabled: boolean;
+  voiceAuthorizationCredential: LockCredential | null;
   interfaceDensity: "comfortable" | "compact" | "console";
   pageDensityScope: "global" | "per-page";
   pageDensity: PageDensity;
@@ -339,6 +351,7 @@ const speedDialChoices: { id: SpeedDialItem; label: string; description: string 
   { id:"action:tray", label:"TRAY", description:"Open the desktop system tray" },
   { id:"action:routines", label:"ROUTINES", description:"Open Operations Automation" },
   { id:"action:communications", label:"COMMS", description:"Open Communications Center" },
+  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.1 Computer Core" },
 ];
 const defaultPrefs: ShellPrefs = {
   taskHover: true,
@@ -361,6 +374,8 @@ const defaultPrefs: ShellPrefs = {
   voiceModel: "",
   voiceDevice: "",
   voiceSecurity: "navigation",
+  voiceAuthorizationEnabled: false,
+  voiceAuthorizationCredential: null,
   interfaceDensity: "comfortable",
   pageDensityScope: "global",
   pageDensity: "standard",
@@ -379,7 +394,8 @@ const normalizePrefs = (value: unknown): ShellPrefs => {
   const pageDensities=source.pageDensities&&typeof source.pageDensities==="object"?Object.fromEntries(Object.entries(source.pageDensities).filter(([,density])=>density==="compact"||density==="standard"||density==="wide")) as Record<string,PageDensity>:{};
   const allowedSpeedDial=new Set(speedDialChoices.map((choice)=>choice.id));
   const speedDial=Array.isArray(source.speedDial)?source.speedDial.filter((item):item is SpeedDialItem=>typeof item==="string"&&(allowedSpeedDial.has(item as SpeedDialItem)||/^module:ext:[a-z0-9-]+$/i.test(item)||/^page:custom:[a-z0-9-]+$/i.test(item)||/^routine:[a-z0-9-]+$/i.test(item))).slice(0,8):defaultPrefs.speedDial;
-  return {...defaultPrefs,...source,pageDensity,pageDensities,pageDensityScope:source.pageDensityScope==="per-page"?"per-page":"global",updateChannel:source.updateChannel==="development"?"development":"stable",speedDial:speedDial.length>=2?speedDial:defaultPrefs.speedDial};
+  const voiceCredential=source.voiceAuthorizationCredential&&typeof source.voiceAuthorizationCredential==="object"&&typeof source.voiceAuthorizationCredential.hash==="string"&&typeof source.voiceAuthorizationCredential.salt==="string"?source.voiceAuthorizationCredential:null;
+  return {...defaultPrefs,...source,pageDensity,pageDensities,pageDensityScope:source.pageDensityScope==="per-page"?"per-page":"global",updateChannel:source.updateChannel==="development"?"development":"stable",speedDial:speedDial.length>=2?speedDial:defaultPrefs.speedDial,voiceAuthorizationCredential:voiceCredential,voiceAuthorizationEnabled:Boolean(source.voiceAuthorizationEnabled&&voiceCredential)};
 };
 const normalizeCustomPages = (value: unknown): CustomPage[] => Array.isArray(value) ? value.filter((item):item is CustomPage=>Boolean(item)&&typeof item==="object"&&typeof item.id==="string"&&typeof item.name==="string"&&typeof item.target==="string"&&["app","module","extension"].includes(String(item.kind))).slice(0,6).map((item)=>({...item,id:item.id.replace(/[^a-z0-9-]/gi,"-").slice(0,48),name:item.name.trim().slice(0,24)||"CUSTOM PAGE",target:item.target.slice(0,180)})) : [];
 const normalizeAppDestinations = (value: unknown): Record<string,ApplicationDestination> => value&&typeof value==="object"?Object.fromEntries(Object.entries(value).filter((entry):entry is [string,ApplicationDestination]=>entry[1]==="embedded"||entry[1]==="native").slice(0,512)):{};
@@ -646,6 +662,9 @@ export default function Home() {
   const [compat, setCompat] = useState<Compatibility | null>(null),
     [compatOpen, setCompatOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false),
+    [computerOpen,setComputerOpen]=useState(false),
+    [computerSeed,setComputerSeed]=useState(""),
+    [computerSource,setComputerSource]=useState<ComputerCommandSource>("operator"),
     [calendarOpen,setCalendarOpen]=useState(false),
     [paletteQuery, setPaletteQuery] = useState(""),
     [findMode, setFindMode] = useState(false);
@@ -671,11 +690,15 @@ export default function Home() {
   const [activityLog,setActivityLog]=useState<ActivityEntry[]>([]),
     [trayShortcuts,setTrayShortcuts]=useState<TrayShortcut[]>(defaultTrayShortcuts),
     [controlMappings,setControlMappings]=useState<ControlMapping[]>(defaultControlMappings);
+  const [computerAudit,setComputerAudit]=useState<ComputerAuditEntry[]>([]),
+    [computerUndo,setComputerUndo]=useState<ComputerUndoSnapshot|null>(null),
+    [computerRunning,setComputerRunning]=useState(false),
+    [computerVoiceAuthorized,setComputerVoiceAuthorized]=useState(false);
   const [engineering,setEngineering]=useState<EngineeringData>({processes:[],sensors:[],processControl:false}),
     [extensionCatalog,setExtensionCatalog]=useState<ExtensionCatalogEntry[]>([]),
     [extensionSources,setExtensionSources]=useState<ModuleRepositorySource[]>([]),
     [disabledExtensions,setDisabledExtensions]=useState<string[]>([]);
-  const routineTriggerGuard=useRef<Set<string>>(new Set()),workstationRestoreGuard=useRef(false);
+  const routineTriggerGuard=useRef<Set<string>>(new Set()),routineLastRun=useRef<Map<string,number>>(new Map()),workstationRestoreGuard=useRef(false);
   useEffect(()=>{const update=(event:Event)=>setWorkspaceWindows((event as CustomEvent<{active?:string[]}>).detail?.active||[]);window.addEventListener(workspaceStateEvent,update);return()=>window.removeEventListener(workspaceStateEvent,update);},[]);
   useEffect(()=>{
     const visible=notices.filter((notice)=>notice.id>0&&Number.isFinite(notice.expiresAt));
@@ -714,6 +737,8 @@ export default function Home() {
       destinationData = safeBoot?null:localStorage.getItem("lcars-app-destinations"),
       routineData = safeBoot?null:localStorage.getItem("lcars-routines"),
       activityData = localStorage.getItem("lcars-activity-log"),
+      computerAuditData = localStorage.getItem("lcars-computer-audit"),
+      computerUndoData = localStorage.getItem("lcars-computer-undo"),
       noticeData = localStorage.getItem("lcars-notification-history"),
       trayShortcutData = safeBoot?null:localStorage.getItem("lcars-tray-shortcuts"),
       mappingData = safeBoot?null:localStorage.getItem("lcars-control-mappings"),
@@ -764,6 +789,8 @@ export default function Home() {
     if (destinationData) try { setAppDestinations(normalizeAppDestinations(JSON.parse(destinationData))); } catch {}
     if (routineData) try { setRoutines(normalizeRoutines(JSON.parse(routineData))); } catch {}
     if (activityData) try { setActivityLog(normalizeActivity(JSON.parse(activityData))); } catch {}
+    if (computerAuditData) try { setComputerAudit(normalizeComputerAudit(JSON.parse(computerAuditData))); } catch {}
+    if (computerUndoData) try { setComputerUndo(normalizeComputerUndo(JSON.parse(computerUndoData))); } catch {}
     if (noticeData) try { const parsed=JSON.parse(noticeData);if(Array.isArray(parsed))setNotices(parsed.slice(0,100).map((item:Notice)=>({...item,id:-Math.abs(Number(item.id)||Date.now()),read:true,expiresAt:undefined}))); } catch {}
     if (trayShortcutData) try { setTrayShortcuts(normalizeTrayShortcuts(JSON.parse(trayShortcutData))); } catch {}
     if (mappingData) try { setControlMappings(normalizeControlMappings(JSON.parse(mappingData))); } catch {}
@@ -778,7 +805,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v29-3"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-1"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -971,13 +998,13 @@ export default function Home() {
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        setFindMode(false);
-        setPaletteOpen((v) => !v);
+        setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);
+        setComputerOpen((v) => !v);
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
         e.preventDefault();setFindMode(true);setPaletteQuery("");setPaletteOpen(true);
       }
-      if (e.key === "Escape") setPaletteOpen(false);
+      if (e.key === "Escape") {setPaletteOpen(false);setComputerOpen(false);}
       if (
         (e.ctrlKey || e.metaKey) &&
         e.shiftKey &&
@@ -1180,6 +1207,7 @@ export default function Home() {
     else if (action==="tray") setTrayOpen(true);
     else if (action==="routines") setRoutineCenterOpen(true);
     else if (action==="communications") setHistoryOpen(true);
+    else if (action==="computer") {setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);}
   };
   const runTrayShortcut=(shortcut:TrayShortcut)=>{
     if(shortcut.kind==="page")setSection(shortcut.target);
@@ -1571,25 +1599,114 @@ export default function Home() {
       if(!window.confirm(step.prompt||step.target||"Continue this Operations routine?"))throw new Error("Operator declined the routine prompt");
     } else await new Promise((resolve)=>window.setTimeout(resolve,Math.max(0,Math.min(30000,Number(step.value??step.target)||0))));
   };
-  const executeRoutine=async(routine:Routine,steps=routine.steps,testRun=false)=>{
+  const executeRoutine=async(routine:Routine,steps=routine.steps,testRun=false,dryRun=false)=>{
     if(runningRoutine)return;
+    const startedAt=Date.now(),runtimeLimit=Math.max(5,routine.maxRuntimeSeconds||120)*1000;
     setPendingRoutine(null);setRunningRoutine(routine.id);
-    recordActivity(`${testRun?"Step test":"Routine"} ${routine.name}`,`${steps.length} step sequence started`,"running","ROUTINE");
+    recordActivity(`${dryRun?"Procedure dry run":testRun?"Step test":"Procedure"} ${routine.name}`,`${steps.length} step sequence ${dryRun?"validation":"started"}`,"running","ROUTINE");
     try{
       for(const step of steps){
+        if(Date.now()-startedAt>runtimeLimit)throw new Error(`Procedure exceeded its ${Math.round(runtimeLimit/1000)} second runtime limit`);
         if(!routineConditionMatches(step)){recordActivity(`Routine branch skipped`,`${routine.name} · ${describeRoutineStep(step)}`,"cancelled","ROUTINE");continue;}
+        if(dryRun)continue;
         if(step.delayMs)await new Promise((resolve)=>window.setTimeout(resolve,step.delayMs));
         let lastError:unknown=null,complete=false;
         for(let attempt=0;attempt<=(step.retries||0);attempt++)try{await executeRoutineStep(step);complete=true;break;}catch(error){lastError=error;if(attempt<(step.retries||0))await new Promise((resolve)=>window.setTimeout(resolve,350));}
         if(!complete){const detail=lastError instanceof Error?lastError.message:"Step failed";recordActivity(`Routine step failed`,`${routine.name} · ${detail}`,"attention","ROUTINE");if(step.onFailure!=="continue")throw lastError;}
         await new Promise((resolve)=>window.setTimeout(resolve,90));
       }
-      recordActivity(`${testRun?"Step test":"Routine"} ${routine.name}`,"All selected steps completed successfully","success","ROUTINE",true);notify(`${routine.name} ${testRun?"step test":"routine"} complete`,"info",true,"OPERATIONS AUTOMATION","priority");
+      routineLastRun.current.set(routine.id,Date.now());
+      recordActivity(`${dryRun?"Procedure dry run":testRun?"Step test":"Procedure"} ${routine.name}`,dryRun?"Conditions and execution path validated; no state was changed":"All selected steps completed successfully","success","ROUTINE",!dryRun&&computerProcedureReversible(routine));notify(`${routine.name} ${dryRun?"dry run":testRun?"step test":"procedure"} complete`,"info",true,"COMPUTER CORE","priority");
     }catch(error){const detail=error instanceof Error?error.message:"Routine failed";recordActivity(`Routine ${routine.name}`,detail,"attention","ROUTINE");notify(`${routine.name}: ${detail}`,"error",true,"OPERATIONS AUTOMATION","critical");}
     finally{setRunningRoutine("");}
   };
   const testRoutineStep=(routine:Routine,step:RoutineStep)=>{if(step.kind==="system"||step.kind==="command"){setPendingRoutine({...routine,name:`TEST · ${routine.name}`,steps:[step]});return;}void executeRoutine(routine,[step],true);};
   const requestRoutine=(routine:Routine)=>{if(!routine.enabled)return notify(`${routine.name} is disabled`,"error");setPendingRoutine(routine);};
+  const computerContext:ComputerContext=useMemo(()=>({
+    pages:[...nav.map((item)=>({id:item[0],name:item[2],aliases:item[0]==="overview"?["status","overview"]:[item[0]]})),...customPages.map((item)=>({id:`custom:${item.id}`,name:item.name}))],
+    apps:apps.map((item)=>({id:item.id,name:item.name,aliases:[item.comment]})),
+    procedures:routines.map((item)=>({id:item.id,name:item.name,aliases:[item.folder||"general","routine","procedure"]})),
+    workstations:profiles.map((item)=>({id:item.id,name:item.name,aliases:[item.layoutPreset||"desktop"]})),
+    themes:themes.map((item)=>({id:item.id,name:item.name,aliases:[item.family,item.code,item.id]})),
+  }),[apps,customPages,routines,profiles]);
+  const resolveComputerCommand=(input:string):ComputerPlan=>{
+    const base=interpretComputerCommand(input,computerContext,computerSource);
+    const steps=base.steps.map((item)=>{
+      if(item.command!=="run-procedure")return item;
+      const procedure=routines.find((candidate)=>candidate.id===item.target);
+      return procedure?{...item,risk:computerProcedureRisk(procedure),reversible:computerProcedureReversible(procedure)}:item;
+    });
+    const risk=highestComputerRisk(steps.map((item)=>item.risk));
+    const voiceAllowed=computerSource!=="voice"||prefs.voiceSecurity==="system"||steps.every((item)=>prefs.voiceSecurity==="applications"?["navigate","open-center","launch-app"].includes(item.command):["navigate","open-center"].includes(item.command));
+    return {...base,steps,risk,valid:base.valid&&voiceAllowed,status:base.valid&&voiceAllowed?"ready":"invalid",title:base.valid&&!voiceAllowed?"VOICE AUTHORITY LIMIT":base.title,summary:base.valid&&!voiceAllowed?`The selected ${prefs.voiceSecurity.toUpperCase()} voice authority does not permit one or more actions in this plan.`:base.summary,errors:base.valid&&!voiceAllowed?["Increase Voice Authority in Settings or enter this plan manually."]:base.errors,reversible:base.valid&&voiceAllowed&&steps.every((item)=>item.reversible),requiresConfirmation:steps.some((item)=>item.risk==="protected")};
+  };
+  const recordComputerAudit=(plan:ComputerPlan,status:ComputerAuditEntry["status"],detail:string)=>{
+    const entry:ComputerAuditEntry={id:createV25Id("computer-audit"),planId:plan.id,time:new Date().toISOString(),source:plan.source,input:plan.input,title:plan.title,detail,status,risk:plan.risk,stepCount:plan.steps.length,reversible:plan.reversible};
+    setComputerAudit((old)=>{const next=[entry,...old].slice(0,300);localStorage.setItem("lcars-computer-audit",JSON.stringify(next));return next;});
+    return entry;
+  };
+  const captureComputerUndo=(plan:ComputerPlan):ComputerUndoSnapshot=>({id:createV25Id("computer-undo"),planId:plan.id,createdAt:new Date().toISOString(),label:plan.title,section,theme,doNotDisturb,volume});
+  const executeComputerStep=async(step:ComputerPlanStep)=>{
+    if(step.requiresBridge&&!bridge)throw new Error(`${step.label} requires the installed Local Core`);
+    if(step.command==="navigate"){setSection(step.target);return;}
+    if(step.command==="launch-app"){
+      const app=apps.find((candidate)=>candidate.id===step.target);if(!app)throw new Error("Application is no longer installed");launch(app);return;
+    }
+    if(step.command==="run-procedure"){
+      const procedure=routines.find((candidate)=>candidate.id===step.target);if(!procedure)throw new Error("Procedure is no longer available");await executeRoutine(procedure);return;
+    }
+    if(step.command==="restore-workstation"){
+      const profile=profiles.find((candidate)=>candidate.id===step.target);if(!profile)throw new Error("Workstation is no longer available");applyProfile(profile);return;
+    }
+    if(step.command==="set-theme"){choose(step.target);return;}
+    if(step.command==="set-dnd"){setDoNotDisturb(step.value==="toggle"?!doNotDisturb:Boolean(step.value));return;}
+    if(step.command==="set-volume"){
+      const next=Math.max(0,Math.min(100,Number(step.value)||0));setVolume(next);
+      const response=await fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:next})});if(!response.ok)throw new Error("Master audio command was rejected");return;
+    }
+    if(step.command==="media-control"){
+      const player=players.find((item)=>item.status.toLowerCase()==="playing")||players[0];if(!player)throw new Error("No media session is active");
+      const response=await fetch("http://127.0.0.1:8765/api/media-control",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({player:player.id,command:step.target})});if(!response.ok)throw new Error("Media command was rejected");return;
+    }
+    if(step.command==="open-center"){
+      if(step.target==="computer")setComputerOpen(true);
+      else if(step.target==="procedures"){setComputerOpen(false);setRoutineCenterOpen(true);}
+      else if(step.target==="communications"){setComputerOpen(false);setHistoryOpen(true);}
+      else if(step.target==="calendar"){setComputerOpen(false);setCalendarOpen(true);}
+      else if(step.target==="displays"){setComputerOpen(false);setDisplayMenu(true);}
+      else if(step.target==="tray"){setComputerOpen(false);setTrayOpen(true);}
+      else if(step.target==="applications"){setComputerOpen(false);setAllOpen(true);}
+      return;
+    }
+    if(step.command==="core-action"||step.command==="system-action"){
+      const response=await fetch("http://127.0.0.1:8765/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:step.target})});const result=await response.json();if(!response.ok||result.error)throw new Error(result.error||"Local Core action failed");return;
+    }
+    if(step.command==="local-command"){
+      const response=await fetch("http://127.0.0.1:8765/api/routine-command",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({command:step.target,approved:true})});const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Approved command was rejected");
+    }
+  };
+  const executeComputerPlan=async(plan:ComputerPlan,dryRun:boolean)=>{
+    if(!plan.valid||computerRunning)return;
+    if(dryRun){recordComputerAudit(plan,"dry-run",`${plan.steps.length} actions validated; no system state was changed`);recordActivity("Computer Core dry run",plan.summary,"success","SYSTEM");notify("Computer Core dry run complete · no changes made","info",true,"COMPUTER CORE");return;}
+    if(plan.source==="voice"&&plan.requiresConfirmation&&prefs.voiceAuthorizationEnabled&&!computerVoiceAuthorized){recordComputerAudit(plan,"failed","Optional vocal authorization code was not verified");notify("Protected voice plan requires the configured vocal authorization code","error",true,"COMPUTER CORE","critical");return;}
+    setComputerRunning(true);
+    const snapshot=plan.reversible?captureComputerUndo(plan):null;
+    if(snapshot){setComputerUndo(snapshot);localStorage.setItem("lcars-computer-undo",JSON.stringify(snapshot));}
+    try{
+      for(const step of plan.steps)await executeComputerStep(step);
+      recordComputerAudit(plan,"completed",`${plan.steps.length} actions completed successfully`);recordActivity("Computer Core plan completed",plan.summary,"success","SYSTEM",plan.reversible);notify(`${plan.title} complete`,"info",true,"COMPUTER CORE","priority");
+    }catch(error){const detail=error instanceof Error?error.message:"Computer Core plan failed";recordComputerAudit(plan,"failed",detail);recordActivity("Computer Core plan failed",detail,"attention","SYSTEM",Boolean(snapshot));notify(detail,"error",true,"COMPUTER CORE","critical");}
+    finally{setComputerRunning(false);}
+  };
+  const undoComputerPlan=()=>{
+    if(!computerUndo||computerRunning)return;
+    const snapshot=computerUndo;setSection(snapshot.section);const restoredTheme=normalizeThemeId(snapshot.theme);setTheme(restoredTheme);localStorage.setItem("lcars-theme",restoredTheme);setDoNotDisturb(snapshot.doNotDisturb);setVolume(snapshot.volume);
+    if(bridge)fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:snapshot.volume})}).catch(()=>{});
+    const plan:ComputerPlan={id:snapshot.planId,input:`Undo ${snapshot.label}`,normalized:"undo",source:"operator",createdAt:new Date().toISOString(),status:"undone",valid:true,title:`UNDO · ${snapshot.label}`,summary:"Restored page, Display Matrix, Do Not Disturb, and master audio snapshot",confidence:1,risk:"safe",reversible:false,requiresConfirmation:false,steps:[],errors:[],suggestions:[]};
+    recordComputerAudit(plan,"undone",plan.summary);recordActivity("Computer Core undo",plan.summary,"success","SYSTEM");setComputerUndo(null);localStorage.removeItem("lcars-computer-undo");notify("Previous Computer Core state restored","info",true,"COMPUTER CORE");
+  };
+  const clearComputerAudit=()=>{setComputerAudit([]);localStorage.removeItem("lcars-computer-audit");};
+  const openVoiceComputer=(command:string,authorized:boolean)=>{setComputerSource("voice");setComputerVoiceAuthorized(authorized);setComputerSeed(command);setComputerOpen(true);};
   const refreshPadd=()=>{setPaddBusy("refresh");fetch("http://127.0.0.1:8765/api/padd-pairing").then(async(response)=>{const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"PADD link unavailable");setPaddStatus(result);}).catch((error)=>notify(error instanceof Error?error.message:"PADD link unavailable","error")).finally(()=>setPaddBusy(""));};
   const operatePadd=(operation:PaddOperation,device?:PaddDevice,payload:Record<string,unknown>={})=>{setPaddBusy(operation);fetch("http://127.0.0.1:8765/api/padd-pairing",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,id:device?.id||"",...payload})}).then(async(response)=>{const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"PADD operation failed");setPaddStatus(result);notify(result.message||"PADD registry updated");recordActivity("PADD connected operations",result.message||operation.toUpperCase(),"success","SYSTEM",true);}).catch((error)=>notify(error instanceof Error?error.message:"PADD operation failed","error")).finally(()=>setPaddBusy(""));};
   useEffect(()=>{
@@ -1612,7 +1729,7 @@ export default function Home() {
       workstations:profiles.map((profile)=>({id:profile.id,name:profile.name,detail:`${profile.widgets.length} MODULES · ${profile.theme.toUpperCase()}`})),
       quickActions,handoff:{page:section,title:`${section.toUpperCase()} CONSOLE`,updatedAt:Date.now()},
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
-      release:{stable:"29",development:"29.3",channel:prefs.updateChannel},
+      release:{stable:"29",development:"30.1",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -1654,12 +1771,19 @@ export default function Home() {
       else if(routine.trigger.type==="time"){const minute=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}:${now.getMinutes()}`;active=(routine.trigger.value||"")===`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;key+=`:${minute}`;}
       else if(routine.trigger.type==="app")active=tasks.some((task)=>`${task.app} ${task.name}`.toLowerCase().includes((routine.trigger.value||"").toLowerCase()));
       else if(routine.trigger.type==="device")active=audioDevices.some((device)=>`${device.id} ${device.name}`.toLowerCase().includes((routine.trigger.value||"").toLowerCase()));
-      if(!active){if(routine.trigger.type==="app"||routine.trigger.type==="device")routineTriggerGuard.current.delete(key);return;}
+      else if(routine.trigger.type==="battery-below"){const battery=engineering.sensors.find((sensor)=>sensor.kind==="battery");active=Boolean(battery)&&Number.parseFloat(battery?.value||"101")<=Math.max(1,Math.min(100,Number(routine.trigger.value)||20));}
+      else if(routine.trigger.type==="network"){const requested=(routine.trigger.value||"").toLowerCase();active=networkInfo.interfaces.some((item)=>item.state==="connected"&&(!requested||`${item.id} ${item.name} ${item.kind}`.toLowerCase().includes(requested)));}
+      else if(routine.trigger.type==="notice"){const requested=(routine.trigger.value||"").toLowerCase(),notice=notices.find((item)=>!item.archived&&(!requested||`${item.source||""} ${item.text}`.toLowerCase().includes(requested)));active=Boolean(notice);if(notice)key+=`:${Math.abs(notice.id)}`;}
+      else if(routine.trigger.type==="media"){const requested=(routine.trigger.value||"").toLowerCase();active=players.some((item)=>item.status.toLowerCase()==="playing"&&(!requested||`${item.name} ${item.artist} ${item.title}`.toLowerCase().includes(requested)));}
+      else if(routine.trigger.type==="station"){const requested=(routine.trigger.value||"").toLowerCase();active=Boolean(paddStatus?.devices?.some((item)=>item.online&&(!requested||`${item.id} ${item.name}`.toLowerCase().includes(requested))));}
+      else if(routine.trigger.type==="interval"){const minutes=Math.max(1,Math.min(1440,Number(routine.trigger.value)||15)),bucket=Math.floor(now.getTime()/(minutes*60000));active=true;key+=`:${bucket}`;}
+      if(!active){if(["app","device","battery-below","network","media","station"].includes(routine.trigger.type))routineTriggerGuard.current.delete(key);return;}
       if(routineTriggerGuard.current.has(key))return;routineTriggerGuard.current.add(key);
-      if(routineNeedsConfirmation(routine)){notify(`${routine.name} requires operator confirmation and was not run automatically`,"info",true,"OPERATIONS AUTOMATION","priority");recordActivity(`Routine ${routine.name}`,"Automatic trigger paused because the sequence contains protected steps","attention","ROUTINE");}
-      else void executeRoutine(routine);
+      const cooldown=Math.max(0,routine.cooldownSeconds||0)*1000,last=routineLastRun.current.get(routine.id)||0;if(cooldown&&Date.now()-last<cooldown)return;
+      if(routineNeedsConfirmation(routine)&&!routine.dryRunByDefault){notify(`${routine.name} requires operator confirmation and was not run automatically`,"info",true,"COMPUTER CORE","priority");recordActivity(`Procedure ${routine.name}`,"Automatic trigger paused because the sequence contains protected steps","attention","ROUTINE");}
+      else void executeRoutine(routine,routine.steps,false,Boolean(routine.dryRunByDefault));
     });
-  },[bridge,locked,clock,tasks,audioDevices,routines]);
+  },[bridge,locked,clock,tasks,audioDevices,routines,engineering,networkInfo,notices,players,paddStatus]);
   useEffect(()=>{
     if(!bridge||locked||!sessionRestore||workstationRestoreGuard.current||!defaultWorkstation)return;
     const profile=profiles.find((candidate)=>candidate.id===defaultWorkstation);if(!profile)return;
@@ -2104,7 +2228,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>29 STABLE</small>
+          <small>30.1 DEV</small>
         </button>
         <div className="title">
           <small>FEDERATION OPERATING ENVIRONMENT</small>
@@ -2125,7 +2249,7 @@ export default function Home() {
           </b>
           <small>{bridge ? "LOCAL CORE ONLINE" : "DEMO CORE"}</small>
         </button>
-        <button className="command-button" onClick={() => setPaletteOpen(true)}>
+        <button className="command-button" onClick={() => {setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);}}>
           COMMAND ⌘K
         </button>
         <button
@@ -2501,7 +2625,7 @@ export default function Home() {
                 lockCredential={lockCredential}
                 saveLockPassword={saveLockPassword}
                 removeLockPassword={removeLockPassword}
-                command={() => setPaletteOpen(true)}
+                command={() => {setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);}}
                 action={coreAction}
               />
               </>}
@@ -2534,7 +2658,8 @@ export default function Home() {
                 clearExtensionQuarantine={clearExtensionQuarantine}
               />
                 <div className="settings-grid settings-quick-grid">
-                <button onClick={()=>setRoutineCenterOpen(true)}><b>OPERATIONS AUTOMATION</b><small>BUILD, PREVIEW, AND RUN MULTI-STEP ROUTINES</small></button>
+                <button onClick={()=>{setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);}}><b>COMPUTER CORE</b><small>PLANS, DRY RUNS, AUDIT, AND UNDO</small></button>
+                <button onClick={()=>setRoutineCenterOpen(true)}><b>PROCEDURE BUILDER</b><small>BUILD, PREVIEW, AND TRIGGER MULTI-STEP PROCEDURES</small></button>
                 <button onClick={()=>setHistoryOpen(true)}><b>COMMUNICATIONS CENTER</b><small>NOTICES, PRIORITIES, AND COMMAND ACTIVITY</small></button>
                 <button onClick={() => setEditOpen(true)}>
                   <b>FAVORITE APPLICATIONS</b>
@@ -2562,8 +2687,8 @@ export default function Home() {
                   <small>LEARN THE LCARS DESKTOP CONTROLS</small>
                 </button>
                 <button onClick={()=>setWhatsNewOpen(true)}>
-                  <b>WHAT'S NEW IN VERSION 29</b>
-                  <small>REOPEN THE RELEASE ORIENTATION</small>
+                  <b>WHAT&apos;S NEW IN VERSION 30.1</b>
+                  <small>COMPUTER CORE DEVELOPMENT ORIENTATION</small>
                 </button>
                 <button onClick={() => coreAction("shell-mode-off")}>
                   <b>RECOVERY CONTROL</b>
@@ -2620,11 +2745,11 @@ export default function Home() {
         taskPinned={taskLocked || prefs.taskPinned}
         execute={runSpeedDial}
       />
-      <MobileCommandBar section={section} sheet={mobileSheet} navigate={(page)=>{setSection(page);setMobileSheet(null);}} applications={()=>{setAllOpen(true);setMobileSheet(null);}} commands={()=>setMobileSheet((current)=>current==="commands"?null:"commands")} communications={()=>{setHistoryOpen(true);setMobileSheet(null);}} more={()=>setMobileSheet((current)=>current==="more"?null:"more")} routines={()=>{setRoutineCenterOpen(true);setMobileSheet(null);}} tray={()=>{setTrayOpen(true);setMobileSheet(null);}} displays={()=>{setDisplayMenu(true);setMobileSheet(null);}} power={()=>{setPowerOpen(true);setMobileSheet(null);}} close={()=>setMobileSheet(null)}/>
+      <MobileCommandBar section={section} sheet={mobileSheet} navigate={(page)=>{setSection(page);setMobileSheet(null);}} applications={()=>{setAllOpen(true);setMobileSheet(null);}} commands={()=>setMobileSheet((current)=>current==="commands"?null:"commands")} communications={()=>{setHistoryOpen(true);setMobileSheet(null);}} more={()=>setMobileSheet((current)=>current==="more"?null:"more")} computer={()=>{setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);setMobileSheet(null);}} routines={()=>{setRoutineCenterOpen(true);setMobileSheet(null);}} tray={()=>{setTrayOpen(true);setMobileSheet(null);}} displays={()=>{setDisplayMenu(true);setMobileSheet(null);}} power={()=>{setPowerOpen(true);setMobileSheet(null);}} close={()=>setMobileSheet(null)}/>
       <TrayDrawer open={trayOpen} items={trayItems} shortcuts={trayShortcuts} close={() => setTrayOpen(false)} execute={runTrayShortcut} />
       {speedDialModule&&<div className="backdrop module-spotlight" onMouseDown={(event)=>event.target===event.currentTarget&&setSpeedDialModule(null)}><ResizablePopup popupKey="speed-dial-module" ariaModal={true}><header><div><small>SPEED DIAL MODULE</small><h3>{widgetMeta(speedDialModule).name}</h3></div><button onClick={()=>setSpeedDialModule(null)}>CLOSE ×</button></header>{renderWidget(speedDialModule)}</ResizablePopup></div>}
       {speedDialPages.map((peek)=><SpeedDialPagePeek key={peek.id} popupKey={`speed-dial-page-peek:${peek.id}`} page={peek.page} pinned={peek.pinned} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>savePagePeeks(speedDialPages.map((item)=>item.id===peek.id?{...item,pinned:!item.pinned}:item))} detach={()=>{window.open(`lcars://app/index.html?tool=page-peek&page=${encodeURIComponent(peek.page)}`,"_blank");savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id));}} close={()=>savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id))} openFull={(page)=>{savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id));setSection(page);}} />)}
-      {routineCenterOpen&&<RoutineCenter
+      {routineCenterOpen&&<ProcedureCenter
         routines={routines}
         apps={apps}
         profiles={profiles}
@@ -2637,9 +2762,9 @@ export default function Home() {
         testStep={testRoutineStep}
         close={()=>setRoutineCenterOpen(false)}
       />}
-      {pendingRoutine&&<RoutinePreview routine={pendingRoutine} describe={describeRoutineStep} running={runningRoutine===pendingRoutine.id} cancel={()=>setPendingRoutine(null)} run={()=>void executeRoutine(pendingRoutine)}/>}
+      {pendingRoutine&&<ProcedurePreview routine={pendingRoutine} describe={describeRoutineStep} running={runningRoutine===pendingRoutine.id} cancel={()=>setPendingRoutine(null)} dryRun={()=>void executeRoutine(pendingRoutine,pendingRoutine.steps,false,true)} run={()=>void executeRoutine(pendingRoutine)}/>}
       {startupVisible && prefs.startupSequence && <StartupTelemetry bridge={bridge} reduced={access.reducedMotion} />}
-      <VoiceControl prefs={prefs} apps={apps} extensions={extensions} routines={routines} navigate={setSection} launch={launch} requestRoutine={requestRoutine} action={coreAction} notify={notify} />
+      <VoiceControl prefs={prefs} computer={openVoiceComputer} notify={notify} />
       {detailOpen && <SystemDetail kind={detailOpen} details={systemDetails} close={() => setDetailOpen(null)} />}
       {firstRun && (
         <FirstRun
@@ -2654,8 +2779,24 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version29Welcome close={()=>{localStorage.setItem("lcars-whats-new-v29-3","1");setWhatsNewOpen(false);}} openConnected={()=>{localStorage.setItem("lcars-whats-new-v29-3","1");setWhatsNewOpen(false);setSettingsArea("connected");setSection("settings");}}/>}
+      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-1","1");setWhatsNewOpen(false);}} openComputer={()=>{localStorage.setItem("lcars-whats-new-v30-1","1");setWhatsNewOpen(false);setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
+      {computerOpen&&<ComputerCoreConsole
+        bridge={bridge}
+        procedures={routines.map((routine)=>({id:routine.id,name:routine.name,description:routine.description,trigger:routine.trigger.type,stepCount:routine.steps.length,enabled:routine.enabled,risk:computerProcedureRisk(routine),reversible:computerProcedureReversible(routine)}))}
+        audit={computerAudit}
+        undoSnapshot={computerUndo}
+        running={computerRunning||Boolean(runningRoutine)}
+        initialCommand={computerSeed}
+        voiceAuthorizationRequired={prefs.voiceAuthorizationEnabled}
+        voiceAuthorizationSatisfied={computerVoiceAuthorized}
+        resolve={resolveComputerCommand}
+        execute={executeComputerPlan}
+        undo={undoComputerPlan}
+        openBuilder={()=>{setComputerOpen(false);setRoutineCenterOpen(true);}}
+        clearAudit={clearComputerAudit}
+        close={()=>setComputerOpen(false)}
+      />}
       {paletteOpen && (
         <CommandPalette
           query={paletteQuery}
@@ -3229,8 +3370,8 @@ function UpdateCenter({
       <aside className="optional-components">
         <header><div><small>NONESSENTIAL SOFTWARE BAY</small><h4>OPTIONAL COMPONENTS</h4></div><em>SKIPPED ITEMS DO NOT AFFECT LCARS STATUS</em></header>
         <div>
-          <article><i className={health.voice?.available ? "ready" : ""}>V</i><span><b>OFFLINE VOICE ENGINE</b><small>{health.voice?.available ? "WHISPER.CPP AND AUDIO CONVERTER READY" : "NOT INSTALLED · LCARS REMAINS FULLY USABLE"}</small></span><button onClick={configureVoice}>{health.voice?.available ? "CONFIGURE" : "SET UP"}</button></article>
-          <article><i className={prefs.voiceModel ? "ready" : ""}>M</i><span><b>LOCAL SPEECH MODEL</b><small>{prefs.voiceModel ? "MODEL PATH CONFIGURED" : "OPTIONAL GGML MODEL NOT SELECTED"}</small></span><button onClick={configureVoice}>{prefs.voiceModel ? "CHANGE" : "SELECT"}</button></article>
+          <article><i className={health.voice?.available ? "ready" : ""}>V</i><span><b>OFFLINE VOICE ENGINE</b><small>{health.voice?.available ? "BUNDLED WHISPER.CPP + PCM RECORDER READY" : "NOT INSTALLED · LCARS REMAINS FULLY USABLE"}</small></span><button onClick={configureVoice}>{health.voice?.available ? "CONFIGURE" : "SET UP"}</button></article>
+          <article><i className={health.voice?.available || prefs.voiceModel ? "ready" : ""}>M</i><span><b>LOCAL SPEECH MODEL</b><small>{prefs.voiceModel ? "CUSTOM MODEL PATH CONFIGURED" : health.voice?.available ? "BUNDLED ENGLISH COMMAND MODEL READY" : "OPTIONAL GGML MODEL NOT SELECTED"}</small></span><button onClick={configureVoice}>{health.voice?.available || prefs.voiceModel ? "CHANGE" : "SELECT"}</button></article>
           <article><i className="ready">E</i><span><b>LCARS EXTENSIONS</b><small>DECLARATIVE MODULE BAY · MANUALLY INSTALLED</small></span><button onClick={() => action("extension-folder")}>OPEN BAY</button></article>
         </div>
       </aside>
@@ -3638,9 +3779,9 @@ function WorkspaceWindowPanel({windows,peeks,arrange,reset,closePeeks,command}:{
   return <section className="workspace-window-panel"><header><span><small>VERSION 29 WINDOW MATRIX</small><b>POPUP WORKSPACE</b></span><strong>{String(windows.length).padStart(2,"0")}<small>ACTIVE</small></strong></header><p>Drag popup headers, resize from every edge, or use the window controls to minimize and snap. Live placement previews show each snap zone. Positions, dimensions, and stacking restore with the selected Workstation.</p><div><button onClick={arrange}><b>AUTO ARRANGE</b><small>TILE OPEN WINDOWS</small></button><button onClick={reset}><b>RESET LAYOUT</b><small>RESTORE SAFE DEFAULTS</small></button><button disabled={!peeks} onClick={closePeeks}><b>CLOSE PAGE PEEKS</b><small>{peeks} OPEN PREVIEW{peeks===1?"":"S"}</small></button></div>{windows.length>0&&<section className="workspace-window-manager"><header><b>LIVE WINDOW MANAGER</b><small>FOCUS OR MINIMIZE WITHOUT HUNTING THROUGH THE STACK</small></header>{windows.map((key,index)=><article key={key}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label(key).toUpperCase()}</b><small>{layouts[key]?.minimized?"MINIMIZED":layouts[key]?.snap&&layouts[key].snap!=="none"?`SNAPPED ${layouts[key].snap.toUpperCase()}`:"FLOATING"}</small></span><button onClick={()=>command(key,"focus")}>FOCUS</button><button onClick={()=>command(key,"toggle-minimize")}>{layouts[key]?.minimized?"RESTORE":"MINIMIZE"}</button></article>)}</section>}</section>;
 }
 
-function MobileCommandBar({section,sheet,navigate,applications,commands,communications,more,routines,tray,displays,power,close}:{section:string;sheet:"commands"|"more"|null;navigate:(page:string)=>void;applications:()=>void;commands:()=>void;communications:()=>void;more:()=>void;routines:()=>void;tray:()=>void;displays:()=>void;power:()=>void;close:()=>void}){
+function MobileCommandBar({section,sheet,navigate,applications,commands,communications,more,computer,routines,tray,displays,power,close}:{section:string;sheet:"commands"|"more"|null;navigate:(page:string)=>void;applications:()=>void;commands:()=>void;communications:()=>void;more:()=>void;computer:()=>void;routines:()=>void;tray:()=>void;displays:()=>void;power:()=>void;close:()=>void}){
   const item=(page:string,label:string,code:string)=><button className={section===page?"active":""} onClick={()=>navigate(page)}><i>{code}</i><span>{label}</span></button>;
-  return <><nav className="mobile-command-bar" aria-label="PADD navigation">{item("overview","STATUS","01")}<button onClick={applications}><i>02</i><span>APPS</span></button><button className={sheet==="commands"?"active":""} onClick={commands}><i>03</i><span>COMMAND</span></button><button onClick={communications}><i>04</i><span>COMMS</span></button><button className={sheet==="more"?"active":""} onClick={more}><i>05</i><span>MORE</span></button></nav>{sheet&&<div className="mobile-sheet-scrim" onPointerDown={(event)=>event.target===event.currentTarget&&close()}><section className="mobile-command-sheet" aria-label={sheet==="commands"?"PADD command sheet":"PADD page sheet"}><header><span><small>LCARS PADD</small><b>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</b></span><button onClick={close}>CLOSE ×</button></header>{sheet==="commands"?<div className="mobile-sheet-grid"><button onClick={routines}><i>01</i><b>ROUTINES</b><small>OPERATIONS AUTOMATION</small></button><button onClick={tray}><i>02</i><b>TRAY DECK</b><small>APPLICATIONS & SERVICES</small></button><button onClick={displays}><i>03</i><b>DISPLAYS</b><small>MONITOR ROUTING</small></button><button onClick={power}><i>04</i><b>POWER</b><small>PROTECTED CONTROLS</small></button></div>:<div className="mobile-sheet-grid page-grid">{item("terminal","TERMINAL","02")}{item("files","FILES","03")}{item("system","SYSTEMS","04")}{item("media","MEDIA","05")}{item("network","NETWORK","06")}{item("updates","UPDATES","07")}{item("settings","SETTINGS","08")}</div>}</section></div>}</>;
+  return <><nav className="mobile-command-bar" aria-label="PADD navigation">{item("overview","STATUS","01")}<button onClick={applications}><i>02</i><span>APPS</span></button><button className={sheet==="commands"?"active":""} onClick={commands}><i>03</i><span>COMMAND</span></button><button onClick={communications}><i>04</i><span>COMMS</span></button><button className={sheet==="more"?"active":""} onClick={more}><i>05</i><span>MORE</span></button></nav>{sheet&&<div className="mobile-sheet-scrim" onPointerDown={(event)=>event.target===event.currentTarget&&close()}><section className="mobile-command-sheet" aria-label={sheet==="commands"?"PADD command sheet":"PADD page sheet"}><header><span><small>LCARS PADD</small><b>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</b></span><button onClick={close}>CLOSE ×</button></header>{sheet==="commands"?<div className="mobile-sheet-grid"><button onClick={computer}><i>01</i><b>COMPUTER CORE</b><small>NATURAL LANGUAGE PLANS</small></button><button onClick={routines}><i>02</i><b>PROCEDURES</b><small>OPERATIONS AUTOMATION</small></button><button onClick={tray}><i>03</i><b>TRAY DECK</b><small>APPLICATIONS & SERVICES</small></button><button onClick={displays}><i>04</i><b>DISPLAYS</b><small>MONITOR ROUTING</small></button><button onClick={power}><i>05</i><b>POWER</b><small>PROTECTED CONTROLS</small></button></div>:<div className="mobile-sheet-grid page-grid">{item("terminal","TERMINAL","02")}{item("files","FILES","03")}{item("system","SYSTEMS","04")}{item("media","MEDIA","05")}{item("network","NETWORK","06")}{item("updates","UPDATES","07")}{item("settings","SETTINGS","08")}</div>}</section></div>}</>;
 }
 
 function DesktopExperience({
@@ -3938,6 +4079,12 @@ function LockPasswordControl({credential,save,remove}:{credential:LockCredential
   return <div className="lock-password-control"><small>{credential?"PASSWORD PROTECTION ACTIVE":"PASSWORD PROTECTION OPTIONAL"}</small><input type="password" autoComplete="new-password" placeholder={credential?"NEW PASSWORD":"CREATE PASSWORD"} value={password} onChange={(e)=>setPassword(e.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={confirm} onChange={(e)=>setConfirm(e.target.value)}/><nav><button onClick={submit}>{credential?"CHANGE PASSWORD":"ENABLE PASSWORD"}</button>{credential&&<button onClick={()=>{remove();setStatus("PASSWORD REMOVED");}}>REMOVE</button>}</nav>{status&&<em>{status}</em>}</div>;
 }
 
+function VoiceAuthorizationControl({enabled,credential,change}:{enabled:boolean;credential:LockCredential|null;change:(enabled:boolean,credential:LockCredential|null)=>void}){
+  const [phrase,setPhrase]=useState(""),[confirm,setConfirm]=useState(""),[status,setStatus]=useState("");
+  const save=async()=>{const normalized=phrase.trim().toLowerCase();if(normalized.length<4)return setStatus("USE AT LEAST 4 CHARACTERS");if(normalized!==confirm.trim().toLowerCase())return setStatus("AUTHORIZATION PHRASES DO NOT MATCH");const next=await createLockCredential(normalized);change(true,next);setPhrase("");setConfirm("");setStatus("VOCAL AUTHORIZATION CODE HASH SAVED");};
+  return <div className="lock-password-control voice-authorization-control"><small>{credential?enabled?"VOCAL AUTHORIZATION GATE ACTIVE":"VOCAL CODE SAVED · GATE DISABLED":"VOCAL AUTHORIZATION OPTIONAL"}</small><p>For protected voice plans, say “authorization” followed by this private phrase. LCARS stores only a salted hash. The phrase is a secondary gate and never becomes an operating-system or sudo password.</p><input type="password" autoComplete="new-password" placeholder={credential?"NEW VOCAL CODE PHRASE":"CREATE VOCAL CODE PHRASE"} value={phrase} onChange={(event)=>setPhrase(event.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM VOCAL CODE PHRASE" value={confirm} onChange={(event)=>setConfirm(event.target.value)}/><nav><button onClick={()=>void save()}>{credential?"CHANGE CODE":"SET CODE + ENABLE"}</button>{credential&&<button onClick={()=>change(!enabled,credential)}>{enabled?"DISABLE GATE":"ENABLE GATE"}</button>}{credential&&<button onClick={()=>{change(false,null);setStatus("VOCAL CODE REMOVED");}}>REMOVE</button>}</nav>{status&&<em>{status}</em>}</div>;
+}
+
 function LockScreen({userName,credential,profiles,activeProfile,defaultWorkstation,chooseProfile,setDefaultWorkstation,power,unlock}:{userName:string;credential:LockCredential|null;profiles:WorkspaceProfile[];activeProfile:string;defaultWorkstation:string;chooseProfile:(profile:WorkspaceProfile)=>void;setDefaultWorkstation:(id:string)=>void;power:()=>void;unlock:()=>void}) {
   const [password,setPassword]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);
   const authorize=async()=>{if(!credential)return unlock();setBusy(true);const valid=await verifyLockCredential(password,credential).catch(()=>false);setBusy(false);if(valid)unlock();else{setError("AUTHORIZATION DENIED");setPassword("");}};
@@ -4066,11 +4213,12 @@ function ShellSettings({
           <h4>OFFLINE VOICE CONTROL</h4>
           <Toggle label="Enable push-to-talk" description="Shows a local microphone control. Audio is sent only to the loopback bridge and processed by whisper.cpp on this PC." checked={prefs.voiceEnabled} change={(v) => set("voiceEnabled", v)} />
           <Toggle label="Require 'Computer' wake phrase" description="Ignores recognized commands that do not begin with Computer." checked={prefs.voiceWakePhrase} change={(v) => set("voiceWakePhrase", v)} />
-          <label>WHISPER.CPP EXECUTABLE<small>Full local path to whisper-cli (or compatible whisper.cpp CLI).</small><input value={prefs.voiceEngine} placeholder="/usr/bin/whisper-cli" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
-          <label>LOCAL MODEL FILE<small>Full path to a downloaded whisper.cpp GGML model. Models are not uploaded.</small><input value={prefs.voiceModel} placeholder="~/Models/ggml-base.en.bin" onChange={(e) => set("voiceModel", e.target.value)} /></label>
+          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30.1 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
+          <label>LOCAL MODEL FILE · OPTIONAL OVERRIDE<small>The bundled English command model works out of the box. A custom GGML model remains entirely local.</small><input value={prefs.voiceModel} placeholder="BUNDLED TINY.EN MODEL (AUTOMATIC)" onChange={(e) => set("voiceModel", e.target.value)} /></label>
           <VoiceDeviceSelect value={prefs.voiceDevice} change={(value) => set("voiceDevice", value)} />
           <label>VOICE AUTHORITY<small>Higher levels permit more command categories; power and unmount commands always require confirmation.</small><select value={prefs.voiceSecurity} onChange={(e) => set("voiceSecurity", e.target.value as ShellPrefs["voiceSecurity"])}><option value="navigation">NAVIGATION ONLY</option><option value="applications">NAVIGATION + APPLICATIONS</option><option value="system">SYSTEM CONTROL</option></select></label>
-          <div className="voice-training"><small>COMMAND TRAINING</small><p>“Computer, open Media” · “Show Systems” · “Launch Spotify” · “Check updates”</p><p>Use the exact visible application name for launching. Protected power and removable-storage commands always continue in a confirmation panel.</p></div>
+          <VoiceAuthorizationControl enabled={prefs.voiceAuthorizationEnabled} credential={prefs.voiceAuthorizationCredential} change={(voiceAuthorizationEnabled,voiceAuthorizationCredential)=>setPrefs({...prefs,voiceAuthorizationEnabled,voiceAuthorizationCredential})}/>
+          <div className="voice-training"><small>COMMAND TRAINING</small><p>“Computer, open Media then set volume to 40” · “Run Evening Operations” · “Check updates”</p><p>{prefs.voiceAuthorizationEnabled?"For a protected plan, append: authorization [your private code phrase]. The code is removed before the command enters history.":"Protected voice plans require the visible confirmation gate. Optional vocal authorization can be enabled above."}</p></div>
         </section>
         <section>
           <h4>EMBEDDED TERMINAL</h4>
@@ -4242,6 +4390,59 @@ function ControlMappingEditor({mappings,routines,change}:{mappings:ControlMappin
   return <section className="control-mapping-editor v25-settings-panel"><header><div><small>KEYBOARD / CONTROL SURFACE ADAPTER</small><h4>CONTROL MAPPINGS</h4><p>Assign keyboard combinations to pages, routines, and command centers. Select a key field, then press the complete combination you want to use.</p></div><b>{mappings.length}/24</b></header><div>{mappings.map((mapping,index)=><article key={mapping.id}><label className="mapping-enabled"><input type="checkbox" checked={mapping.enabled} onChange={(event)=>update(mapping.id,{enabled:event.target.checked})}/><span>{String(index+1).padStart(2,"0")}</span></label><input className="mapping-shortcut" readOnly value={mapping.shortcut} aria-label={`Keyboard mapping ${index+1}`} onKeyDown={(event)=>{event.preventDefault();event.stopPropagation();const shortcut=eventShortcut(event.nativeEvent);if(shortcut&&!shortcut.endsWith("CTRL")&&!shortcut.endsWith("ALT")&&!shortcut.endsWith("SHIFT")&&!shortcut.endsWith("META"))update(mapping.id,{shortcut});}}/><select value={mapping.target} onChange={(event)=>{const selected=targets.find((item)=>item.value===event.target.value);update(mapping.id,{target:event.target.value,label:selected?.label||mapping.label});}}>{!targets.some((item)=>item.value===mapping.target)&&<option value={mapping.target}>UNAVAILABLE · {mapping.label}</option>}{targets.map((target)=><option value={target.value} key={target.value}>{target.label}</option>)}</select><button onClick={()=>change(mappings.filter((item)=>item.id!==mapping.id))}>REMOVE</button></article>)}</div><button disabled={mappings.length>=24} onClick={add}>+ ADD CONTROL MAPPING</button></section>;
 }
 
+function ProcedureCenter({routines,apps,profiles,devices,players,running,history,save,request,testStep,close}:{routines:Routine[];apps:App[];profiles:WorkspaceProfile[];devices:AudioDevice[];players:Player[];running:string;history:ActivityEntry[];save:(items:Routine[])=>void;request:(routine:Routine)=>void;testStep:(routine:Routine,step:RoutineStep)=>void;close:()=>void}){
+  const [selected,setSelected]=useState(routines[0]?.id||""),[showHistory,setShowHistory]=useState(false);
+  const procedure=routines.find((item)=>item.id===selected)||null;
+  useEffect(()=>{if(selected&&!routines.some((item)=>item.id===selected))setSelected(routines[0]?.id||"");},[routines,selected]);
+  const update=(patch:Partial<Routine>)=>procedure&&save(routines.map((item)=>item.id===procedure.id?{...item,...patch}:item));
+  const add=()=>{const item:Routine={id:createV25Id("routine"),name:`PROCEDURE ${routines.length+1}`,description:"Operator-defined Computer Core procedure",folder:"GENERAL",color:"orange",enabled:true,trigger:{type:"manual"},steps:[{id:createV25Id("step"),kind:"page",target:"overview",delayMs:0,retries:0,onFailure:"stop"}],cooldownSeconds:0,maxRuntimeSeconds:120,dryRunByDefault:false};save([...routines,item]);setSelected(item.id);setShowHistory(false);};
+  const duplicate=()=>{if(!procedure)return;const copy:Routine={...procedure,id:createV25Id("routine"),name:`${procedure.name} COPY`.slice(0,40),steps:procedure.steps.map((step)=>({...step,id:createV25Id("step")}))};save([...routines,copy]);setSelected(copy.id);};
+  const choices=(kind:RoutineStepKind)=>kind==="page"?nav.map((page)=>({value:page[0],label:page[2]})):kind==="app"?apps.map((app)=>({value:app.id,label:app.name})):kind==="workstation"?profiles.map((profile)=>({value:profile.id,label:profile.name})):kind==="theme"?themes.map((entry)=>({value:entry.id,label:entry.name})):kind==="dnd"?[{value:"true",label:"ENABLE"},{value:"false",label:"DISABLE"}]:kind==="audio-device"?devices.map((device)=>({value:device.id,label:`${device.kind.toUpperCase()} · ${device.name}`})):kind==="media"?[...players.flatMap((player)=>["play-pause","previous","next","stop"].map((command)=>({value:`${player.id}|${command}`,label:`${player.name} · ${command.toUpperCase()}`}))),{value:"play-pause",label:"ACTIVE PLAYER · PLAY/PAUSE"}]:kind==="system"?[{value:"sleep",label:"SLEEP COMPUTER"},{value:"reboot",label:"RESTART COMPUTER"},{value:"poweroff",label:"SHUT DOWN COMPUTER"}]:kind==="command"?[{value:"refresh-applications",label:"REFRESH APPLICATION INVENTORY"},{value:"integration-recheck",label:"RECHECK LOCAL INTEGRATIONS"},{value:"open-system-monitor",label:"OPEN SYSTEM MONITOR"},{value:"open-software-center",label:"OPEN SOFTWARE CENTER"}]:[];
+  const updateStep=(id:string,patch:Partial<RoutineStep>)=>procedure&&update({steps:procedure.steps.map((step)=>step.id===id?{...step,...patch}:step)});
+  const moveStep=(index:number,direction:number)=>{if(!procedure)return;const target=index+direction;if(target<0||target>=procedure.steps.length)return;const steps=[...procedure.steps];[steps[index],steps[target]]=[steps[target],steps[index]];update({steps});};
+  const addStep=()=>{if(!procedure||procedure.steps.length>=48)return;update({steps:[...procedure.steps,{id:createV25Id("step"),kind:"page",target:"overview",delayMs:0,retries:0,onFailure:"stop"}]});};
+  const triggerValue=procedure&&!["manual","startup"].includes(procedure.trigger.type),triggerType=procedure?.trigger.type==="time"?"time":procedure?.trigger.type==="battery-below"||procedure?.trigger.type==="interval"?"number":"text";
+  const triggerPlaceholder=procedure?.trigger.type==="app"?"APPLICATION NAME":procedure?.trigger.type==="device"?"AUDIO DEVICE":procedure?.trigger.type==="battery-below"?"BATTERY PERCENT":procedure?.trigger.type==="network"?"NETWORK NAME OR BLANK":procedure?.trigger.type==="notice"?"NOTICE TEXT OR SOURCE":procedure?.trigger.type==="media"?"PLAYER, ARTIST, OR TITLE":procedure?.trigger.type==="station"?"PADD NAME OR BLANK":procedure?.trigger.type==="interval"?"MINUTES":"TRIGGER VALUE";
+  return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
+    <section className="routine-center procedure-center" role="dialog" aria-modal="true" aria-label="Computer Core Procedure Builder">
+      <header><div><small>VERSION 30.1 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
+      <div className="routine-center-layout">
+        <aside><button onClick={add}>+ NEW PROCEDURE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO PROCEDURES CONFIGURED</p>}</aside>
+        {showHistory?<main className="routine-run-history"><header><small>COMPUTER CORE EXECUTION JOURNAL</small><h3>PROCEDURE HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO PROCEDURE EXECUTIONS RECORDED</p>}</main>:procedure?<main>
+          <div className="routine-fields procedure-fields">
+            <label>PROCEDURE NAME<input maxLength={40} value={procedure.name} onChange={(event)=>update({name:event.target.value})}/></label>
+            <label>FOLDER<input maxLength={40} value={procedure.folder||"GENERAL"} onChange={(event)=>update({folder:event.target.value})}/></label>
+            <label>DESCRIPTION<input maxLength={160} value={procedure.description} onChange={(event)=>update({description:event.target.value})}/></label>
+            <label>COLOR<select value={procedure.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></select></label>
+            <label>TRIGGER<select value={procedure.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="interval">REPEATING INTERVAL</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option><option value="battery-below">BATTERY BELOW</option><option value="network">NETWORK CONNECTED</option><option value="notice">NOTICE RECEIVED</option><option value="media">MEDIA PLAYING</option><option value="station">PADD STATION ONLINE</option></select></label>
+            {triggerValue&&<label>TRIGGER VALUE<input type={triggerType} min={procedure.trigger.type==="battery-below"?1:procedure.trigger.type==="interval"?1:undefined} max={procedure.trigger.type==="battery-below"?100:procedure.trigger.type==="interval"?1440:undefined} value={procedure.trigger.value||""} placeholder={triggerPlaceholder} onChange={(event)=>update({trigger:{...procedure.trigger,value:event.target.value}})}/></label>}
+            <label>COOLDOWN SECONDS<input type="number" min="0" max="86400" value={procedure.cooldownSeconds||0} onChange={(event)=>update({cooldownSeconds:+event.target.value})}/></label>
+            <label>MAXIMUM RUNTIME SECONDS<input type="number" min="5" max="3600" value={procedure.maxRuntimeSeconds||120} onChange={(event)=>update({maxRuntimeSeconds:+event.target.value})}/></label>
+            <Toggle label="Procedure enabled" checked={procedure.enabled} change={(enabled)=>update({enabled})}/>
+            <Toggle label="Trigger performs a dry run" description="Evaluate and log the path without changing system state." checked={Boolean(procedure.dryRunByDefault)} change={(dryRunByDefault)=>update({dryRunByDefault})}/>
+          </div>
+          <section className="routine-steps"><header><div><small>EXECUTION ORDER · CONDITIONS · FAILURE PATHS</small><h3>PROCEDURE STEPS</h3></div><b>{procedure.steps.length}/48</b></header>
+            {procedure.steps.map((step,index)=>{const stepChoices=choices(step.kind),selectable=stepChoices.length>0;return <article className="routine-step-v26" key={step.id}>
+              <i>{String(index+1).padStart(2,"0")}</i>
+              <select value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=choices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined,prompt:kind==="prompt"?"Continue this procedure?":undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="prompt">OPERATOR PROMPT</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></select>
+              {step.kind==="prompt"?<input aria-label="Operator prompt" value={step.prompt||""} placeholder="ASK THE OPERATOR…" onChange={(event)=>updateStep(step.id,{prompt:event.target.value,target:event.target.value})}/>:selectable?<select value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!stepChoices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{stepChoices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</select>:<label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label>}
+              <nav><button title="Test this step" disabled={Boolean(running)} onClick={()=>testStep(procedure,step)}>TEST</button><button disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</button><button disabled={index===procedure.steps.length-1} onClick={()=>moveStep(index,1)}>↓</button><button disabled={procedure.steps.length<=1} onClick={()=>update({steps:procedure.steps.filter((item)=>item.id!==step.id)})}>×</button></nav>
+              <details><summary>CONDITION / TIMING / FAILURE</summary><div><label>RUN WHEN<select value={step.condition?.source||""} onChange={(event)=>updateStep(step.id,{condition:event.target.value?{source:event.target.value as NonNullable<RoutineStep["condition"]>["source"],operator:"available"}:undefined})}><option value="">ALWAYS</option><option value="bridge">LOCAL CORE</option><option value="media">MEDIA</option><option value="application">APPLICATION</option><option value="device">AUDIO DEVICE</option><option value="dnd">DO NOT DISTURB</option></select></label>{step.condition&&<><label>CONDITION<select value={step.condition.operator} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,operator:event.target.value as NonNullable<RoutineStep["condition"]>["operator"]}})}><option value="available">AVAILABLE</option><option value="unavailable">UNAVAILABLE</option><option value="equals">EQUALS</option><option value="not-equals">DOES NOT EQUAL</option></select></label><label>MATCH VALUE<input value={step.condition.value||""} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,value:event.target.value}})}/></label></>}<label>DELAY MS<input type="number" min="0" max="30000" value={step.delayMs||0} onChange={(event)=>updateStep(step.id,{delayMs:+event.target.value})}/></label><label>RETRIES<input type="number" min="0" max="5" value={step.retries||0} onChange={(event)=>updateStep(step.id,{retries:+event.target.value})}/></label><label>IF FAILED<select value={step.onFailure||"stop"} onChange={(event)=>updateStep(step.id,{onFailure:event.target.value as "stop"|"continue"})}><option value="stop">STOP PROCEDURE</option><option value="continue">CONTINUE TO NEXT STEP</option></select></label></div></details>
+            </article>;})}
+            <button disabled={procedure.steps.length>=48} onClick={addStep}>+ ADD STEP</button>
+          </section>
+          <footer><button className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==procedure.id));setSelected("");}}>DELETE PROCEDURE</button><button onClick={duplicate}>DUPLICATE</button><button disabled={!procedure.steps.length||running===procedure.id} onClick={()=>request(procedure)}>{running===procedure.id?"PROCEDURE RUNNING…":"PREVIEW PROCEDURE"}</button></footer>
+        </main>:<div className="adaptive-empty"><b>CREATE A COMPUTER CORE PROCEDURE</b><small>Start with a page change, then add conditions, applications, audio controls, workstation restore, operator prompts, or guarded system actions.</small></div>}
+      </div>
+    </section>
+  </div>;
+}
+
+function ProcedurePreview({routine,describe,running,cancel,dryRun,run}:{routine:Routine;describe:(step:RoutineStep)=>string;running:boolean;cancel:()=>void;dryRun:()=>void;run:()=>void}){
+  const risk=computerProcedureRisk(routine),protectedSteps=risk==="protected",reversible=computerProcedureReversible(routine);
+  return <div className="backdrop routine-preview-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&!running&&cancel()}><section className="routine-preview" role="alertdialog" aria-modal="true"><header><div><small>{protectedSteps?"PROTECTED OPERATOR CONFIRMATION":"COMPUTER CORE PROCEDURE PREVIEW"}</small><h2>{routine.name}</h2><p>{routine.description||"Operator-defined Computer Core procedure"}</p></div><i className={protectedSteps?"protected":"ready"}>{protectedSteps?"CONFIRM":risk==="attention"?"OPERATING":"SAFE"}</i></header><ol>{routine.steps.map((step,index)=><li key={step.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{describe(step)}</b><small>{step.kind.toUpperCase()}{step.kind==="system"||step.kind==="command"?" · PROTECTED":""}{["page","theme","dnd","volume"].includes(step.kind)?" · REVERSIBLE":""}</small></span></li>)}</ol><footer><span>{reversible?"THIS PROCEDURE CAN BE UNDONE":"ONE OR MORE STEPS CANNOT BE AUTOMATICALLY REVERSED"}</span><button disabled={running} onClick={cancel}>CANCEL</button><button disabled={running} onClick={dryRun}>DRY RUN</button><button className={protectedSteps?"protected":""} disabled={running} onClick={run}>{running?"EXECUTING…":protectedSteps?"CONFIRM & RUN":"RUN PROCEDURE"}</button></footer></section></div>;
+}
+
 function RoutineCenter({routines,apps,profiles,devices,players,running,history,save,request,testStep,close}:{routines:Routine[];apps:App[];profiles:WorkspaceProfile[];devices:AudioDevice[];players:Player[];running:string;history:ActivityEntry[];save:(items:Routine[])=>void;request:(routine:Routine)=>void;testStep:(routine:Routine,step:RoutineStep)=>void;close:()=>void}){
   const [selected,setSelected]=useState(routines[0]?.id||""),[showHistory,setShowHistory]=useState(false);
   const routine=routines.find((item)=>item.id===selected)||null;
@@ -4331,36 +4532,39 @@ function ExtensionSettings({extensions}:{extensions:ExtensionManifest[]}){const 
 function ExtensionSettingGroup({extension}:{extension:ExtensionManifest}){const key=`lcars-extension-state:${extension.id}`,[values,setValues]=useState<Record<string,unknown>>(()=>{try{return JSON.parse(localStorage.getItem(key)||"{}");}catch{return{};}});const save=(name:string,value:unknown)=>{const next={...values,[name]:value};setValues(next);localStorage.setItem(key,JSON.stringify(next));fetch("http://127.0.0.1:8765/api/extension-state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:extension.id,state:next})}).catch(()=>{});};return <article><h4>{extension.name.toUpperCase()} <small>API {extension.apiVersion}</small></h4>{extension.settings.map((setting)=>{const value=values[setting.key]??setting.default??"";return <label key={setting.key}>{setting.label}<small>{setting.description}</small>{setting.type==="toggle"?<input type="checkbox" checked={Boolean(value)} onChange={(event)=>save(setting.key,event.target.checked)}/>:setting.type==="select"?<select value={String(value)} onChange={(event)=>save(setting.key,event.target.value)}>{setting.options?.map((option)=><option key={option}>{option}</option>)}</select>:<input type={setting.type==="number"?"number":"text"} value={String(value)} onChange={(event)=>save(setting.key,setting.type==="number"?Number(event.target.value):event.target.value)}/>}</label>;})}</article>;}
 function VoiceDeviceSelect({value,change}:{value:string;change:(value:string)=>void}) { const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);useEffect(()=>{navigator.mediaDevices?.enumerateDevices().then((items)=>setDevices(items.filter((item)=>item.kind==="audioinput"))).catch(()=>{});},[]);return <label>VOICE MICROPHONE<small>Select the input used by push-to-talk. Grant microphone permission once to reveal device names.</small><select value={value} onChange={(event)=>change(event.target.value)}><option value="">SYSTEM DEFAULT</option>{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`MICROPHONE ${index+1}`}</option>)}</select></label>; }
 
-function VoiceControl({ prefs, apps, extensions, routines, navigate, launch, requestRoutine, action, notify }: { prefs: ShellPrefs; apps: App[]; extensions: ExtensionManifest[]; routines: Routine[]; navigate: (page: string) => void; launch: (app: App) => void; requestRoutine: (routine: Routine) => void; action: (value: string) => void; notify: (text: string, kind?: "info" | "error") => void }) {
+function pcmWavBlob(frames:Float32Array[],sampleRate:number){
+  const length=frames.reduce((sum,frame)=>sum+frame.length,0),buffer=new ArrayBuffer(44+length*2),view=new DataView(buffer);
+  const text=(offset:number,value:string)=>Array.from(value).forEach((character,index)=>view.setUint8(offset+index,character.charCodeAt(0)));
+  text(0,"RIFF");view.setUint32(4,36+length*2,true);text(8,"WAVE");text(12,"fmt ");view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,1,true);view.setUint32(24,sampleRate,true);view.setUint32(28,sampleRate*2,true);view.setUint16(32,2,true);view.setUint16(34,16,true);text(36,"data");view.setUint32(40,length*2,true);
+  let offset=44;for(const frame of frames)for(const sample of frame){const clamped=Math.max(-1,Math.min(1,sample));view.setInt16(offset,clamped<0?clamped*32768:clamped*32767,true);offset+=2;}
+  return new Blob([buffer],{type:"audio/wav"});
+}
+function blobDataUrl(blob:Blob){return new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(reader.error);reader.onload=()=>resolve(String(reader.result));reader.readAsDataURL(blob);});}
+
+function VoiceControl({ prefs, computer, notify }: { prefs: ShellPrefs; computer: (command:string,authorized:boolean) => void; notify: (text: string, kind?: "info" | "error") => void }) {
   const [listening, setListening] = useState(false), [busy, setBusy] = useState(false), [history, setHistory] = useState<string[]>([]);
-  const recorder = useRef<MediaRecorder | null>(null), chunks = useRef<Blob[]>([]);
+  const stopRecorder = useRef<null|(()=>void)>(null);
   if (!prefs.voiceEnabled) return null;
   const affirmative = () => { const audio = new Audio("/assets/sounds/voice-affirmative.mp3"); audio.volume = 0.5; audio.play().catch(() => {}); };
-  const execute = (raw: string) => {
-    let text = raw.trim().toLowerCase().replace(/[.,!?]/g, "");setHistory((old) => [raw, ...old].slice(0, 8));
+  const execute = async (raw: string) => {
+    let text = raw.trim().toLowerCase().replace(/[.,!?]/g, "");
     if (prefs.voiceWakePhrase) { if (!text.startsWith("computer")) return notify("Voice phrase ignored — say Computer first", "error"); text=text.replace(/^computer\s*/, ""); }
-    const pages: Record<string,string> = { overview:"overview", status:"overview", terminal:"terminal", files:"files", file:"files", systems:"system", system:"system", media:"media", network:"network", updates:"updates", settings:"settings" };
-    const page=Object.keys(pages).find((name) => text.includes("open "+name) || text.includes("show "+name) || text===name);
-    if (page) { affirmative();navigate(pages[page]);return notify("Voice command: "+page.toUpperCase()); }
-    const extensionCommand=extensions.flatMap((extension)=>extension.voiceCommands||[]).find((command)=>text.includes(command.phrase.toLowerCase()));
-    if (extensionCommand && nav.some((item)=>item[0]===extensionCommand.page)) { affirmative();navigate(extensionCommand.page);return notify(extensionCommand.response||"Extension voice command accepted"); }
-    const routine=routines.find((candidate)=>text.includes(`run ${candidate.name.toLowerCase()}`)||text.includes(`start ${candidate.name.toLowerCase()}`));
-    if(routine){affirmative();requestRoutine(routine);return notify(`Routine preview ready: ${routine.name}`);}
-    if (prefs.voiceSecurity !== "navigation") {
-      const app=apps.find((candidate) => text.includes("open "+candidate.name.toLowerCase()) || text.includes("launch "+candidate.name.toLowerCase()));
-      if (app) { affirmative();launch(app);return; }
-    }
-    if (prefs.voiceSecurity === "system") {
-      if (text.includes("open tasks") || text.includes("task rail")) { affirmative();action("refresh-system");return notify("Task Rail ready — use the rail control to pin it"); }
-      if (text.includes("check updates")) { affirmative();navigate("updates");action("check-updates");return; }
-      if (/shut ?down|restart|reboot|sleep|suspend|unmount/.test(text)) return notify("Protected voice command requires manual confirmation in its LCARS panel", "error");
-    }
-    notify("Voice command not recognized: "+raw, "error");
+    const authorization=text.match(/\s+authorization\s+(.+)$/),phrase=authorization?.[1]?.trim()||"";if(authorization)text=text.slice(0,authorization.index).trim();
+    if(!text)return notify("No command was detected","error");
+    let authorized=false;if(prefs.voiceAuthorizationEnabled&&prefs.voiceAuthorizationCredential&&phrase)authorized=await verifyLockCredential(phrase,prefs.voiceAuthorizationCredential).catch(()=>false);
+    setHistory((old) => [text, ...old].slice(0, 8));affirmative();computer(text,authorized);
+    notify(prefs.voiceAuthorizationEnabled&&phrase&&!authorized?"Voice command received, but the authorization code was not verified":"Voice command transferred to Computer Core for preview",prefs.voiceAuthorizationEnabled&&phrase&&!authorized?"error":"info");
   };
   const start = async () => {
-    try { const stream=await navigator.mediaDevices.getUserMedia({audio:prefs.voiceDevice?{deviceId:{exact:prefs.voiceDevice}}:true});const media=new MediaRecorder(stream);chunks.current=[];media.ondataavailable=(event) => event.data.size && chunks.current.push(event.data);media.onstop=async()=>{setListening(false);setBusy(true);stream.getTracks().forEach((track)=>track.stop());try{const blob=new Blob(chunks.current,{type:media.mimeType});const reader=new FileReader();reader.onload=async()=>{try{const response=await fetch("http://127.0.0.1:8765/api/voice-transcribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({audio:String(reader.result)})});const result=await response.json();result.ok&&result.text?execute(result.text):notify(result.message||"Voice recognition failed","error");}catch{notify("Local voice core did not respond","error");}finally{setBusy(false);}};reader.readAsDataURL(blob);}catch{setBusy(false);notify("Microphone sample could not be processed","error");}};recorder.current=media;media.start();setListening(true);setTimeout(()=>media.state==="recording"&&media.stop(),15000);} catch { notify("Microphone access was denied", "error"); }
+    try {
+      const stream=await navigator.mediaDevices.getUserMedia({audio:prefs.voiceDevice?{deviceId:{exact:prefs.voiceDevice}}:true});
+      const context=new AudioContext(),source=context.createMediaStreamSource(stream),processor=context.createScriptProcessor(4096,1,1),frames:Float32Array[]=[];let stopped=false;
+      processor.onaudioprocess=(event)=>frames.push(new Float32Array(event.inputBuffer.getChannelData(0)));source.connect(processor);processor.connect(context.destination);
+      const finish=async()=>{if(stopped)return;stopped=true;setListening(false);setBusy(true);processor.disconnect();source.disconnect();stream.getTracks().forEach((track)=>track.stop());await context.close().catch(()=>{});try{const audio=await blobDataUrl(pcmWavBlob(frames,context.sampleRate));const response=await fetch("http://127.0.0.1:8765/api/voice-transcribe",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({audio})});const result=await response.json();result.ok&&result.text?await execute(result.text):notify(result.message||"Voice recognition failed","error");}catch{notify("Local voice core did not respond","error");}finally{setBusy(false);stopRecorder.current=null;}};
+      stopRecorder.current=()=>void finish();setListening(true);window.setTimeout(()=>void finish(),15000);
+    } catch { notify("Microphone access was denied", "error"); }
   };
-  return <aside className={(listening ? "listening " : "")+"voice-control"}><button aria-label={listening?"Stop listening":"Push to talk"} onClick={() => listening ? recorder.current?.stop() : start()} disabled={busy}><i>●</i>{busy?"PROCESSING":listening?"LISTENING — STOP":"VOICE"}</button>{history.length>0&&<small title={history.join("\n")}>LAST: {history[0]}</small>}</aside>;
+  return <aside className={(listening ? "listening " : "")+"voice-control"}><button aria-label={listening?"Stop listening":"Push to talk"} onClick={() => listening ? stopRecorder.current?.() : void start()} disabled={busy}><i>●</i>{busy?"PROCESSING":listening?"LISTENING — STOP":"VOICE"}</button>{history.length>0&&<small title={history.join("\n")}>LAST: {history[0]}</small>}</aside>;
 }
 
 function SpeedDial({
@@ -4488,6 +4692,18 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
     <div className="lcars-calendar-grid">{["SUN","MON","TUE","WED","THU","FRI","SAT"].map((day)=><i key={day}>{day}</i>)}{cells.map((date,index)=>date?<button key={date.toISOString()} className={`${same(date,now)?"today ":""}${same(date,selected)?"selected":""}`} aria-label={date.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"})} onClick={()=>setSelected(date)}>{date.getDate()}</button>:<span key={`empty-${index}`}/>)}</div>
     <footer><i/><span><small>SELECTED DATE</small><b>{selected.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"}).toUpperCase()}</b></span><strong>LOCAL TIME · {now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",timeZoneName:"short"})}</strong></footer>
   </section></div>;
+}
+
+function Version30Welcome({close,openComputer}:{close:()=>void;openComputer:()=>void}){
+  const features=[
+    {code:"01",title:"COMPUTER CORE",text:"Plain-language commands become visible multi-step plans with confidence, bridge requirements, risk labels, protected gates, and dry runs."},
+    {code:"02",title:"PROCEDURES",text:"Operations automation now supports 48-step procedures, expanded event triggers, cooldowns, runtime limits, branch conditions, retries, and simulation."},
+    {code:"03",title:"AUDIT + UNDO",text:"Computer Core plans, dry runs, failures, and reversals are kept in a local execution journal. Fully reversible plans can restore the prior operating snapshot."},
+    {code:"04",title:"VOICE OUT OF THE BOX",text:"Desktop packages include a pinned whisper.cpp runtime and local English command model. Microphone audio stays on the station."},
+    {code:"05",title:"VOCAL AUTHORIZATION",text:"An optional hashed vocal code can add a second gate to protected voice plans while preserving the visible operator confirmation."},
+    {code:"06",title:"LOCAL-FIRST AUTHORITY",text:"No cloud account is required for command interpretation, procedures, transcription, auditing, or the permission model."},
+  ];
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.1 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.1 · COMPUTER CORE</h2><p>The first Version 30 milestone turns LCARS into a coordinated, explainable operating environment.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openComputer}>OPEN COMPUTER CORE</button><button autoFocus onClick={close}>BEGIN 30.1 DEVELOPMENT</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

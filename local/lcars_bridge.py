@@ -13,7 +13,7 @@ from lcars_documents import read_document, write_document
 from lcars_padd import PaddController
 
 PORT=8765
-LCARS_VERSION="29.0.0"
+LCARS_VERSION="30.1.0-dev.1"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -528,8 +528,13 @@ def tray_data():
     except Exception:return {"items":[],"supported":False,"reason":"System tray inventory unavailable"}
 
 def voice_status():
-    engine=command_path("whisper-cli") or command_path("whisper-cpp")
-    return {"available":bool(engine and shutil.which("ffmpeg")),"engine":engine or "","ffmpeg":shutil.which("ffmpeg") or "","reason":"" if engine and shutil.which("ffmpeg") else "Install whisper.cpp and FFmpeg, then select a local model in Voice Control settings"}
+    root=Path(__file__).resolve().parent.parent
+    runtime=next((path for path in (root/"voice",root/"voice-runtime"/"linux") if path.exists()),root/"voice")
+    engine=next((str(path) for path in (runtime/"whisper-cli",runtime/"main") if path.is_file()),"") or command_path("whisper-cli") or command_path("whisper-cpp")
+    model=next((str(path) for path in (runtime/"ggml-tiny.en-q5_1.bin",runtime/"ggml-tiny.en.bin") if path.is_file()),"")
+    ffmpeg=shutil.which("ffmpeg") or ""
+    available=bool(engine and model)
+    return {"available":available,"engine":engine or "","model":model,"ffmpeg":ffmpeg,"bundled":bool(engine and model and runtime in Path(engine).parents),"runtime":str(runtime),"reason":"" if available else "Bundled whisper.cpp voice files are unavailable; custom engine and model paths remain supported"}
 
 def tray_action(ident,action="activate",x=0,y=0):
     allowed={item["id"] for item in tray_data()["items"]}
@@ -544,16 +549,20 @@ def tray_action(ident,action="activate",x=0,y=0):
     return {"ok":result.returncode==0,"message":messages[action] if result.returncode==0 else "This tray service did not accept the requested action"}
 
 def voice_transcribe(data):
-    status=voice_status();prefs=load_config().get("shell_prefs",{});engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or "")).expanduser()
-    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"Configure a whisper.cpp executable and model in Settings"}
+    status=voice_status();prefs=load_config().get("shell_prefs",{});engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or status.get("model") or "")).expanduser()
+    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.1 or select custom files in Settings"}
     encoded=str(data.get("audio","")).split(",")[-1]
     if len(encoded)>28_000_000:return {"ok":False,"message":"Voice sample is too large"}
     try:
         with tempfile.TemporaryDirectory(prefix="lcars-voice-") as folder:
-            source=Path(folder)/"sample.webm";wav=Path(folder)/"sample.wav";source.write_bytes(base64.b64decode(encoded,validate=True))
-            convert=subprocess.run(["ffmpeg","-loglevel","error","-y","-i",str(source),"-ar","16000","-ac","1",str(wav)],capture_output=True,text=True,timeout=30)
-            if convert.returncode:return {"ok":False,"message":"FFmpeg could not decode the microphone sample"}
-            result=subprocess.run([engine,"-m",str(model),"-f",str(wav),"-nt","-np"],capture_output=True,text=True,timeout=90);text=(result.stdout or "").strip()
+            raw=base64.b64decode(encoded,validate=True);source=Path(folder)/"sample.input";wav=Path(folder)/"sample.wav"
+            if raw[:4]==b"RIFF" and raw[8:12]==b"WAVE":wav.write_bytes(raw)
+            else:
+                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.1 PCM recorder does not"}
+                source.write_bytes(raw);convert=subprocess.run([status["ffmpeg"],"-loglevel","error","-y","-i",str(source),"-ar","16000","-ac","1",str(wav)],capture_output=True,text=True,timeout=30)
+                if convert.returncode:return {"ok":False,"message":"FFmpeg could not decode the microphone sample"}
+            environment={**os.environ,"PATH":str(Path(engine).parent)+os.pathsep+os.environ.get("PATH","")};environment["LD_LIBRARY_PATH"]=str(Path(engine).parent)+os.pathsep+os.environ.get("LD_LIBRARY_PATH","")
+            result=subprocess.run([engine,"-m",str(model),"-f",str(wav),"-l","en","-nt","-np"],capture_output=True,text=True,timeout=90,cwd=str(Path(engine).parent),env=environment);text=(result.stdout or "").strip()
             return {"ok":result.returncode==0 and bool(text),"text":text,"message":(result.stderr or "Voice command was not recognized").strip()[-300:]}
     except Exception as exc:return {"ok":False,"message":str(exc)}
 
@@ -681,7 +690,7 @@ def integration_health():
         "media":{"available":bool(shutil.which("playerctl")),"detail":"MPRIS controls ready" if shutil.which("playerctl") else "playerctl missing","remedy":"Install playerctl to control MPRIS-compatible players."},
         "terminal":{"available":Path(os.environ.get("SHELL","/bin/bash")).is_file(),"detail":os.environ.get("SHELL","/bin/bash"),"remedy":"Choose an installed shell in Settings → Embedded Terminal."},
         "storage":{"available":bool(shutil.which("udisksctl")),"detail":f'{len(storage_data())} block device(s); UDisks2 '+("ready" if shutil.which("udisksctl") else "missing"),"remedy":"Install UDisks2 for safe removable-drive mount controls."},
-        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Offline whisper.cpp and FFmpeg ready","remedy":"Install whisper.cpp and FFmpeg, then select a local model in Settings."},
+        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.1 voice resources or select custom whisper.cpp files in Settings."},
         "tray":{"available":tray_data()["supported"],"detail":tray_data()["reason"] or f'{len(tray_data()["items"])} StatusNotifier service(s)',"remedy":"Use a KDE StatusNotifier-compatible desktop session for re-hosted tray items."},
         "extensions":{"available":not bool(extension_result.get("errors")),"detail":f'{len(extension_result.get("extensions",[]))} module(s), {len(extension_result.get("errors",[]))} rejected',"remedy":"Remove or update rejected manifests shown in the extension bay."},
         "configuration":{"available":config_ready,"detail":"Local settings storage ready" if config_ready else "Settings directory is not writable","remedy":"Restore write access to the LCARS configuration directory."},

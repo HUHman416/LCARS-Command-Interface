@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const main=readFileSync(new URL("../desktop/main.cjs",import.meta.url),"utf8");
 const page=readFileSync(new URL("../app/page.tsx",import.meta.url),"utf8");
+const computerCore=readFileSync(new URL("../app/v30-core.ts",import.meta.url),"utf8");
 const css=readFileSync(new URL("../app/v24.css",import.meta.url),"utf8");
 const linux=readFileSync(new URL("../local/lcars_bridge.py",import.meta.url),"utf8");
 const windows=readFileSync(new URL("../windows/lcars_bridge_windows.py",import.meta.url),"utf8");
@@ -96,7 +97,7 @@ test("portable Linux registration and Windows installer autostart are opt-in",()
 
 test("Current metadata and protected sleep voice intent stay aligned",()=>{
   assert.match(page,/V\$\{update\?\.current\|\|LCARS_VERSION\} · \$\{prefs\.updateChannel\.toUpperCase\(\)\}/);
-  assert.match(page,/sleep\|suspend/);
-  assert.match(linux,/LCARS_VERSION="(?:29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(windows,/LCARS_VERSION="(?:29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(page+computerCore,/sleep\|suspend/);
+  assert.match(linux,/LCARS_VERSION="(?:30\.1\.0-dev\.1|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(windows,/LCARS_VERSION="(?:30\.1\.0-dev\.1|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
 });

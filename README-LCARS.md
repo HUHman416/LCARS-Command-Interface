@@ -77,8 +77,12 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Version 29 Connected Station Dock with an embedded Companion page, up to eight encrypted station pairings, priority notifications, credential migration, battery testing, faster unlock/app launching, an LCARS calendar, twenty independent Favorites, and verified one-tap mobile updates
 - Resilient native mastheads that remain contained after navigation, accessibility scaling, rotation, and return to Status
 - Corrected multi-row Status module edit controls and full-height Page Peek, Communications, and Tray resizing
+- Version 30.1 Computer Core with local plain-language plans, dry runs, authority/risk previews, Computer Audit, reversible-plan undo, and expanded Procedures
+- Verified bundled whisper.cpp desktop transcription with direct PCM WAV capture, custom model overrides, and optional hashed vocal authorization for protected plans
 
 ## Current stage
+
+Version 30.1 is the current Development milestone and Version 29 remains Stable. Computer Core adds an explainable local command model, Procedure triggers and safety limits, dry-run simulation, audit history, reversible-plan undo, and out-of-box desktop voice transcription. Protected actions keep their visible confirmation gate; enabling a vocal authorization phrase adds a second gate and does not grant unrestricted shell or sudo access.
 
 Version 29 is the current Stable Mobile Command Environment release. It assembles the Version 29.1 Home foundation, Version 29.2 customization milestone, and the final Connected Station Dock, multi-station, notification, credential-migration, battery, performance, calendar, Favorites, and mobile-update work. The Android package begins the persistent Version 29 signing line; older disposable development-signed packages may require a one-time uninstall before Stable can be installed. Only hashed revocable tokens are stored by the desktop core; Android station tokens are encrypted with Android Keystore AES-GCM. Viewer, Operator, Command, granular permission, and explicit sensitive-action approval checks remain enforced, and PADD devices never receive Terminal, file, process, or computer power access.
 

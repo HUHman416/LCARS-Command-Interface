@@ -9,6 +9,10 @@ release-desktop/
 __pycache__/
 *.py[cod]
 *.log
+voice-runtime/linux/*
+voice-runtime/windows/*
+!voice-runtime/linux/.gitkeep
+!voice-runtime/windows/.gitkeep
 *.jks
 *.keystore
 .DS_Store

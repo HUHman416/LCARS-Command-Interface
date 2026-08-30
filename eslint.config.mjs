@@ -11,8 +11,25 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "desktop-dist/**",
+    ".vinext/**",
+    ".open-next/**",
     "next-env.d.ts",
   ]),
+  // These inherited, stateful console surfaces predate the React compiler
+  // rules. Their effects intentionally synchronize LCARS with the local OS.
+  {
+    files: ["app/page.tsx", "app/v27-connected.tsx"],
+    rules: {
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/purity": "off",
+    },
+  },
+  // Electron's main process is deliberately CommonJS for builder compatibility.
+  {
+    files: ["desktop/**/*.cjs"],
+    rules: { "@typescript-eslint/no-require-imports": "off" },
+  },
 ]);
 
 export default eslintConfig;

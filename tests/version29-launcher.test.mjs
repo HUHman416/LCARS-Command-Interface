@@ -20,12 +20,12 @@ const battery=read("../mobile/android/app/src/main/java/com/lcars/padd/BatterySt
 const workflow=read("../.github/workflows/v29-development.yml");
 const stableWorkflow=read("../.github/workflows/v29-stable.yml");
 
-test("Version 29 Stable identity uses the major release number",()=>{
-  assert.equal(packageJson.version,"29.0.0");
-  assert.match(page,/LCARS_VERSION="29\.0\.0"/);
-  assert.match(page,/29 STABLE/);
-  assert.match(gradle,/versionCode 290000/);
-  assert.match(gradle,/versionName "29\.0\.0"/);
+test("current development identity advances without changing the Android package",()=>{
+  assert.equal(packageJson.version,"30.1.0-dev.1");
+  assert.match(page,/LCARS_VERSION="30\.1\.0-dev\.1"/);
+  assert.match(page,/30\.1 DEV/);
+  assert.match(gradle,/versionCode 301001/);
+  assert.match(gradle,/versionName "30\.1\.0"/);
   assert.match(gradle,/applicationIdSuffix "\.dev"/);
   assert.match(gradle,/versionNameSuffix "-development"/);
   assert.match(gradle,/signingConfig signingConfigs\.release/);
