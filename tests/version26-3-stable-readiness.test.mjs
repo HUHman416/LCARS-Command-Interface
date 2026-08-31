@@ -13,10 +13,10 @@ const developmentWorkflow = read(".github/workflows/v26-3-test.yml");
 const stableWorkflow = read(".github/workflows/v26-stable.yml");
 
 test("26.3 RC and Version 26 stable identities remain explicit", () => {
-  assert.ok(["30.5.0-dev.1","30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1", "27.2.1-dev.1", "27.2.0-dev.1", "27.1.1-dev.1", "26.3.0-dev.1", "26.0.0"].includes(packageJson.version));
-  assert.match(page, /const LCARS_VERSION="(?:30\.[2345]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(linux, /LCARS_VERSION="(?:30\.[2345]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(windows, /LCARS_VERSION="(?:30\.[2345]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.ok(["30.6.0-dev.1","30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1", "27.2.1-dev.1", "27.2.0-dev.1", "27.1.1-dev.1", "26.3.0-dev.1", "26.0.0"].includes(packageJson.version));
+  assert.match(page, /const LCARS_VERSION="(?:30\.[23456]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(linux, /LCARS_VERSION="(?:30\.[23456]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(windows, /LCARS_VERSION="(?:30\.[23456]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
   assert.doesNotMatch(page, /VERSION 25 ENGINEERING OPERATIONS|AUTO-25|ENG-25|COM-25|LOG-25/);
 });
 
@@ -30,9 +30,9 @@ test("configuration backup covers workspace and community repository state", () 
 });
 
 test("upgraded operators receive a one-time current-version orientation", () => {
-  assert.match(page, /lcars-whats-new-v(?:30-[12345]|29-[123]|28)/);
-  assert.match(page, /(?:VERSION 30\.5 · DATA FABRIC|VERSION 30\.4 · LCARS SESSION|VERSION 30\.3 · VOICE OPERATIONS|VERSION 30\.2 · FEDERATION|VERSION 30\.1 · COMPUTER CORE|WELCOME TO VERSION 29|WELCOME TO VERSION 29\.3 RC 1|WELCOME TO VERSION 29\.2|WELCOME TO VERSION 28)/);
-  assert.match(page, /(?:WHAT(?:'|&apos;)S NEW IN VERSION 30\.5|WHAT(?:'|&apos;)S NEW IN VERSION 30\.4|WHAT(?:'|&apos;)S NEW IN VERSION 30\.2|WHAT'S NEW IN VERSION 30\.1|WHAT'S NEW IN VERSION 29|WHAT'S NEW IN VERSION 29\.3 RC 1|WHAT'S NEW IN VERSION 29\.2|WHAT'S NEW IN VERSION 28)/);
+  assert.match(page, /lcars-whats-new-v(?:30-[123456]|29-[123]|28)/);
+  assert.match(page, /(?:VERSION 30\.6 · OPERATIONS CENTER|VERSION 30\.4 · LCARS SESSION|VERSION 30\.3 · VOICE OPERATIONS|VERSION 30\.2 · FEDERATION|VERSION 30\.1 · COMPUTER CORE|WELCOME TO VERSION 29|WELCOME TO VERSION 29\.3 RC 1|WELCOME TO VERSION 29\.2|WELCOME TO VERSION 28)/);
+  assert.match(page, /(?:WHAT(?:'|&apos;)S NEW IN VERSION 30\.6|WHAT(?:'|&apos;)S NEW IN VERSION 30\.4|WHAT(?:'|&apos;)S NEW IN VERSION 30\.2|WHAT'S NEW IN VERSION 30\.1|WHAT'S NEW IN VERSION 29|WHAT'S NEW IN VERSION 29\.3 RC 1|WHAT'S NEW IN VERSION 29\.2|WHAT'S NEW IN VERSION 28)/);
   assert.match(page, /CONNECTED STATION DOCK/);
   assert.match(page, /VERIFIED MOBILE UPDATES/);
 });

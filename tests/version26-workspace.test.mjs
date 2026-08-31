@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 
 const page = readFileSync("app/page.tsx", "utf8");
 const core = readFileSync("app/v26-core.ts", "utf8");
-const css = readFileSync("app/v26.css", "utf8");
+const css = readFileSync("app/v26.css", "utf8")+readFileSync("app/v30.css", "utf8");
 const renderer = readFileSync("desktop/renderer.tsx", "utf8");
 const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
@@ -46,15 +46,15 @@ test("PADD navigation is touch-first in portrait and landscape", () => {
   assert.match(css, /\.system-tray\.speed-dial/);
 });
 
-test("Communications uses one quiet accessible scrolling feed", () => {
-  assert.match(page, /className="communications-feed" tabIndex=\{0\}/);
-  assert.match(css, /\.communications-feed \{[^}]*overflow: auto/s);
+test("Operations uses one quiet accessible scrolling feed", () => {
+  assert.match(page, /className="operations-feed" tabIndex=\{0\}/);
+  assert.match(css, /\.operations-feed\{[^}]*overflow:auto/s);
   assert.match(css, /scrollbar-width: none/);
   assert.match(css, /::-webkit-scrollbar/);
 });
 
 test("Version 26.3 styling loads last on desktop", () => {
-  assert.ok(["30.5.0-dev.1","30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(packageJson.version));
+  assert.ok(["30.6.0-dev.1","30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(packageJson.version));
   const repository = renderer.indexOf('import "../app/v26-1.css"');
   const workspace = renderer.indexOf('import "../app/v26.css"');
   const current = renderer.indexOf('import "../app/v26-3.css"');

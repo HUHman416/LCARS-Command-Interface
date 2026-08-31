@@ -27,8 +27,8 @@ test("Operations Automation 2.0 supports conditions, prompts, delays, retries, f
   for(const token of ["RUN HISTORY","BRANCH / TIMING / FAILURE","TEST","Operator declined the routine prompt","step.onFailure!==\"continue\""])assert.ok(page.includes(token),token);
 });
 
-test("Communications Action Center groups repeated messages and exposes safe stateful actions",()=>{
-  for(const token of ["COMMUNICATIONS ACTION CENTER","SHOW ARCHIVED","MARK UNREAD","VIEW PROCESS","OPEN UPDATES","repeats:(match.repeats||1)+1"])assert.ok(page.includes(token),token);
+test("Operations Center supersedes Communications while retaining repeated notices and safe stateful actions",()=>{
+  for(const token of ["OPERATIONS CENTER","WHAT CHANGED?","ACKNOWLEDGE","ASSIGN","EXPORT REPORT","repeats:(match.repeats||1)+1"])assert.ok(page.includes(token),token);
 });
 
 test("Module Platform retains constrained public GitHub sources and publisher packages",()=>{
@@ -37,7 +37,7 @@ test("Module Platform retains constrained public GitHub sources and publisher pa
 });
 
 test("Version 26 release candidates can explicitly transition to the stable major release",()=>{
-  assert.ok(["30.5.0-dev.1","30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(packageJson.version));
+  assert.ok(["30.6.0-dev.1","30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(packageJson.version));
   assert.match(page,/CHECK LATEST STABLE RELEASE|CHECK FOR VERSION (?:27|26) STABLE/);
   assert.match(updater,/stableTransition/);
   assert.match(updater,/channel=="stable-release"/);

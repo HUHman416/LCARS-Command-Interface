@@ -14,7 +14,7 @@ from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 
 PORT=8765
-LCARS_VERSION="30.5"
+LCARS_VERSION="30.6"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -200,13 +200,13 @@ def voice_transcribe(data):
     try:config=json.loads(CONFIG_FILE.read_text())
     except:config={}
     prefs=config.get("shell_prefs",{});status=voice_status();engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or status.get("model") or "")).expanduser();encoded=str(data.get("audio","")).split(",")[-1]
-    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.5 or select custom files in Settings"}
+    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.6 or select custom files in Settings"}
     try:
         with tempfile.TemporaryDirectory(prefix="lcars-voice-") as folder:
             raw=base64.b64decode(encoded,validate=True);source=Path(folder)/"sample.input";wav=Path(folder)/"sample.wav"
             if raw[:4]==b"RIFF" and raw[8:12]==b"WAVE":wav.write_bytes(raw)
             else:
-                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.5 PCM recorder does not"}
+                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.6 PCM recorder does not"}
                 source.write_bytes(raw)
                 if subprocess.run([status["ffmpeg"],"-loglevel","error","-y","-i",str(source),"-ar","16000","-ac","1",str(wav)],creationflags=0x08000000).returncode:return {"ok":False,"message":"FFmpeg could not decode the microphone sample"}
             environment={**os.environ,"PATH":str(Path(engine).parent)+os.pathsep+os.environ.get("PATH","")}
@@ -364,7 +364,7 @@ def media_data():
     return {"players":players,"streams":stream_data()}
 
 def media_key(command):
-    codes={"previous":0xB1,"next":0xB0,"play-pause":0xB3,"stop":0xB2,"shuffle":0xB3};code=codes.get(command)
+    codes={"previous":0xB1,"next":0xB0,"play-pause":0xB3,"play":0xB3,"pause":0xB3,"stop":0xB2,"shuffle":0xB3};code=codes.get(command)
     if not code:return False
     ctypes.windll.user32.keybd_event(code,0,0,0);ctypes.windll.user32.keybd_event(code,0,2,0);return True
 
@@ -421,7 +421,7 @@ def integration_health():
         "media":{"available":True,"detail":"Windows media keys ready","remedy":"The media application must support Windows media controls."},
         "terminal":{"available":True,"detail":"PowerShell","remedy":"Choose powershell.exe or another installed shell in Settings."},
         "storage":{"available":bool(psutil),"detail":f"{len(storage_data())} volume(s)","remedy":"Repair the optional psutil component from the installer."},
-        "voice":{"available":voice["available"],"detail":voice["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.5 voice resources or select custom whisper.cpp files in Settings."},
+        "voice":{"available":voice["available"],"detail":voice["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.6 voice resources or select custom whisper.cpp files in Settings."},
         "tray":{"available":False,"detail":"Windows cannot safely re-host every third-party notification icon","remedy":"Use LCARS quick controls or the native Windows notification area."},
         "extensions":{"available":not bool(extensions.get("errors")),"detail":f"{len(extensions.get('extensions',[]))} module(s), {len(extensions.get('errors',[]))} rejected","remedy":"Remove or update rejected manifests shown in the extension bay."},
         "configuration":{"available":True,"detail":"Local AppData settings storage ready","remedy":"Repair write access to the LCARS AppData directory."},
@@ -633,7 +633,9 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/terminal-create":return self.send_json(terminal_create(str(data.get("name","Terminal")),str(data.get("shell","")),str(data.get("directory","~"))))
         if route=="/api/terminal-input":return self.send_json({"ok":terminal_input(str(data.get("id","")),str(data.get("input","")))})
         if route=="/api/terminal-close":terminal_close(str(data.get("id","")));return self.send_json({"ok":True})
-        if route=="/api/media-control":return self.send_json({"ok":media_key(str(data.get("command","")))})
+        if route=="/api/media-control":
+            command=str(data.get("command",""));ok=media_key(command)
+            return self.send_json({"ok":ok,"player":str(data.get("player","") or "WINDOWS MEDIA SESSION"),"command":command,"message":"Media command accepted" if ok else ""} if ok else {"ok":False,"error":"Invalid or unavailable Windows media command"},200 if ok else 503)
         if route=="/api/audio":
             try:
                 from ctypes import POINTER, cast

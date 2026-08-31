@@ -14,7 +14,7 @@ from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 
 PORT=8765
-LCARS_VERSION="30.5"
+LCARS_VERSION="30.6"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -665,7 +665,7 @@ def tray_action(ident,action="activate",x=0,y=0):
 
 def voice_transcribe(data):
     status=voice_status();prefs=load_config().get("shell_prefs",{});engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or status.get("model") or "")).expanduser()
-    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.5 or select custom files in Settings"}
+    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.6 or select custom files in Settings"}
     encoded=str(data.get("audio","")).split(",")[-1]
     if len(encoded)>28_000_000:return {"ok":False,"message":"Voice sample is too large"}
     try:
@@ -673,7 +673,7 @@ def voice_transcribe(data):
             raw=base64.b64decode(encoded,validate=True);source=Path(folder)/"sample.input";wav=Path(folder)/"sample.wav"
             if raw[:4]==b"RIFF" and raw[8:12]==b"WAVE":wav.write_bytes(raw)
             else:
-                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.5 PCM recorder does not"}
+                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.6 PCM recorder does not"}
                 source.write_bytes(raw);convert=subprocess.run([status["ffmpeg"],"-loglevel","error","-y","-i",str(source),"-ar","16000","-ac","1",str(wav)],capture_output=True,text=True,timeout=30)
                 if convert.returncode:return {"ok":False,"message":"FFmpeg could not decode the microphone sample"}
             environment={**os.environ,"PATH":str(Path(engine).parent)+os.pathsep+os.environ.get("PATH","")};environment["LD_LIBRARY_PATH"]=str(Path(engine).parent)+os.pathsep+os.environ.get("LD_LIBRARY_PATH","")
@@ -784,6 +784,36 @@ def media_data():
                     streams.append({"id":ident,"name":clean,"group":group,"advanced":advanced,"volume":value,"muted":muted,"icon":application_icon_for(group),"routeAvailable":bool(shutil.which("pavucontrol"))})
     return {"players":list(players_by_name.values()),"streams":streams}
 
+def media_control(player,command):
+    allowed={"previous","play-pause","play","pause","next","shuffle","stop"}
+    if command not in allowed:return {"ok":False,"error":"Invalid media command"}
+    if not shutil.which("playerctl"):return {"ok":False,"error":"Media controls require playerctl"}
+    listed=subprocess.run(["playerctl","-l"],capture_output=True,text=True,timeout=2)
+    players=list(dict.fromkeys(item.strip() for item in listed.stdout.splitlines() if item.strip()))
+    if not players:return {"ok":False,"error":"No MPRIS media sessions are available"}
+    statuses={}
+    for candidate in players:
+        result=subprocess.run(["playerctl","--player",candidate,"status"],capture_output=True,text=True,timeout=2)
+        statuses[candidate]=(result.stdout.strip() or "Stopped").casefold()
+    preference={
+        "play":{"paused":0,"stopped":1,"playing":2},
+        "pause":{"playing":0,"paused":1,"stopped":2},
+    }.get(command,{"playing":0,"paused":1,"stopped":2})
+    ordered=sorted(players,key=lambda candidate:(0 if candidate==player else 1,preference.get(statuses.get(candidate,"stopped"),3)))
+    if player not in players:ordered=sorted(players,key=lambda candidate:preference.get(statuses.get(candidate,"stopped"),3))
+    errors=[]
+    for candidate in ordered:
+        state=statuses.get(candidate,"stopped")
+        if command=="play" and state=="playing":return {"ok":True,"player":candidate,"command":command,"status":"Playing","message":"Media is already playing"}
+        if command=="pause" and state=="paused":return {"ok":True,"player":candidate,"command":command,"status":"Paused","message":"Media is already paused"}
+        args=["playerctl","--player",candidate,command]
+        if command=="shuffle":args.append("Toggle")
+        result=subprocess.run(args,capture_output=True,text=True,timeout=3)
+        if result.returncode==0:return {"ok":True,"player":candidate,"command":command,"message":f"{command.replace('-',' ').title()} accepted by {candidate}"}
+        detail=(result.stderr or result.stdout).strip()
+        if detail:errors.append(f"{candidate}: {detail}")
+    return {"ok":False,"error":errors[0] if errors else f"No media session accepted {command}"}
+
 def start_first(candidates):
     for command in candidates:
         if shutil.which(command[0]):
@@ -805,7 +835,7 @@ def integration_health():
         "media":{"available":bool(shutil.which("playerctl")),"detail":"MPRIS controls ready" if shutil.which("playerctl") else "playerctl missing","remedy":"Install playerctl to control MPRIS-compatible players."},
         "terminal":{"available":Path(os.environ.get("SHELL","/bin/bash")).is_file(),"detail":os.environ.get("SHELL","/bin/bash"),"remedy":"Choose an installed shell in Settings → Embedded Terminal."},
         "storage":{"available":bool(shutil.which("udisksctl")),"detail":f'{len(storage_data())} block device(s); UDisks2 '+("ready" if shutil.which("udisksctl") else "missing"),"remedy":"Install UDisks2 for safe removable-drive mount controls."},
-        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.5 voice resources or select custom whisper.cpp files in Settings."},
+        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.6 voice resources or select custom whisper.cpp files in Settings."},
         "tray":{"available":tray_data()["supported"],"detail":tray_data()["reason"] or f'{len(tray_data()["items"])} StatusNotifier service(s)',"remedy":"Use a KDE StatusNotifier-compatible desktop session for re-hosted tray items."},
         "extensions":{"available":not bool(extension_result.get("errors")),"detail":f'{len(extension_result.get("extensions",[]))} module(s), {len(extension_result.get("errors",[]))} rejected',"remedy":"Remove or update rejected manifests shown in the extension bay."},
         "configuration":{"available":config_ready,"detail":"Local settings storage ready" if config_ready else "Settings directory is not writable","remedy":"Restore write access to the LCARS configuration directory."},
@@ -1175,11 +1205,8 @@ class Handler(BaseHTTPRequestHandler):
                 terminal_close(str(data.get("id","")));return self.send_json({"ok":True})
             if route=="/api/media-control":
                 player=str(data.get("player","")); command=str(data.get("command",""))
-                if command not in ("previous","play-pause","next","shuffle","stop"): return self.send_json({"error":"invalid command"},400)
-                args=["playerctl","--player",player,command]
-                if command=="shuffle": args.append("Toggle")
-                result=subprocess.run(args,capture_output=True,text=True,timeout=3)
-                return self.send_json({"ok":result.returncode==0})
+                result=media_control(player,command)
+                return self.send_json(result,200 if result.get("ok") else 503)
             if route=="/api/stream-volume":
                 ident=str(data.get("id","")); volume=max(0,min(100,int(data.get("volume",0))))
                 if not ident.isdigit(): return self.send_json({"error":"invalid stream"},400)

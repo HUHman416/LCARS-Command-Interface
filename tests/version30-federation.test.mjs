@@ -4,19 +4,19 @@ import test from "node:test";
 
 const source = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
-test("Version 30.5 package and release channel are aligned", async () => {
+test("Version 30.6 package and release channel are aligned", async () => {
   const [pkg, workflow, page, android] = await Promise.all([
     source("../package.json"),
     source("../.github/workflows/v30-development.yml"),
     source("../app/page.tsx"),
     source("../mobile/android/app/build.gradle"),
   ]);
-  assert.equal(JSON.parse(pkg).version, "30.5.0-dev.1");
-  assert.match(workflow, /Version 30\.5 Universal Search and Data Fabric Development/);
-  assert.match(workflow, /gh release (?:view|create) v30\.5/);
-  assert.match(page, /const LCARS_VERSION="30\.5"/);
-  assert.match(android, /versionCode 305001/);
-  assert.match(android, /versionName "30\.5\.0"/);
+  assert.equal(JSON.parse(pkg).version, "30.6.0-dev.1");
+  assert.match(workflow, /Version 30\.6 Operations Center and Timeline Development/);
+  assert.match(workflow, /gh release (?:view|create) v30\.6/);
+  assert.match(page, /const LCARS_VERSION="30\.6"/);
+  assert.match(android, /versionCode 306001/);
+  assert.match(android, /versionName "30\.6\.0"/);
 });
 
 test("Federation server exposes discovery, durable identity, policy, and encrypted queues", async () => {
@@ -67,7 +67,7 @@ test("hands-free voice retains PTT and makes the Computer wake word optional", a
   assert.match(page, /COMPUTER ARMED/);
 });
 
-test("Version 30.5 voice execution remains opt-in, authority-aware, and header-contained", async () => {
+test("Version 30.6 voice execution remains opt-in, authority-aware, and header-contained", async () => {
   const [page, styles] = await Promise.all([
     source("../app/page.tsx"),
     source("../app/v30.css"),

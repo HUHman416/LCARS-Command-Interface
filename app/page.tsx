@@ -41,7 +41,9 @@ import { ComputerCoreConsole } from "./v30-computer-core";
 import { UniversalSearch } from "./v30-search";
 import type { FabricStatus } from "./v30-search";
 import { rankUniversalResults } from "./v30-search-core";
-import type { UniversalSearchEntry } from "./v30-search-core";
+import type { UniversalSearchCategory, UniversalSearchEntry } from "./v30-search-core";
+import { buildOperationsTimeline, filterOperationsTimeline, groupOperationsTimeline } from "./v30-operations-core";
+import type { OperationsAction, OperationsEvent, OperationsFilters, OperationsMeta } from "./v30-operations-core";
 import {
   computerProcedureReversible,
   computerProcedureRisk,
@@ -53,7 +55,7 @@ import {
 import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, ComputerPlan, ComputerPlanStep, ComputerUndoSnapshot } from "./v30-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="30.5";
+const LCARS_VERSION="30.6";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -104,6 +106,7 @@ type Notice = {
   archived?: boolean;
   repeats?: number;
   expiresAt?: number;
+  action?: OperationsAction;
 };
 type WindowTask = {
   id: string;
@@ -375,7 +378,7 @@ const speedDialChoices: { id: SpeedDialItem; label: string; description: string 
   { id:"action:tray", label:"TRAY", description:"Open the desktop system tray" },
   { id:"action:routines", label:"ROUTINES", description:"Open Operations Automation" },
   { id:"action:communications", label:"COMMS", description:"Open Communications Center" },
-  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.5 Computer Core" },
+  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.6 Computer Core" },
 ];
 const defaultPrefs: ShellPrefs = {
   taskHover: true,
@@ -724,6 +727,7 @@ export default function Home() {
     [computerUndo,setComputerUndo]=useState<ComputerUndoSnapshot|null>(null),
     [computerRunning,setComputerRunning]=useState(false),
     [computerVoiceAuthorized,setComputerVoiceAuthorized]=useState(false);
+  const [operationsMeta,setOperationsMeta]=useState<Record<string,OperationsMeta>>({});
   const [engineering,setEngineering]=useState<EngineeringData>({processes:[],sensors:[],processControl:false}),
     [extensionCatalog,setExtensionCatalog]=useState<ExtensionCatalogEntry[]>([]),
     [extensionSources,setExtensionSources]=useState<ModuleRepositorySource[]>([]),
@@ -770,6 +774,7 @@ export default function Home() {
       computerAuditData = localStorage.getItem("lcars-computer-audit"),
       computerUndoData = localStorage.getItem("lcars-computer-undo"),
       noticeData = localStorage.getItem("lcars-notification-history"),
+      operationsMetaData = localStorage.getItem("lcars-operations-meta"),
       trayShortcutData = safeBoot?null:localStorage.getItem("lcars-tray-shortcuts"),
       mappingData = safeBoot?null:localStorage.getItem("lcars-control-mappings"),
       disabledExtensionData = safeBoot?null:localStorage.getItem("lcars-disabled-extensions"),
@@ -824,6 +829,7 @@ export default function Home() {
     if (computerAuditData) try { setComputerAudit(normalizeComputerAudit(JSON.parse(computerAuditData))); } catch {}
     if (computerUndoData) try { setComputerUndo(normalizeComputerUndo(JSON.parse(computerUndoData))); } catch {}
     if (noticeData) try { const parsed=JSON.parse(noticeData);if(Array.isArray(parsed))setNotices(parsed.slice(0,100).map((item:Notice)=>({...item,id:-Math.abs(Number(item.id)||Date.now()),read:true,expiresAt:undefined}))); } catch {}
+    if (operationsMetaData) try { const parsed=JSON.parse(operationsMetaData);if(parsed&&typeof parsed==="object"&&!Array.isArray(parsed))setOperationsMeta(parsed); } catch {}
     if (trayShortcutData) try { setTrayShortcuts(normalizeTrayShortcuts(JSON.parse(trayShortcutData))); } catch {}
     if (mappingData) try { setControlMappings(normalizeControlMappings(JSON.parse(mappingData))); } catch {}
     if (disabledExtensionData) try { const parsed=JSON.parse(disabledExtensionData);if(Array.isArray(parsed))setDisabledExtensions(parsed.filter((item):item is string=>typeof item==="string").slice(0,128)); } catch {}
@@ -837,7 +843,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-5"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-6"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1084,11 +1090,23 @@ export default function Home() {
     status: ActivityEntry["status"] = "success",
     source: ActivityEntry["source"] = "OPERATOR",
     reversible = false,
+    context: Partial<Pick<ActivityEntry,"station"|"operator"|"subsystem"|"severity"|"group"|"explanation"|"action">> = {},
   ) => {
-    const entry: ActivityEntry = { id:createV25Id("activity"),time:new Date().toISOString(),source,title,detail,status,reversible };
+    const entry: ActivityEntry = { id:createV25Id("activity"),time:new Date().toISOString(),source,title,detail,status,reversible,...context };
     setActivityLog((old)=>{const next=[entry,...old].slice(0,200);localStorage.setItem("lcars-activity-log",JSON.stringify(next));return next;});
     return entry;
   };
+  const mediaTimelineRef=useRef<Map<string,string>>(new Map());
+  useEffect(()=>{
+    const previous=mediaTimelineRef.current,next=new Map<string,string>();
+    players.forEach((player)=>{
+      const state=`${player.status}|${player.title}|${player.artist}`;next.set(player.id,state);
+      const prior=previous.get(player.id);
+      if(prior&&prior!==state)recordActivity("Media state changed",`${player.name} · ${player.status.toUpperCase()} · ${player.title||"NO MEDIA"}`,"success","SYSTEM",false,{subsystem:"MEDIA",station:"LOCAL CORE",operator:player.name.toUpperCase(),group:`media:${player.id}`,explanation:`${player.name} changed playback state or selected media.`});
+    });
+    previous.forEach((_state,id)=>{if(!next.has(id))recordActivity("Media session ended",id,"success","SYSTEM",false,{subsystem:"MEDIA",station:"LOCAL CORE",operator:"MEDIA SERVICE",group:`media:${id}`,explanation:"The MPRIS media session is no longer available to LCARS."});});
+    mediaTimelineRef.current=next;
+  },[players]);
   const saveRoutines=(next:Routine[])=>{createRecoverySnapshot("Before routine configuration change");const normalized=normalizeRoutines(next.map((routine)=>({...routine,name:routine.name.trim()||"UNTITLED ROUTINE"})));setRoutines(normalized);localStorage.setItem("lcars-routines",JSON.stringify(normalized));};
   const saveTrayShortcuts=(next:TrayShortcut[])=>{createRecoverySnapshot("Before Tray Command Deck change");const normalized=normalizeTrayShortcuts(next.map((shortcut)=>({...shortcut,label:shortcut.label.trim()||"COMMAND"})));setTrayShortcuts(normalized);localStorage.setItem("lcars-tray-shortcuts",JSON.stringify(normalized));};
   const saveControlMappings=(next:ControlMapping[])=>{createRecoverySnapshot("Before control mapping change");const normalized=normalizeControlMappings(next);setControlMappings(normalized);localStorage.setItem("lcars-control-mappings",JSON.stringify(normalized));};
@@ -1161,6 +1179,7 @@ export default function Home() {
     playError = true,
     source = "LCARS CORE",
     priority: Notice["priority"] = kind === "error" ? "critical" : "routine",
+    action?: OperationsAction,
   ) => {
     if (kind === "error" && playError) cue("error");
     const createdAt=Date.now(),visibleFor=Math.max(1,prefs.notificationSeconds)*1000;
@@ -1174,9 +1193,10 @@ export default function Home() {
       }),
       source,
       priority,
+      action,
       expiresAt:doNotDisturb?undefined:createdAt+visibleFor,
     };
-    setNotices((old) => {const match=old.find((item)=>item.text===text&&item.source===source&&!item.archived),next=match?[{...match,id:notice.id,time:notice.time,kind,priority,read:false,expiresAt:notice.expiresAt,repeats:(match.repeats||1)+1},...old.filter((item)=>item!==match)].slice(0,100):[{...notice,read:false,archived:false,repeats:1},...old].slice(0,100);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});
+    setNotices((old) => {const match=old.find((item)=>item.text===text&&item.source===source&&!item.archived),next=match?[{...match,id:notice.id,time:notice.time,kind,priority,action,read:false,expiresAt:notice.expiresAt,repeats:(match.repeats||1)+1},...old.filter((item)=>item!==match)].slice(0,100):[{...notice,read:false,archived:false,repeats:1},...old].slice(0,100);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});
   };
   const dismissNotice = (id: number) =>
     setNotices((old) => {
@@ -1185,9 +1205,8 @@ export default function Home() {
       );localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;
     });
   const updateNoticeState=(id:number,patch:Partial<Notice>)=>setNotices((old)=>{const next=old.map((item)=>Math.abs(item.id)===Math.abs(id)?{...item,...patch}:item);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});
-  const noticeAction=(notice:Notice)=>{const value=`${notice.source||""} ${notice.text}`.toLowerCase();setHistoryOpen(false);if(/process|engineering|cpu|memory/.test(value))setSection("system");else if(/module|extension/.test(value)){setSection("updates");Promise.all([fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()),fetch("http://127.0.0.1:8765/api/extension-catalog").then((response)=>response.json())]).then(([installed,catalog])=>{setExtensions(installed.extensions||[]);setExtensionCatalog(catalog.catalog||[]);setExtensionSources(catalog.sources||[]);notify("Module repositories refreshed");}).catch(()=>notify("Module repository retry failed","error"));}else if(/update|release/.test(value)){setSection("updates");fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation:"check",channel:prefs.updateChannel})}).then((response)=>response.json()).then(setLcarsUpdate).catch(()=>notify("Update check retry failed","error"));}else {setSection("settings");if(notice.kind==="error")coreAction("integration-recheck");}recordActivity(notice.kind==="error"?"Communications retry requested":"Communications action opened",notice.text,"success","OPERATOR");};
+  const noticeAction=(notice:Notice)=>{const value=`${notice.source||""} ${notice.text}`.toLowerCase();setHistoryOpen(false);if(notice.action?.kind==="media"){void mediaControl(notice.action.player||"",notice.action.target);recordActivity("Media retry requested",notice.text,"success","OPERATOR",false,{subsystem:"MEDIA",severity:"priority",group:`media:${notice.action.target}`});return;}if(/process|engineering|cpu|memory/.test(value))setSection("system");else if(/module|extension/.test(value)){setSection("updates");Promise.all([fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()),fetch("http://127.0.0.1:8765/api/extension-catalog").then((response)=>response.json())]).then(([installed,catalog])=>{setExtensions(installed.extensions||[]);setExtensionCatalog(catalog.catalog||[]);setExtensionSources(catalog.sources||[]);notify("Module repositories refreshed");}).catch(()=>notify("Module repository retry failed","error"));}else if(/update|release/.test(value)){setSection("updates");fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation:"check",channel:prefs.updateChannel})}).then((response)=>response.json()).then(setLcarsUpdate).catch(()=>notify("Update check retry failed","error"));}else {setSection("settings");if(notice.kind==="error")coreAction("integration-recheck");}recordActivity(notice.kind==="error"?"Communications retry requested":"Communications action opened",notice.text,"success","OPERATOR");};
   const clearNotices=()=>{setNotices([]);localStorage.removeItem("lcars-notification-history");recordActivity("Communications history cleared","Operator removed stored LCARS notices","success","OPERATOR");};
-  const clearActivity=()=>{setActivityLog([]);localStorage.removeItem("lcars-activity-log");};
   const coreAction = (action: string) => {
     beep(true);
     if (bridge)
@@ -1283,12 +1302,25 @@ export default function Home() {
     setWidgetSizes(sizes);
     localStorage.setItem("lcars-widget-sizes", JSON.stringify(sizes));
   };
-  const mediaControl = (player: string, command: string) =>
-    fetch("http://127.0.0.1:8765/api/media-control", {
+  async function mediaControl(player: string, command: string) {
+    try {
+      const response=await fetch("http://127.0.0.1:8765/api/media-control", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ player, command }),
-    }).catch(() => {});
+      });
+      const result=await response.json();
+      if(!response.ok||result.ok===false)throw new Error(result.error||"Media command was rejected");
+      const selected=result.player||player||"ACTIVE MEDIA SESSION";
+      recordActivity("Media command completed",`${String(command).toUpperCase()} · ${selected}`,"success","OPERATOR",false,{subsystem:"MEDIA",group:`media:${selected}`,explanation:`Playback changed because the operator requested ${command}.`,action:{kind:"media",target:command,player:selected}});
+      return result;
+    } catch(error) {
+      const detail=error instanceof Error?error.message:"Media control is unavailable";
+      recordActivity("Media command failed",`${String(command).toUpperCase()} · ${detail}`,"attention","OPERATOR",false,{subsystem:"MEDIA",severity:"critical",group:`media:${player||"active"}`,explanation:"The requested player did not accept the playback state change.",action:{kind:"media",target:command,player}});
+      notify(detail,"error",true,"COMPUTER CORE","critical",{kind:"media",target:command,player});
+      return null;
+    }
+  }
   const streamVolume = (id: string, value: number) => {
     setStreams((old) =>
       old.map((s) => (s.id === id ? { ...s, volume: value } : s)),
@@ -1622,7 +1654,7 @@ export default function Home() {
       const next=Math.max(0,Math.min(100,Number(step.value??step.target)||0));setVolume(next);await fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:next})});
     } else if(step.kind==="audio-device")await fetch("http://127.0.0.1:8765/api/audio-device",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:step.target})});
     else if(step.kind==="media"){
-      const [playerId,command]=step.target.includes("|")?step.target.split("|",2):[players[0]?.id||"",step.target];if(!playerId)throw new Error("No media player is active");await fetch("http://127.0.0.1:8765/api/media-control",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({player:playerId,command})});
+      const [playerId,command]=step.target.includes("|")?step.target.split("|",2):[players[0]?.id||"",step.target];if(!playerId)throw new Error("No media player is active");const response=await fetch("http://127.0.0.1:8765/api/media-control",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({player:playerId,command})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Media command was rejected");
     } else if(step.kind==="system"){
       const result=await fetch("http://127.0.0.1:8765/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:step.target})}).then((response)=>response.json());if(result.error)throw new Error(result.error);
     } else if(step.kind==="command"){
@@ -1648,7 +1680,7 @@ export default function Home() {
         await new Promise((resolve)=>window.setTimeout(resolve,90));
       }
       routineLastRun.current.set(routine.id,Date.now());
-      recordActivity(`${dryRun?"Procedure dry run":testRun?"Step test":"Procedure"} ${routine.name}`,dryRun?"Conditions and execution path validated; no state was changed":"All selected steps completed successfully","success","ROUTINE",!dryRun&&computerProcedureReversible(routine));notify(`${routine.name} ${dryRun?"dry run":testRun?"step test":"procedure"} complete`,"info",true,"COMPUTER CORE","priority");
+      recordActivity(`${dryRun?"Procedure dry run":testRun?"Step test":"Procedure"} ${routine.name}`,dryRun?"Conditions and execution path validated; no state was changed":"All selected steps completed successfully","success","ROUTINE",!dryRun&&computerProcedureReversible(routine),{subsystem:"AUTOMATION",severity:"priority",group:`procedure:${routine.id}`,explanation:dryRun?"The Procedure execution path was validated without changing the workstation.":"Every selected Procedure step completed successfully.",action:dryRun?undefined:{kind:"procedure",target:routine.id}});notify(`${routine.name} ${dryRun?"dry run":testRun?"step test":"procedure"} complete`,"info",true,"COMPUTER CORE","priority");
     }catch(error){const detail=error instanceof Error?error.message:"Routine failed";recordActivity(`Routine ${routine.name}`,detail,"attention","ROUTINE");notify(`${routine.name}: ${detail}`,"error",true,"OPERATIONS AUTOMATION","critical");}
     finally{setRunningRoutine("");}
   };
@@ -1704,9 +1736,10 @@ export default function Home() {
       const condition=(step.target==="red"||step.target==="yellow"?step.target:"normal") as AlertCondition;setAlertCondition(condition);localStorage.setItem("lcars-alert-condition",condition);return;
     }
     if(step.command==="media-control"){
-      const player=players.find((item)=>item.status.toLowerCase()==="playing")||players[0];if(!player)throw new Error("No media session is active");
-      const playing=player.status.toLowerCase()==="playing";if((step.target==="pause"&&!playing)||(step.target==="play"&&playing))return;
-      const command=step.target==="pause"||step.target==="play"?"play-pause":step.target;
+      const target=step.target.toLowerCase(),preferred=target==="pause"?players.find((item)=>item.status.toLowerCase()==="playing"):target==="play"?players.find((item)=>item.status.toLowerCase()==="paused")||players.find((item)=>item.status.toLowerCase()==="stopped"):players.find((item)=>item.status.toLowerCase()==="playing")||players.find((item)=>item.status.toLowerCase()==="paused");
+      const player=preferred||players[0];if(!player)throw new Error("No media session is active");
+      const state=player.status.toLowerCase();if((target==="pause"&&state==="paused")||(target==="play"&&state==="playing"))return;
+      const command=target==="resume"?"play":target;
       const response=await fetch("http://127.0.0.1:8765/api/media-control",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({player:player.id,command})}),result=await response.json();if(!response.ok||result.ok===false)throw new Error(result.error||"Media command was rejected");return;
     }
     if(step.command==="open-center"){
@@ -1738,7 +1771,7 @@ export default function Home() {
     try{
       for(const step of plan.steps)await executeComputerStep(step);
       recordComputerAudit(plan,"completed",`${plan.steps.length} actions completed successfully`);recordActivity("Computer Core plan completed",plan.summary,"success","SYSTEM",plan.reversible);notify(`${plan.title} complete`,"info",true,"COMPUTER CORE","priority");return true;
-    }catch(error){const detail=error instanceof Error?error.message:"Computer Core plan failed";recordComputerAudit(plan,"failed",detail);recordActivity("Computer Core plan failed",detail,"attention","SYSTEM",Boolean(snapshot));notify(detail,"error",true,"COMPUTER CORE","critical");return false;}
+    }catch(error){const detail=error instanceof Error?error.message:"Computer Core plan failed",mediaStep=plan.steps.find((step)=>step.command==="media-control");recordComputerAudit(plan,"failed",detail);recordActivity("Computer Core plan failed",detail,"attention","SYSTEM",Boolean(snapshot),{subsystem:mediaStep?"MEDIA":"COMPUTER CORE",severity:"critical",group:mediaStep?`media:${mediaStep.target}`:`computer:${plan.id}`,explanation:mediaStep?"The requested playback state was not accepted by the selected player.":"One or more planned actions did not reach their intended completed state.",action:mediaStep?{kind:"media",target:mediaStep.target}:undefined});notify(detail,"error",true,"COMPUTER CORE","critical",mediaStep?{kind:"media",target:mediaStep.target}:undefined);return false;}
     finally{setComputerRunning(false);}
   };
   const undoComputerPlan=()=>{
@@ -1784,7 +1817,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"29",development:"30.5",channel:prefs.updateChannel},
+      release:{stable:"29",development:"30.6",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -1905,6 +1938,7 @@ export default function Home() {
       appDestinations,
       routines,
       activityLog,
+      operationsMeta,
       trayShortcuts,
       controlMappings,
       disabledExtensions,
@@ -1962,6 +1996,7 @@ export default function Home() {
         if (d.appDestinations&&typeof d.appDestinations==="object") {const importedDestinations=normalizeAppDestinations(d.appDestinations);setAppDestinations(importedDestinations);localStorage.setItem("lcars-app-destinations",JSON.stringify(importedDestinations));}
         if (Array.isArray(d.routines)) {const importedRoutines=normalizeRoutines(d.routines);setRoutines(importedRoutines);localStorage.setItem("lcars-routines",JSON.stringify(importedRoutines));}
         if (Array.isArray(d.activityLog)) {const importedActivity=normalizeActivity(d.activityLog);setActivityLog(importedActivity);localStorage.setItem("lcars-activity-log",JSON.stringify(importedActivity));}
+        if (d.operationsMeta&&typeof d.operationsMeta==="object"&&!Array.isArray(d.operationsMeta)) {setOperationsMeta(d.operationsMeta);localStorage.setItem("lcars-operations-meta",JSON.stringify(d.operationsMeta));}
         if (Array.isArray(d.trayShortcuts)) {const importedShortcuts=normalizeTrayShortcuts(d.trayShortcuts);setTrayShortcuts(importedShortcuts);localStorage.setItem("lcars-tray-shortcuts",JSON.stringify(importedShortcuts));}
         if (Array.isArray(d.controlMappings)) {const importedMappings=normalizeControlMappings(d.controlMappings);setControlMappings(importedMappings);localStorage.setItem("lcars-control-mappings",JSON.stringify(importedMappings));}
         if (Array.isArray(d.disabledExtensions)) {const importedDisabled=d.disabledExtensions.filter((item:unknown):item is string=>typeof item==="string").slice(0,128);setDisabledExtensions(importedDisabled);localStorage.setItem("lcars-disabled-extensions",JSON.stringify(importedDisabled));}
@@ -2121,6 +2156,30 @@ export default function Home() {
     if(result.category==="modules"){setSection("updates");setPaletteOpen(false);return;}
     if(result.category==="procedures"){const routine=routines.find((item)=>item.id===result.id);if(routine)requestRoutine(routine);else setRoutineCenterOpen(true);setPaletteOpen(false);return;}
     if(result.category==="activity"){setHistoryOpen(true);setPaletteOpen(false);return;}
+  };
+  const operationsTimeline=useMemo(()=>buildOperationsTimeline({notices,activity:activityLog,audit:computerAudit,stations:paddStatus?.activity||[],meta:operationsMeta}),[notices,activityLog,computerAudit,paddStatus?.activity,operationsMeta]);
+  const updateOperationsMeta=(id:string,patch:OperationsMeta)=>setOperationsMeta((old)=>{
+    const next={...old,[id]:{...old[id],...patch}},entries=Object.fromEntries(Object.entries(next).slice(-600));
+    localStorage.setItem("lcars-operations-meta",JSON.stringify(entries));return entries;
+  });
+  const acknowledgeOperation=(event:OperationsEvent)=>{
+    updateOperationsMeta(event.id,{acknowledged:!event.acknowledged});
+    if(event.id.startsWith("notice:")){const notice=notices.find((item)=>Math.abs(item.id)===Number(event.id.split(":")[1]));if(notice)updateNoticeState(notice.id,{read:!event.acknowledged,id:-Math.abs(notice.id)});}
+  };
+  const runOperationAction=(event:OperationsEvent)=>{
+    if(event.action?.kind==="notice"){const notice=notices.find((item)=>Math.abs(item.id)===Math.abs(Number(event.action?.target)));if(notice)noticeAction(notice);return;}
+    if(event.action?.kind==="media"){void mediaControl(event.action.player||"",event.action.target);return;}
+    if(event.action?.kind==="procedure"){const routine=routines.find((item)=>item.id===event.action?.target);if(routine)void executeRoutine(routine);else notify("The recorded Procedure is no longer available","error",true,"OPERATIONS CENTER");return;}
+    if(event.action?.kind==="undo"){if(computerUndo?.planId===event.action.target)undoComputerPlan();else notify("This action can no longer be reversed safely","error",true,"OPERATIONS CENTER");}
+  };
+  const exportOperationsReport=(events:OperationsEvent[])=>{
+    const report={generatedAt:new Date().toISOString(),lcarsVersion:LCARS_VERSION,platform,localCore:bridge?"online":"offline",health,filtersApplied:true,eventCount:events.length,events:events.map(({id,time,title,detail,station,operator,subsystem,severity,status,groupKey,explanation,acknowledged,assignee})=>({id,time:new Date(time).toISOString(),title,detail,station,operator,subsystem,severity,status,group:groupKey,explanation,acknowledged:Boolean(acknowledged),assignee:assignee||"UNASSIGNED"})),privacy:"Operator-generated diagnostic export. Credentials, pairing secrets, authorization codes, clipboard contents, and transferred file contents are excluded."};
+    const blob=new Blob([JSON.stringify(report,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),anchor=document.createElement("a");anchor.href=url;anchor.download=`LCARS-Operations-${new Date().toISOString().replace(/[:.]/g,"-")}.json`;anchor.click();URL.revokeObjectURL(url);recordActivity("Operations report exported",`${events.length} timeline event(s)`,"success","OPERATOR",false,{subsystem:"SYSTEM",group:"operations:export",explanation:"LCARS created a privacy-filtered diagnostic report from the visible Operations Log."});
+  };
+  const propagateOperation=async(event:OperationsEvent,deviceIds:string[])=>{
+    if(!deviceIds.length)return notify("Select at least one trusted station","error",true,"OPERATIONS CENTER");
+    const results=await Promise.allSettled(deviceIds.map(async(id)=>{const response=await fetch("http://127.0.0.1:8765/api/padd-pairing",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation:"delivery",id,kind:"notice",payload:{title:event.title,text:event.detail||event.explanation,priority:event.severity}})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Station rejected the alert");return result;}));
+    const delivered=results.filter((result)=>result.status==="fulfilled").length,failed=results.length-delivered;if(delivered)notify(`Priority alert routed to ${delivered} station${delivered===1?"":"s"}`,"info",true,"OPERATIONS CENTER","priority");if(failed)notify(`${failed} station${failed===1?"":"s"} could not receive the alert`,"error",true,"OPERATIONS CENTER");recordActivity("Priority alert propagated",`${event.title} · ${delivered} routed · ${failed} failed`,failed?"attention":"success","OPERATOR",false,{subsystem:"STATIONS",severity:failed?"warning":"priority",group:`propagation:${event.id}`,explanation:"The selected Operations event was queued for delivery to trusted Federation stations."});void refreshPadd();
   };
   const restrictionForSection = compat?.restrictions.filter(
     (r) =>
@@ -2344,7 +2403,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>30.5 DEV</small>
+          <small>30.6 DEV</small>
         </button>
         <div className="title">
           <div className="title-copy">
@@ -2810,7 +2869,7 @@ export default function Home() {
                   <small>LEARN THE LCARS DESKTOP CONTROLS</small>
                 </button>
                 <button onClick={()=>setWhatsNewOpen(true)}>
-                  <b>WHAT&apos;S NEW IN VERSION 30.5</b>
+                  <b>WHAT&apos;S NEW IN VERSION 30.6</b>
                   <small>UNIVERSAL SEARCH & DATA FABRIC</small>
                 </button>
                 <button onClick={() => coreAction("shell-mode-off")}>
@@ -2901,7 +2960,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-5","1");setWhatsNewOpen(false);}} openComputer={()=>{localStorage.setItem("lcars-whats-new-v30-5","1");setWhatsNewOpen(false);setPaletteQuery("");setPaletteOpen(true);}}/>}
+      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-6","1");setWhatsNewOpen(false);}} openComputer={()=>{localStorage.setItem("lcars-whats-new-v30-6","1");setWhatsNewOpen(false);setHistoryOpen(true);}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {computerOpen&&<ComputerCoreConsole
         bridge={bridge}
@@ -2950,16 +3009,21 @@ export default function Home() {
       {powerOpen && (
         <PowerDialog close={() => setPowerOpen(false)} action={powerAction} />
       )}
-      <NotificationCenter
+      <OperationsCenter
         notices={notices}
-        activity={activityLog}
+        events={operationsTimeline}
+        devices={(paddStatus?.devices||[]).map((device)=>({id:device.id,name:device.name,online:Boolean(device.online)}))}
+        localOperator={userName}
+        reversiblePlanId={computerUndo?.planId||""}
         historyOpen={historyOpen}
         close={() => setHistoryOpen(false)}
         dismiss={dismissNotice}
-        updateState={updateNoticeState}
-        action={noticeAction}
-        clear={clearNotices}
-        clearActivity={clearActivity}
+        acknowledge={acknowledgeOperation}
+        assign={(event,assignee)=>updateOperationsMeta(event.id,{assignee})}
+        action={runOperationAction}
+        exportReport={exportOperationsReport}
+        propagate={propagateOperation}
+        clearNotices={clearNotices}
         doNotDisturb={doNotDisturb}
         toggleDnd={() => setDoNotDisturb((v) => !v)}
       />
@@ -3552,7 +3616,7 @@ function ExtensionHub({installed,catalog,sources,setCatalog,setSources,disabled,
       {packageOpen&&<section className="module-package-bay"><header><span><small>SIGNED PORTABLE PACKAGES</small><b>IMPORT / EXPORT</b></span><strong>.LCARS-MODULE</strong></header><div><label>EXPORT INSTALLED MODULE<select value={packageModule} onChange={(event)=>setPackageModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><button disabled={!packageModule||busy==="export"} onClick={exportPackage}>{busy==="export"?"SIGNING…":"EXPORT SIGNED PACKAGE"}</button><label>IMPORT PACKAGE PATH<input value={importPath} placeholder="/path/to/module.lcars-module" onChange={(event)=>setImportPath(event.target.value)}/></label><button disabled={!importPath||busy==="import"} onClick={importPackage}>{busy==="import"?"VERIFYING…":"VERIFY + IMPORT"}</button></div>{packageResult&&<aside><b>PACKAGE OPERATION COMPLETE</b><span>{packageResult.path}</span>{packageResult.sha256&&<small>SHA-256 {packageResult.sha256.toUpperCase()}</small>}{packageResult.signerKeyId&&<em>SIGNER {packageResult.signerKeyId.toUpperCase()}</em>}</aside>}</section>}
       {publisherOpen&&<section className="module-publisher"><header><span><small>RSA-SHA256 · STABLE + DEVELOPMENT CATALOGS</small><b>SIGNED MODULE PUBLISHER</b></span><a href="https://github.com/new" target="_blank" rel="noreferrer">CREATE GITHUB REPOSITORY ↗</a></header><p>LCARS validates the stable API contract, signs the package metadata with your local publisher identity, and generates both repository channels. The private signing key never leaves the local Module Forge folder.</p><div><label>MODULE<select value={publisherModule} onChange={(event)=>setPublisherModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><label>GITHUB OWNER / REPOSITORY<input value={publisherRepository} onChange={(event)=>setPublisherRepository(event.target.value)} placeholder="OWNER/REPOSITORY"/></label><button disabled={!publisherModule||busy==="publisher"} onClick={preparePublisher}>{busy==="publisher"?"SIGNING…":"GENERATE SIGNED REPOSITORY"}</button></div>{publisherResult&&<aside><b>SIGNED PACKAGE READY</b><span>{publisherResult.path}</span><small>SHA-256 {publisherResult.sha256?.toUpperCase()}</small><em>SIGNER {publisherResult.signerKeyId?.toUpperCase()} · {publisherResult.files?.join(" · ")}</em></aside>}</section>}
       <div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id),remote=entry,health=manifest?.moduleHealth||entry.moduleHealth,requested=manifest?.capabilities||entry.capabilities,granted=manifest?.grantedCapabilities||entry.grantedCapabilities||[],showDetails=details===entry.id;return <article className={`${disabledNow?"disabled":""} ${remote.repository?"repository-module":"local-module"} module-health-${health?.health||"ready"}`} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{remote.repository?`${remote.official?"OFFICIAL":"COMMUNITY"} · ${(remote.channel||"stable").toUpperCase()} · ${remote.sourceName||"MODULE REPOSITORY"}`:entry.bundled?"BUNDLED MODULE":"LOCAL MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · API {manifest?.apiVersion||health?.apiVersion||"?"} {health?.apiStatus?.toUpperCase()||""} · V{entry.version}{installedNow?` / INSTALLED V${manifest?.version||remote.installedVersion||entry.version}`:""} · {health?.health?.toUpperCase()||"READY"}</em>{showDetails&&<><div className="module-detail-strip"><span><b>PACKAGE TRUST</b>{(remote.signatureStatus||health?.signed||"local").toUpperCase()}</span><span><b>SIGNER</b>{remote.signerKeyId||health?.signerKeyId||"LOCAL / BUNDLED"}</span><span><b>MINIMUM LCARS</b>{remote.minimumLcarsVersion||manifest?.minimumLcarsVersion||"COMPATIBLE"}</span><span><b>HEALTH</b>{health?.failureCount?`${health.failureCount} FAILURE(S) · ${health.lastFailure||"RECORDED"}`:"READY · NO RECORDED FAILURES"}</span><span><b>ROLLBACK</b>{health?.rollbackAvailable||remote.rollbackAvailable?"PREVIOUS VERSION AVAILABLE":"NO PREVIOUS VERSION"}</span><span><b>SOURCE</b>{remote.official?"LCARS OFFICIAL":remote.sourceName||health?.sourceId||"LOCAL"}</span></div>{installedNow&&requested.length>0&&<div className="module-permission-matrix"><b>CAPABILITY PERMISSIONS</b>{requested.map((capability)=><button className={granted.includes(capability)?"granted":"revoked"} key={capability} onClick={()=>platformOperation("permissions",entry,granted.includes(capability)?granted.filter((item)=>item!==capability):[...granted,capability])}>{granted.includes(capability)?"✓ GRANTED":"○ REVOKED"}<small>{capabilityLabels[capability]||capability}</small></button>)}</div>}</>}</span><nav><button onClick={()=>setDetails(showDetails?"":entry.id)}>{showDetails?"LESS":"DETAILS"}</button>{installedNow?<><button onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</button>{(health?.rollbackAvailable||remote.rollbackAvailable)&&<button disabled={busy===`rollback:${entry.id}`} onClick={()=>platformOperation("rollback",entry)}>ROLL BACK</button>}{remote.updateAvailable&&<button className="update" disabled={busy===entry.id} onClick={()=>operate(entry,"update")}>{busy===entry.id?"VERIFYING…":"UPDATE"}</button>}{!entry.bundled&&<button className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</button>}</>:remote.repository?<button className="install" disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"VERIFYING…":"INSTALL"}</button>:null}</nav></article>;})}{!inventory.length&&<p className="extension-empty">NO MATCHING MODULES ON THE {catalogChannel.toUpperCase()} CHANNEL</p>}</div>
-      <footer><b>VERSION 30.5 MODULE SAFETY</b> · Signed API v3 packages, explicit capability grants, per-module health records, automatic render isolation, two-version rollback, bounded portable imports, and channel-aware repositories. Repository code is never executed.</footer>
+      <footer><b>VERSION 30.6 MODULE SAFETY</b> · Signed API v3 packages, explicit capability grants, per-module health records, automatic render isolation, two-version rollback, bounded portable imports, and channel-aware repositories. Repository code is never executed.</footer>
     </>}
   </section>;
 }
@@ -4264,14 +4328,14 @@ function LcarsSessionControl({bridge,platform,notify}:{bridge:boolean;platform:s
   const configure=(config:LcarsSessionStatus["config"])=>operate("configure",config);
   const updateConfig=(change:Partial<LcarsSessionStatus["config"]>)=>status&&setStatus({...status,config:{...status.config,...change}});
   const addRule=()=>{if(!status||!ruleMatch.trim())return;const rules=[...status.config.windowRules,{match:ruleMatch.trim(),deck:ruleDeck}].slice(0,20);setRuleMatch("");updateConfig({windowRules:rules});void configure({...status.config,windowRules:rules});};
-  if(!platform.includes("LINUX"))return <section className="lcars-session-control unavailable"><header><span><small>VERSION 30.5 COMPUTER ENVIRONMENT</small><b>LINUX LCARS SESSION</b></span><em>LINUX ONLY</em></header><p>The selectable LCARS login session is a Linux desktop feature. Normal Windows and Android operation is unchanged.</p></section>;
+  if(!platform.includes("LINUX"))return <section className="lcars-session-control unavailable"><header><span><small>VERSION 30.6 COMPUTER ENVIRONMENT</small><b>LINUX LCARS SESSION</b></span><em>LINUX ONLY</em></header><p>The selectable LCARS login session is a Linux desktop feature. Normal Windows and Android operation is unchanged.</p></section>;
   return <section className={`lcars-session-control ${status?.active?"active":""}`}>
-    <header><span><small>VERSION 30.5 COMPUTER ENVIRONMENT · EXPLICIT OPT-IN</small><b>LINUX LCARS LOGIN SESSION</b></span><em>{status?.active?"ACTIVE SESSION":status?.installed?"INSTALLED / OPTIONAL":"APPLICATION MODE"}</em></header>
+    <header><span><small>VERSION 30.6 COMPUTER ENVIRONMENT · EXPLICIT OPT-IN</small><b>LINUX LCARS LOGIN SESSION</b></span><em>{status?.active?"ACTIVE SESSION":status?.installed?"INSTALLED / OPTIONAL":"APPLICATION MODE"}</em></header>
     <p>Register LCARS as a selectable Wayland or X11 login session while retaining the current desktop underneath for window management and emergency recovery. Installing this does not make LCARS the default.</p>
     <div className="lcars-session-readiness">
       {(["loginSession","windowTasking","multiMonitor","windowRules","crashRecovery","safeMode","normalDesktopFallback","kiosk"] as const).map((name)=><span className={status?.capabilities?.[name]?"ready":"limited"} key={name}><i>{status?.capabilities?.[name]?"✓":"!"}</i>{name.replace(/([A-Z])/g," $1").toUpperCase()}</span>)}
     </div>
-    {!bridge?<div className="lcars-session-offline"><b>LOCAL CORE REQUIRED</b><small>Install and open the native Linux desktop build to register a login session.</small></div>:!status?<div className="lcars-session-offline"><b>SESSION ADAPTER UNAVAILABLE</b><small>Reinstall Version 30.5 to add the optional session resources.</small></div>:<>
+    {!bridge?<div className="lcars-session-offline"><b>LOCAL CORE REQUIRED</b><small>Install and open the native Linux desktop build to register a login session.</small></div>:!status?<div className="lcars-session-offline"><b>SESSION ADAPTER UNAVAILABLE</b><small>Reinstall Version 30.6 to add the optional session resources.</small></div>:<>
       <div className="lcars-session-actions"><button disabled={Boolean(busy)} onClick={()=>operate(status.installed?"uninstall":"install")}>{busy==="install"||busy==="uninstall"?"WAITING FOR AUTHORIZATION…":status.installed?"REMOVE LOGIN SESSION":"INSTALL LCARS LOGIN SESSION"}</button><button onClick={refresh}>REFRESH STATUS</button>{status.active&&<button className="escape" disabled={Boolean(busy)} onClick={()=>operate("escape")}>EXIT TO NORMAL DESKTOP</button>}</div>
       <small className="lcars-session-note">Administrator authorization is requested only when adding or removing display-manager session entries. Settings and the LCARS application remain in your account.</small>
       <div className="lcars-session-grid">
@@ -4393,10 +4457,10 @@ function ShellSettings({
         <section>
           <h4>OFFLINE VOICE CONTROL</h4>
           <Toggle label="Enable offline voice commands" description="Audio stays on this station and is processed by the bundled whisper.cpp Computer Core." checked={prefs.voiceEnabled} change={(v) => set("voiceEnabled", v)} />
-          <Toggle label="Use push-to-talk" description="When disabled, LCARS keeps a local hands-free microphone watch active. Switching to hands-free automatically enables the Computer wake word." checked={prefs.voicePushToTalk} change={(v) => setPrefs((old)=>({...old,voicePushToTalk:v,voiceWakePhrase:v?old.voiceWakePhrase:true}))} />
+          <Toggle label="Use push-to-talk" description="When disabled, LCARS keeps a local hands-free microphone watch active. Switching to hands-free automatically enables the Computer wake word." checked={prefs.voicePushToTalk} change={(v) => {const old=prefs;setPrefs({...old,voicePushToTalk:v,voiceWakePhrase:v?old.voiceWakePhrase:true});}} />
           <Toggle label="Require 'Computer' wake word" description={prefs.voicePushToTalk?"Optional in push-to-talk mode. Commands without Computer are ignored when enabled.":"Recommended for hands-free operation. Disable this only if every recognized phrase should be treated as a command."} checked={prefs.voiceWakePhrase} change={(v) => set("voiceWakePhrase", v)} />
-          <Toggle label="Execute recognized voice commands immediately" description="Opt-in Version 30.5 mode. Valid commands within the selected Voice Authority skip the Computer Core preview. Protected actions only run immediately after the configured vocal authorization code is verified; otherwise the confirmation screen opens." checked={prefs.voiceImmediateExecution} change={(v) => set("voiceImmediateExecution", v)} />
-          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30.5 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
+          <Toggle label="Execute recognized voice commands immediately" description="Opt-in Version 30.6 mode. Valid commands within the selected Voice Authority skip the Computer Core preview. Protected actions only run immediately after the configured vocal authorization code is verified; otherwise the confirmation screen opens." checked={prefs.voiceImmediateExecution} change={(v) => set("voiceImmediateExecution", v)} />
+          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30.6 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
           <label>LOCAL MODEL FILE · OPTIONAL OVERRIDE<small>The bundled English command model works out of the box. A custom GGML model remains entirely local.</small><input value={prefs.voiceModel} placeholder="BUNDLED TINY.EN MODEL (AUTOMATIC)" onChange={(e) => set("voiceModel", e.target.value)} /></label>
           <VoiceDeviceSelect value={prefs.voiceDevice} change={(value) => set("voiceDevice", value)} />
           <label>VOICE AUTHORITY<small>Higher levels permit more command categories; power and unmount commands always require confirmation.</small><select value={prefs.voiceSecurity} onChange={(e) => set("voiceSecurity", e.target.value as ShellPrefs["voiceSecurity"])}><option value="navigation">NAVIGATION ONLY</option><option value="applications">NAVIGATION + APPLICATIONS</option><option value="system">SYSTEM CONTROL</option></select></label>
@@ -4580,7 +4644,7 @@ function ProcedureCenter({routines,apps,profiles,devices,players,running,history
   const update=(patch:Partial<Routine>)=>procedure&&save(routines.map((item)=>item.id===procedure.id?{...item,...patch}:item));
   const add=()=>{const item:Routine={id:createV25Id("routine"),name:`PROCEDURE ${routines.length+1}`,description:"Operator-defined Computer Core procedure",folder:"GENERAL",color:"orange",enabled:true,trigger:{type:"manual"},steps:[{id:createV25Id("step"),kind:"page",target:"overview",delayMs:0,retries:0,onFailure:"stop"}],cooldownSeconds:0,maxRuntimeSeconds:120,dryRunByDefault:false};save([...routines,item]);setSelected(item.id);setShowHistory(false);};
   const duplicate=()=>{if(!procedure)return;const copy:Routine={...procedure,id:createV25Id("routine"),name:`${procedure.name} COPY`.slice(0,40),steps:procedure.steps.map((step)=>({...step,id:createV25Id("step")}))};save([...routines,copy]);setSelected(copy.id);};
-  const choices=(kind:RoutineStepKind)=>kind==="page"?nav.map((page)=>({value:page[0],label:page[2]})):kind==="app"?apps.map((app)=>({value:app.id,label:app.name})):kind==="workstation"?profiles.map((profile)=>({value:profile.id,label:profile.name})):kind==="theme"?themes.map((entry)=>({value:entry.id,label:entry.name})):kind==="dnd"?[{value:"true",label:"ENABLE"},{value:"false",label:"DISABLE"}]:kind==="audio-device"?devices.map((device)=>({value:device.id,label:`${device.kind.toUpperCase()} · ${device.name}`})):kind==="media"?[...players.flatMap((player)=>["play-pause","previous","next","stop"].map((command)=>({value:`${player.id}|${command}`,label:`${player.name} · ${command.toUpperCase()}`}))),{value:"play-pause",label:"ACTIVE PLAYER · PLAY/PAUSE"}]:kind==="system"?[{value:"sleep",label:"SLEEP COMPUTER"},{value:"reboot",label:"RESTART COMPUTER"},{value:"poweroff",label:"SHUT DOWN COMPUTER"}]:kind==="command"?[{value:"refresh-applications",label:"REFRESH APPLICATION INVENTORY"},{value:"integration-recheck",label:"RECHECK LOCAL INTEGRATIONS"},{value:"open-system-monitor",label:"OPEN SYSTEM MONITOR"},{value:"open-software-center",label:"OPEN SOFTWARE CENTER"}]:[];
+  const choices=(kind:RoutineStepKind)=>kind==="page"?nav.map((page)=>({value:page[0],label:page[2]})):kind==="app"?apps.map((app)=>({value:app.id,label:app.name})):kind==="workstation"?profiles.map((profile)=>({value:profile.id,label:profile.name})):kind==="theme"?themes.map((entry)=>({value:entry.id,label:entry.name})):kind==="dnd"?[{value:"true",label:"ENABLE"},{value:"false",label:"DISABLE"}]:kind==="audio-device"?devices.map((device)=>({value:device.id,label:`${device.kind.toUpperCase()} · ${device.name}`})):kind==="media"?[...players.flatMap((player)=>["play","pause","previous","next","stop"].map((command)=>({value:`${player.id}|${command}`,label:`${player.name} · ${command.toUpperCase()}`}))),{value:"play",label:"ACTIVE PLAYER · PLAY"},{value:"pause",label:"ACTIVE PLAYER · PAUSE"}]:kind==="system"?[{value:"sleep",label:"SLEEP COMPUTER"},{value:"reboot",label:"RESTART COMPUTER"},{value:"poweroff",label:"SHUT DOWN COMPUTER"}]:kind==="command"?[{value:"refresh-applications",label:"REFRESH APPLICATION INVENTORY"},{value:"integration-recheck",label:"RECHECK LOCAL INTEGRATIONS"},{value:"open-system-monitor",label:"OPEN SYSTEM MONITOR"},{value:"open-software-center",label:"OPEN SOFTWARE CENTER"}]:[];
   const updateStep=(id:string,patch:Partial<RoutineStep>)=>procedure&&update({steps:procedure.steps.map((step)=>step.id===id?{...step,...patch}:step)});
   const moveStep=(index:number,direction:number)=>{if(!procedure)return;const target=index+direction;if(target<0||target>=procedure.steps.length)return;const steps=[...procedure.steps];[steps[index],steps[target]]=[steps[target],steps[index]];update({steps});};
   const addStep=()=>{if(!procedure||procedure.steps.length>=48)return;update({steps:[...procedure.steps,{id:createV25Id("step"),kind:"page",target:"overview",delayMs:0,retries:0,onFailure:"stop"}]});};
@@ -4588,7 +4652,7 @@ function ProcedureCenter({routines,apps,profiles,devices,players,running,history
   const triggerPlaceholder=procedure?.trigger.type==="app"?"APPLICATION NAME":procedure?.trigger.type==="device"?"AUDIO DEVICE":procedure?.trigger.type==="battery-below"?"BATTERY PERCENT":procedure?.trigger.type==="network"?"NETWORK NAME OR BLANK":procedure?.trigger.type==="notice"?"NOTICE TEXT OR SOURCE":procedure?.trigger.type==="media"?"PLAYER, ARTIST, OR TITLE":procedure?.trigger.type==="station"?"PADD NAME OR BLANK":procedure?.trigger.type==="interval"?"MINUTES":"TRIGGER VALUE";
   return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
     <section className="routine-center procedure-center" role="dialog" aria-modal="true" aria-label="Computer Core Procedure Builder">
-      <header><div><small>VERSION 30.5 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
+      <header><div><small>VERSION 30.6 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
       <div className="routine-center-layout">
         <aside><button onClick={add}>+ NEW PROCEDURE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO PROCEDURES CONFIGURED</p>}</aside>
         {showHistory?<main className="routine-run-history"><header><small>COMPUTER CORE EXECUTION JOURNAL</small><h3>PROCEDURE HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO PROCEDURE EXECUTIONS RECORDED</p>}</main>:procedure?<main>
@@ -4634,7 +4698,7 @@ function RoutineCenter({routines,apps,profiles,devices,players,running,history,s
   const update=(patch:Partial<Routine>)=>{if(!routine)return;save(routines.map((item)=>item.id===routine.id?{...item,...patch}:item));};
   const add=()=>{const item:Routine={id:createV25Id("routine"),name:`ROUTINE ${routines.length+1}`,description:"Operator-defined LCARS command sequence",folder:"GENERAL",color:"orange",enabled:true,trigger:{type:"manual"},steps:[{id:createV25Id("step"),kind:"page",target:"overview",delayMs:0,retries:0,onFailure:"stop"}]};save([...routines,item]);setSelected(item.id);setShowHistory(false);};
   const duplicate=()=>{if(!routine)return;const copy:Routine={...routine,id:createV25Id("routine"),name:`${routine.name} COPY`.slice(0,40),steps:routine.steps.map((step)=>({...step,id:createV25Id("step")}))};save([...routines,copy]);setSelected(copy.id);};
-  const stepChoices=(kind:RoutineStepKind)=>kind==="page"?nav.map((page)=>({value:page[0],label:page[2]})):kind==="app"?apps.map((app)=>({value:app.id,label:app.name})):kind==="workstation"?profiles.map((profile)=>({value:profile.id,label:profile.name})):kind==="theme"?themes.map((theme)=>({value:theme.id,label:theme.name})):kind==="dnd"?[{value:"true",label:"ENABLE"},{value:"false",label:"DISABLE"}]:kind==="audio-device"?devices.map((device)=>({value:device.id,label:`${device.kind.toUpperCase()} · ${device.name}`})):kind==="media"?[...players.flatMap((player)=>["play-pause","previous","next","stop"].map((command)=>({value:`${player.id}|${command}`,label:`${player.name} · ${command.toUpperCase()}`}))),{value:"play-pause",label:"ACTIVE PLAYER · PLAY/PAUSE"}]:kind==="system"?[{value:"sleep",label:"SLEEP COMPUTER"},{value:"reboot",label:"RESTART COMPUTER"},{value:"poweroff",label:"SHUT DOWN COMPUTER"}]:kind==="command"?[{value:"refresh-applications",label:"REFRESH APPLICATION INVENTORY"},{value:"integration-recheck",label:"RECHECK LOCAL INTEGRATIONS"},{value:"open-system-monitor",label:"OPEN SYSTEM MONITOR"},{value:"open-software-center",label:"OPEN SOFTWARE CENTER"}]:[];
+  const stepChoices=(kind:RoutineStepKind)=>kind==="page"?nav.map((page)=>({value:page[0],label:page[2]})):kind==="app"?apps.map((app)=>({value:app.id,label:app.name})):kind==="workstation"?profiles.map((profile)=>({value:profile.id,label:profile.name})):kind==="theme"?themes.map((theme)=>({value:theme.id,label:theme.name})):kind==="dnd"?[{value:"true",label:"ENABLE"},{value:"false",label:"DISABLE"}]:kind==="audio-device"?devices.map((device)=>({value:device.id,label:`${device.kind.toUpperCase()} · ${device.name}`})):kind==="media"?[...players.flatMap((player)=>["play","pause","previous","next","stop"].map((command)=>({value:`${player.id}|${command}`,label:`${player.name} · ${command.toUpperCase()}`}))),{value:"play",label:"ACTIVE PLAYER · PLAY"},{value:"pause",label:"ACTIVE PLAYER · PAUSE"}]:kind==="system"?[{value:"sleep",label:"SLEEP COMPUTER"},{value:"reboot",label:"RESTART COMPUTER"},{value:"poweroff",label:"SHUT DOWN COMPUTER"}]:kind==="command"?[{value:"refresh-applications",label:"REFRESH APPLICATION INVENTORY"},{value:"integration-recheck",label:"RECHECK LOCAL INTEGRATIONS"},{value:"open-system-monitor",label:"OPEN SYSTEM MONITOR"},{value:"open-software-center",label:"OPEN SOFTWARE CENTER"}]:[];
   const addStep=()=>{if(!routine||routine.steps.length>=24)return;update({steps:[...routine.steps,{id:createV25Id("step"),kind:"page",target:"overview",delayMs:0,retries:0,onFailure:"stop"}]});};
   const updateStep=(id:string,patch:Partial<RoutineStep>)=>routine&&update({steps:routine.steps.map((step)=>step.id===id?{...step,...patch}:step)});
   const moveStep=(index:number,direction:number)=>{if(!routine)return;const target=index+direction;if(target<0||target>=routine.steps.length)return;const steps=[...routine.steps];[steps[index],steps[target]]=[steps[target],steps[index]];update({steps});};
@@ -4918,14 +4982,14 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
 
 function Version30Welcome({close,openComputer}:{close:()=>void;openComputer:()=>void}){
   const features=[
-    {code:"01",title:"ONE ACTIONABLE SEARCH",text:"Find applications, files, settings, commands, stations, notices, media, contacts, modules, procedures, and activity from one LCARS index."},
-    {code:"02",title:"FILES THAT GO SOMEWHERE",text:"Open a found file inside LCARS, route it to a trusted PADD or station, or attach it to a Computer Core procedure."},
-    {code:"03",title:"SECURE DATA FABRIC",text:"Hand off clipboard text and small files over the existing signed AES-256-GCM Federation link with bounded offline delivery queues."},
-    {code:"04",title:"SELECTIVE SYNCHRONIZATION",text:"Choose each synchronized category independently. Recent items, activity, private storage, clipboard, and files remain operator-controlled."},
-    {code:"05",title:"CONFLICTS, VERSIONS + PRIVATE VAULT",text:"Resolve cross-station conflicts explicitly, retain bounded version history, and opt into station-local AES-256-GCM private storage."},
-    {code:"06",title:"NATURAL ALERTS + CLEAR CONFIRMATION",text:"Green Alert and No Alert restore the Display Matrix. The first command says Affirmative; multi-step and rapid follow-up commands use a short input-OK cue."},
+    {code:"01",title:"ONE OPERATIONS TIMELINE",text:"Notices, station events, commands, Procedures, media changes, security prompts, and failures now share one chronological log."},
+    {code:"02",title:"FIND THE EVENT",text:"Search history and filter it by station, operator, subsystem, or severity, with related changes grouped into a single incident."},
+    {code:"03",title:"ACKNOWLEDGE + ASSIGN",text:"Mark events acknowledged, assign them to an operator, and open a plain-language What changed? explanation."},
+    {code:"04",title:"ACTIONABLE HISTORY",text:"Rerun successful Procedures, reverse the currently supported action, or retry the exact command that produced a failure."},
+    {code:"05",title:"FLEET PRIORITY ROUTING",text:"Propagate priority events to selected trusted stations, including bounded offline delivery queues."},
+    {code:"06",title:"MEDIA RESUME REPAIRED",text:"Explicit play and pause target the right media session, fall back safely, and retain a direct retry when a player rejects the command."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.5 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.5 · DATA FABRIC</h2><p>Search the whole environment, act on results, and move selected data safely between trusted stations.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openComputer}>OPEN UNIVERSAL SEARCH</button><button autoFocus onClick={close}>BEGIN 30.5 DEVELOPMENT</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.6 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.6 · OPERATIONS CENTER</h2><p>Understand what happened, who or what changed it, and what can safely happen next.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openComputer}>OPEN OPERATIONS CENTER</button><button autoFocus onClick={close}>BEGIN 30.6 DEVELOPMENT</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){
@@ -5519,108 +5583,30 @@ function MediaSources({
     </div>
   );
 }
-function NotificationCenter({
-  notices,
-  activity,
-  historyOpen,
-  close,
-  dismiss,
-  updateState,
-  action,
-  clear,
-  clearActivity,
-  doNotDisturb,
-  toggleDnd,
-}: {
-  notices: Notice[];
-  activity: ActivityEntry[];
-  historyOpen: boolean;
-  close: () => void;
-  dismiss: (id: number) => void;
-  updateState: (id:number,patch:Partial<Notice>) => void;
-  action: (notice:Notice) => void;
-  clear: () => void;
-  clearActivity: () => void;
-  doNotDisturb: boolean;
-  toggleDnd: () => void;
-}) {
-  const [query, setQuery] = useState(""),
-    [tab,setTab]=useState<"notices"|"activity">("notices"),
-    [priority,setPriority]=useState("all"),
-    [source,setSource]=useState("all"),
-    [showArchived,setShowArchived]=useState(false),
-    live = notices.filter((n) => n.id > 0).slice(0, 3),
-    sources=Array.from(new Set(notices.map((notice)=>notice.source||"LCARS CORE"))).sort(),
-    visible = notices.filter((n) => `${n.text} ${n.source||""} ${n.priority||""}`.toLowerCase().includes(query.toLowerCase())&&(priority==="all"||(n.priority||"routine")===priority)&&(source==="all"||(n.source||"LCARS CORE")===source)&&(showArchived||!n.archived)),
-    visibleActivity=activity.filter((entry)=>`${entry.title} ${entry.detail} ${entry.source} ${entry.status}`.toLowerCase().includes(query.toLowerCase()));
-  return (
-    <>
-      <div className="toast-stack">
-        {live.map((n) => (
-          <div className={`toast ${n.kind} priority-${n.priority||"routine"}`} key={n.id}>
-            <i>●</i>
-            <span>
-              <b>{n.text}</b>
-              <small>{n.source||"LCARS CORE"} · {n.priority?.toUpperCase()||"ROUTINE"} · {n.time}{(n.repeats||1)>1?` · ×${n.repeats}`:""}</small>
-            </span>
-            <button
-              title="Close notification"
-              aria-label="Dismiss notification"
-              onClick={() => dismiss(n.id)}
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
-      {historyOpen && (
-        <ResizablePopup as="aside" popupKey="communications-center" className="notice-history" floating minWidth={380} minHeight={360} ariaModal={false} ariaLabel="Communications Center">
-          <header>
-            <div>
-              <small>VERSION 29 PRIORITY & ACTION MATRIX</small>
-              <h3>COMMUNICATIONS ACTION CENTER</h3>
-            </div>
-            <button onClick={close}>CLOSE ×</button>
-          </header>
-          <nav className="communications-tabs">
-            <button className={tab==="notices"?"active":""} onClick={()=>setTab("notices")}>NOTICES <b>{notices.filter((notice)=>!notice.archived).length}</b></button>
-            <button className={tab==="activity"?"active":""} onClick={()=>setTab("activity")}>COMMAND ACTIVITY <b>{activity.length}</b></button>
-            <button
-              className={doNotDisturb ? "active" : ""}
-              onClick={toggleDnd}
-            >
-              {doNotDisturb ? "DO NOT DISTURB ON" : "DO NOT DISTURB OFF"}
-            </button>
-            <button onClick={tab==="notices"?clear:clearActivity}>CLEAR {tab==="notices"?"NOTICES":"ACTIVITY"}</button>
-          </nav>
-          <input
-            aria-label="Search communications history"
-            placeholder={`SEARCH ${tab==="notices"?"NOTICES":"COMMAND ACTIVITY"}…`}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          {tab==="notices"&&<nav className="communications-filters"><label>PRIORITY<select value={priority} onChange={(event)=>setPriority(event.target.value)}><option value="all">ALL PRIORITIES</option><option value="critical">CRITICAL</option><option value="priority">PRIORITY</option><option value="routine">ROUTINE</option></select></label><label>SOURCE<select value={source} onChange={(event)=>setSource(event.target.value)}><option value="all">ALL SOURCES</option>{sources.map((item)=><option value={item} key={item}>{item}</option>)}</select></label><label className="communications-archive-toggle"><input type="checkbox" checked={showArchived} onChange={(event)=>setShowArchived(event.target.checked)}/><span>SHOW ARCHIVED</span></label></nav>}
-          <div className="communications-feed" tabIndex={0}>
-          {tab==="notices"&&(visible.length ? (
-            visible.map((n) => (
-              <article className={`communication-entry priority-${n.priority||"routine"}`} key={Math.abs(n.id)}>
-                <i>●</i>
-                <span>
-                  <b>{n.text}</b>
-                  <small>{n.source||"LCARS CORE"} · {n.priority?.toUpperCase()||"ROUTINE"} · {n.time}{(n.repeats||1)>1?` · REPEATED ${n.repeats}×`:""}{n.read?" · READ":" · UNREAD"}</small>
-                </span>
-                <nav><button onClick={()=>action(n)}>{n.kind==="error"?"RETRY":/process|engineering/i.test(`${n.source} ${n.text}`)?"VIEW PROCESS":/update|module|extension/i.test(`${n.source} ${n.text}`)?"OPEN UPDATES":"OPEN SETTINGS"}</button><button onClick={()=>updateState(n.id,{read:!n.read,id:-Math.abs(n.id)})}>{n.read?"MARK UNREAD":"MARK READ"}</button><button onClick={()=>updateState(n.id,{archived:!n.archived,read:true,id:-Math.abs(n.id)})}>{n.archived?"RESTORE":"ARCHIVE"}</button></nav>
-              </article>
-            ))
-          ) : (
-            <p>NO MATCHING NOTIFICATIONS</p>
-          ))}
-          {tab==="activity"&&(visibleActivity.length?visibleActivity.map((entry)=><article className={`communication-entry activity-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{entry.source} · {entry.status.toUpperCase()} · {new Date(entry.time).toLocaleString()}</small><em>{entry.detail}</em></span></article>):<p>NO MATCHING COMMAND ACTIVITY</p>)}
-          </div>
-        </ResizablePopup>
-      )}
-    </>
-  );
+function OperationsCenter({notices,events,devices,localOperator,reversiblePlanId,historyOpen,close,dismiss,acknowledge,assign,action,exportReport,propagate,clearNotices,doNotDisturb,toggleDnd}:{
+  notices:Notice[];events:OperationsEvent[];devices:{id:string;name:string;online:boolean}[];localOperator:string;reversiblePlanId:string;historyOpen:boolean;close:()=>void;dismiss:(id:number)=>void;acknowledge:(event:OperationsEvent)=>void;assign:(event:OperationsEvent,assignee:string)=>void;action:(event:OperationsEvent)=>void;exportReport:(events:OperationsEvent[])=>void;propagate:(event:OperationsEvent,deviceIds:string[])=>void;clearNotices:()=>void;doNotDisturb:boolean;toggleDnd:()=>void;
+}){
+  const [filters,setFilters]=useState<OperationsFilters>({query:"",station:"all",operator:"all",subsystem:"all",severity:"all"}),[selectedStations,setSelectedStations]=useState<string[]>([]);
+  const live=notices.filter((notice)=>notice.id>0).slice(0,3),filtered=filterOperationsTimeline(events,filters),groups=groupOperationsTimeline(filtered);
+  const stations=Array.from(new Set(events.map((event)=>event.station))).sort(),operators=Array.from(new Set([localOperator,...events.map((event)=>event.operator)])).filter(Boolean).sort(),subsystems=Array.from(new Set(events.map((event)=>event.subsystem))).sort();
+  const setFilter=(key:keyof OperationsFilters,value:string)=>setFilters((old)=>({...old,[key]:value}));
+  const toggleStation=(id:string)=>setSelectedStations((old)=>old.includes(id)?old.filter((item)=>item!==id):[...old,id]);
+  return <>
+    <div className="toast-stack">{live.map((notice)=><div className={`toast ${notice.kind} priority-${notice.priority||"routine"}`} key={notice.id}><i>●</i><span><b>{notice.text}</b><small>{notice.source||"LCARS CORE"} · {notice.priority?.toUpperCase()||"ROUTINE"} · {notice.time}{(notice.repeats||1)>1?` · ×${notice.repeats}`:""}</small></span><button title="Close notification" aria-label="Dismiss notification" onClick={()=>dismiss(notice.id)}>×</button></div>)}</div>
+    {historyOpen&&<ResizablePopup as="aside" popupKey="communications-center" className="notice-history operations-center" floating minWidth={520} minHeight={420} ariaModal={false} ariaLabel="Operations Center">
+      <header><div><small>VERSION 30.6 · UNIFIED OBSERVABILITY</small><h3>OPERATIONS CENTER</h3><p>Notices, commands, automation, stations, media, security, and failures in one actionable timeline.</p></div><button onClick={close}>CLOSE ×</button></header>
+      <nav className="operations-summary"><span><b>{events.length}</b> EVENTS</span><span><b>{events.filter((event)=>event.severity==="critical").length}</b> CRITICAL</span><span><b>{events.filter((event)=>!event.acknowledged).length}</b> UNACKNOWLEDGED</span><button className={doNotDisturb?"active":""} onClick={toggleDnd}>{doNotDisturb?"DND ON":"DND OFF"}</button><button onClick={clearNotices}>CLEAR NOTICES</button><button onClick={()=>exportReport(filtered)}>EXPORT REPORT</button></nav>
+      <section className="operations-filters">
+        <label className="operations-query">SEARCH HISTORY<input aria-label="Search Operations Log" placeholder="SEARCH EVENTS, EXPLANATIONS, STATIONS…" value={filters.query} onChange={(event)=>setFilter("query",event.target.value)}/></label>
+        <label>STATION<select value={filters.station} onChange={(event)=>setFilter("station",event.target.value)}><option value="all">ALL STATIONS</option>{stations.map((item)=><option value={item} key={item}>{item}</option>)}</select></label>
+        <label>OPERATOR<select value={filters.operator} onChange={(event)=>setFilter("operator",event.target.value)}><option value="all">ALL OPERATORS</option>{operators.map((item)=><option value={item} key={item}>{item}</option>)}</select></label>
+        <label>SUBSYSTEM<select value={filters.subsystem} onChange={(event)=>setFilter("subsystem",event.target.value)}><option value="all">ALL SUBSYSTEMS</option>{subsystems.map((item)=><option value={item} key={item}>{item}</option>)}</select></label>
+        <label>SEVERITY<select value={filters.severity} onChange={(event)=>setFilter("severity",event.target.value)}><option value="all">ALL SEVERITIES</option><option value="critical">CRITICAL</option><option value="warning">WARNING</option><option value="priority">PRIORITY</option><option value="routine">ROUTINE</option></select></label>
+      </section>
+      <section className="operations-routing"><header><span><b>PRIORITY PROPAGATION</b><small>Choose trusted stations, then route any priority event from its action row.</small></span><em>{selectedStations.length} SELECTED</em></header><div>{devices.map((device)=><label className={selectedStations.includes(device.id)?"selected":""} key={device.id}><input type="checkbox" checked={selectedStations.includes(device.id)} onChange={()=>toggleStation(device.id)}/><span>{device.name}</span><small>{device.online?"ONLINE":"OFFLINE QUEUE"}</small></label>)}{!devices.length&&<p>NO TRUSTED FEDERATION STATIONS</p>}</div></section>
+      <div className="operations-feed" tabIndex={0}>{groups.length?groups.map((group)=><details className={`operations-group severity-${group.severity}`} key={group.id} open={groups.length===1}><summary><i>{group.severity==="critical"?"!":group.severity==="warning"?"△":group.severity==="priority"?"◆":"●"}</i><span><b>{group.title}</b><small>{group.events[0].subsystem} · {group.events.length} RELATED EVENT{group.events.length===1?"":"S"} · {new Date(group.events[0].time).toLocaleString()}</small></span><em>{group.severity.toUpperCase()}</em></summary><div>{group.events.map((event)=><article className={`operations-event severity-${event.severity} ${event.acknowledged?"acknowledged":""}`} key={event.id}><header><span><b>{event.title}</b><small>{event.station} · {event.operator} · {event.subsystem} · {event.status.toUpperCase()}</small></span><time>{new Date(event.time).toLocaleString()}</time></header><p>{event.detail}</p><details className="operations-explanation"><summary>WHAT CHANGED?</summary><p>{event.explanation}</p></details><footer><button className={event.acknowledged?"active":""} onClick={()=>acknowledge(event)}>{event.acknowledged?"ACKNOWLEDGED":"ACKNOWLEDGE"}</button><label>ASSIGN<select value={event.assignee||""} onChange={(change)=>assign(event,change.target.value)}><option value="">UNASSIGNED</option>{operators.map((operator)=><option key={operator} value={operator}>{operator}</option>)}</select></label>{event.action&&<button disabled={event.action.kind==="undo"&&event.action.target!==reversiblePlanId} onClick={()=>action(event)}>{event.action.kind==="procedure"?"RUN AGAIN":event.action.kind==="undo"?"REVERSE":event.action.kind==="media"?"RETRY COMMAND":event.severity==="critical"?"RETRY":"OPEN"}</button>}{event.severity!=="routine"&&<button disabled={!selectedStations.length} onClick={()=>propagate(event,selectedStations)}>PROPAGATE</button>}</footer></article>)}</div></details>):<p className="operations-empty">NO OPERATIONS MATCH THE SELECTED FILTERS</p>}</div>
+    </ResizablePopup>}
+  </>;
 }
 function AppDrawer({
   title,

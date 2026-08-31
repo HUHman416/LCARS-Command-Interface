@@ -1,4 +1,4 @@
-name: Version 30.5 Universal Search and Data Fabric Development
+name: Version 30.6 Operations Center and Timeline Development
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
       - run: npm ci
       - name: Build hosted renderer
         run: npm run build
-      - name: Search, Data Fabric, LCARS Session, Voice Operations, and regression suite
+      - name: Operations Center, media control, Search, Data Fabric, and regression suite
         run: |
           node --test tests/*.test.mjs
           python3 -m unittest discover -s tests -p 'test_*.py'
@@ -43,7 +43,7 @@ jobs:
           appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
           test -n "$appimage"
           checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          stage="release-assets/LCARS-Universal-Linux-Desktop-v30.5"
+          stage="release-assets/LCARS-Universal-Linux-Desktop-v30.6"
           mkdir -p "$stage/local" "$stage/session"
           cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
           cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
@@ -53,17 +53,17 @@ jobs:
           sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
           sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
           chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh" "$stage/session/lcars-session" "$stage/session/install-session.sh"
-          cp "$appimage" release-assets/LCARS-Command-Interface-v30.5-x86_64.AppImage
-          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.5.sh
-          chmod +x release-assets/LCARS-Linux-Integration-v30.5.sh
-          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.5.zip LCARS-Universal-Linux-Desktop-v30.5)
+          cp "$appimage" release-assets/LCARS-Command-Interface-v30.6-x86_64.AppImage
+          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.6.sh
+          chmod +x release-assets/LCARS-Linux-Integration-v30.6.sh
+          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.6.zip LCARS-Universal-Linux-Desktop-v30.6)
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.5-development-linux
+          name: LCARS-v30.6-development-linux
           path: |
-            release-assets/LCARS-Command-Interface-v30.5-x86_64.AppImage
-            release-assets/LCARS-Universal-Linux-Desktop-v30.5.zip
-            release-assets/LCARS-Linux-Integration-v30.5.sh
+            release-assets/LCARS-Command-Interface-v30.6-x86_64.AppImage
+            release-assets/LCARS-Universal-Linux-Desktop-v30.6.zip
+            release-assets/LCARS-Linux-Integration-v30.6.sh
           retention-days: 30
 
   windows:
@@ -75,8 +75,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Search, Data Fabric, Federation, and Computer Core regression suite
-        run: node --test tests/version30-5-search-fabric.test.mjs tests/version30-module-platform.test.mjs tests/version30-computer-core.test.mjs tests/version29-launcher.test.mjs tests/accessibility-css.test.mjs
+      - name: Operations Center, Search, Federation, and Computer Core regression suite
+        run: node --test tests/version30-6-operations-center.test.mjs tests/version30-5-search-fabric.test.mjs tests/version30-module-platform.test.mjs tests/version30-computer-core.test.mjs tests/version29-launcher.test.mjs tests/accessibility-css.test.mjs
       - name: Validate Windows bridge and desktop process
         run: |
           python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py shared/lcars_federation_crypto.py shared/lcars_padd.py shared/lcars_data_fabric.py
@@ -91,11 +91,11 @@ jobs:
           New-Item -ItemType Directory -Force release-assets | Out-Null
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.5.exe
+          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.6.exe
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.5-development-windows
-          path: release-assets/LCARS-Windows-Setup-v30.5.exe
+          name: LCARS-v30.6-development-windows
+          path: release-assets/LCARS-Windows-Setup-v30.6.exe
           retention-days: 30
 
   android:
@@ -138,11 +138,11 @@ jobs:
           test -n "$signer"
           "$signer" verify --verbose --print-certs "$apk"
           mkdir -p release-assets
-          cp "$apk" release-assets/LCARS-Mobile-Environment-v30.5-Android.apk
+          cp "$apk" release-assets/LCARS-Mobile-Environment-v30.6-Android.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.5-development-android
-          path: release-assets/LCARS-Mobile-Environment-v30.5-Android.apk
+          name: LCARS-v30.6-development-android
+          path: release-assets/LCARS-Mobile-Environment-v30.6-Android.apk
           retention-days: 30
 
   publish-development-release:
@@ -159,18 +159,18 @@ jobs:
       - name: Create source archive and checksums
         run: |
           set -euo pipefail
-          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.5-Source.zip HEAD
-          (cd release-assets && sha256sum LCARS-Command-Interface-v30.5-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.5.zip LCARS-Linux-Integration-v30.5.sh LCARS-Windows-Setup-v30.5.exe LCARS-Mobile-Environment-v30.5-Android.apk LCARS-Command-Interface-v30.5-Source.zip > SHA256SUMS.txt)
+          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.6-Source.zip HEAD
+          (cd release-assets && sha256sum LCARS-Command-Interface-v30.6-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.6.zip LCARS-Linux-Integration-v30.6.sh LCARS-Windows-Setup-v30.6.exe LCARS-Mobile-Environment-v30.6-Android.apk LCARS-Command-Interface-v30.6-Source.zip > SHA256SUMS.txt)
           (cd release-assets && sha256sum --check SHA256SUMS.txt)
-      - name: Publish Version 30.5 Universal Search and Data Fabric development release
+      - name: Publish Version 30.6 Operations Center and Timeline development release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          notes='Version 30.5 Development introduces Universal LCARS Search across applications, local files and recent documents, settings, commands, stations, notifications, media, contacts, modules, automation Procedures, and activity history. Results are actionable: files can open inside LCARS, route to a trusted encrypted PADD or station, or attach to a Procedure. The new local-first Data Fabric adds opt-in clipboard and small-file handoff, selective per-category synchronization, bounded recent-item history, explicit conflict handling, record version history, and an opt-in station-local AES-256-GCM private vault. Existing Federation device trust, signed AES-256-GCM transport, permissions, and offline queues remain enforced. Voice operations add Green Alert and No Alert, retain canonical Cancel Red Alert phrasing, say Affirmative after the first accepted command, and use a short input-OK cue for multi-step or rapid follow-up commands. Version 30.4 LCARS Session, Version 30.3 Module Platform, the bundled local whisper.cpp runtime, Procedures, audit, undo, and the Version 29 Mobile Command Environment remain included.'
-          if gh release view v30.5 >/dev/null 2>&1; then
-            gh release upload v30.5 release-assets/* --clobber
-            gh release edit v30.5 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.5 Development · Universal Search & Data Fabric" --notes "$notes" --prerelease
+          notes='Version 30.6 Development introduces the Operations Center and one chronological Operations Log for notices, Federation station events, Computer Core commands, automation Procedures, media changes, security prompts, and failures. Operators can search the complete history; filter by station, operator, subsystem, and severity; acknowledge and assign events; inspect related-event groups and plain-language What changed? explanations; export privacy-filtered JSON diagnostic reports; rerun recorded successful Procedures; reverse the currently supported Computer Core snapshot; and propagate priority alerts to selected trusted stations with bounded offline delivery. Media resume and pause are now explicit and player-aware: LCARS prefers the correct MPRIS session, falls back to another compatible player when needed, returns actionable bridge errors, and stores the exact failed media command so Retry actually retries it instead of merely checking integration health. Version 30.5 Universal Search and Data Fabric, Version 30.4 LCARS Session, Version 30.3 Module Platform, Federation, bundled offline whisper.cpp, voice operations, and the Version 29 Mobile Command Environment remain included.'
+          if gh release view v30.6 >/dev/null 2>&1; then
+            gh release upload v30.6 release-assets/* --clobber
+            gh release edit v30.6 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.6 Development · Operations Center & Timeline" --notes "$notes" --prerelease
           else
-            gh release create v30.5 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.5 Development · Universal Search & Data Fabric" --notes "$notes" --prerelease
+            gh release create v30.6 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.6 Development · Operations Center & Timeline" --notes "$notes" --prerelease
           fi

@@ -1,4 +1,4 @@
-const cacheName = "lcars-padd-v30-5-development";
+const cacheName = "lcars-padd-v30-6-development";
 const shell = ["/", "/styles.css", "/app.js", "/manifest.webmanifest", "/icon.png"];
 
 self.addEventListener("install", (event) => event.waitUntil(

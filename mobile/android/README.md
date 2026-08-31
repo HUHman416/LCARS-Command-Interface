@@ -55,9 +55,9 @@ Version 30.2 adds the native Federation transport while retaining the complete V
 - Receives page handoff, priority notices, clipboard text, and opt-in files up to 512 KiB, and acknowledges queued deliveries after handling them.
 - Preserves multi-station switching and migrates existing Version 29 pairings to the secure Federation protocol on their first successful refresh.
 
-## Version 30.5 Development
+## Version 30.6 Development
 
-Version 30.5 retains the signed Version 29 Android identity and the complete Federation Home environment. The Module Platform itself runs on the trusted desktop host: Android receives only the host-rendered station surfaces and never downloads or executes module code. This preserves the same explicit station permissions, encrypted transport, one-tap mobile update path, and safe offline Home behavior while desktop modules remain isolated inside LCARSCI.
+Version 30.6 retains the signed Version 29 Android identity and the complete Federation Home environment. Selected priority events from the desktop Operations Center can be routed through the existing encrypted notice-delivery path and remain bounded in the offline queue when a trusted station is unavailable. Modules and the full Operations Log remain on the trusted desktop host, preserving explicit permissions, one-tap mobile updates, and safe offline Home behavior.
 
 Build locally with Android SDK 35, Java 17, and Gradle 8.9:
 

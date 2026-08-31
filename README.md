@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.5-b69de8" alt="Development Version 30.5">
+  <img src="https://img.shields.io/badge/development-v30.6-b69de8" alt="Development Version 30.6">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -35,17 +35,22 @@
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
 
 > [!NOTE]
-> **Version 30.5 Development introduces Universal LCARS Search and the Data Fabric.** Search applications, files, settings, commands, stations, notices, media, contacts, modules, Procedures, and activity from one interface, then act on the result. Trusted Federation links can route clipboard text and small files, synchronize selected categories, preserve bounded versions, surface conflicts, and optionally protect private records in a station-local AES-256-GCM vault. Green Alert and No Alert restore the normal Display Matrix; the first accepted voice command says “Affirmative,” while multi-step and rapid follow-up commands use a short input-OK cue. Version 29 remains Stable.
+> **Version 30.6 Development introduces the Operations Center and unified timeline.** Notices, station events, commands, Procedures, media changes, security prompts, and failures now share one searchable Operations Log. Filter by station, operator, subsystem, or severity; acknowledge and assign events; inspect “What changed?” explanations; export privacy-filtered diagnostics; rerun successful Procedures; reverse a currently supported action; and propagate priority alerts to selected trusted stations. Media resume is now explicit and player-aware, and a rejected media notice retries the original command instead of merely rechecking integrations. Version 29 remains Stable.
+
+## 🧪 Version 30.6 Development — Operations Center & Timeline
+
+- Unifies notices, station events, Computer Core plans, Procedures, media changes, security prompts, and failures in one chronological Operations Log.
+- Filters and searches by station, operator, subsystem, severity, event content, and generated explanation.
+- Adds acknowledgement, assignment, five-minute related-event grouping, and clear “What changed?” explanations.
+- Exports privacy-filtered JSON diagnostic reports without credentials, pairing secrets, authorization codes, clipboard contents, or transferred file contents.
+- Reruns recorded successful Procedures, reverses the currently supported Computer Core snapshot, and propagates priority alerts to selected trusted stations.
+- Fixes resume and pause by selecting the appropriate media session, sending explicit play/pause commands, falling back to compatible MPRIS players, and retaining an exact retry action on failure.
+- Retains the complete Version 30.5 Universal Search and Data Fabric milestone.
 
 ## 🧪 Version 30.5 Development — Universal Search & Data Fabric
 
 - Searches applications, files and recent documents, settings, commands, stations, notifications, media, contacts, modules, Procedures, and activity history from one LCARS index.
-- Makes results actionable: open files inside LCARS, route them to a trusted PADD or station, or attach them to a Procedure.
-- Adds selective, per-category synchronization for recent items, activity, clipboard text, small files, and encrypted private storage.
-- Preserves bounded version history and surfaces cross-station conflicts for explicit operator resolution.
-- Adds an opt-in station-local AES-256-GCM private vault with a protected local key and bounded records.
-- Adds Green Alert and No Alert voice phrases while retaining Condition Green and canonical Cancel Red Alert phrasing.
-- Confirms one accepted command with “Affirmative” and uses a compact input-OK cue for multi-command sequences.
+- Makes results actionable and adds selective encrypted cross-station synchronization, version history, conflict handling, and private storage.
 
 ## 🧪 Version 30.4 Development — LCARS Session & Voice Operations
 

@@ -58,6 +58,13 @@ export type ActivityEntry = {
   detail: string;
   status: "success" | "attention" | "running" | "cancelled";
   reversible?: boolean;
+  station?: string;
+  operator?: string;
+  subsystem?: "COMMUNICATIONS" | "STATIONS" | "COMPUTER CORE" | "AUTOMATION" | "MEDIA" | "SECURITY" | "SYSTEM" | "MODULES" | "UPDATES";
+  severity?: "routine" | "priority" | "warning" | "critical";
+  group?: string;
+  explanation?: string;
+  action?: { kind: "notice" | "procedure" | "undo" | "media"; target: string; player?: string };
 };
 
 export type TrayShortcut = {
@@ -284,6 +291,8 @@ export const normalizeActivity = (value: unknown): ActivityEntry[] => {
   if (!Array.isArray(value)) return [];
   const sources = new Set(["OPERATOR", "ROUTINE", "SYSTEM", "EXTENSION", "UPDATE"]);
   const statuses = new Set(["success", "attention", "running", "cancelled"]);
+  const subsystems = new Set(["COMMUNICATIONS","STATIONS","COMPUTER CORE","AUTOMATION","MEDIA","SECURITY","SYSTEM","MODULES","UPDATES"]);
+  const severities = new Set(["routine","priority","warning","critical"]);
   return value.slice(0, 200).flatMap((candidate): ActivityEntry[] => {
     if (!candidate || typeof candidate !== "object") return [];
     const item = candidate as Partial<ActivityEntry>;
@@ -296,6 +305,15 @@ export const normalizeActivity = (value: unknown): ActivityEntry[] => {
       title, detail,
       status: statuses.has(String(item.status)) ? item.status as ActivityEntry["status"] : "success",
       reversible: Boolean(item.reversible),
+      station: cleanText(item.station, 64) || undefined,
+      operator: cleanText(item.operator, 64) || undefined,
+      subsystem: subsystems.has(String(item.subsystem)) ? item.subsystem : undefined,
+      severity: severities.has(String(item.severity)) ? item.severity : undefined,
+      group: cleanText(item.group, 180) || undefined,
+      explanation: cleanText(item.explanation, 320) || undefined,
+      action: item.action && ["notice", "procedure", "undo", "media"].includes(item.action.kind) && cleanText(item.action.target, 180)
+        ? { kind:item.action.kind, target:cleanText(item.action.target, 180), player:cleanText(item.action.player, 180) || undefined }
+        : undefined,
     }];
   });
 };
