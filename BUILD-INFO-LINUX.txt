@@ -1,8 +1,8 @@
-LCARS Universal Linux Desktop v30.7 Development
-Application version: 30.7.0-dev.1
+LCARS Universal Linux Desktop v30.8 Development
+Application version: 30.8.0-dev.1
 AppImage SHA-256: GENERATED-DURING-PACKAGING
 
 The installer verifies this checksum before replacing the installed application.
 The optional LCARS login session is installed only from Settings with explicit authorization. It retains a normal-desktop escape route.
-Version 30.7 adds operator identities and workspaces, verified named-source media control, and an integrated LCARS audio/video deck.
+Version 30.8 adds an optional existing-profile Browser Station, direct File Explorer media streaming, and adaptive Android Continuum roles.
 Run install-autostart.sh to register a portable AppImage in application search and optionally enable login startup without sudo.

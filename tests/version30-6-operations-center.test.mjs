@@ -35,7 +35,7 @@ test("related events group only inside the five-minute observability window",()=
   assert.equal(groups[0].severity,"warning");
 });
 
-test("Version 30.7 retains the complete actionable Operations Center",async()=>{
+test("Version 30.8 retains the complete actionable Operations Center",async()=>{
   const [page,styles,linux,windows,workflow,pkg,android]=await Promise.all([source("../app/page.tsx"),source("../app/v30.css"),source("../local/lcars_bridge.py"),source("../windows/lcars_bridge_windows.py"),source("../.github/workflows/v30-development.yml"),source("../package.json"),source("../mobile/android/app/build.gradle")]);
   for(const token of ["OPERATIONS CENTER","WHAT CHANGED?","ACKNOWLEDGE","ASSIGN","RUN AGAIN","REVERSE","PROPAGATE","EXPORT REPORT"])assert.ok(page.includes(token),token);
   assert.match(page,/buildOperationsTimeline/);
@@ -45,7 +45,7 @@ test("Version 30.7 retains the complete actionable Operations Center",async()=>{
   assert.match(linux,/def media_control\(player,command\)/);
   assert.match(linux,/\"play\",\"pause\"/);
   assert.match(windows,/\"play\":0xB3,\"pause\":0xB3/);
-  assert.equal(JSON.parse(pkg).version,"30.7.0-dev.1");
-  assert.match(android,/versionCode 307001/);
-  assert.match(workflow,/gh release (?:view|create) v30\.7/);
+  assert.equal(JSON.parse(pkg).version,"30.8.0-dev.1");
+  assert.match(android,/versionCode 308001/);
+  assert.match(workflow,/gh release (?:view|create) v30\.8/);
 });

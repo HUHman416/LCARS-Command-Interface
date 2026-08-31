@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Loopback-only Windows 10/11 system bridge for the LCARS interface."""
-import ctypes, json, os, queue, re, shutil, subprocess, threading, time, uuid, base64, tempfile, sys
+import ctypes, json, os, queue, re, shutil, subprocess, threading, time, uuid, base64, tempfile, sys, mimetypes
 from ctypes import wintypes
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -14,7 +14,7 @@ from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 
 PORT=8765
-LCARS_VERSION="30.7"
+LCARS_VERSION="30.8"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -200,13 +200,13 @@ def voice_transcribe(data):
     try:config=json.loads(CONFIG_FILE.read_text())
     except:config={}
     prefs=config.get("shell_prefs",{});status=voice_status();engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or status.get("model") or "")).expanduser();encoded=str(data.get("audio","")).split(",")[-1]
-    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.7 or select custom files in Settings"}
+    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.8 or select custom files in Settings"}
     try:
         with tempfile.TemporaryDirectory(prefix="lcars-voice-") as folder:
             raw=base64.b64decode(encoded,validate=True);source=Path(folder)/"sample.input";wav=Path(folder)/"sample.wav"
             if raw[:4]==b"RIFF" and raw[8:12]==b"WAVE":wav.write_bytes(raw)
             else:
-                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.7 PCM recorder does not"}
+                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.8 PCM recorder does not"}
                 source.write_bytes(raw)
                 if subprocess.run([status["ffmpeg"],"-loglevel","error","-y","-i",str(source),"-ar","16000","-ac","1",str(wav)],creationflags=0x08000000).returncode:return {"ok":False,"message":"FFmpeg could not decode the microphone sample"}
             environment={**os.environ,"PATH":str(Path(engine).parent)+os.pathsep+os.environ.get("PATH","")}
@@ -421,7 +421,7 @@ def integration_health():
         "media":{"available":True,"detail":"Windows media keys ready","remedy":"The media application must support Windows media controls."},
         "terminal":{"available":True,"detail":"PowerShell","remedy":"Choose powershell.exe or another installed shell in Settings."},
         "storage":{"available":bool(psutil),"detail":f"{len(storage_data())} volume(s)","remedy":"Repair the optional psutil component from the installer."},
-        "voice":{"available":voice["available"],"detail":voice["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.7 voice resources or select custom whisper.cpp files in Settings."},
+        "voice":{"available":voice["available"],"detail":voice["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.8 voice resources or select custom whisper.cpp files in Settings."},
         "tray":{"available":False,"detail":"Windows cannot safely re-host every third-party notification icon","remedy":"Use LCARS quick controls or the native Windows notification area."},
         "extensions":{"available":not bool(extensions.get("errors")),"detail":f"{len(extensions.get('extensions',[]))} module(s), {len(extensions.get('errors',[]))} rejected","remedy":"Remove or update rejected manifests shown in the extension bay."},
         "configuration":{"available":True,"detail":"Local AppData settings storage ready","remedy":"Repair write access to the LCARS AppData directory."},
@@ -488,6 +488,32 @@ class Handler(BaseHTTPRequestHandler):
         body=json.dumps(data).encode();origin=self.headers.get("Origin","");allowed=origin if origin in ("lcars://app","http://127.0.0.1:8764") else "lcars://app";self.send_response(status);self.send_header("Content-Type","application/json");self.send_header("Content-Length",str(len(body)));self.send_header("Access-Control-Allow-Origin",allowed);self.send_header("Access-Control-Allow-Headers","Content-Type");self.end_headers();self.wfile.write(body)
     def do_OPTIONS(self):
         origin=self.headers.get("Origin","");allowed=origin if origin in ("lcars://app","http://127.0.0.1:8764") else "lcars://app";self.send_response(204);self.send_header("Access-Control-Allow-Origin",allowed);self.send_header("Access-Control-Allow-Methods","GET,POST,OPTIONS");self.send_header("Access-Control-Allow-Headers","Content-Type");self.end_headers()
+    def send_media_file(self,path):
+        try:
+            if not path.is_file():return self.send_json({"ok":False,"error":"Media file was not found"},404)
+            size=path.stat().st_size
+            if size<=0:return self.send_json({"ok":False,"error":"Media file is empty"},400)
+            start,end=0,size-1;status=200;requested=self.headers.get("Range","")
+            if requested:
+                match=re.fullmatch(r"bytes=(\d*)-(\d*)",requested.strip())
+                if not match:return self.send_json({"ok":False,"error":"Invalid media range"},416)
+                if match.group(1):start=int(match.group(1));end=min(size-1,int(match.group(2))) if match.group(2) else size-1
+                elif match.group(2):start=max(0,size-int(match.group(2)))
+                if start>end or start>=size:return self.send_json({"ok":False,"error":"Media range is outside the file"},416)
+                status=206
+            mime=mimetypes.guess_type(path.name)[0] or {".mkv":"video/x-matroska",".flac":"audio/flac",".opus":"audio/ogg",".m4a":"audio/mp4"}.get(path.suffix.lower(),"application/octet-stream")
+            origin=self.headers.get("Origin","");allowed=origin if origin in ("lcars://app","http://127.0.0.1:8764") else "lcars://app";length=end-start+1
+            self.send_response(status);self.send_header("Content-Type",mime);self.send_header("Content-Length",str(length));self.send_header("Accept-Ranges","bytes");self.send_header("Cache-Control","private, no-store");self.send_header("Access-Control-Allow-Origin",allowed)
+            if status==206:self.send_header("Content-Range",f"bytes {start}-{end}/{size}")
+            self.end_headers()
+            with path.open("rb") as media:
+                media.seek(start);remaining=length
+                while remaining:
+                    chunk=media.read(min(262144,remaining))
+                    if not chunk:break
+                    self.wfile.write(chunk);remaining-=len(chunk)
+        except (BrokenPipeError,ConnectionResetError):pass
+        except Exception as exc:self.send_json({"ok":False,"error":str(exc)},400)
     def do_GET(self):
         parsed=urlparse(self.path);route=parsed.path
         if route=="/api/apps":return self.send_json({"apps":applications()})
@@ -540,6 +566,9 @@ class Handler(BaseHTTPRequestHandler):
                 if mime.startswith("text/") or path.suffix.lower() in (".md",".json",".log",".ini",".conf",".py",".js",".ts",".tsx",".css",".html",".ps1"):return self.send_json({"kind":"text","content":path.read_text(encoding="utf-8",errors="replace")[:32768]})
                 return self.send_json({"kind":"","content":""})
             except Exception as exc:return self.send_json({"error":str(exc)},400)
+        if route=="/api/media-file":
+            try:return self.send_media_file(Path(os.path.expandvars(os.path.expanduser(parse_qs(parsed.query).get("path",[""])[0]))).resolve())
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         return self.send_json({"error":"not found"},404)
     def do_POST(self):
         length=int(self.headers.get("Content-Length","0"));data=json.loads(self.rfile.read(length) or b"{}")

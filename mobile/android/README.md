@@ -55,6 +55,10 @@ Version 30.2 adds the native Federation transport while retaining the complete V
 - Receives page handoff, priority notices, clipboard text, and opt-in files up to 512 KiB, and acknowledges queued deliveries after handling them.
 - Preserves multi-station switching and migrates existing Version 29 pairings to the secure Federation protocol on their first successful refresh.
 
+## Version 30.8 Development
+
+Version 30.8 adds the Continuum role engine. Operators can select Handheld Home, Desktop Companion, Media Controller, Communications Panel, Notification Console, Second-Screen Monitor, Presentation PADD, or Docked Command Station, or let Automatic mode recommend a role from orientation, screen class, an external display, docking state, and the active station link. Manual choices remain in effect until Automatic mode is restored, and the role currently in use is reported to the trusted desktop station.
+
 ## Version 30.7 Development
 
 Version 30.7 retains the signed Version 29 Android identity and the complete Federation Home environment. A trusted encrypted station can now deliver a credential-free roaming operator workspace to the Companion page when Private Storage synchronization is explicitly enabled. Operator PIN credentials and vocal authorization data are removed before routing. Modules, identity administration, and the full Operations Log remain on the trusted desktop host, preserving explicit permissions, one-tap mobile updates, and safe offline Home behavior.

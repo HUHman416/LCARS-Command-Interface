@@ -39,7 +39,7 @@ export function UniversalSearch({query,setQuery,results,filesLoading,devices,pro
   };
   return <div className="backdrop universal-search-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
     <section className="universal-search" role="dialog" aria-modal="true" aria-label="Universal LCARS Search and Data Fabric">
-      <header><div><small>VERSION 30.7 · UNIVERSAL LCARS INDEX</small><h2>SEARCH + DATA FABRIC</h2><p>Find, act, route, synchronize, and recover information across this command environment.</p></div><button onClick={close}>CLOSE ×</button></header>
+      <header><div><small>VERSION 30.8 · UNIVERSAL LCARS INDEX</small><h2>SEARCH + DATA FABRIC</h2><p>Find, act, route, synchronize, and recover information across this command environment.</p></div><button onClick={close}>CLOSE ×</button></header>
       <nav className="universal-search-tabs">{([['search','SEARCH'],['fabric','DATA FABRIC'],['private','PRIVATE STORAGE']] as const).map(([id,name])=><button className={area===id?"active":""} onClick={()=>setArea(id)} key={id}>{name}</button>)}</nav>
       {area==="search"&&<main className="universal-search-main">
         <section className="universal-search-query"><input autoFocus value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="SEARCH APPLICATIONS, FILES, SETTINGS, COMMANDS, STATIONS, NOTICES…"/><b>{filesLoading?"INDEXING LOCAL FILES…":`${visible.length} ACTIONABLE RESULT${visible.length===1?"":"S"}`}</b></section>

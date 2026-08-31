@@ -127,7 +127,7 @@ def _download(url:str,limit:int,source=None):
     if source is None:
         if not _trusted_url(url):raise ValueError("module download URL is outside the trusted Modules branch")
     elif not _source_url(url,source):raise ValueError("module download URL is outside its declared public GitHub repository")
-    request=Request(url,headers={"User-Agent":"LCARS-Command-Interface-Module-API/30.7","Accept":"application/json"})
+    request=Request(url,headers={"User-Agent":"LCARS-Command-Interface-Module-API/30.8","Accept":"application/json"})
     with urlopen(request,timeout=8) as response:
         length=response.headers.get("Content-Length")
         if length and int(length)>limit:raise ValueError("remote module payload exceeds size limit")

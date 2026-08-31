@@ -44,7 +44,7 @@ test("Page Peek play controls are geometrically centered and media icons require
 test("Plain number keys navigate unless the operator is typing",()=>{
   assert.match(page,/function shortcutTargetIsEditable|const shortcutTargetIsEditable/);
   assert.match(page,/\(e\.ctrlKey\|\|!shortcutTargetIsEditable\(e\.target\)\)/);
-  assert.match(page,/\^\(\?:Digit\|Numpad\)\(\[1-8\]\)\$/);
+  assert.match(page,/\^\(\?:Digit\|Numpad\)\(\[1-9\]\)\$/);
   assert.match(page,/Press the number shown on a sidebar control/);
 });
 

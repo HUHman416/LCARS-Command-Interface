@@ -8,7 +8,7 @@ const main=fs.readFileSync(new URL("../desktop/main.cjs",import.meta.url),"utf8"
 const linux=fs.readFileSync(new URL("../local/lcars_bridge.py",import.meta.url),"utf8");
 
 test("Number row or keypad navigates at application level outside editable controls",()=>{
-  assert.match(page,/\(\?:Digit\|Numpad\)\(\[1-8\]\)/);
+  assert.match(page,/\(\?:Digit\|Numpad\)\(\[1-9\]\)/);
   assert.match(page,/e\.ctrlKey\|\|!shortcutTargetIsEditable\(e\.target\)/);
   assert.match(page,/addEventListener\("keydown", key, true\)/);
 });

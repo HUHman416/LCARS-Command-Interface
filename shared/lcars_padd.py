@@ -197,6 +197,7 @@ class PaddController:
                     "network": _clean_text(device.get("network"), 32),
                     "latencyMs": max(0, min(60_000, int(device.get("latencyMs", 0) or 0))),
                     "clientVersion": _clean_text(device.get("clientVersion"), 32),
+                    "continuumRole": _clean_text(device.get("continuumRole") or "handheld-home", 40),
                     "secureTransport": bool(device.get("secureTransport", False)),
                     "permissions": {name: bool(permissions[name]) for name in PERMISSION_NAMES if name in permissions},
                     "widgets": [str(item) for item in device.get("widgets", DEFAULT_WIDGETS) if str(item) in DEFAULT_WIDGETS][:8] or list(DEFAULT_WIDGETS),
@@ -298,7 +299,7 @@ class PaddController:
     def _public_device(self, device):
         result = {key: device.get(key) for key in (
             "id", "name", "role", "createdAt", "lastSeen", "lastAddress", "connectionCount",
-            "battery", "network", "latencyMs", "clientVersion", "permissions", "widgets",
+            "battery", "network", "latencyMs", "clientVersion", "continuumRole", "permissions", "widgets",
             "workstation", "proximity", "notifications", "sync",
         )}
         result["online"] = bool(device.get("lastSeen") and int(time.time()) - int(device["lastSeen"]) <= 20)
@@ -550,7 +551,7 @@ class PaddController:
                         encoded = json.dumps(safe_profile, separators=(",", ":")).encode("utf-8")
                         if not safe_profile["id"] or not safe_profile["name"] or len(encoded) > 262_144:
                             raise ValueError("Roaming profile is invalid or exceeds 256 KiB")
-                        payload = {"profile": safe_profile, "version": "30.7", "encryptedTransport": True}
+                        payload = {"profile": safe_profile, "version": "30.8", "encryptedTransport": True}
                     queue = self.signals.setdefault(ident, deque(maxlen=32))
                     queue.append({"id": uuid.uuid4().hex, "type": kind, "payload": payload, "createdAt": int(time.time()), "expiresAt": int(time.time()) + 86_400})
                     self._append_activity(record, "delivery-queued", device, status="queued", detail=f"{kind} · {len(queue)} pending")
@@ -620,6 +621,7 @@ class PaddController:
                 "network": "local-network",
                 "latencyMs": 0,
                 "clientVersion": "",
+                "continuumRole": "handheld-home",
                 "secureTransport": False,
                 "permissions": {},
                 "widgets": list(DEFAULT_WIDGETS),
@@ -732,6 +734,7 @@ class PaddController:
             target["network"] = _clean_text(data.get("network") or "local-network", 32)
             target["latencyMs"] = max(0, min(60_000, int(data.get("latencyMs", 0) or 0)))
             target["clientVersion"] = _clean_text(data.get("version"), 32)
+            target["continuumRole"] = _clean_text(data.get("continuumRole") or target.get("continuumRole") or "handheld-home", 40)
             self._refresh_presence(record)
             self._save(record)
             return {"ok": True, "device": self._public_device(target)}

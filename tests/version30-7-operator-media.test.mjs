@@ -50,7 +50,7 @@ test("operator identities are bounded, role-aware, and backup credentials never 
   await assert.rejects(()=>decryptOperatorBackup(backup,"wrong-password"));
 });
 
-test("Version 30.7 ships the operator center, integrated player, secure roaming, and matching release",async()=>{
+test("Version 30.8 retains the operator center, integrated player, and secure roaming",async()=>{
   const [page,styles,bridge,padd,android,workflow,pkg,gradle]=await Promise.all([
     source("../app/page.tsx"),source("../app/v30.css"),source("../local/lcars_bridge.py"),source("../shared/lcars_padd.py"),source("../mobile/android/app/src/main/java/com/lcars/padd/CompanionDock.java"),source("../.github/workflows/v30-development.yml"),source("../package.json"),source("../mobile/android/app/build.gradle"),
   ]);
@@ -62,7 +62,7 @@ test("Version 30.7 ships the operator center, integrated player, secure roaming,
   assert.match(padd,/_scrub_profile_value/);
   assert.match(padd,/kind not in \{"page", "clipboard", "notice", "file", "profile"\}/);
   assert.match(android,/roaming-profile-v30-7/);
-  assert.equal(JSON.parse(pkg).version,"30.7.0-dev.1");
-  assert.match(gradle,/versionCode 307001/);
-  assert.match(workflow,/gh release (?:view|create) v30\.7/);
+  assert.equal(JSON.parse(pkg).version,"30.8.0-dev.1");
+  assert.match(gradle,/versionCode 308001/);
+  assert.match(workflow,/gh release (?:view|create) v30\.8/);
 });

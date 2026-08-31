@@ -43,10 +43,10 @@ test("voice alerts and confirmation distinguish one command from a sequence",()=
   assert.ok(statSync(new URL("../public/assets/sounds/input-ok.mp3",import.meta.url)).size>1000);
 });
 
-test("Version 30.7 release workflow publishes all development platforms",()=>{
-  assert.match(workflow,/Version 30\.7 Operator Identities and Media Deck Development/);
-  assert.match(workflow,/LCARS-Command-Interface-v30\.7-x86_64\.AppImage/);
-  assert.match(workflow,/LCARS-Windows-Setup-v30\.7\.exe/);
-  assert.match(workflow,/LCARS-Mobile-Environment-v30\.7-Android\.apk/);
-  assert.match(workflow,/gh release (?:view|create) v30\.7/);
+test("Version 30.8 release workflow publishes all development platforms",()=>{
+  assert.match(workflow,/Version 30\.8 Browser, Media Routing, and Continuum Development/);
+  assert.match(workflow,/LCARS-Command-Interface-v30\.8-x86_64\.AppImage/);
+  assert.match(workflow,/LCARS-Windows-Setup-v30\.8\.exe/);
+  assert.match(workflow,/LCARS-Mobile-Environment-v30\.8-Android\.apk/);
+  assert.match(workflow,/gh release (?:view|create) v30\.8/);
 });

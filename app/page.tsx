@@ -47,6 +47,8 @@ import type { OperationsAction, OperationsEvent, OperationsFilters, OperationsMe
 import { mediaSourceAliases, preferredMediaSource } from "./v30-media-core";
 import { decryptOperatorBackup, encryptOperatorBackup, normalizeOperatorIdentities, normalizeOperatorWorkspace, operatorCan } from "./v30-operator-core";
 import type { OperatorIdentity, OperatorRole, OperatorWorkspace } from "./v30-operator-core";
+import { classifyLocalMedia, detectBrowserApplications } from "./v30-continuum";
+import type { LocalMediaKind } from "./v30-continuum";
 import {
   computerProcedureReversible,
   computerProcedureRisk,
@@ -58,9 +60,10 @@ import {
 import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, ComputerPlan, ComputerPlanStep, ComputerUndoSnapshot } from "./v30-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="30.7";
+const LCARS_VERSION="30.8";
 
 type App = { id: string; name: string; comment: string; icon?: string };
+type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
 type Player = {
   id: string;
   name: string;
@@ -211,6 +214,8 @@ type ShellPrefs = {
   lockOnLaunch: boolean;
   quickBootWithoutPassword: boolean;
   trayPresentation: "rail" | "header";
+  browserSidebarEnabled: boolean;
+  preferredBrowserId: string;
   speedDial: SpeedDialItem[];
   updateChannel: "stable" | "development";
 };
@@ -358,6 +363,7 @@ const nav = [
   ["network", "06", "NETWORK"],
   ["updates", "07", "UPDATES"],
   ["settings", "08", "SETTINGS"],
+  ["browser", "09", "BROWSER"],
 ];
 const speedDialChoices: { id: SpeedDialItem; label: string; description: string }[] = [
   { id:"page:network", label:"NETWORK", description:"Open a compact Network Page Peek" },
@@ -381,7 +387,7 @@ const speedDialChoices: { id: SpeedDialItem; label: string; description: string 
   { id:"action:tray", label:"TRAY", description:"Open the desktop system tray" },
   { id:"action:routines", label:"ROUTINES", description:"Open Operations Automation" },
   { id:"action:communications", label:"COMMS", description:"Open Communications Center" },
-  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.7 Computer Core" },
+  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.8 Computer Core" },
 ];
 const defaultPrefs: ShellPrefs = {
   taskHover: true,
@@ -417,6 +423,8 @@ const defaultPrefs: ShellPrefs = {
   lockOnLaunch: true,
   quickBootWithoutPassword: false,
   trayPresentation: "rail",
+  browserSidebarEnabled: true,
+  preferredBrowserId: "",
   speedDial: ["page:network","page:media","action:dnd","action:notices","action:displays"],
   updateChannel: "stable",
 };
@@ -704,7 +712,8 @@ export default function Home() {
   const [fabric,setFabric]=useState<FabricStatus|null>(null),
     [searchFiles,setSearchFiles]=useState<UniversalSearchEntry[]>([]),
     [searchFilesLoading,setSearchFilesLoading]=useState(false),
-    [fileSearchTarget,setFileSearchTarget]=useState("");
+    [fileSearchTarget,setFileSearchTarget]=useState(""),
+    [localMediaRequest,setLocalMediaRequest]=useState<LocalMediaRequest|null>(null);
   const [profiles, setProfiles] = useState<WorkspaceProfile[]>([]),
     [activeProfile, setActiveProfile] = useState("");
   const [operators,setOperators]=useState<OperatorIdentity[]>([]),
@@ -740,6 +749,8 @@ export default function Home() {
     [extensionCatalog,setExtensionCatalog]=useState<ExtensionCatalogEntry[]>([]),
     [extensionSources,setExtensionSources]=useState<ModuleRepositorySource[]>([]),
     [disabledExtensions,setDisabledExtensions]=useState<string[]>([]);
+  const visibleNav=useMemo(()=>prefs.browserSidebarEnabled?nav:nav.filter((item)=>item[0]!=="browser"),[prefs.browserSidebarEnabled]);
+  const detectedBrowsers=useMemo(()=>detectBrowserApplications(apps),[apps]);
   const routineTriggerGuard=useRef<Set<string>>(new Set()),routineLastRun=useRef<Map<string,number>>(new Map()),workstationRestoreGuard=useRef(false);
   useEffect(()=>{const update=(event:Event)=>setWorkspaceWindows((event as CustomEvent<{active?:string[]}>).detail?.active||[]);window.addEventListener(workspaceStateEvent,update);return()=>window.removeEventListener(workspaceStateEvent,update);},[]);
   useEffect(()=>{
@@ -866,7 +877,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-7"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-8"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1050,12 +1061,15 @@ export default function Home() {
   useEffect(() => {
     if (sessionRestore) localStorage.setItem("lcars-last-section", section);
   }, [section, sessionRestore]);
+  useEffect(()=>{
+    if(!prefs.browserSidebarEnabled&&section==="browser")setSection("overview");
+  },[prefs.browserSidebarEnabled,section]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
-      const digit=e.code.match(/^(?:Digit|Numpad)([1-8])$/)?.[1];
+      const digit=e.code.match(/^(?:Digit|Numpad)([1-9])$/)?.[1];
       const pageShortcut=digit&&!e.metaKey&&!e.altKey&&!e.shiftKey&&(e.ctrlKey||!shortcutTargetIsEditable(e.target));
       if (pageShortcut) {
-        e.preventDefault();setSection(nav[Number(digit)-1][0]);setPaletteOpen(false);return;
+        const destination=visibleNav[Number(digit)-1];if(destination){e.preventDefault();setSection(destination[0]);setPaletteOpen(false);return;}
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -1077,7 +1091,7 @@ export default function Home() {
     };
     window.addEventListener("keydown", key, true);
     return () => window.removeEventListener("keydown", key, true);
-  }, []);
+  }, [visibleNav]);
   useEffect(()=>{
     const closePeek=(event:KeyboardEvent)=>{if(event.key!=="Escape")return;setSpeedDialPages((current)=>{const target=[...current].reverse().find((peek)=>!peek.pinned);if(!target)return current;const next=current.filter((peek)=>peek.id!==target.id);localStorage.setItem(openPeeksStorageKey,JSON.stringify(next));return next;});};
     window.addEventListener("keydown",closePeek,true);return()=>window.removeEventListener("keydown",closePeek,true);
@@ -1228,7 +1242,7 @@ export default function Home() {
       );localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;
     });
   const updateNoticeState=(id:number,patch:Partial<Notice>)=>setNotices((old)=>{const next=old.map((item)=>Math.abs(item.id)===Math.abs(id)?{...item,...patch}:item);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});
-  const noticeAction=(notice:Notice)=>{const value=`${notice.source||""} ${notice.text}`.toLowerCase();setHistoryOpen(false);if(notice.action?.kind==="media"){void mediaControl(notice.action.player||"",notice.action.target);recordActivity("Media retry requested",notice.text,"success","OPERATOR",false,{subsystem:"MEDIA",severity:"priority",group:`media:${notice.action.target}`});return;}if(/process|engineering|cpu|memory/.test(value))setSection("system");else if(/module|extension/.test(value)){setSection("updates");Promise.all([fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()),fetch("http://127.0.0.1:8765/api/extension-catalog").then((response)=>response.json())]).then(([installed,catalog])=>{setExtensions(installed.extensions||[]);setExtensionCatalog(catalog.catalog||[]);setExtensionSources(catalog.sources||[]);notify("Module repositories refreshed");}).catch(()=>notify("Module repository retry failed","error"));}else if(/update|release/.test(value)){setSection("updates");fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation:"check",channel:prefs.updateChannel})}).then((response)=>response.json()).then(setLcarsUpdate).catch(()=>notify("Update check retry failed","error"));}else {setSection("settings");if(notice.kind==="error")coreAction("integration-recheck");}recordActivity(notice.kind==="error"?"Communications retry requested":"Communications action opened",notice.text,"success","OPERATOR");};
+  const noticeAction=(notice:Notice)=>{const value=`${notice.source||""} ${notice.text}`.toLowerCase();setHistoryOpen(false);if(notice.action?.kind==="media"){void mediaControl(notice.action.player||"",notice.action.target);recordActivity("Media retry requested",notice.text,"success","OPERATOR",false,{subsystem:"MEDIA",severity:"priority",group:`media:${notice.action.target}`});return;}if(/process|engineering|cpu|memory/.test(value))setSection("system");else if(/module|extension/.test(value)){setSection("updates");Promise.all([fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()),fetch("http://127.0.0.1:8765/api/extension-catalog").then((response)=>response.json())]).then(([installed,catalog])=>{setExtensions(installed.extensions||[]);setExtensionCatalog(catalog.catalog||[]);setExtensionSources(catalog.sources||[]);notify("Module repositories refreshed");}).catch(()=>notify("Module repository retry failed","error"));}else if(/update|release/.test(value)){setSection("updates");fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation:"check",channel:prefs.updateChannel})}).then((response)=>response.json()).then(setLcarsUpdate).catch(()=>notify("Update check retry failed","error"));}else setSection("settings");recordActivity(notice.kind==="error"?"Communications item opened":"Communications action opened",notice.text,"success","OPERATOR");};
   const clearNotices=()=>{setNotices([]);localStorage.removeItem("lcars-notification-history");recordActivity("Communications history cleared","Operator removed stored LCARS notices","success","OPERATOR");};
   const coreAction = (action: string) => {
     if(/^(?:sleep|poweroff|reboot|logout|shell-mode-|session-|repair-|process-)/.test(action)&&!operatorCan(activeOperator,"protected")){notify("Administrator authority is required for this system action","error");recordActivity("System command denied",`${action.toUpperCase()} · OPERATOR AUTHORITY LIMIT`,"attention","SYSTEM",false,{subsystem:"SECURITY",severity:"warning",operator:activeOperator?.name.toUpperCase()||userName});return;}
@@ -1747,13 +1761,13 @@ export default function Home() {
   const testRoutineStep=(routine:Routine,step:RoutineStep)=>{if(step.kind==="system"||step.kind==="command"){setPendingRoutine({...routine,name:`TEST · ${routine.name}`,steps:[step]});return;}void executeRoutine(routine,[step],true);};
   const requestRoutine=(routine:Routine)=>{if(!routine.enabled)return notify(`${routine.name} is disabled`,"error");setPendingRoutine(routine);};
   const computerContext:ComputerContext=useMemo(()=>({
-    pages:[...nav.map((item)=>({id:item[0],name:item[2],aliases:item[0]==="overview"?["status","overview"]:[item[0]]})),...customPages.map((item)=>({id:`custom:${item.id}`,name:item.name}))],
+    pages:[...visibleNav.map((item)=>({id:item[0],name:item[2],aliases:item[0]==="overview"?["status","overview"]:[item[0]]})),...customPages.map((item)=>({id:`custom:${item.id}`,name:item.name}))],
     apps:apps.map((item)=>({id:item.id,name:item.name,aliases:[item.comment]})),
     procedures:routines.map((item)=>({id:item.id,name:item.name,aliases:[item.folder||"general","routine","procedure"]})),
     workstations:profiles.map((item)=>({id:item.id,name:item.name,aliases:[item.layoutPreset||"desktop"]})),
     themes:themes.map((item)=>({id:item.id,name:item.name,aliases:[item.family,item.code,item.id]})),
     mediaSources:players.map((item)=>({id:item.id,name:item.name,aliases:mediaSourceAliases(item)})),
-  }),[apps,customPages,routines,profiles,players]);
+  }),[apps,customPages,routines,profiles,players,visibleNav]);
   const resolveComputerCommandFor=(input:string,source:ComputerCommandSource):ComputerPlan=>{
     const base=interpretComputerCommand(input,computerContext,source);
     const steps=base.steps.map((item)=>{
@@ -1879,7 +1893,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"29",development:"30.7",channel:prefs.updateChannel},
+      release:{stable:"29",development:"30.8",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2074,7 +2088,7 @@ export default function Home() {
   };
   const paletteCommands = useMemo(
     () => [
-      ...nav.map((n) => ({
+      ...visibleNav.map((n) => ({
         id: "page-" + n[0],
         label: "Open " + n[2],
         detail: "LCARS PAGE",
@@ -2149,7 +2163,7 @@ export default function Home() {
         },
       },
     ],
-    [apps,customPages,routines],
+    [apps,customPages,routines,visibleNav],
   );
   const refreshFabric=()=>fetch("http://127.0.0.1:8765/api/data-fabric").then(async(response)=>{const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Data Fabric is unavailable");setFabric(result as FabricStatus);return result as FabricStatus;}).catch((error)=>{notify(error instanceof Error?error.message:"Data Fabric is unavailable","error");return null;});
   const fabricOperation=async(payload:Record<string,unknown>,success?:string)=>{
@@ -2465,13 +2479,13 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>30.7 DEV</small>
+          <small>30.8 DEV</small>
         </button>
         <div className="title">
           <div className="title-copy">
             <div className={`title-kicker${prefs.voiceEnabled?" voice-active":""}`}>
               <small>FEDERATION OPERATING ENVIRONMENT</small>
-              <button className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30.7 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></button>
+              <button className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30.8 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></button>
               {prefs.voiceEnabled&&<VoiceControl prefs={prefs} computer={dispatchVoiceComputer} notify={notify} />}
             </div>
             <h1>
@@ -2512,7 +2526,7 @@ export default function Home() {
         <aside>
           {prefs.trayPresentation==="header"?<button className="elbow header-tray-trigger" aria-expanded={trayOpen} onClick={()=>setTrayOpen((value)=>!value)}><span>TRAY</span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small></button>:<div className="elbow"><span>SYS</span><small>47</small></div>}
           <div className="nav-gap" />
-          {nav.map((n, i) => (
+          {visibleNav.map((n, i) => (
             <button
               key={n[0]}
               className={"nav n" + i + (section === n[0] ? " active" : "")}
@@ -2710,11 +2724,24 @@ export default function Home() {
               </div>
             </>
           )}
+          {section === "browser" && prefs.browserSidebarEnabled && (
+            <BrowserDock
+              bridge={bridge}
+              apps={apps}
+              detected={detectedBrowsers}
+              preferredId={prefs.preferredBrowserId}
+              tasks={tasks}
+              choose={(id)=>savePrefs({...prefs,preferredBrowserId:id})}
+              launch={launch}
+              focus={(id)=>windowAction(id,"activate")}
+              refresh={refreshApps}
+            />
+          )}
           {section === "terminal" && (
             <Terminal bridge={bridge} notify={notify} prefs={prefs} />
           )}
           {section === "files" && (
-            <FileExplorer bridge={bridge} notify={notify} cue={cue} requestedFile={fileSearchTarget} clearRequestedFile={()=>setFileSearchTarget("")} />
+            <FileExplorer bridge={bridge} notify={notify} cue={cue} requestedFile={fileSearchTarget} clearRequestedFile={()=>setFileSearchTarget("")} openMedia={(file,kind)=>{setLocalMediaRequest({path:file.path,name:file.name,kind,nonce:Date.now()});setSection("media");}} />
           )}
           {section === "bay" && bayApp && (
             <ApplicationBay
@@ -2795,6 +2822,7 @@ export default function Home() {
                 openDevices={() => coreAction("audio-settings")}
                 refresh={refreshMedia}
                 notify={notify}
+                localRequest={localMediaRequest}
                 localEvent={(title,detail,status="success")=>recordActivity(title,detail,status,"OPERATOR",false,{subsystem:"MEDIA",operator:activeOperator?.name.toUpperCase()||userName,group:"media:lcars-player",explanation:"Playback changed inside the integrated LCARS media deck."})}
               />
             </section>
@@ -2934,8 +2962,8 @@ export default function Home() {
                   <small>LEARN THE LCARS DESKTOP CONTROLS</small>
                 </button>
                 <button onClick={()=>setWhatsNewOpen(true)}>
-                  <b>WHAT&apos;S NEW IN VERSION 30.7</b>
-                  <small>OPERATOR IDENTITIES & LCARS MEDIA DECK</small>
+                  <b>WHAT&apos;S NEW IN VERSION 30.8</b>
+                  <small>BROWSER STATION · MEDIA ROUTING · CONTINUUM</small>
                 </button>
                 <button onClick={() => coreAction("shell-mode-off")}>
                   <b>RECOVERY CONTROL</b>
@@ -3025,7 +3053,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-7","1");setWhatsNewOpen(false);}} openOperators={()=>{localStorage.setItem("lcars-whats-new-v30-7","1");setWhatsNewOpen(false);setOperatorCenterOpen(true);}}/>}
+      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-8","1");setWhatsNewOpen(false);}} openBrowser={()=>{localStorage.setItem("lcars-whats-new-v30-8","1");setWhatsNewOpen(false);setSection("browser");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -3097,8 +3125,23 @@ export default function Home() {
   );
 }
 
+function BrowserDock({bridge,apps,detected,preferredId,tasks,choose,launch,focus,refresh}:{bridge:boolean;apps:App[];detected:App[];preferredId:string;tasks:WindowTask[];choose:(id:string)=>void;launch:(app:App)=>void;focus:(id:string)=>void;refresh:()=>void}){
+  const preferred=apps.find((app)=>app.id===preferredId)||detected[0]||null;
+  const running=tasks.filter((task)=>detectBrowserApplications([{id:task.app||task.id,name:task.name,comment:task.app||""}]).length>0);
+  return <section className="detail-view browser-dock">
+    <h3>LCARS BROWSER STATION</h3>
+    <div className="browser-dock-hero"><span><small>EXISTING PROFILE · LCARS-MANAGED WINDOW</small><b>{preferred?.name.toUpperCase()||"NO BROWSER SELECTED"}</b><p>Uses your installed browser exactly as it is—including its profile, bookmarks, history, extensions, passwords, and signed-in sessions. LCARS launches and tasks the window; no browser migration or second profile is created.</p></span><i>09</i></div>
+    {!bridge?<div className="browser-dock-offline"><b>DESKTOP CORE REQUIRED</b><small>Browser discovery and window tasking are available in the installed LCARS desktop edition.</small></div>:<>
+      <div className="browser-dock-actions"><button disabled={!preferred} onClick={()=>preferred&&launch(preferred)}>OPEN {preferred?.name.toUpperCase()||"BROWSER"}</button><button onClick={refresh}>RESCAN APPLICATIONS</button></div>
+      <section className="browser-running"><header><b>ACTIVE BROWSER WINDOWS</b><small>{running.length} DETECTED</small></header>{running.length?running.map((task)=><button key={task.id} onClick={()=>focus(task.id)}><i>●</i><span><b>{task.name}</b><small>{task.monitor||"CURRENT DISPLAY"}{task.minimized?" · MINIMIZED":" · ACTIVE WINDOW"}</small></span><em>FOCUS</em></button>):<p>NO BROWSER WINDOW IS CURRENTLY ACTIVE</p>}</section>
+    </>}
+    <section className="browser-selection"><header><b>BROWSER DETECTION</b><small>{detected.length} RECOGNIZED</small></header><div className="browser-detected-list">{detected.map((app)=><button className={preferred?.id===app.id?"selected":""} key={app.id} onClick={()=>choose(app.id)}><b>{app.name}</b><small>{app.comment||app.id}</small><em>{preferred?.id===app.id?"SELECTED":"USE BROWSER"}</em></button>)}{!detected.length&&<p>NO KNOWN BROWSER WAS DETECTED. SELECT IT MANUALLY BELOW.</p>}</div><label>CUSTOM BROWSER<small>Choose any installed application when automatic detection misses a browser.</small><select value={preferredId&&apps.some((app)=>app.id===preferredId)?preferredId:""} onChange={(event)=>choose(event.target.value)}><option value="">AUTOMATIC DETECTION</option>{apps.map((app)=><option value={app.id} key={app.id}>{app.name} · {app.comment||app.id}</option>)}</select></label></section>
+    <footer>THE BROWSER SIDEBAR CONTROL CAN BE REMOVED AT SETTINGS → SYSTEM → DESKTOP SHELL CONTROL FOR AN ENTIRELY OFFLINE LCARS LAYOUT.</footer>
+  </section>;
+}
+
 type FileKind="folder"|"application"|"pdf"|"document"|"image"|"audio"|"video"|"archive"|"file";
-const fileKind=(file:FileEntry):FileKind=>{if(file.directory)return"folder";const ext=file.name.split(".").pop()?.toLowerCase()||"";if(["exe","appimage","desktop","msi","app","bat","cmd","sh"].includes(ext))return"application";if(ext==="pdf")return"pdf";if(["doc","docx","odt","txt","rtf","md"].includes(ext))return"document";if(["png","jpg","jpeg","gif","webp","svg","bmp"].includes(ext))return"image";if(["mp3","wav","flac","ogg","m4a","aac"].includes(ext))return"audio";if(["mp4","mkv","webm","avi","mov"].includes(ext))return"video";if(["zip","7z","rar","tar","gz","bz2","xz"].includes(ext))return"archive";return"file";};
+const fileKind=(file:FileEntry):FileKind=>{if(file.directory)return"folder";const ext=file.name.split(".").pop()?.toLowerCase()||"";if(["exe","appimage","desktop","msi","app","bat","cmd","sh"].includes(ext))return"application";if(ext==="pdf")return"pdf";if(["doc","docx","odt","txt","rtf","md"].includes(ext))return"document";if(["png","jpg","jpeg","gif","webp","svg","bmp"].includes(ext))return"image";const media=classifyLocalMedia(file.name);if(media)return media;if(["zip","7z","rar","tar","gz","bz2","xz"].includes(ext))return"archive";return"file";};
 function FileGlyph({kind}:{kind:FileKind}){const paths:Record<FileKind,ReactNode>={folder:<path d="M2 6h7l2 2h11v12H2zM3 5V3h7l2 2"/>,application:<><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 8l7 4-7 4z"/></>,pdf:<><path d="M5 2h10l4 4v16H5z"/><path d="M15 2v5h5M8 16c4-8 4-2 8-5M9 13c2 2 4 3 7 4"/></>,document:<><path d="M5 2h10l4 4v16H5z"/><path d="M15 2v5h5M8 11h8M8 15h8M8 19h5"/></>,image:<><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M5 18l5-5 3 3 2-2 4 4"/></>,audio:<><path d="M10 17V6l9-2v11"/><circle cx="7" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></>,video:<><rect x="2" y="5" width="15" height="14" rx="2"/><path d="M17 10l5-3v10l-5-3z"/></>,archive:<><path d="M5 3h14v18H5z"/><path d="M10 3h4v3h-4zm0 6h4v3h-4zm0 6h4v3h-4z"/></>,file:<><path d="M5 2h10l4 4v16H5z"/><path d="M15 2v5h5"/></>};return <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[kind]}</svg>;}
 
 function FileExplorer({
@@ -3107,6 +3150,7 @@ function FileExplorer({
   cue,
   requestedFile,
   clearRequestedFile,
+  openMedia,
 }: {
   bridge: boolean;
   notify: (text: string, kind?: "info" | "error", playError?: boolean) => void;
@@ -3115,6 +3159,7 @@ function FileExplorer({
   ) => void;
   requestedFile: string;
   clearRequestedFile: () => void;
+  openMedia: (file: FileEntry, kind: LocalMediaKind) => void;
 }) {
   const [path, setPath] = useState("~"),
     [parent, setParent] = useState(""),
@@ -3192,7 +3237,7 @@ function FileExplorer({
         : n < 1073741824
           ? (n / 1048576).toFixed(1) + " MB"
           : (n / 1073741824).toFixed(1) + " GB";
-  const openFile=(file:FileEntry)=>["pdf","document"].includes(fileKind(file))?setDocumentPath(file.path):act("/api/file-open",{path:file.path},"File opened");
+  const openFile=(file:FileEntry)=>{const kind=fileKind(file);if(kind==="audio"||kind==="video"){openMedia(file,kind);return;}if(["pdf","document"].includes(kind)){setDocumentPath(file.path);return;}act("/api/file-open",{path:file.path},"File opened");};
   useEffect(()=>{
     if(!requestedFile)return;
     const name=requestedFile.split(/[\\/]/).pop()||requestedFile,entry:FileEntry={name,path:requestedFile,directory:false,size:0,modified:Date.now()/1000,hidden:false};
@@ -3682,7 +3727,7 @@ function ExtensionHub({installed,catalog,sources,setCatalog,setSources,disabled,
       {packageOpen&&<section className="module-package-bay"><header><span><small>SIGNED PORTABLE PACKAGES</small><b>IMPORT / EXPORT</b></span><strong>.LCARS-MODULE</strong></header><div><label>EXPORT INSTALLED MODULE<select value={packageModule} onChange={(event)=>setPackageModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><button disabled={!packageModule||busy==="export"} onClick={exportPackage}>{busy==="export"?"SIGNING…":"EXPORT SIGNED PACKAGE"}</button><label>IMPORT PACKAGE PATH<input value={importPath} placeholder="/path/to/module.lcars-module" onChange={(event)=>setImportPath(event.target.value)}/></label><button disabled={!importPath||busy==="import"} onClick={importPackage}>{busy==="import"?"VERIFYING…":"VERIFY + IMPORT"}</button></div>{packageResult&&<aside><b>PACKAGE OPERATION COMPLETE</b><span>{packageResult.path}</span>{packageResult.sha256&&<small>SHA-256 {packageResult.sha256.toUpperCase()}</small>}{packageResult.signerKeyId&&<em>SIGNER {packageResult.signerKeyId.toUpperCase()}</em>}</aside>}</section>}
       {publisherOpen&&<section className="module-publisher"><header><span><small>RSA-SHA256 · STABLE + DEVELOPMENT CATALOGS</small><b>SIGNED MODULE PUBLISHER</b></span><a href="https://github.com/new" target="_blank" rel="noreferrer">CREATE GITHUB REPOSITORY ↗</a></header><p>LCARS validates the stable API contract, signs the package metadata with your local publisher identity, and generates both repository channels. The private signing key never leaves the local Module Forge folder.</p><div><label>MODULE<select value={publisherModule} onChange={(event)=>setPublisherModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><label>GITHUB OWNER / REPOSITORY<input value={publisherRepository} onChange={(event)=>setPublisherRepository(event.target.value)} placeholder="OWNER/REPOSITORY"/></label><button disabled={!publisherModule||busy==="publisher"} onClick={preparePublisher}>{busy==="publisher"?"SIGNING…":"GENERATE SIGNED REPOSITORY"}</button></div>{publisherResult&&<aside><b>SIGNED PACKAGE READY</b><span>{publisherResult.path}</span><small>SHA-256 {publisherResult.sha256?.toUpperCase()}</small><em>SIGNER {publisherResult.signerKeyId?.toUpperCase()} · {publisherResult.files?.join(" · ")}</em></aside>}</section>}
       <div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id),remote=entry,health=manifest?.moduleHealth||entry.moduleHealth,requested=manifest?.capabilities||entry.capabilities,granted=manifest?.grantedCapabilities||entry.grantedCapabilities||[],showDetails=details===entry.id;return <article className={`${disabledNow?"disabled":""} ${remote.repository?"repository-module":"local-module"} module-health-${health?.health||"ready"}`} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{remote.repository?`${remote.official?"OFFICIAL":"COMMUNITY"} · ${(remote.channel||"stable").toUpperCase()} · ${remote.sourceName||"MODULE REPOSITORY"}`:entry.bundled?"BUNDLED MODULE":"LOCAL MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · API {manifest?.apiVersion||health?.apiVersion||"?"} {health?.apiStatus?.toUpperCase()||""} · V{entry.version}{installedNow?` / INSTALLED V${manifest?.version||remote.installedVersion||entry.version}`:""} · {health?.health?.toUpperCase()||"READY"}</em>{showDetails&&<><div className="module-detail-strip"><span><b>PACKAGE TRUST</b>{(remote.signatureStatus||health?.signed||"local").toUpperCase()}</span><span><b>SIGNER</b>{remote.signerKeyId||health?.signerKeyId||"LOCAL / BUNDLED"}</span><span><b>MINIMUM LCARS</b>{remote.minimumLcarsVersion||manifest?.minimumLcarsVersion||"COMPATIBLE"}</span><span><b>HEALTH</b>{health?.failureCount?`${health.failureCount} FAILURE(S) · ${health.lastFailure||"RECORDED"}`:"READY · NO RECORDED FAILURES"}</span><span><b>ROLLBACK</b>{health?.rollbackAvailable||remote.rollbackAvailable?"PREVIOUS VERSION AVAILABLE":"NO PREVIOUS VERSION"}</span><span><b>SOURCE</b>{remote.official?"LCARS OFFICIAL":remote.sourceName||health?.sourceId||"LOCAL"}</span></div>{installedNow&&requested.length>0&&<div className="module-permission-matrix"><b>CAPABILITY PERMISSIONS</b>{requested.map((capability)=><button className={granted.includes(capability)?"granted":"revoked"} key={capability} onClick={()=>platformOperation("permissions",entry,granted.includes(capability)?granted.filter((item)=>item!==capability):[...granted,capability])}>{granted.includes(capability)?"✓ GRANTED":"○ REVOKED"}<small>{capabilityLabels[capability]||capability}</small></button>)}</div>}</>}</span><nav><button onClick={()=>setDetails(showDetails?"":entry.id)}>{showDetails?"LESS":"DETAILS"}</button>{installedNow?<><button onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</button>{(health?.rollbackAvailable||remote.rollbackAvailable)&&<button disabled={busy===`rollback:${entry.id}`} onClick={()=>platformOperation("rollback",entry)}>ROLL BACK</button>}{remote.updateAvailable&&<button className="update" disabled={busy===entry.id} onClick={()=>operate(entry,"update")}>{busy===entry.id?"VERIFYING…":"UPDATE"}</button>}{!entry.bundled&&<button className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</button>}</>:remote.repository?<button className="install" disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"VERIFYING…":"INSTALL"}</button>:null}</nav></article>;})}{!inventory.length&&<p className="extension-empty">NO MATCHING MODULES ON THE {catalogChannel.toUpperCase()} CHANNEL</p>}</div>
-      <footer><b>VERSION 30.7 MODULE SAFETY</b> · Signed API v3 packages, explicit capability grants, per-module health records, automatic render isolation, two-version rollback, bounded portable imports, and channel-aware repositories. Repository code is never executed.</footer>
+      <footer><b>VERSION 30.8 MODULE SAFETY</b> · Signed API v3 packages, explicit capability grants, per-module health records, automatic render isolation, two-version rollback, bounded portable imports, and channel-aware repositories. Repository code is never executed.</footer>
     </>}
   </section>;
 }
@@ -4394,14 +4439,14 @@ function LcarsSessionControl({bridge,platform,notify}:{bridge:boolean;platform:s
   const configure=(config:LcarsSessionStatus["config"])=>operate("configure",config);
   const updateConfig=(change:Partial<LcarsSessionStatus["config"]>)=>status&&setStatus({...status,config:{...status.config,...change}});
   const addRule=()=>{if(!status||!ruleMatch.trim())return;const rules=[...status.config.windowRules,{match:ruleMatch.trim(),deck:ruleDeck}].slice(0,20);setRuleMatch("");updateConfig({windowRules:rules});void configure({...status.config,windowRules:rules});};
-  if(!platform.includes("LINUX"))return <section className="lcars-session-control unavailable"><header><span><small>VERSION 30.7 COMPUTER ENVIRONMENT</small><b>LINUX LCARS SESSION</b></span><em>LINUX ONLY</em></header><p>The selectable LCARS login session is a Linux desktop feature. Normal Windows and Android operation is unchanged.</p></section>;
+  if(!platform.includes("LINUX"))return <section className="lcars-session-control unavailable"><header><span><small>VERSION 30.8 COMPUTER ENVIRONMENT</small><b>LINUX LCARS SESSION</b></span><em>LINUX ONLY</em></header><p>The selectable LCARS login session is a Linux desktop feature. Normal Windows and Android operation is unchanged.</p></section>;
   return <section className={`lcars-session-control ${status?.active?"active":""}`}>
-    <header><span><small>VERSION 30.7 COMPUTER ENVIRONMENT · EXPLICIT OPT-IN</small><b>LINUX LCARS LOGIN SESSION</b></span><em>{status?.active?"ACTIVE SESSION":status?.installed?"INSTALLED / OPTIONAL":"APPLICATION MODE"}</em></header>
+    <header><span><small>VERSION 30.8 COMPUTER ENVIRONMENT · EXPLICIT OPT-IN</small><b>LINUX LCARS LOGIN SESSION</b></span><em>{status?.active?"ACTIVE SESSION":status?.installed?"INSTALLED / OPTIONAL":"APPLICATION MODE"}</em></header>
     <p>Register LCARS as a selectable Wayland or X11 login session while retaining the current desktop underneath for window management and emergency recovery. Installing this does not make LCARS the default.</p>
     <div className="lcars-session-readiness">
       {(["loginSession","windowTasking","multiMonitor","windowRules","crashRecovery","safeMode","normalDesktopFallback","kiosk"] as const).map((name)=><span className={status?.capabilities?.[name]?"ready":"limited"} key={name}><i>{status?.capabilities?.[name]?"✓":"!"}</i>{name.replace(/([A-Z])/g," $1").toUpperCase()}</span>)}
     </div>
-    {!bridge?<div className="lcars-session-offline"><b>LOCAL CORE REQUIRED</b><small>Install and open the native Linux desktop build to register a login session.</small></div>:!status?<div className="lcars-session-offline"><b>SESSION ADAPTER UNAVAILABLE</b><small>Reinstall Version 30.7 to add the optional session resources.</small></div>:<>
+    {!bridge?<div className="lcars-session-offline"><b>LOCAL CORE REQUIRED</b><small>Install and open the native Linux desktop build to register a login session.</small></div>:!status?<div className="lcars-session-offline"><b>SESSION ADAPTER UNAVAILABLE</b><small>Reinstall Version 30.8 to add the optional session resources.</small></div>:<>
       <div className="lcars-session-actions"><button disabled={Boolean(busy)} onClick={()=>operate(status.installed?"uninstall":"install")}>{busy==="install"||busy==="uninstall"?"WAITING FOR AUTHORIZATION…":status.installed?"REMOVE LOGIN SESSION":"INSTALL LCARS LOGIN SESSION"}</button><button onClick={refresh}>REFRESH STATUS</button>{status.active&&<button className="escape" disabled={Boolean(busy)} onClick={()=>operate("escape")}>EXIT TO NORMAL DESKTOP</button>}</div>
       <small className="lcars-session-note">Administrator authorization is requested only when adding or removing display-manager session entries. Settings and the LCARS application remain in your account.</small>
       <div className="lcars-session-grid">
@@ -4460,7 +4505,7 @@ function ShellSettings({
           <div className="page-density-settings">
             <label>PAGE SIZE CONTROL<small>Uses one layout size everywhere or remembers a separate Compact, Standard, or Wide layout for each major page.</small><select value={prefs.pageDensityScope} onChange={(event)=>set("pageDensityScope",event.target.value as ShellPrefs["pageDensityScope"])}><option value="global">ONE SIZE FOR ALL PAGES</option><option value="per-page">CHOOSE EACH PAGE</option></select></label>
             <label>DEFAULT PAGE SIZE<small>Compact shows more controls, Standard balances space, and Wide gives panels more breathing room.</small><select value={prefs.pageDensity} onChange={(event)=>set("pageDensity",event.target.value as PageDensity)}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></select></label>
-            {prefs.pageDensityScope==="per-page"&&<div className="page-density-matrix">{nav.map((item)=><label key={item[0]}><span>{item[1]} {item[2]}</span><select value={prefs.pageDensities[item[0]]||prefs.pageDensity} onChange={(event)=>set("pageDensities",{...prefs.pageDensities,[item[0]]:event.target.value as PageDensity})}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></select></label>)}</div>}
+            {prefs.pageDensityScope==="per-page"&&<div className="page-density-matrix">{nav.filter((item)=>item[0]!=="browser"||prefs.browserSidebarEnabled).map((item)=><label key={item[0]}><span>{item[1]} {item[2]}</span><select value={prefs.pageDensities[item[0]]||prefs.pageDensity} onChange={(event)=>set("pageDensities",{...prefs.pageDensities,[item[0]]:event.target.value as PageDensity})}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></select></label>)}</div>}
           </div>
           <Toggle label="Play startup power sequence" description="Plays the bundled LCARS power-up sound when the desktop app opens. It never delays the interface." checked={prefs.startupSound} change={(v) => set("startupSound", v)} />
           <div className="startup-audio-diagnostic"><button onClick={testStartupAudio}>TEST POWER-UP AUDIO</button><small>{startupAudioStatus}</small><em>ASSET: LCARS BUNDLED MP3 · OUTPUT: OPERATING-SYSTEM DEFAULT</em></div>
@@ -4468,6 +4513,7 @@ function ShellSettings({
           <label>SYSTEM TRAY PRESENTATION<small>Places the same tray drawer trigger in the side rail or the compact SYS 47 header position.</small><select value={prefs.trayPresentation} onChange={(event)=>set("trayPresentation",event.target.value as ShellPrefs["trayPresentation"])}><option value="rail">SIDE RAIL</option><option value="header">HEADER / SYS 47</option></select></label>
           <SpeedDialEditor items={prefs.speedDial} extensions={extensions} customPages={customPages} routines={routines} change={(items)=>set("speedDial",items)} />
           <label>LCARS UPDATE CHANNEL<small>Stable receives whole-number public releases. Development opts into dot-number test builds for the next major release.</small><select value={prefs.updateChannel} onChange={(event)=>set("updateChannel",event.target.value as ShellPrefs["updateChannel"])}><option value="stable">STABLE · WHOLE-NUMBER RELEASES</option><option value="development">DEVELOPMENT · TEST BUILDS</option></select></label>
+          <Toggle label="Show Browser sidebar page" description="Discovers and launches your existing browser profile as an LCARS-managed desktop window. Disable this to remove the Browser control from an entirely offline layout." checked={prefs.browserSidebarEnabled} change={(v) => set("browserSidebarEnabled", v)} />
           <Toggle label="Show lock screen on startup" description="Opens normal LCARS windows at the themed authorization screen. Remote Terminal windows always bypass it." checked={prefs.lockOnLaunch} change={(v) => set("lockOnLaunch", v)} />
           {prefs.lockOnLaunch && <div className="subordinate-setting"><Toggle label="Quick boot when no password is set" description="Enters LCARS directly only when no local lock password exists." checked={prefs.quickBootWithoutPassword} change={(v) => set("quickBootWithoutPassword", v)} /></div>}
           <Toggle
@@ -4525,8 +4571,8 @@ function ShellSettings({
           <Toggle label="Enable offline voice commands" description="Audio stays on this station and is processed by the bundled whisper.cpp Computer Core." checked={prefs.voiceEnabled} change={(v) => set("voiceEnabled", v)} />
           <Toggle label="Use push-to-talk" description="When disabled, LCARS keeps a local hands-free microphone watch active. Switching to hands-free automatically enables the Computer wake word." checked={prefs.voicePushToTalk} change={(v) => {const old=prefs;setPrefs({...old,voicePushToTalk:v,voiceWakePhrase:v?old.voiceWakePhrase:true});}} />
           <Toggle label="Require 'Computer' wake word" description={prefs.voicePushToTalk?"Optional in push-to-talk mode. Commands without Computer are ignored when enabled.":"Recommended for hands-free operation. Disable this only if every recognized phrase should be treated as a command."} checked={prefs.voiceWakePhrase} change={(v) => set("voiceWakePhrase", v)} />
-          <Toggle label="Execute recognized voice commands immediately" description="Opt-in Version 30.7 mode. Valid commands within the selected Voice Authority skip the Computer Core preview. Protected actions only run immediately after the configured vocal authorization code is verified; otherwise the confirmation screen opens." checked={prefs.voiceImmediateExecution} change={(v) => set("voiceImmediateExecution", v)} />
-          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30.7 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
+          <Toggle label="Execute recognized voice commands immediately" description="Opt-in Version 30.8 mode. Valid commands within the selected Voice Authority skip the Computer Core preview. Protected actions only run immediately after the configured vocal authorization code is verified; otherwise the confirmation screen opens." checked={prefs.voiceImmediateExecution} change={(v) => set("voiceImmediateExecution", v)} />
+          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30.8 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
           <label>LOCAL MODEL FILE · OPTIONAL OVERRIDE<small>The bundled English command model works out of the box. A custom GGML model remains entirely local.</small><input value={prefs.voiceModel} placeholder="BUNDLED TINY.EN MODEL (AUTOMATIC)" onChange={(e) => set("voiceModel", e.target.value)} /></label>
           <VoiceDeviceSelect value={prefs.voiceDevice} change={(value) => set("voiceDevice", value)} />
           <label>VOICE AUTHORITY<small>Higher levels permit more command categories; power and unmount commands always require confirmation.</small><select value={prefs.voiceSecurity} onChange={(e) => set("voiceSecurity", e.target.value as ShellPrefs["voiceSecurity"])}><option value="navigation">NAVIGATION ONLY</option><option value="applications">NAVIGATION + APPLICATIONS</option><option value="system">SYSTEM CONTROL</option></select></label>
@@ -4718,7 +4764,7 @@ function ProcedureCenter({routines,apps,profiles,devices,players,running,history
   const triggerPlaceholder=procedure?.trigger.type==="app"?"APPLICATION NAME":procedure?.trigger.type==="device"?"AUDIO DEVICE":procedure?.trigger.type==="battery-below"?"BATTERY PERCENT":procedure?.trigger.type==="network"?"NETWORK NAME OR BLANK":procedure?.trigger.type==="notice"?"NOTICE TEXT OR SOURCE":procedure?.trigger.type==="media"?"PLAYER, ARTIST, OR TITLE":procedure?.trigger.type==="station"?"PADD NAME OR BLANK":procedure?.trigger.type==="interval"?"MINUTES":"TRIGGER VALUE";
   return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
     <section className="routine-center procedure-center" role="dialog" aria-modal="true" aria-label="Computer Core Procedure Builder">
-      <header><div><small>VERSION 30.7 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
+      <header><div><small>VERSION 30.8 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
       <div className="routine-center-layout">
         <aside><button onClick={add}>+ NEW PROCEDURE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO PROCEDURES CONFIGURED</p>}</aside>
         {showHistory?<main className="routine-run-history"><header><small>COMPUTER CORE EXECUTION JOURNAL</small><h3>PROCEDURE HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO PROCEDURE EXECUTIONS RECORDED</p>}</main>:procedure?<main>
@@ -4876,7 +4922,7 @@ function OperatorCenter({operators,activeId,devices,canManage,close,switchOperat
   useEffect(()=>{if(!operators.some((item)=>item.id===selectedId))setSelectedId(activeId||operators[0]?.id||"");},[operators,selectedId,activeId]);
   const activate=async(identity:OperatorIdentity)=>{setBusy(`switch:${identity.id}`);const accepted=await switchOperator(identity.id,pins[identity.id]||"");setBusy("");if(accepted){setPins((old)=>({...old,[identity.id]:""}));close();}};
   return <div className="backdrop operator-center-backdrop" onMouseDown={(change)=>change.target===change.currentTarget&&close()}><ResizablePopup popupKey="operator-center" className="operator-center" ariaModal={true} minWidth={760} minHeight={560}>
-    <header><div><small>VERSION 30.7 · INDIVIDUAL COMMAND ENVIRONMENTS</small><h2>OPERATOR IDENTITIES</h2><p>Switch complete favorites, decks, Display Matrix, layouts, commands, and station preferences without mixing operator configurations.</p></div><button onClick={close}>CLOSE ×</button></header>
+    <header><div><small>VERSION 30.8 · INDIVIDUAL COMMAND ENVIRONMENTS</small><h2>OPERATOR IDENTITIES</h2><p>Switch complete favorites, decks, Display Matrix, layouts, commands, and station preferences without mixing operator configurations.</p></div><button onClick={close}>CLOSE ×</button></header>
     <section className="operator-center-layout"><aside><header><b>QUICK OPERATOR SWITCH</b><small>{operators.length}/24 IDENTITIES</small></header>{operators.map((identity,index)=><article className={`${identity.id===selected?.id?"selected":""} ${identity.id===activeId?"active":""}`} key={identity.id}><button onClick={()=>setSelectedId(identity.id)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{identity.name}</b><small>{identity.awayTeam?"AWAY TEAM":identity.role.toUpperCase()} · {identity.shared?"SHARED":"PERSONAL"}</small></span><em>{identity.id===activeId?"ACTIVE":identity.credential?"PIN":"OPEN"}</em></button>{identity.id!==activeId&&<div>{identity.credential&&<input type="password" inputMode="numeric" autoComplete="off" placeholder="OPERATOR PIN" value={pins[identity.id]||""} onChange={(change)=>setPins((old)=>({...old,[identity.id]:change.target.value.slice(0,64)}))}/>}<button disabled={busy===`switch:${identity.id}`} onClick={()=>void activate(identity)}>{busy===`switch:${identity.id}`?"VERIFYING…":"ACTIVATE"}</button></div>}</article>)}</aside>
       {selected&&<main><section className="operator-identity-card"><header><i>{selected.awayTeam?"AT":selected.role==="administrator"?"A":selected.role==="operator"?"O":"G"}</i><span><small>{selected.shared?"SHARED WORKSTATION PROFILE":"INDIVIDUAL OPERATOR PROFILE"}</small><h3>{selected.name}</h3><p>{selected.awayTeam?"Temporary restricted access for field operation and borrowed stations.":selected.role==="administrator"?"Full identity, configuration, automation, and protected-system authority.":selected.role==="operator"?"Daily operation, automation, and roaming without protected-system authority.":"Navigation, applications, media, and personal workspace access only."}</p></span><strong>{selected.id===activeId?"ON DUTY":"STANDBY"}</strong></header><div className="operator-profile-stats"><span><b>{selected.workspace.favoriteIds.length}</b> FAVORITES</span><span><b>{selected.workspace.workstations.length}</b> DECKS</span><span><b>{selected.workspace.routines.length}</b> COMMANDS</span><span><b>{Object.keys(selected.stationPreferences).length}</b> STATIONS</span></div></section>
         <section className="operator-configuration"><header><b>IDENTITY & AUTHORITY</b><small>{canManage?"ADMINISTRATOR CONTROLS AVAILABLE":"READ ONLY FOR THIS OPERATOR"}</small></header><div><label>OPERATOR NAME<input disabled={!canManage} maxLength={48} value={selected.name} onChange={(change)=>updateOperator(selected.id,{name:change.target.value})}/></label><label>ROLE<select disabled={!canManage||selected.awayTeam} value={selected.role} onChange={(change)=>updateOperator(selected.id,{role:change.target.value as OperatorRole})}><option value="guest">GUEST</option><option value="operator">OPERATOR</option><option value="administrator">ADMINISTRATOR</option></select></label><label className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.shared} onChange={(change)=>updateOperator(selected.id,{shared:change.target.checked})}/><span><b>SHARED WORKSTATION PROFILE</b><small>Use this identity as a common household or command-terminal workspace.</small></span></label><label className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.awayTeam} onChange={(change)=>updateOperator(selected.id,{awayTeam:change.target.checked})}/><span><b>AWAY TEAM PROFILE</b><small>Force temporary Guest authority and block automation, configuration, and protected actions.</small></span></label></div><nav><input disabled={!canManage} type="password" inputMode="numeric" autoComplete="new-password" placeholder={selected.credential?"REPLACE OPERATOR PIN":"OPTIONAL NEW PIN"} value={newPin} onChange={(change)=>setNewPin(change.target.value.slice(0,64))}/><button disabled={!canManage||!newPin} onClick={()=>{void setPin(selected.id,newPin);setNewPin("");}}>{selected.credential?"REPLACE PIN":"SET PIN"}</button><button disabled={!canManage||!selected.credential} onClick={()=>void setPin(selected.id,"")}>REMOVE PIN</button><button className="danger" disabled={!canManage||selected.id===activeId||operators.length<=1} onClick={()=>deleteOperator(selected.id)}>REMOVE IDENTITY</button></nav></section>
@@ -5067,16 +5113,16 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
   </section></div>;
 }
 
-function Version30Welcome({close,openOperators}:{close:()=>void;openOperators:()=>void}){
+function Version30Welcome({close,openBrowser}:{close:()=>void;openBrowser:()=>void}){
   const features=[
-    {code:"01",title:"OPERATOR IDENTITIES",text:"Give each person a private LCARS workspace with individual favorites, decks, themes, layouts, commands, and station preferences."},
-    {code:"02",title:"ROLES + QUICK SWITCH",text:"Switch between Guest, Operator, and Administrator identities, with optional PIN verification and restricted Away Team profiles."},
-    {code:"03",title:"SECURE ROAMING",text:"Send credential-free profiles to trusted encrypted stations, retain per-station preferences, and export AES-256-GCM backups."},
-    {code:"04",title:"MEDIA RESUME REPAIRED",text:"Resume and pause are verified against live playback state, with explicit Spotify, Chromium, Chrome, Opera GX, Firefox, and VLC targeting on Linux."},
-    {code:"05",title:"LCARS MEDIA DECK",text:"Play local audio and video inside LCARS with seeking, volume, speed, keyboard control, fullscreen playback, and a fading LCARS HUD."},
-    {code:"06",title:"AUTHORITY EVERYWHERE",text:"Voice plans, Procedures, configuration, protected actions, and profile management now respect the operator currently on duty."},
+    {code:"01",title:"LCARS BROWSER STATION",text:"Discover an installed browser, preserve its existing profile, and launch or focus its window from a dedicated LCARS sidebar page."},
+    {code:"02",title:"PRIVATE OFFLINE LAYOUT",text:"Choose any installed application as a custom browser or remove the Browser control entirely when this station must remain offline."},
+    {code:"03",title:"INTEGRATED FILE PLAYBACK",text:"Open audio and video from Files directly in the LCARS Media Deck with ranged streaming, seeking, fullscreen, and no automatic OS handoff."},
+    {code:"04",title:"BROAD FORMAT ROUTING",text:"Recognize a much wider family of operating-system media extensions and offer an explicit system-player fallback only when the built-in decoder cannot play the codec."},
+    {code:"05",title:"CONTINUUM ROLE ENGINE",text:"Adapt phones and tablets for handheld, companion, media, communications, notification, monitor, presentation, and docked command-station duty."},
+    {code:"06",title:"AUTOMATIC ENVIRONMENT SENSING",text:"Recommend or apply a role when orientation, display, dock, screen class, or connected-station state changes—while retaining manual overrides."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.7 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.7 · OPERATOR WORKSPACES</h2><p>Make one command environment practical for every operator, station, and local media mission.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openOperators}>OPEN OPERATOR CENTER</button><button autoFocus onClick={close}>BEGIN 30.7 DEVELOPMENT</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.8 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.8 · CONTINUUM</h2><p>Keep browser, media, and connected-device roles inside one coherent command environment.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openBrowser}>OPEN BROWSER STATION</button><button autoFocus onClick={close}>BEGIN 30.8 DEVELOPMENT</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){
@@ -5270,23 +5316,27 @@ const formatMediaTime = (seconds = 0) => {
   return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, "0")}`;
 };
 
-function IntegratedLcarsPlayer({notify,event}:{notify:(text:string,kind?:"info"|"error")=>void;event:(title:string,detail:string,status?:ActivityEntry["status"])=>void}){
-  const [media,setMedia]=useState<{url:string;name:string;kind:"audio"|"video"}|null>(null),[playing,setPlaying]=useState(false),[duration,setDuration]=useState(0),[position,setPosition]=useState(0),[volume,setVolume]=useState(.8),[rate,setRate]=useState(1),[hud,setHud]=useState(true),[fullscreen,setFullscreen]=useState(false),[dragging,setDragging]=useState(false);
+function IntegratedLcarsPlayer({notify,event,request}:{notify:(text:string,kind?:"info"|"error")=>void;event:(title:string,detail:string,status?:ActivityEntry["status"])=>void;request:LocalMediaRequest|null}){
+  const [media,setMedia]=useState<{url:string;name:string;kind:"audio"|"video";path?:string}|null>(null),[playing,setPlaying]=useState(false),[duration,setDuration]=useState(0),[position,setPosition]=useState(0),[volume,setVolume]=useState(.8),[rate,setRate]=useState(1),[hud,setHud]=useState(true),[fullscreen,setFullscreen]=useState(false),[dragging,setDragging]=useState(false),[mediaError,setMediaError]=useState("");
   const element=useRef<HTMLMediaElement|null>(null),deck=useRef<HTMLDivElement|null>(null),hudTimer=useRef<number|undefined>(undefined);
   const reveal=()=>{setHud(true);if(hudTimer.current)window.clearTimeout(hudTimer.current);if(playing)hudTimer.current=window.setTimeout(()=>setHud(false),2600);};
-  const open=(file:File)=>{const kind=(file.type.startsWith("video/")||/\.(mp4|mkv|webm|mov|m4v|avi)$/i.test(file.name))?"video":(file.type.startsWith("audio/")||/\.(mp3|wav|flac|ogg|m4a|aac|opus)$/i.test(file.name))?"audio":null;if(!kind)return notify("Select an audio or video file supported by this system","error");setMedia((old)=>{if(old)URL.revokeObjectURL(old.url);return{url:URL.createObjectURL(file),name:file.name.slice(0,180),kind};});setPosition(0);setDuration(0);setPlaying(false);event("LCARS media loaded",`${file.name} · ${kind.toUpperCase()} · ${(file.size/1048576).toFixed(1)} MiB`);};
-  useEffect(()=>()=>{if(media)URL.revokeObjectURL(media.url);if(hudTimer.current)window.clearTimeout(hudTimer.current);},[media]);
+  const release=(url:string)=>{if(url.startsWith("blob:"))URL.revokeObjectURL(url);};
+  const open=(file:File)=>{const kind=classifyLocalMedia(file.name,file.type);if(!kind)return notify("Select an audio or video file supported by this system","error");setMediaError("");setMedia((old)=>{if(old)release(old.url);return{url:URL.createObjectURL(file),name:file.name.slice(0,180),kind};});setPosition(0);setDuration(0);setPlaying(false);event("LCARS media loaded",`${file.name} · ${kind.toUpperCase()} · ${(file.size/1048576).toFixed(1)} MiB`);};
+  useEffect(()=>{if(!request)return;setMediaError("");setMedia((old)=>{if(old)release(old.url);return{url:`http://127.0.0.1:8765/api/media-file?path=${encodeURIComponent(request.path)}`,name:request.name.slice(0,180),kind:request.kind,path:request.path};});setPosition(0);setDuration(0);setPlaying(false);event("LCARS media loaded",`${request.name} · ${request.kind.toUpperCase()} · FILE EXPLORER`);},[request?.nonce]);
+  useEffect(()=>()=>{if(media)release(media.url);if(hudTimer.current)window.clearTimeout(hudTimer.current);},[media]);
   useEffect(()=>{const update=()=>setFullscreen(document.fullscreenElement===deck.current);document.addEventListener("fullscreenchange",update);return()=>document.removeEventListener("fullscreenchange",update);},[]);
   const toggle=async()=>{const player=element.current;if(!player)return;if(player.paused){await player.play();event("LCARS media resumed",media?.name||"LOCAL MEDIA");}else{player.pause();event("LCARS media paused",media?.name||"LOCAL MEDIA");}reveal();};
   const seek=(value:number)=>{const player=element.current;if(!player)return;player.currentTime=Math.max(0,Math.min(player.duration||0,value));setPosition(player.currentTime);reveal();};
   const full=async()=>{if(!deck.current)return;if(document.fullscreenElement)await document.exitFullscreen();else await deck.current.requestFullscreen();reveal();};
   const key=(keyboard:ReactKeyboardEvent)=>{if(!media)return;if(keyboard.key===" "||keyboard.key==="k"){keyboard.preventDefault();void toggle();}else if(keyboard.key==="ArrowLeft")seek(position-10);else if(keyboard.key==="ArrowRight")seek(position+10);else if(keyboard.key.toLowerCase()==="f")void full();};
+  const playbackError=()=>{setPlaying(false);setHud(true);setMediaError("THIS FORMAT OR CODEC IS NOT AVAILABLE IN THE BUILT-IN MEDIA ENGINE");event("LCARS media could not decode file",media?.name||"LOCAL MEDIA","attention");};
+  const systemFallback=()=>{if(!media?.path)return;fetch("http://127.0.0.1:8765/api/file-open",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path:media.path})}).then(async(response)=>{const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"System player is unavailable");notify("File opened with the operating-system player");}).catch((error)=>notify(error instanceof Error?error.message:"System player is unavailable","error"));};
   return <section className={`media-zone integrated-media-zone active-pane ${fullscreen?"fullscreen":""} ${hud?"hud-visible":"hud-idle"}`} onDragEnter={(change)=>{change.preventDefault();setDragging(true);}} onDragOver={(change)=>change.preventDefault()} onDragLeave={()=>setDragging(false)} onDrop={(change)=>{change.preventDefault();setDragging(false);const file=change.dataTransfer.files?.[0];if(file)open(file);}}>
     <header><span><small>LOCAL FILE PLAYBACK · NO EXTERNAL PLAYER</small><b>LCARS MEDIA DECK</b></span><i>04</i></header>
     <div className={`integrated-media-stage ${playing?"playing":"paused"} ${dragging?"dragging":""}`} ref={deck} tabIndex={0} onKeyDown={key} onPointerMove={reveal} onPointerDown={reveal}>
       {media?<>
-        {media.kind==="video"?<video ref={(node)=>{element.current=node;}} src={media.url} autoPlay onPlay={()=>{setPlaying(true);reveal();}} onPause={()=>{setPlaying(false);setHud(true);}} onEnded={()=>{setPlaying(false);setHud(true);event("LCARS media completed",media.name);}} onLoadedMetadata={(change)=>{const player=change.currentTarget;player.volume=volume;player.playbackRate=rate;setDuration(player.duration||0);void player.play().catch(()=>{});}} onTimeUpdate={(change)=>setPosition(change.currentTarget.currentTime)} onDoubleClick={()=>void full()}/>:<div className="integrated-audio-visual"><i/><i/><i/><i/><i/><span>LCARS AUDIO STREAM</span><audio ref={(node)=>{element.current=node;}} src={media.url} autoPlay onPlay={()=>{setPlaying(true);reveal();}} onPause={()=>{setPlaying(false);setHud(true);}} onEnded={()=>{setPlaying(false);event("LCARS media completed",media.name);}} onLoadedMetadata={(change)=>{const player=change.currentTarget;player.volume=volume;player.playbackRate=rate;setDuration(player.duration||0);void player.play().catch(()=>{});}} onTimeUpdate={(change)=>setPosition(change.currentTarget.currentTime)}/></div>}
-        <div className="integrated-media-hud"><div className="integrated-media-ident"><small>{media.kind.toUpperCase()} · LOCAL FILE</small><b>{media.name}</b><em>{formatMediaTime(position)} / {duration?formatMediaTime(duration):"--:--"}</em></div><input aria-label="Media position" type="range" min="0" max={duration||0} step="0.1" value={Math.min(position,duration||0)} onChange={(change)=>seek(Number(change.target.value))}/><nav><button onClick={()=>seek(position-10)}>−10</button><button className="primary" onClick={()=>void toggle()}>{playing?"Ⅱ PAUSE":"▶ PLAY"}</button><button onClick={()=>seek(position+10)}>+10</button><label>VOLUME<input aria-label="Local media volume" type="range" min="0" max="1" step="0.01" value={volume} onChange={(change)=>{const value=Number(change.target.value);setVolume(value);if(element.current)element.current.volume=value;}}/></label><label>SPEED<select value={rate} onChange={(change)=>{const value=Number(change.target.value);setRate(value);if(element.current)element.current.playbackRate=value;}}>{[.5,.75,1,1.25,1.5,2].map((value)=><option key={value} value={value}>{value}×</option>)}</select></label><button onClick={()=>void full()}>{fullscreen?"EXIT FULLSCREEN":"FULLSCREEN"}</button><label className="integrated-media-open">OPEN FILE<input type="file" accept="audio/*,video/*,.mkv,.flac,.opus" onChange={(change)=>{const file=change.target.files?.[0];if(file)open(file);change.currentTarget.value="";}}/></label></nav></div>
+        {media.kind==="video"?<video ref={(node)=>{element.current=node;}} src={media.url} autoPlay onError={playbackError} onPlay={()=>{setMediaError("");setPlaying(true);reveal();}} onPause={()=>{setPlaying(false);setHud(true);}} onEnded={()=>{setPlaying(false);setHud(true);event("LCARS media completed",media.name);}} onLoadedMetadata={(change)=>{const player=change.currentTarget;player.volume=volume;player.playbackRate=rate;setDuration(player.duration||0);void player.play().catch(()=>{});}} onTimeUpdate={(change)=>setPosition(change.currentTarget.currentTime)} onDoubleClick={()=>void full()}/>:<div className="integrated-audio-visual"><i/><i/><i/><i/><i/><span>LCARS AUDIO STREAM</span><audio ref={(node)=>{element.current=node;}} src={media.url} autoPlay onError={playbackError} onPlay={()=>{setMediaError("");setPlaying(true);reveal();}} onPause={()=>{setPlaying(false);setHud(true);}} onEnded={()=>{setPlaying(false);event("LCARS media completed",media.name);}} onLoadedMetadata={(change)=>{const player=change.currentTarget;player.volume=volume;player.playbackRate=rate;setDuration(player.duration||0);void player.play().catch(()=>{});}} onTimeUpdate={(change)=>setPosition(change.currentTarget.currentTime)}/></div>}
+        <div className="integrated-media-hud"><div className="integrated-media-ident"><small>{media.kind.toUpperCase()} · LOCAL FILE</small><b>{media.name}</b><em>{mediaError||`${formatMediaTime(position)} / ${duration?formatMediaTime(duration):"--:--"}`}</em></div><input aria-label="Media position" type="range" min="0" max={duration||0} step="0.1" value={Math.min(position,duration||0)} onChange={(change)=>seek(Number(change.target.value))}/><nav><button onClick={()=>seek(position-10)}>−10</button><button className="primary" onClick={()=>void toggle()}>{playing?"Ⅱ PAUSE":"▶ PLAY"}</button><button onClick={()=>seek(position+10)}>+10</button><label>VOLUME<input aria-label="Local media volume" type="range" min="0" max="1" step="0.01" value={volume} onChange={(change)=>{const value=Number(change.target.value);setVolume(value);if(element.current)element.current.volume=value;}}/></label><label>SPEED<select value={rate} onChange={(change)=>{const value=Number(change.target.value);setRate(value);if(element.current)element.current.playbackRate=value;}}>{[.5,.75,1,1.25,1.5,2].map((value)=><option key={value} value={value}>{value}×</option>)}</select></label><button onClick={()=>void full()}>{fullscreen?"EXIT FULLSCREEN":"FULLSCREEN"}</button>{mediaError&&media.path&&<button onClick={systemFallback}>SYSTEM PLAYER</button>}<label className="integrated-media-open">OPEN FILE<input type="file" accept="audio/*,video/*,.mkv,.flac,.opus" onChange={(change)=>{const file=change.target.files?.[0];if(file)open(file);change.currentTarget.value="";}}/></label></nav></div>
       </>:<label className="integrated-media-empty"><i>▶</i><span><b>OPEN AUDIO OR VIDEO</b><small>Choose a local file or drop it anywhere on this deck. Playback stays inside LCARS.</small><em>SPACE PLAY/PAUSE · ←/→ SEEK · F FULLSCREEN</em></span><input type="file" accept="audio/*,video/*,.mkv,.flac,.opus" onChange={(change)=>{const file=change.target.files?.[0];if(file)open(file);change.currentTarget.value="";}}/></label>}
     </div>
   </section>;
@@ -5312,6 +5362,7 @@ function MediaConsole({
   openDevices,
   refresh,
   notify,
+  localRequest,
   localEvent,
 }: {
   players: Player[];
@@ -5333,6 +5384,7 @@ function MediaConsole({
   openDevices: () => void;
   refresh: () => void;
   notify: (text:string,kind?:"info"|"error") => void;
+  localRequest: LocalMediaRequest | null;
   localEvent: (title:string,detail:string,status?:ActivityEntry["status"]) => void;
 }) {
   const [pane, setPane] = useState<"players" | "master" | "mixer" | "local">("players"),
@@ -5349,6 +5401,7 @@ function MediaConsole({
       players[0];
     setSelectedId(next?.id || "");
   }, [players, pinned, selectedId]);
+  useEffect(()=>{if(localRequest)setPane("local");},[localRequest?.nonce]);
   const selectPlayer = (id: string) => {
       setSelectedId(id);
       localStorage.setItem("lcars-selected-player", id);
@@ -5526,7 +5579,7 @@ function MediaConsole({
           platform={platform}
           active={pane === "mixer"}
         />
-        {pane==="local"&&<IntegratedLcarsPlayer notify={notify} event={localEvent}/>}
+        {pane==="local"&&<IntegratedLcarsPlayer notify={notify} event={localEvent} request={localRequest}/>}
       </div>
     </>
   );

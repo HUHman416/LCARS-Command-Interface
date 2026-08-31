@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.7-b69de8" alt="Development Version 30.7">
+  <img src="https://img.shields.io/badge/development-v30.8-b69de8" alt="Development Version 30.8">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -35,7 +35,17 @@
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
 
 > [!NOTE]
-> **Version 30.7 Development introduces Operator Identities and the LCARS Media Deck.** Every operator can keep separate favorites, decks, themes, layouts, commands, and station preferences under Guest, Operator, or Administrator authority, with optional PINs, shared profiles, restricted Away Team identities, encrypted backup, and trusted-station roaming. Media resume now verifies the actual player state, understands named Linux sources such as Spotify, Chromium/Chrome, Opera GX, Firefox, and VLC, and local audio/video files can play directly inside LCARS. Version 29 remains Stable.
+> **Version 30.8 Development introduces the Browser Station, direct File Explorer media routing, and Continuum roles.** LCARS can discover and launch an operator’s existing browser profile from an optional sidebar page, route local audio/video into the built-in Media Deck without automatic OS handoff, and adapt a connected phone or tablet for eight handheld, companion, control, monitor, presentation, and docked roles. Version 29 remains Stable.
+
+## 🧪 Version 30.8 Development — Browser, Media Routing & Continuum
+
+- Adds a dedicated Browser sidebar page that automatically detects installed browsers and launches or focuses their normal desktop windows without creating a second profile or migrating history, bookmarks, extensions, passwords, or sessions.
+- Supports a custom browser selection when detection misses one and allows the Browser sidebar control to be removed for an entirely offline LCARS layout.
+- Routes recognized audio and video from File Explorer directly into the integrated LCARS Media Deck through seekable ranged streaming; the operating-system player is never opened automatically.
+- Recognizes a much broader family of media extensions, keeps codec errors inside LCARS, and offers an explicit system-player fallback only when the built-in engine cannot decode a file.
+- Adds Handheld Home, Desktop Companion, Media Controller, Communications Panel, Notification Console, Second-Screen Monitor, Presentation PADD, and Docked Command Station roles.
+- Automatically recommends or applies Continuum roles from orientation, screen class, external-display, docking, and station-pairing state while retaining complete manual override.
+- Retains the complete Version 30.7 Operator Workspaces and LCARS Media Deck milestone.
 
 ## 🧪 Version 30.7 Development — Operator Workspaces & LCARS Media Deck
 
