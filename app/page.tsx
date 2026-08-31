@@ -4627,7 +4627,7 @@ function VoiceControl({ prefs, computer, notify }: { prefs: ShellPrefs; computer
   if (!prefs.voiceEnabled) return null;
   const handsFree=!prefs.voicePushToTalk,label=handsFree?(armed?(commanding?"COMPUTER PROCESSING":listening?(prefs.voiceWakePhrase?"COMPUTER ARMED":"HANDS-FREE LIVE"):"ARMING VOICE"):"VOICE MUTED"):(busy?"PROCESSING":listening?"LISTENING — STOP":"VOICE");
   const detail=[handsFree?(prefs.voiceWakePhrase?'WAKE WORD · "COMPUTER"':'DIRECT COMMAND MODE · WAKE WORD OFF'):"PUSH-TO-TALK",prefs.voiceImmediateExecution?"IMMEDIATE EXECUTION":"CORE PREVIEW",history.length?`LAST: ${history[0]}`:""].filter(Boolean).join(" · ");
-  return <aside className={(listening ? "listening " : "")+(handsFree?"hands-free ":"")+"voice-control voice-control-header"} title={detail}><button aria-label={handsFree?(armed?"Mute hands-free voice":"Arm hands-free voice"):(listening?"Stop listening":"Push to talk")} onClick={() => handsFree?setArmed((value)=>!value):listening?stopRecorder.current?.():void start(false)} disabled={!handsFree&&busy}><i>●</i><span>{label}</span></button></aside>;
+  return <div className={(listening ? "listening " : "")+(handsFree?"hands-free ":"")+"voice-control voice-control-header"} title={detail}><button aria-label={handsFree?(armed?"Mute hands-free voice":"Arm hands-free voice"):(listening?"Stop listening":"Push to talk")} onClick={() => handsFree?setArmed((value)=>!value):listening?stopRecorder.current?.():void start(false)} disabled={!handsFree&&busy}><i>●</i><span>{label}</span></button></div>;
 }
 
 function SpeedDial({

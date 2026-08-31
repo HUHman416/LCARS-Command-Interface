@@ -80,6 +80,9 @@ test("Version 30.3 voice execution is opt-in, authority-aware, and header-contai
   assert.match(page, /commanding\?"COMPUTER PROCESSING"/);
   assert.doesNotMatch(page, /armed\?\(busy\?"COMPUTER PROCESSING"/);
   assert.match(page, /title-kicker/);
+  assert.match(page, /<div className=\{\(listening[\s\S]+voice-control voice-control-header/);
+  assert.doesNotMatch(page, /<aside className=\{\(listening[\s\S]+voice-control voice-control-header/);
   assert.match(styles, /\.voice-control\.voice-control-header\{position:static/);
+  assert.match(styles, /\.voice-control\.voice-control-header\{[^}]*min-height:0/);
   assert.match(styles, /text-overflow:ellipsis;white-space:nowrap/);
 });
