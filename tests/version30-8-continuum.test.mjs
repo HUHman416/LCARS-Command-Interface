@@ -47,3 +47,9 @@ test("Version 30.8 connects Browser Station, integrated file streaming, all Cont
   assert.match(workflow,/gh release (?:view|create) v30\.8/);
   assert.match(workflow,/LCARS-Mobile-Environment-v30\.8-Android\.apk/);
 });
+
+test("the hosted renderer imports the Federation emblem without a server-side URL constructor",async()=>{
+  const page=await source("../app/page.tsx");
+  assert.match(page,/import lcarsEmblem from "\.\.\/desktop\/icons\/512x512\.png"/);
+  assert.doesNotMatch(page,/new URL\("\.\.\/desktop\/icons\/512x512\.png", import\.meta\.url\)/);
+});

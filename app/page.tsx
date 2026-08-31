@@ -1,6 +1,7 @@
 "use client";
 import { Component, useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
+import lcarsEmblem from "../desktop/icons/512x512.png";
 import {
   createV25Id,
   defaultControlMappings,
@@ -457,7 +458,6 @@ const defaultAccess: AccessibilityPrefs = {
   colorSafe: false,
   soundVolume: 40,
 };
-const lcarsEmblem = new URL("../desktop/icons/512x512.png", import.meta.url).href;
 const encodeBytes = (value: ArrayBuffer) => btoa(String.fromCharCode(...new Uint8Array(value)));
 const deriveLockHash = async (password: string, salt: Uint8Array, iterations = 210000) => {
   const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
