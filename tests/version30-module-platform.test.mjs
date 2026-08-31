@@ -1,36 +1,36 @@
-import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import test from "node:test";
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ·ßŞûón=×N<æZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜİšXİÂš[\ÜÈ™XYš[HHœ›ÛH››ÙN™œËÜ›ÛZ\Ù\ÈÂš[\Ü\İœ›ÛH››ÙN\İÂ‚˜ÛÛœİÜYÙKÜÜË^[œÚ[ÛœË[^œšYÙKÚ[™İÜĞœšYÙKØÜËÛÜšÙ›İ×OX]ØZ]›ÛZ\ÙK˜[
+Âˆ™XYš[J™]ÈT“
+‹‹‹Ø\ÜYÙKŞ‹[\Ü›Y]K\›
+K]ŠKˆ™XYš[J™]ÈT“
+‹‹‹Ø\İŒÌ˜ÜÜÈ‹[\Ü›Y]K\›
+K]ŠKˆ™XYš[J™]ÈT“
+‹‹‹ÜÚ\™YÛØ\œ×Ù^[œÚ[ÛœËœH‹[\Ü›Y]K\›
+K]ŠKˆ™XYš[J™]ÈT“
+‹‹‹ÛØØ[ÛØ\œ×ØœšYÙKœH‹[\Ü›Y]K\›
+K]ŠKˆ™XYš[J™]ÈT“
+‹‹‹İÚ[™İÜËÛØ\œ×ØœšYÙWİÚ[™İÜËœH‹[\Ü›Y]K\›
+K]ŠKˆ™XYš[J™]ÈT“
+‹‹‹ÙØÜËÓSÑSKPTK]ŒË›Y‹[\Ü›Y]K\›
+K]ŠKˆ™XYš[J™]ÈT“
+‹‹‹Ë™Ú]X‹İÛÜšÙ›İÜËİŒÌY]™[ÜY[[[‹[\Ü›Y]K\›
+K]ŠK—JNÂ‚\İ
+ŒÌŒÈ^ÜÙ\ÈHİX›HÜİ\™[™\™Y^[œÚ[ÛˆTHŒÈÛÛ˜Xİ‹
 
-const [page,css,extensions,linuxBridge,windowsBridge,docs,workflow]=await Promise.all([
-  readFile(new URL("../app/page.tsx",import.meta.url),"utf8"),
-  readFile(new URL("../app/v30.css",import.meta.url),"utf8"),
-  readFile(new URL("../shared/lcars_extensions.py",import.meta.url),"utf8"),
-  readFile(new URL("../local/lcars_bridge.py",import.meta.url),"utf8"),
-  readFile(new URL("../windows/lcars_bridge_windows.py",import.meta.url),"utf8"),
-  readFile(new URL("../docs/MODULE-API-v3.md",import.meta.url),"utf8"),
-  readFile(new URL("../.github/workflows/v30-development.yml",import.meta.url),"utf8"),
-]);
+OOÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËĞTWÕ‘T”ÒSÓLËÊNÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËÔÕTÔ•QĞTWÕ‘T”ÒSÓ”ÏWÌ‹×KÊNÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËÛ[Ù[P\Tİ]\ËÊNÂˆ\ÜÙ\›X]Ú
+ØÜËĞTHŒÈ\ÈİX›KÊNÂˆ\ÜÙ\›X]Ú
+ØÜËÔ™\ÜÚ]ÜHXÚØYÙ\ÈØ[››İ›İšYH^Xİ]X›KÊNÂŸJNÂ‚\İ
+œÚYÛ™YXÚØYÙ\ËÚ[›™[Ë[\Ü^Ü[™›Û˜XÚÈ\™H[\[Y[YÛˆ›İ\ÚİÜœšYÙ\È‹
 
-test("30.3 exposes the stable host-rendered Extension API v3 contract",()=>{
-  assert.match(extensions,/API_VERSION=3/);
-  assert.match(extensions,/SUPPORTED_API_VERSIONS=\{2,3\}/);
-  assert.match(extensions,/moduleApiStatus/);
-  assert.match(docs,/API v3 is Stable/);
-  assert.match(docs,/Repository packages cannot provide executable/);
-});
+OOÂˆ›ÜŠÛÛœİÚÙ[ˆÙˆÈ—ÜœØWÜÚYÛˆ‹—ÜœØWİ™\šYH‹˜Ø][ÙËY]™[ÜY[šœÛÛˆ‹›[Ù[WÜXÚØYÙWÛÜ\˜][Ûˆ‹œ›Û˜XÚĞ]˜Z[X›H‹‹œ™]š[İ\Ë[Ø\œË[[Ù[KšœÛÛˆ‹›[Ù[HX›\Ú\ˆY[]HÚ[™ÙY—JX\ÜÙ\›ÚÊ^[œÚ[ÛœËš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂˆ›ÜŠÛÛœİœšYÙHÙˆÛ[^œšYÙKÚ[™İÜĞœšYÙWJY›ÜŠÛÛœİ›İ]HÙˆÈ‹Ø\KÛ[Ù[K\]›Ü›H‹‹Ø\KÛ[Ù[K\XÚØYÙH‹‹Ø\KÛ[Ù[KY›Ü™ÙH—JX\ÜÙ\›ÚÊœšYÙKš[˜ÛY\Ê›İ]JK›İ]JNÂŸJNÂ‚\İ
+“[Ù[H]›Ü›HRH›İšY\È›Ü™ÙK\›Z\ÜÚ[Û‹X[ÚYÛš[™Ë[™Y™XŞXÛHÛÛ›ÛÈ‹
 
-test("signed packages, channels, import, export, and rollback are implemented on both desktop bridges",()=>{
-  for(const token of ["_rsa_sign","_rsa_verify","catalog-development.json","module_package_operation","rollbackAvailable",".previous-lcars-module.json","module publisher identity changed"])assert.ok(extensions.includes(token),token);
-  for(const bridge of [linuxBridge,windowsBridge])for(const route of ["/api/module-platform","/api/module-package","/api/module-forge"])assert.ok(bridge.includes(route),route);
-});
+OOÂˆ›ÜŠÛÛœİÚÙ[ˆÙˆÈ“SÑSHU“Ô“H‹“SÑSH“Ô‘ÑH‹ĞTP’SUHT“RTÔÒSÓ”È‹”ÒQÓ‘QSÑSHP“TÒTˆ‹•‘T’Q–H
+ÈSTÔ•‹”“ÓPÒÈ‹”ÕP“HÒS“‘S‹‘U‘SÔQS•ÒS“‘S—JX\ÜÙ\›ÚÊYÙKš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂˆ›ÜŠÛÛœİÚÙ[ˆÙˆÈ›[Ù[KY›Ü™ÙH‹›[Ù[K\\›Z\ÜÚ[Û‹[X]š^‹›[Ù[KZX[Z\ÛÛ]Y‹›[Ù[K\XÚØYÙKX˜^H—JX\ÜÙ\›ÚÊÜÜËš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂŸJNÂ‚\İ
+ŒÌH™[X\ÙHÛÜšÙ›İÈ™]Z[œÈHÛÛ\]H[Ù[H]›Ü›HZ[\İÛ™H‹
 
-test("Module Platform UI provides Forge, permission, health, signing, and lifecycle controls",()=>{
-  for(const token of ["MODULE PLATFORM","MODULE FORGE","CAPABILITY PERMISSIONS","SIGNED MODULE PUBLISHER","VERIFY + IMPORT","ROLL BACK","STABLE CHANNEL","DEVELOPMENT CHANNEL"])assert.ok(page.includes(token),token);
-  for(const token of ["module-forge","module-permission-matrix","module-health-isolated","module-package-bay"])assert.ok(css.includes(token),token);
-});
-
-test("30.4 release workflow retains the complete Module Platform milestone",()=>{
-  assert.match(workflow,/Version 30\.4 LCARS Session Development/);
-  assert.match(workflow,/Version 30\.3 Module Platform/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËÕ™\œÚ[ÛˆÌH[š]™\œØ[ÙX\˜Ú[™]H˜XœšXÈ]™[ÜY[ÊNÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËÕ™\œÚ[ÛˆÌŒÈ[Ù[H]›Ü›KÊNÂŸJNÂ

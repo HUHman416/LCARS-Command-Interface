@@ -1,39 +1,205 @@
-const tokenKey="lcars-padd-token-v28",legacyTokenKey="lcars-padd-token-v27",mediaKey="lcars-padd-media-target-v28";
-let token=localStorage.getItem(tokenKey)||localStorage.getItem(legacyTokenKey)||"",lastSignal="",mediaTarget=localStorage.getItem(mediaKey)||"";
-if(token&&!localStorage.getItem(tokenKey))localStorage.setItem(tokenKey,token);
-const $=id=>document.getElementById(id),pairing=$("pairing"),consolePanel=$("console"),pairMessage=$("pair-message"),consoleMessage=$("console-message");
-const releaseBadge=document.querySelector("#more-view>header strong"),recoveryVersion=$("recovery-version");if(releaseBadge)releaseBadge.textContent="VERSION 30.4 DEVELOPMENT";if(recoveryVersion)recoveryVersion.textContent="STATION UNKNOWN В· CLIENT VERSION 30.4";
-const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[char]);
-async function api(path,options={}){const headers={"Content-Type":"application/json",...(options.headers||{})};if(token)headers.Authorization=`Bearer ${token}`;const response=await fetch(path,{...options,headers});const result=await response.json();if(!response.ok||result.ok===false)throw new Error(result.error||"LCARS link rejected the request");return result;}
-function showPaired(paired){pairing.hidden=paired;consolePanel.hidden=!paired;}
-function message(text,error=false){consoleMessage.textContent=text||"";consoleMessage.className=error?"error":"";}
-async function pair(event){event.preventDefault();pairMessage.textContent="PAIRINGвЂ¦";try{const result=await api("/api/padd/pair",{method:"POST",body:JSON.stringify({name:$("device-name").value,code:$("pair-code").value})});token=result.token;localStorage.setItem(tokenKey,token);pairMessage.textContent=result.message;showPaired(true);await refresh();}catch(error){pairMessage.textContent=error.message;pairMessage.className="error";}}
-async function transmit(action,value){try{const result=await api("/api/padd/action",{method:"POST",body:JSON.stringify({action,value})});message(result.message);if(navigator.vibrate)navigator.vibrate(35);setTimeout(refresh,400);}catch(error){message(error.message,true);}}
-function rows(items,empty,action,secondary=""){return items.length?items.map((item,index)=>`<article><button data-dynamic-action="${action}" data-dynamic-value="${escapeHtml(item.id)}"><i>${String(index+1).padStart(2,"0")}</i><span><b>${escapeHtml(item.name||item.title||item.text)}</b><small>${escapeHtml(item.detail||item.status||"")}</small></span><em>вЂє</em></button>${secondary?`<button class="secondary" data-dynamic-action="${secondary}" data-dynamic-value="${escapeHtml(item.id)}">${secondary==="notice-archive"?"ARCHIVE":"ACTION"}</button>`:""}</article>`).join(""):`<p>${empty}</p>`;}
-function mediaRows(items){return items.length?items.map((item,index)=>`<article><button class="${String(item.id)===mediaTarget?"selected-source":""}" data-media-target="${escapeHtml(item.id)}"><i>${String(index+1).padStart(2,"0")}</i><span><b>${escapeHtml(item.name||item.title||"MEDIA")}</b><small>${escapeHtml(item.detail||item.status||"READY")}</small></span><em>${String(item.id)===mediaTarget?"вњ“":"вЂє"}</em></button></article>`).join(""):`<p>NO ACTIVE MEDIA SOURCES</p>`;}
-function render(result){
-  const state=result.state||{},device=result.device||{},caps=result.capabilities||{},approval=result.approvalRequired||{};
-  const media=state.media||[],savedMedia=media.find(item=>String(item.id)===mediaTarget),preferredMedia=savedMedia||media.find(item=>String(item.status||"").toLowerCase()==="playing")||media[0];mediaTarget=preferredMedia?.id||"";if(mediaTarget)localStorage.setItem(mediaKey,mediaTarget);else localStorage.removeItem(mediaKey);
-  $("role-label").textContent=(device.role||"paired").toUpperCase();$("command-role").textContent=(device.role||"paired").toUpperCase();$("current-page").textContent=(state.page||"overview").toUpperCase();$("last-update").textContent=state.updatedAt?new Date(state.updatedAt*1000).toLocaleTimeString():"STANDBY";$("volume-readout").textContent=`${state.volume||0}%`;$("volume-value").textContent=`${state.volume||0}%`;$("master-volume").value=state.volume||0;$("master-volume").disabled=!caps.volume;$("routine-count").textContent=`${(state.routines||[]).length} ROUTINES`;$("notice-count").textContent=`${(state.notices||[]).length} SIGNALS`;$("mute-state").textContent=state.muted?"MUTED":"LIVE";$("dnd-toggle").textContent=state.doNotDisturb?"DISABLE DO NOT DISTURB":"ENABLE DO NOT DISTURB";$("dnd-toggle").dataset.value=String(!state.doNotDisturb);
-  $("meters").innerHTML=(state.meters||[]).map(item=>`<article><span><small>${escapeHtml(item.label||item.name)}</small><b>${escapeHtml(item.value)}${typeof item.value==="number"?"%":""}</b></span><i><em style="width:${Math.max(0,Math.min(100,Number(item.value)||0))}%"></em></i></article>`).join("");
-  $("status-notices").innerHTML=rows(state.notices||[],"NO PRIORITY SIGNALS","notice-read","notice-archive");$("communications-notices").innerHTML=rows(state.notices||[],"NO ACTIVE COMMUNICATIONS","notice-read","notice-archive");$("players").innerHTML=mediaRows(media);$("routines").innerHTML=rows(state.routines||[],caps.routine?"NO ROUTINES SHARED":"COMMAND ROLE REQUIRED","routine");$("apps").innerHTML=rows(state.apps||[],caps.app?"NO APPLICATIONS SHARED":"COMMAND ROLE REQUIRED","app");$("workstations").innerHTML=rows(state.workstations||[],caps.workstation?"NO WORKSTATIONS SHARED":"COMMAND ROLE REQUIRED","workstation");$("quick-actions").innerHTML=rows(state.quickActions||[],caps.quick?"NO QUICK ACTIONS SHARED":"OPERATOR ROLE REQUIRED","quick");
-  $("workstation-state").textContent=state.activeWorkstation?`ACTIVE В· ${state.activeWorkstation}`:"NO ACTIVE WORKSTATION";
-  const release=state.release||{};$("release-stable").textContent=`STABLE В· ${release.stable||"UNKNOWN"}`;$("release-development").textContent=`DEVELOPMENT В· ${release.development||"UNKNOWN"}`;
-  const compatibility=result.compatibility||"unknown";$("compatibility-state").textContent=compatibility==="compatible"?"VERSIONS ALIGNED":compatibility.replaceAll("-"," ").toUpperCase();$("compatibility-state").classList.toggle("attention",compatibility!=="compatible"&&compatibility!=="unknown");$("recovery-version").textContent=`STATION ${result.stationVersion||"UNKNOWN"} В· CLIENT VERSION 30.4`;
-  const access=state.accessibility||{},rawScale=Number(access.fontScale)||100,scale=rawScale>2?rawScale:rawScale*100;document.documentElement.style.fontSize=`${Math.max(90,Math.min(135,scale))}%`;document.body.classList.toggle("high-contrast",Boolean(access.highContrast));document.body.classList.toggle("reduced-motion",Boolean(access.reducedMotion));document.body.classList.toggle("color-safe",Boolean(access.colorSafe));
-  const selected=state.widgets||[];document.querySelectorAll("[data-widget]").forEach(button=>{button.classList.toggle("active",selected.includes(button.dataset.widget));button.textContent=`${selected.includes(button.dataset.widget)?"вњ“":"+"} ${button.dataset.label}`;});document.querySelectorAll("[data-widget-surface]").forEach(node=>node.hidden=!selected.includes(node.dataset.widgetSurface));if(document.querySelector(".view.active[hidden]"))switchTab("command");
-  document.querySelectorAll("[data-action]").forEach(button=>button.disabled=!caps[button.dataset.action]||(button.dataset.action==="media"&&!mediaTarget));document.querySelectorAll("[data-approval]").forEach(node=>node.textContent=approval[node.dataset.approval]?"DESKTOP APPROVAL":"DIRECT");
-  $("clipboard-request").disabled=!caps.clipboard;
-  if(result.signal&&result.signal.id!==lastSignal)void receiveSignal(result.signal,device);
-}
-async function receiveSignal(signal,device){lastSignal=signal.id;const payload=signal.payload||{},type=signal.type||"identify";try{if(type==="page")switchTab(payload.page==="media"?"media":payload.page==="communications"?"communications":payload.page==="settings"||payload.page==="updates"?"more":"status");else if(type==="clipboard"){await navigator.clipboard.writeText(payload.text||"");}else if(type==="file"){const bytes=Uint8Array.from(atob(payload.content||""),character=>character.charCodeAt(0)),link=document.createElement("a");link.href=URL.createObjectURL(new Blob([bytes],{type:payload.mime||"application/octet-stream"}));link.download=payload.name||"lcars-transfer.bin";link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);}if(navigator.vibrate)navigator.vibrate([120,70,120]);message(type==="identify"?"IDENTIFY SIGNAL RECEIVED В· THIS IS "+(device.name||"PADD"):`FEDERATION ${type.toUpperCase()} RECEIVED`);await api("/api/padd/signal-ack",{method:"POST",body:JSON.stringify({id:signal.id})});}catch(error){message(`FEDERATION DELIVERY FAILED В· ${error.message}`,true);}}
-async function heartbeat(latency){try{let battery=-1;if(navigator.getBattery){const value=await navigator.getBattery();battery=Math.round(value.level*100);}const connection=navigator.connection||{};await api("/api/padd/heartbeat",{method:"POST",body:JSON.stringify({battery,network:connection.effectiveType||"browser",latencyMs:latency,version:"30.4.0-development-web"})});}catch{}}
-async function refresh(){const started=performance.now();try{const result=await api("/api/padd/state");showPaired(true);render(result);message("");heartbeat(Math.round(performance.now()-started));}catch(error){if(/authorization/i.test(error.message)){token="";localStorage.removeItem(tokenKey);localStorage.removeItem(legacyTokenKey);showPaired(false);}message(error.message,true);}}
-function switchTab(name){document.querySelectorAll("[data-tab]").forEach(button=>button.classList.toggle("active",button.dataset.tab===name));document.querySelectorAll(".view").forEach(view=>view.classList.toggle("active",view.id===`${name}-view`));}
-async function saveWidgets(widget){const selected=[...document.querySelectorAll("[data-widget].active")].map(button=>button.dataset.widget),next=selected.includes(widget)?selected.filter(value=>value!==widget):[...selected,widget];try{await api("/api/padd/preferences",{method:"POST",body:JSON.stringify({widgets:next})});await refresh();}catch(error){message(error.message,true);}}
-$("pair-form").addEventListener("submit",pair);$("refresh").addEventListener("click",refresh);$("unpair").addEventListener("click",()=>{token="";localStorage.removeItem(tokenKey);localStorage.removeItem(legacyTokenKey);showPaired(false);pairMessage.textContent="This PADD forgot its local token. Revoke it from LCARS Settings if the device is no longer trusted.";});
-document.addEventListener("click",event=>{const button=event.target.closest("button");if(!button)return;if(button.dataset.tab)switchTab(button.dataset.tab);else if(button.dataset.mediaTarget){mediaTarget=button.dataset.mediaTarget;localStorage.setItem(mediaKey,mediaTarget);refresh();message("MEDIA CONTROL TARGET SELECTED");}else if(button.dataset.widget)saveWidgets(button.dataset.widget);else if(button.dataset.action)transmit(button.dataset.action,button.dataset.action==="media"?{player:mediaTarget,command:button.dataset.value}:button.dataset.value);else if(button.dataset.dynamicAction&&button.dataset.dynamicAction!=="noop")transmit(button.dataset.dynamicAction,button.dataset.dynamicValue);});
-$("master-volume").addEventListener("input",event=>$("volume-value").textContent=`${event.target.value}%`);$("master-volume").addEventListener("change",event=>transmit("volume",Number(event.target.value)));$("clipboard-request").addEventListener("click",()=>transmit("clipboard",$("clipboard-text").value));
-$("retry-recovery").addEventListener("click",refresh);
-api("/api/padd/status").then(status=>{$("link-state").textContent=status.enabled?"ONLINE":"STANDBY";if(token)refresh();else showPaired(false);}).catch(error=>{pairMessage.textContent=error.message;showPaired(false);});
-setInterval(()=>token&&refresh(),1800);if("serviceWorker" in navigator)navigator.serviceWorker.register("/sw.js").catch(()=>{});
+Rv›•лhў—§±л,Љ‰еўв•пбўgї†иfjЬiИ^юЛZ®Иb§ыІИЁџ]}ч}ёч]ху~9ЦZ :З(uнф’)ЭEжќ:yr)^і+-ziћІЖ yљv‰еЙшҐzМ¬µйЫЫњЭЪЩ[’Щ^OH›Ш\њЛ\Y]ЪЩ[‹]ЊЋ‹YШXЮUЪЩ[’Щ^OH›Ш\њЛ\Y]ЪЩ[‹]ЊЌИ‹YYXRЩ^OH›Ш\њЛ\Y[YYXK]\™Щ]]ЊЋЋВ›]ЪЩ[Џ[ШШ[ЭЬYЩK™Щ]][JЪЩ[’Щ^J_ШШ[ЭЬYЩK™Щ]][JYШXЮUЪЩ[’Щ^J_€‹\ЭЪYЫ[H€‹YYXU\™Щ][ШШ[ЭЬYЩK™Щ]][JYYXRЩ^J_€ЋВљYЉЪЩ[‰‰€[ШШ[ЭЬYЩK™Щ]][JЪЩ[’Щ^JJ[ШШ[ЭЬYЩKњЩ]][JЪЩ[’Щ^KЪЩ[ЉNВЫЫњЭ	ZYO™ШЭ[Y[ќ™Щ][[Y[ќћRY
+Y
+KZ\љ[™ПI
+њZ\љ[™ИЉKЫЫњЫЫT[™[I
+ЫЫњЫЫHЉKZ\“Y\ЬШYЩOI
+њZ\‹[Y\ЬШYЩHЉKЫЫњЫЫSY\ЬШYЩOI
+ЫЫњЫЫK[Y\ЬШYЩHЉNВЫЫњЭ™[X\ЩPYЩOYШЭ[Y[ќњ]Y\ћTЩ[XЭЬЉ€Ы[Ь™K]љY]ПљXY\€Э›Ы™ИЉK™XЫЭ™\ћU™\њЪ[ЫЏI
+њ™XЫЭ™\ћK]™\њЪ[Ы€ЉNЪYЉ™[X\ЩPYЩJ\™[X\ЩPYЩKќ^ЫЫќ[ќH•‘T”ТSУ€МЌHU‘SФQS•ЋЪYЉ™XЫЭ™\ћU™\њЪ[ЫЉ\™XЫЭ™\ћU™\њЪ[Ы‹ќ^ЫЫќ[ќH”ХUSУ€S’У“ХУ€0­ИУQS•‘T”ТSУ€МЌHЋВЫЫњЭ\ШШ\R[][YOO”Эљ[™К[YOПИ€ЉKњ™\XЩJЦЙЏ€‰ЧKЩЛЪ\ЏOЉИ‰€Ћ€‰[\И‹ЏЋ€‰›И‹Џ€Ћ€‰™ЭИ‹	И‰О€‰њ][ЭИ‹‰ИЋ€‰€МОNИџJVШЪ\—JNВ\Ю[Иќ[Э[Ы€\J]Ь[ЫњП^ЯJ^ШЫЫњЭXY\њП^ИђЫЫќ[ќU\HЋ€\XШ][Ы‹ЪњЫЫ€‹‹‹ЉЬ[ЫњЛљXY\њЯЯJ_NЪYЉЪЩ[ЉZXY\њЛђ]]Ьљ^][ЫЏX™X\™\€	ЭЪЩ[џXШЫЫњЭ™\ЬЫњЩOX]ШZ]™]Ъ
+]Л‹‹›Ь[ЫњЛXY\њЯJNШЫЫњЭ™\Э[X]ШZ]™\ЬЫњЩKљњЫЫЉ
+NЪYЉ\™\ЬЫњЩK›ЪЯ™\Э[›ЪПOOY[ЩJ]›ЭИ™]И\њ›ЬЉ™\Э[™\њ›Ьџ“РT”И[љИ™Z™XЭYH™\]Y\ЭЉNЬ™]\›€™\Э[ЯB™ќ[Э[Ы€ЪЭФZ\™Y
+Z\™Y
+^ЬZ\љ[™ЛљY[Џ\Z\™YШЫЫњЫЫT[™[љY[ЏH\Z\™YЯB™ќ[Э[Ы€Y\ЬШYЩJ^\њ›ЬЏY[ЩJ^ШЫЫњЫЫSY\ЬШYЩKќ^ЫЫќ[ќ]^€ЋШЫЫњЫЫSY\ЬШYЩKЫ\ЬУ[YOY\њ›ЬЏИ™\њ›Ь€Ћ€€ЋЯB\Ю[Иќ[Э[Ы€Z\Љ]™[ќ
+^Щ]™[ќњ™]™[ќY][
+
+NЬZ\“Y\ЬШYЩKќ^ЫЫќ[ќH”RT’S‘ш )€ЋЭћ^ШЫЫњЭ™\Э[X]ШZ]\J‹Ш\KЬYЬZ\€‹ЫY]Щ€”ФХ‹›ЩN’”УУ‹њЭљ[™ЪYћJЫ[YN‰
+™]љXЩK[[YHЉKќ[YKЫЩN‰
+њZ\‹XЫЩHЉKќ[Y_J_JNЭЪЩ[Џ\™\Э[ќЪЩ[ЋЫШШ[ЭЬYЩKњЩ]][JЪЩ[’Щ^KЪЩ[ЉNЬZ\“Y\ЬШYЩKќ^ЫЫќ[ќ\™\Э[›Y\ЬШYЩNЬЪЭФZ\™Y
+ќYJNШ]ШZ]™Yњ™\Ъ
+
+NЯXШ]Ъ
+\њ›ЬЉ^ЬZ\“Y\ЬШYЩKќ^ЫЫќ[ќY\њ›Ь‹›Y\ЬШYЩNЬZ\“Y\ЬШYЩKЫ\ЬУ[YOH™\њ›Ь€ЋЯ_B\Ю[Иќ[Э[Ы€[њЫZ]
+XЭ[Ы‹[YJ^Эћ^ШЫЫњЭ™\Э[X]ШZ]\J‹Ш\KЬYШXЭ[Ы€‹ЫY]Щ€”ФХ‹›ЩN’”УУ‹њЭљ[™ЪYћJШXЭ[Ы‹[Y_J_JNЫY\ЬШYЩJ™\Э[›Y\ЬШYЩJNЪYЉ]љYШ]Ь‹ќљXњ]J[]љYШ]Ь‹ќљXњ]JНJNЬЩ][Y[Э]
+™Yњ™\Ъ
+NЯXШ]Ъ
+\њ›ЬЉ^ЫY\ЬШYЩJ\њ›Ь‹›Y\ЬШYЩKќYJNЯ_B™ќ[Э[Ы€›ЭЬК][\Л[\KXЭ[Ы‹ЩXЫЫ™\ћOH€Љ^Ь™]\›€][\Л›[™ЭЪ][\Л›X\
+
+][K[™^
+OO\ќXЫOЏќ]Ы€]KY[[ZXЛXXЭ[ЫЏH‰ШXЭ[ЫџH€]KY[[ZXЛ][YOH‰Щ\ШШ\R[
+][KљY
+_HЏЏO‰ФЭљ[™К[™^
+МJKњYЭ\ќ
+‹ЊЉ_OЪOЏЬ[ЏЏЏ‰Щ\ШШ\R[
+][K›[Y_][Kќ]_][Kќ^
+_OШЏЏЫX[‰Щ\ШШ\R[
+][K™]Z[][KњЭ]\Я€Љ_OЬЫX[ЏЬЬ[ЏЏ[Oё .ЏЩ[OЏШќ]ЫЏ‰ЬЩXЫЫ™\ћOШќ]Ы€Ы\ЬПHњЩXЫЫ™\ћH€]KY[[ZXЛXXЭ[ЫЏH‰ЬЩXЫЫ™\ћ_H€]KY[[ZXЛ][YOH‰Щ\ШШ\R[
+][KљY
+_HЏ‰ЬЩXЫЫ™\ћOOOH››ЭXЩKX\Ъ]™HЏИђTђТU‘HЋ€ђPХSУ€џOШќ]ЫЏ€€џOШ\ќXЫO
+Kљ›Ъ[Љ€ЉN‰Щ[\_OЬЯB™ќ[Э[Ы€YYXT›ЭЬК][\К^Ь™]\›€][\Л›[™ЭЪ][\Л›X\
+
+][K[™^
+OO\ќXЫOЏќ]Ы€Ы\ЬПH‰ФЭљ[™К][KљY
+OOO[YYXU\™Щ]ИњЩ[XЭY\ЫЭ\ЩHЋ€€џH€]K[YYXK]\™Щ]H‰Щ\ШШ\R[
+][KљY
+_HЏЏO‰ФЭљ[™К[™^
+МJKњYЭ\ќ
+‹ЊЉ_OЪOЏЬ[ЏЏЏ‰Щ\ШШ\R[
+][K›[Y_][Kќ]_“QQPHЉ_OШЏЏЫX[‰Щ\ШШ\R[
+][K™]Z[][KњЭ]\Я”‘PQHЉ_OЬЫX[ЏЬЬ[ЏЏ[O‰ФЭљ[™К][KљY
+OOO[YYXU\™Щ]Иё§$ИЋ€ё .€џOЩ[OЏШќ]ЫЏЏШ\ќXЫO
+Kљ›Ъ[Љ€ЉN““ИPХU‘HQQPHУХTђСTПЬЯB™ќ[Э[Ы€™[™\Љ™\Э[
+^В€ЫЫњЭЭ]O\™\Э[њЭ]_ЯK]љXЩO\™\Э[™]љXЩ_ЯKШ\П\™\Э[Ш\Xљ[]Y\ЯЯK\›Э[\™\Э[\›Э[™\]Z\™YЯNВ€ЫЫњЭYYXO\Э]K›YYX_ЧKШ]™YYYXO[YYXK™љ[™
+][OO”Эљ[™К][KљY
+OOO[YYXU\™Щ]
+K™Y™\њ™YYYXO\Ш]™YYYX_YYXK™љ[™
+][OO”Эљ[™К][KњЭ]\Я€ЉKќУЭЩ\ђШ\ЩJ
+OOOHњ^Z[™ИЉ_YYXVМNЫYYXU\™Щ]\™Y™\њ™YYYXOЛљY€ЋЪYЉYYXU\™Щ]
+[ШШ[ЭЬYЩKњЩ]][JYYXRЩ^KYYXU\™Щ]
+NЩ[ЩHШШ[ЭЬYЩKњ™[[Э™R][JYYXRЩ^JNВ€	
+њ›ЫK[X™[ЉKќ^ЫЫќ[ќJ]љXЩKњ›Ы_њZ\™YЉKќХ\\ђШ\ЩJ
+NЙ
+ЫЫ[X[™\›ЫHЉKќ^ЫЫќ[ќJ]љXЩKњ›Ы_њZ\™YЉKќХ\\ђШ\ЩJ
+NЙ
+Э\њ™[ќ\YЩHЉKќ^ЫЫќ[ќJЭ]KњYЩ_›Э™\ќљY]ИЉKќХ\\ђШ\ЩJ
+NЙ
+›\Э]\]HЉKќ^ЫЫќ[ќ\Э]Kќ\]Y]Ы™]И]JЭ]Kќ\]Y]
+ЊL
+KќУШШ[U[YTЭљ[™К
+N€”ХS‘–HЋЙ
+ќ›Ы[YK\™XYЭ]ЉKќ^ЫЫќ[ќX	ЬЭ]Kќ›Ы[Y_IXЙ
+ќ›Ы[YK][YHЉKќ^ЫЫќ[ќX	ЬЭ]Kќ›Ы[Y_IXЙ
+›X\Э\‹]›Ы[YHЉKќ[YO\Э]Kќ›Ы[Y_Й
+›X\Э\‹]›Ы[YHЉK™\ШX›YHXШ\Лќ›Ы[YNЙ
+њ›Э][™KXЫЭ[ќЉKќ^ЫЫќ[ќX	КЭ]Kњ›Э][™\ЯЧJK›[™ЭH“ХUS‘TШЙ
+››ЭXЩKXЫЭ[ќЉKќ^ЫЫќ[ќX	КЭ]K››ЭXЩ\ЯЧJK›[™ЭHТQУђSШЙ
+›]]K\Э]HЉKќ^ЫЫќ[ќ\Э]K›]]YИ“UUQЋ€“U‘HЋЙ
+™™]ЩЩЫHЉKќ^ЫЫќ[ќ\Э]K™У›Э\Э\ЏИ‘TРP“HИ“ХTХTђ€Ћ€‘SђP“HИ“ХTХTђ€ЋЙ
+™™]ЩЩЫHЉK™]\Щ]ќ[YOTЭљ[™К\Э]K™У›Э\Э\ЉNВ€	
+›Y]\њИЉKљ[›™\’SJЭ]K›Y]\њЯЧJK›X\
+][OO\ќXЫOЏЬ[ЏЏЫX[‰Щ\ШШ\R[
+][K›X™[][K›[YJ_OЬЫX[ЏЏ‰Щ\ШШ\R[
+][Kќ[YJ_IЭ\[Щ€][Kќ[YOOOH›ќ[X™\€ЏИ‰HЋ€€џOШЏЏЬЬ[ЏЏOЏ[HЭ[OHќЪY‰УX]›X^
+X]›Z[ЉLќ[X™\Љ][Kќ[YJ_
+J_IHЏЏЩ[OЏЪOЏШ\ќXЫO
+Kљ›Ъ[Љ€ЉNВ€	
+њЭ]\Л[›ЭXЩ\ИЉKљ[›™\’S\›ЭЬКЭ]K››ЭXЩ\ЯЧK““И’SФ’UHТQУђSИ‹››ЭXЩK\™XY‹››ЭXЩKX\Ъ]™HЉNЙ
+ЫЫ[][љXШ][ЫњЛ[›ЭXЩ\ИЉKљ[›™\’S\›ЭЬКЭ]K››ЭXЩ\ЯЧK““ИPХU‘HУУSUS’PРUSУ”И‹››ЭXЩK\™XY‹››ЭXЩKX\Ъ]™HЉNЙ
+њ^Y\њИЉKљ[›™\’S[YYXT›ЭЬКYYXJNЙ
+њ›Э][™\ИЉKљ[›™\’S\›ЭЬКЭ]Kњ›Э][™\ЯЧKШ\Лњ›Э][™OИ““И“ХUS‘TИТT‘QЋ€ђУУSPS‘“УH‘TURT‘Q‹њ›Э][™HЉNЙ
+\ИЉKљ[›™\’S\›ЭЬКЭ]K\ЯЧKШ\Л\И““ИTPРUSУ”ИТT‘QЋ€ђУУSPS‘“УH‘TURT‘Q‹\ЉNЙ
+ќЫЬљЬЭ][ЫњИЉKљ[›™\’S\›ЭЬКЭ]KќЫЬљЬЭ][ЫњЯЧKШ\ЛќЫЬљЬЭ][ЫЏИ““ИУФ’ФХUSУ”ИТT‘QЋ€ђУУSPS‘“УH‘TURT‘Q‹ќЫЬљЬЭ][Ы€ЉNЙ
+њ]ZXЪЛXXЭ[ЫњИЉKљ[›™\’S\›ЭЬКЭ]Kњ]ZXЪРXЭ[ЫњЯЧKШ\Лњ]ZXЪПИ““ИURPТИPХSУ”ИТT‘QЋ€“ФTђUФ€“УH‘TURT‘Q‹њ]ZXЪИЉNВ€	
+ќЫЬљЬЭ][Ы‹\Э]HЉKќ^ЫЫќ[ќ\Э]KXЭ]™UЫЬљЬЭ][ЫЏШPХU‘H0­И	ЬЭ]KXЭ]™UЫЬљЬЭ][ЫџX€““ИPХU‘HУФ’ФХUSУ€ЋВ€ЫЫњЭ™[X\ЩO\Э]Kњ™[X\Щ_ЯNЙ
+њ™[X\ЩK\ЭX›HЉKќ^ЫЫќ[ќXХP“H0­И	Ь™[X\ЩKњЭX›_•S’У“ХУ€џXЙ
+њ™[X\ЩKY]™[ЬY[ќЉKќ^ЫЫќ[ќXU‘SФQS•0­И	Ь™[X\ЩK™]™[ЬY[ќ•S’У“ХУ€џXВ€ЫЫњЭЫЫ\]Xљ[]O\™\Э[ЫЫ\]Xљ[]_ќ[љЫ›ЭЫ€ЋЙ
+ЫЫ\]Xљ[]K\Э]HЉKќ^ЫЫќ[ќXЫЫ\]Xљ[]OOOHЫЫ\]X›HЏИ•‘T”ТSУ”ИSQУ‘QЋЫЫ\]Xљ[]Kњ™\XЩP[
+‹H‹€ЉKќХ\\ђШ\ЩJ
+NЙ
+ЫЫ\]Xљ[]K\Э]HЉKЫ\ЬУ\ЭќЩЩЫJ][ќ[Ы€‹ЫЫ\]Xљ[]HOOHЫЫ\]X›H‰‰ЫЫ\]Xљ[]HOOHќ[љЫ›ЭЫ€ЉNЙ
+њ™XЫЭ™\ћK]™\њЪ[Ы€ЉKќ^ЫЫќ[ќXХUSУ€	Ь™\Э[њЭ][Ы•™\њЪ[Ыџ•S’У“ХУ€џH0­ИУQS•‘T”ТSУ€МЌXВ€ЫЫњЭXШЩ\ЬП\Э]KXШЩ\ЬЪXљ[]_ЯK]ФШШ[OSќ[X™\ЉXШЩ\ЬЛ™›ЫќШШ[J_LШШ[O\]ФШШ[OЊЏЬ]ФШШ[Nњ]ФШШ[JЊLЩШЭ[Y[ќ™ШЭ[Y[ќ[[Y[ќњЭ[K™›ЫќЪ^™OX	УX]›X^
+LX]›Z[ЉLНKШШ[JJ_IXЩШЭ[Y[ќ›ЩKЫ\ЬУ\ЭќЩЩЫJљYЪXЫЫќ\Э‹›ЫЫX[ЉXШЩ\ЬЛљYЪЫЫќ\Э
+JNЩШЭ[Y[ќ›ЩKЫ\ЬУ\ЭќЩЩЫJњ™YXЩY[[Э[Ы€‹›ЫЫX[ЉXШЩ\ЬЛњ™YXЩY[Э[ЫЉJNЩШЭ[Y[ќ›ЩKЫ\ЬУ\ЭќЩЩЫJЫЫЬ‹\ШY™H‹›ЫЫX[ЉXШЩ\ЬЛЫЫЬ”ШY™JJNВ€ЫЫњЭЩ[XЭY\Э]KќЪYЩ]ЯЧNЩШЭ[Y[ќњ]Y\ћTЩ[XЭЬђ[
+–Щ]K]ЪYЩ]HЉK™›Ь‘XXЪ
+ќ]ЫЏOћШќ]Ы‹Ы\ЬУ\ЭќЩЩЫJXЭ]™H‹Щ[XЭYљ[ЫY\Кќ]Ы‹™]\Щ]ќЪYЩ]
+JNШќ]Ы‹ќ^ЫЫќ[ќX	ЬЩ[XЭYљ[ЫY\Кќ]Ы‹™]\Щ]ќЪYЩ]
+OИё§$ИЋ€ЉИџH	Шќ]Ы‹™]\Щ]›X™[XЯJNЩШЭ[Y[ќњ]Y\ћTЩ[XЭЬђ[
+–Щ]K]ЪYЩ]\Э\™XЩWHЉK™›Ь‘XXЪ
+›ЩOO››ЩKљY[ЏH\Щ[XЭYљ[ЫY\К›ЩK™]\Щ]ќЪYЩ]Э\™XЩJJNЪYЉШЭ[Y[ќњ]Y\ћTЩ[XЭЬЉ‹ќљY]ЛXЭ]™VЪY[—HЉJ\ЭЪ]ЪXЉЫЫ[X[™ЉNВ€ШЭ[Y[ќњ]Y\ћTЩ[XЭЬђ[
+–Щ]KXXЭ[Ы—HЉK™›Ь‘XXЪ
+ќ]ЫЏOќ]Ы‹™\ШX›YHXШ\ЦШќ]Ы‹™]\Щ]XЭ[Ы—_
+ќ]Ы‹™]\Щ]XЭ[ЫЏOOH›YYXH‰‰€[YYXU\™Щ]
+JNЩШЭ[Y[ќњ]Y\ћTЩ[XЭЬђ[
+–Щ]KX\›Э[HЉK™›Ь‘XXЪ
+›ЩOO››ЩKќ^ЫЫќ[ќX\›Э[Ы›ЩK™]\Щ]\›Э[OИ‘TТХФT“ХђSЋ€‘T‘PХЉNВ€	
+Ы\›Ш\™\™\]Y\ЭЉK™\ШX›YHXШ\ЛЫ\›Ш\™В€YЉ™\Э[њЪYЫ[	‰њ™\Э[њЪYЫ[љYOO[\ЭЪYЫ[
+]›ЪY™XЩZ]™TЪYЫ[
+™\Э[њЪYЫ[]љXЩJNВџB\Ю[Иќ[Э[Ы€™XЩZ]™TЪYЫ[
+ЪYЫ[]љXЩJ^Ы\ЭЪYЫ[\ЪYЫ[љYШЫЫњЭ^[ШY\ЪYЫ[њ^[ШYЯK\O\ЪYЫ[ќ\_љY[ќYћHЋЭћ^ЪYЉ\OOOHњYЩHЉ\ЭЪ]ЪXЉ^[ШYњYЩOOOH›YYXHЏИ›YYXHЋњ^[ШYњYЩOOOHЫЫ[][љXШ][ЫњИЏИЫЫ[][љXШ][ЫњИЋњ^[ШYњYЩOOOHњЩ][™ЬИџ^[ШYњYЩOOOHќ\]\ИЏИ›[Ь™HЋ€њЭ]\ИЉNЩ[ЩHYЉ\OOOHЫ\›Ш\™Љ^Ш]ШZ]]љYШ]Ь‹Ы\›Ш\™ќЬљ]U^
+^[ШYќ^€ЉNЯY[ЩHYЉ\OOOH™љ[HЉ^ШЫЫњЭћ]\ПUZ[ќ\њ^K™њ›ЫJ]ШЉ^[ШYЫЫќ[ќ€ЉKЪ\XЭ\ЏOЪ\XЭ\‹Ъ\ђЫЩP]
+
+JK[љПYШЭ[Y[ќЬ™X]Q[[Y[ќ
+HЉNЫ[љЛљ™YЏUT“Ь™X]SШљ™XЭT“
+™]И›ШЉШћ]\ЧKЭ\Nњ^[ШY›Z[Y_\XШ][Ы‹ЫШЭ]\Э™X[HџJJNЫ[љЛ™ЭЫ›ШY\^[ШY›[Y_›Ш\њЛ][њЩ™\‹љ[€ЋЫ[љЛЫXЪК
+NЬЩ][Y[Э]
+
+
+OO•T“њ™]›ЪЩSШљ™XЭT“
+[љЛљ™YЉKL
+NЯZYЉ]љYШ]Ь‹ќљXњ]J[]љYШ]Ь‹ќљXњ]JМLЊМLЊJNЫY\ЬШYЩJ\OOOHљY[ќYћHЏИ’QS•Q–HТQУђS‘PСRU‘Q0­ИTИTИЉК]љXЩK›[Y_”QЉN‘QTђUSУ€	Э\KќХ\\ђШ\ЩJ
+_H‘PСRU‘Q
+NШ]ШZ]\J‹Ш\KЬYЬЪYЫ[XXЪИ‹ЫY]Щ€”ФХ‹›ЩN’”УУ‹њЭљ[™ЪYћJЪYњЪYЫ[љYJ_JNЯXШ]Ъ
+\њ›ЬЉ^ЫY\ЬШYЩJ‘QTђUSУ€SU‘T–HђRSQ0­И	Щ\њ›Ь‹›Y\ЬШYЩ_XќYJNЯ_B\Ю[Иќ[Э[Ы€X\ќ™X]
+][ЮJ^Эћ^Ы]]\ћOKLNЪYЉ]љYШ]Ь‹™Щ]]\ћJ^ШЫЫњЭ[YOX]ШZ]]љYШ]Ь‹™Щ]]\ћJ
+NШ]\ћOSX]њ›Э[™
+[YK›]™[
+ЊL
+NЯXЫЫњЭЫЫ›™XЭ[ЫЏ[]љYШ]Ь‹ЫЫ›™XЭ[ЫџЯNШ]ШZ]\J‹Ш\KЬYЪX\ќ™X]‹ЫY]Щ€”ФХ‹›ЩN’”УУ‹њЭљ[™ЪYћJШ]\ћK™]ЫЬљОЫЫ›™XЭ[Ы‹™Y™™XЭ]™U\_њ›ЭЬЩ\€‹][ЮS\О›][ЮK™\њЪ[ЫЋ€ЊМЌKЊY]™[ЬY[ќ]ЩX€џJ_JNЯXШ]ЪЯ_B\Ю[Иќ[Э[Ы€™Yњ™\Ъ
+
+^ШЫЫњЭЭ\ќY\\™›Ь›X[ЩK››ЭК
+NЭћ^ШЫЫњЭ™\Э[X]ШZ]\J‹Ш\KЬYЬЭ]HЉNЬЪЭФZ\™Y
+ќYJNЬ™[™\Љ™\Э[
+NЫY\ЬШYЩJ€ЉNЪX\ќ™X]
+X]њ›Э[™
+\™›Ь›X[ЩK››ЭК
+K\Э\ќY
+JNЯXШ]Ъ
+\њ›ЬЉ^ЪYЉШ]]Ьљ^][Ы‹ЪKќ\Э
+\њ›Ь‹›Y\ЬШYЩJJ^ЭЪЩ[ЏH€ЋЫШШ[ЭЬYЩKњ™[[Э™R][JЪЩ[’Щ^JNЫШШ[ЭЬYЩKњ™[[Э™R][JYШXЮUЪЩ[’Щ^JNЬЪЭФZ\™Y
+[ЩJNЯ[Y\ЬШYЩJ\њ›Ь‹›Y\ЬШYЩKќYJNЯ_B™ќ[Э[Ы€ЭЪ]ЪXЉ[YJ^ЩШЭ[Y[ќњ]Y\ћTЩ[XЭЬђ[
+–Щ]K]X—HЉK™›Ь‘XXЪ
+ќ]ЫЏOќ]Ы‹Ы\ЬУ\ЭќЩЩЫJXЭ]™H‹ќ]Ы‹™]\Щ]ќXЏOO[[YJJNЩШЭ[Y[ќњ]Y\ћTЩ[XЭЬђ[
+‹ќљY]ИЉK™›Ь‘XXЪ
+љY]ПOќљY]ЛЫ\ЬУ\ЭќЩЩЫJXЭ]™H‹љY]ЛљYOOX	Ы[Y_K]љY]Ш
+JNЯB\Ю[Иќ[Э[Ы€Ш]™UЪYЩ]КЪYЩ]
+^ШЫЫњЭЩ[XЭYVЛ‹‹™ШЭ[Y[ќњ]Y\ћTЩ[XЭЬђ[
+–Щ]K]ЪYЩ]KXЭ]™HЉWK›X\
+ќ]ЫЏOќ]Ы‹™]\Щ]ќЪYЩ]
+K™^\Щ[XЭYљ[ЫY\КЪYЩ]
+OЬЩ[XЭY™љ[\Љ[YOOќ[YHOO]ЪYЩ]
+N–Л‹‹њЩ[XЭYЪYЩ]NЭћ^Ш]ШZ]\J‹Ш\KЬYЬ™Y™\™[Щ\И‹ЫY]Щ€”ФХ‹›ЩN’”УУ‹њЭљ[™ЪYћJЭЪYЩ]О›™^J_JNШ]ШZ]™Yњ™\Ъ
+
+NЯXШ]Ъ
+\њ›ЬЉ^ЫY\ЬШYЩJ\њ›Ь‹›Y\ЬШYЩKќYJNЯ_B‰
+њZ\‹Y›Ь›HЉKY]™[ќ\Э[™\ЉњЭX›Z]‹Z\ЉNЙ
+њ™Yњ™\ЪЉKY]™[ќ\Э[™\ЉЫXЪИ‹™Yњ™\Ъ
+NЙ
+ќ[њZ\€ЉKY]™[ќ\Э[™\ЉЫXЪИ‹
+
+OOћЭЪЩ[ЏH€ЋЫШШ[ЭЬYЩKњ™[[Э™R][JЪЩ[’Щ^JNЫШШ[ЭЬYЩKњ™[[Э™R][JYШXЮUЪЩ[’Щ^JNЬЪЭФZ\™Y
+[ЩJNЬZ\“Y\ЬШYЩKќ^ЫЫќ[ќH•\ИQ›Ь™ЫЭ]ИШШ[ЪЩ[‹€™]›ЪЩH]њ›ЫHРT”ИЩ][™ЬИY€H]љXЩH\И›ИЫ™Щ\€ќ\ЭY€ЋЯJNВ™ШЭ[Y[ќY]™[ќ\Э[™\ЉЫXЪИ‹]™[ќOћШЫЫњЭќ]ЫЏY]™[ќќ\™Щ]ЫЬЩ\Э
+ќ]Ы€ЉNЪYЉXќ]ЫЉ\™]\›ЋЪYЉќ]Ы‹™]\Щ]ќXЉ\ЭЪ]ЪXЉќ]Ы‹™]\Щ]ќXЉNЩ[ЩHYЉќ]Ы‹™]\Щ]›YYXU\™Щ]
+^ЫYYXU\™Щ]Xќ]Ы‹™]\Щ]›YYXU\™Щ]ЫШШ[ЭЬYЩKњЩ]][JYYXRЩ^KYYXU\™Щ]
+NЬ™Yњ™\Ъ
+
+NЫY\ЬШYЩJ“QQPHУУ•“УT‘СUСSPХQЉNЯY[ЩHYЉќ]Ы‹™]\Щ]ќЪYЩ]
+\Ш]™UЪYЩ]Кќ]Ы‹™]\Щ]ќЪYЩ]
+NЩ[ЩHYЉќ]Ы‹™]\Щ]XЭ[ЫЉ][њЫZ]
+ќ]Ы‹™]\Щ]XЭ[Ы‹ќ]Ы‹™]\Щ]XЭ[ЫЏOOH›YYXHЏЮЬ^Y\Ћ›YYXU\™Щ]ЫЫ[X[™ќ]Ы‹™]\Щ]ќ[Y_Nќ]Ы‹™]\Щ]ќ[YJNЩ[ЩHYЉќ]Ы‹™]\Щ]™[[ZXРXЭ[Ы‰‰ќ]Ы‹™]\Щ]™[[ZXРXЭ[Ы€OOH››ЫЬЉ][њЫZ]
+ќ]Ы‹™]\Щ]™[[ZXРXЭ[Ы‹ќ]Ы‹™]\Щ]™[[ZXХ[YJNЯJNВ‰
+›X\Э\‹]›Ы[YHЉKY]™[ќ\Э[™\Љљ[њ]‹]™[ќO‰
+ќ›Ы[YK][YHЉKќ^ЫЫќ[ќX	Щ]™[ќќ\™Щ]ќ[Y_IX
+NЙ
+›X\Э\‹]›Ы[YHЉKY]™[ќ\Э[™\ЉЪ[™ЩH‹]™[ќOќ[њЫZ]
+ќ›Ы[YH‹ќ[X™\Љ]™[ќќ\™Щ]ќ[YJJJNЙ
+Ы\›Ш\™\™\]Y\ЭЉKY]™[ќ\Э[™\ЉЫXЪИ‹
+
+OOќ[њЫZ]
+Ы\›Ш\™‹	
+Ы\›Ш\™]^ЉKќ[YJJNВ‰
+њ™]ћK\™XЫЭ™\ћHЉKY]™[ќ\Э[™\ЉЫXЪИ‹™Yњ™\Ъ
+NВ\J‹Ш\KЬYЬЭ]\ИЉKќ[ЉЭ]\ПOћЙ
+›[љЛ\Э]HЉKќ^ЫЫќ[ќ\Э]\Л™[X›YИ“У“S‘HЋ€”ХS‘–HЋЪYЉЪЩ[Љ\™Yњ™\Ъ
+
+NЩ[ЩHЪЭФZ\™Y
+[ЩJNЯJKШ]Ъ
+\њ›ЬЏOћЬZ\“Y\ЬШYЩKќ^ЫЫќ[ќY\њ›Ь‹›Y\ЬШYЩNЬЪЭФZ\™Y
+[ЩJNЯJNВњЩ][ќ\ќ[
+
+
+OOќЪЩ[‰‰њ™Yњ™\Ъ
+
+KN
+NЪYЉњЩ\ќљXЩUЫЬљЩ\€€[€]љYШ]ЬЉ[]љYШ]Ь‹њЩ\ќљXЩUЫЬљЩ\‹њ™YЪ\Э\Љ‹ЬЭЛљњИЉKШ]Ъ
+
+
+OOћЯJNВ

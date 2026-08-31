@@ -1,56 +1,102 @@
-import assert from "node:assert/strict";
-import { access, readFile } from "node:fs/promises";
-import test from "node:test";
-import { interpretComputerCommand } from "../app/v30-core.ts";
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ}<Ó­uó¾µß]»îZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜİšXİÂš[\ÜÈXØÙ\ÜË™XYš[HHœ›ÛH››ÙN™œËÜ›ÛZ\Ù\ÈÂš[\Ü\İœ›ÛH››ÙN\İÂš[\ÜÈ[\œ™]ÛÛ\]\ÛÛ[X[™Hœ›ÛH‹‹‹Ø\İŒÌXÛÜ™KÈÂ‚˜ÛÛœİÛÛ^^ÂˆYÙ\Î–ŞÚYˆ›İ™\šY]È‹˜[YNˆ”İ]\ÈŸKÚYˆœŞ\İ[H‹˜[YNˆ”Ş\İ[\ÈŸKÚYˆ›YYXH‹˜[YNˆ“YYXHŸKÚYˆœÙ][™ÜÈ‹˜[YNˆ”Ù][™ÜÈŸWKˆ\Î–ŞÚYˆœÜİYK™\ÚİÜ‹˜[YNˆ”ÜİYHŸWK›ØÙY\™\Î–×KÛÜšÜİ][ÛœÎ–×K[Y\Î–×KŸNÂ‚\İ
+ŒÌ›ÚXÙH›ØØX[\HÛİ™\œÈ]\›Z[š\İXÈYYXH[™İXYÙH[™İ\™›Y]Ü\˜][ÛœÈ‹
 
-const context={
-  pages:[{id:"overview",name:"Status"},{id:"system",name:"Systems"},{id:"media",name:"Media"},{id:"settings",name:"Settings"}],
-  apps:[{id:"spotify.desktop",name:"Spotify"}],procedures:[],workstations:[],themes:[],
-};
+OOÂˆÛÛœİ˜\Ù\Ï[™]ÈX\
+ÂˆÈœ]\ÙH‹œ]\ÙH—KÈœ]\ÙHH]\ÚXÈ‹œ]\ÙH—KÈšÛ^X˜XÚÈ‹œ]\ÙH—KˆÈœ™\İ[YH‹œ^H—KÈœ^HHÛÛ™È‹œ^H—KÈ˜ÛÛ[YH^X˜XÚÈ‹œ^H—KˆÈœÚÚ\H˜XÚÈ‹›™^—KÈ™ÛÈ˜XÚÈÈH˜XÚÈ‹œ™]š[İ\È—KÈœİÜ^X˜XÚÈ‹œİÜ—KˆJNÂˆ›ÜŠÛÛœİÜ˜\ÙK\™Ù]HÙˆ˜\Ù\Ê^ØÛÛœİ[Z[\œ™]ÛÛ\]\ÛÛ[X[™
+˜\ÙKÛÛ^›ÚXÙHŠNØ\ÜÙ\™\]X[
+[‹˜[YYK˜\ÙJNØ\ÜÙ\™\]X[
+[‹œİ\ÖÌK˜ÛÛ[X[™›YYXKXÛÛ›Û‹˜\ÙJNØ\ÜÙ\™\]X[
+[‹œİ\ÖÌK\™Ù]\™Ù]˜\ÙJNßBˆ\ÜÙ\™\]X[
+[\œ™]ÛÛ\]\ÛÛ[X[™
+œ™Y[\‹ÛÛ^
+Kœİ\ÖÌK\™Ù]œ™YŠNÂˆ\ÜÙ\™\]X[
+[\œ™]ÛÛ\]\ÛÛ[X[™
+Y[İÈ[\‹ÛÛ^
+Kœİ\ÖÌK\™Ù]Y[İÈŠNÂˆ\ÜÙ\™\]X[
+[\œ™]ÛÛ\]\ÛÛ[X[™
+˜ÛÛ™][ÛˆÜ™Y[ˆ‹ÛÛ^
+Kœİ\ÖÌK\™Ù]››Ü›X[ŠNÂˆ\ÜÙ\™\]X[
+[\œ™]ÛÛ\]\ÛÛ[X[™
+œİ]\È™\Ü‹ÛÛ^
+Kœİ\ÖÌK\™Ù]œŞ\İ[HŠNÂˆ\ÜÙ\™\]X[
+[\œ™]ÛÛ\]\ÛÛ[X[™
+›ØØ]HÙ][™ÜÈ‹ÛÛ^
+Kœİ\ÖÌK\™Ù]œÙ][™ÜÈŠNÂˆ\ÜÙ\™\]X[
+[\œ™]ÛÛ\]\ÛÛ[X[™
+›Ü[ˆZ[[™Èœ™\]Y[˜ÚY\È‹ÛÛ^
+Kœİ\ÖÌK\™Ù]˜ÛÛ[][šXØ][ÛœÈŠNÂˆ\ÜÙ\™\]X[
+[\œ™]ÛÛ\]\ÛÛ[X[™
+Ú]\ÈHİ\™]H‹ÛÛ^
+Kœİ\ÖÌK\™Ù]˜Ø[[™\ˆŠNÂŸJNÂ‚\İ
+”Ù[ˆ\İXİ\ÈH›İXİYÛÜÙKSĞT”È[‹™]™\ˆH\İXİ]™HŞ\İ[HÛÛ[X[™‹
 
-test("30.4 voice vocabulary covers deterministic media language and Starfleet operations",()=>{
-  const phrases=new Map([
-    ["pause","pause"],["pause the music","pause"],["hold playback","pause"],
-    ["resume","play"],["play the song","play"],["continue playback","play"],
-    ["skip the track","next"],["go back to the track","previous"],["stop playback","stop"],
-  ]);
-  for(const [phrase,target] of phrases){const plan=interpretComputerCommand(phrase,context,"voice");assert.equal(plan.valid,true,phrase);assert.equal(plan.steps[0].command,"media-control",phrase);assert.equal(plan.steps[0].target,target,phrase);}
-  assert.equal(interpretComputerCommand("red alert",context).steps[0].target,"red");
-  assert.equal(interpretComputerCommand("yellow alert",context).steps[0].target,"yellow");
-  assert.equal(interpretComputerCommand("condition green",context).steps[0].target,"normal");
-  assert.equal(interpretComputerCommand("status report",context).steps[0].target,"system");
-  assert.equal(interpretComputerCommand("locate settings",context).steps[0].target,"settings");
-  assert.equal(interpretComputerCommand("open hailing frequencies",context).steps[0].target,"communications");
-  assert.equal(interpretComputerCommand("what is the stardate",context).steps[0].target,"calendar");
-});
-
-test("Self Destruct is a protected close-LCARS plan, never a destructive system command",()=>{
-  const plan=interpretComputerCommand("Computer, initiate self destruct sequence",context,"voice");
-  assert.equal(plan.valid,true);assert.equal(plan.risk,"protected");assert.equal(plan.requiresConfirmation,true);
-  assert.equal(plan.steps[0].command,"exit-lcars");assert.match(plan.steps[0].detail,/Close only the LCARS interface/);
-});
-
-test("voice acknowledgement follows successful resolution and notice actions are readable pills",async()=>{
-  const [page,css]=await Promise.all([readFile(new URL("../app/page.tsx",import.meta.url),"utf8"),readFile(new URL("../app/v30.css",import.meta.url),"utf8")]);
-  assert.match(page,/if\(await computerRef\.current\(text,authorized\)\)affirmative\(\)/);
-  assert.doesNotMatch(page,/slice\(0, 8\)\);affirmative\(\)/);
-  assert.match(page,/Promise<boolean>/);
-  assert.match(css,/\.communication-entry > nav button[^}]*border-radius:999px/s);
-  assert.match(css,/grid-template-columns:repeat\(3,minmax\(96px,1fr\)\)/);
-});
-
-test("Linux session registration is opt-in, recoverable, packaged, and display-manager selectable",async()=>{
-  const [wrapper,installer,entry,bridge,builder,desktop]=await Promise.all([
-    readFile(new URL("../session/lcars-session",import.meta.url),"utf8"),
-    readFile(new URL("../session/install-session.sh",import.meta.url),"utf8"),
-    readFile(new URL("../session/lcars-session.desktop.in",import.meta.url),"utf8"),
-    readFile(new URL("../local/lcars_bridge.py",import.meta.url),"utf8"),
-    readFile(new URL("../electron-builder.yml",import.meta.url),"utf8"),
-    readFile(new URL("../desktop/main.cjs",import.meta.url),"utf8"),
-  ]);
-  await access(new URL("../session/lcars-session",import.meta.url));
-  assert.match(installer,/--install\|--uninstall\|--status/);assert.match(installer,/require_root/);assert.match(installer,/\/usr\/share\/wayland-sessions/);assert.match(installer,/\/usr\/share\/xsessions/);
-  assert.match(entry,/DesktopNames=LCARS/);assert.match(wrapper,/LCARS_SESSION=1/);assert.match(wrapper,/safe_after_failure/);assert.match(wrapper,/normal desktop/i);assert.match(wrapper,/attempt.*3/s);
-  assert.match(bridge,/def session_status/);assert.match(bridge,/normalDesktopFallback/);assert.match(bridge,/switch-deck/);assert.match(bridge,/apply-rules/);assert.match(bridge,/pkexec/);
-  assert.match(builder,/from: session\s+to: session/);assert.match(desktop,/--lcars-session/);assert.match(desktop,/--lcars-kiosk/);assert.match(desktop,/--lcars-safe/);
-});
+OOÂˆÛÛœİ[Z[\œ™]ÛÛ\]\ÛÛ[X[™
+ÛÛ\]\‹[š]X]HÙ[ˆ\İXİÙ\]Y[˜ÙH‹ÛÛ^›ÚXÙHŠNÂˆ\ÜÙ\™\]X[
+[‹˜[YYJNØ\ÜÙ\™\]X[
+[‹œš\ÚËœ›İXİYŠNØ\ÜÙ\™\]X[
+[‹œ™\]Z\™\ĞÛÛ™š\›X][Û‹YJNÂˆ\ÜÙ\™\]X[
+[‹œİ\ÖÌK˜ÛÛ[X[™™^][Ø\œÈŠNØ\ÜÙ\›X]Ú
+[‹œİ\ÖÌK™]Z[ĞÛÜÙHÛ›HHĞT”È[\™˜XÙKÊNÂŸJNÂ‚\İ
+›ÚXÙHXÚÛ›İÛYÙ[Y[›ÛİÜÈİXØÙ\ÜÙ[™\ÛÛ][Ûˆ[™›İXÙHXİ[ÛœÈ\™H™XYX›H[È‹\Ş[˜Ê
+OOÂˆÛÛœİÜYÙKÜÜ×OX]ØZ]›ÛZ\ÙK˜[
+Ü™XYš[J™]ÈT“
+‹‹‹Ø\ÜYÙKŞ‹[\Ü›Y]K\›
+K]ŠK™XYš[J™]ÈT“
+‹‹‹Ø\İŒÌ˜ÜÜÈ‹[\Ü›Y]K\›
+K]ŠWJNÂˆ\ÜÙ\›X]Ú
+YÙKØÛÛœİ™\İ[X]ØZ]ÛÛ\]\”™Y—˜İ\œ™[
+^]]Üš^™Y
+NÚY—
+™\İ[˜XØÙ\Y
+XÛÛ™š\›PÛÛ[X[™
+™\İ[
+KÊNÂˆ\ÜÙ\›X]Ú
+YÙKÚ[œ][Ú×›\ËÊNÂˆ\ÜÙ\™Ù\Ó›İX]Ú
+YÙKÜÛXÙW
+
+W
+NØY™š\›X]]™W
+
+KÊNÂˆ\ÜÙ\›X]Ú
+YÙKÔ›ÛZ\ÙO›ÚXÙPÛÛ[X[™™\İ[‹ÊNÂˆ\ÜÙ\›X]Ú
+ÜÜË×˜ÛÛ[][šXØ][Û‹Y[Hˆ˜]ˆ]Û–×ŸWJ˜›Ü™\‹\˜Y]\ÎNN\ÜÊNÂˆ\ÜÙ\›X]Ú
+ÜÜËÙÜšY][\]KXÛÛ[[œÎœ™\X]
+ËZ[›X^
+MœYœ—
+W
+KÊNÂŸJNÂ‚\İ
+“[^Ù\ÜÚ[Ûˆ™YÚ\İ˜][Ûˆ\ÈÜZ[‹™XÛİ™\˜X›KXÚØYÙY[™\Ü^K[X[˜YÙ\ˆÙ[XİX›H‹\Ş[˜Ê
+OOÂˆÛÛœİİÜ˜\\‹[œİ[\‹[KœšYÙKZ[\‹\ÚİÜOX]ØZ]›ÛZ\ÙK˜[
+Âˆ™XYš[J™]ÈT“
+‹‹‹ÜÙ\ÜÚ[Û‹ÛØ\œË\Ù\ÜÚ[Ûˆ‹[\Ü›Y]K\›
+K]ŠKˆ™XYš[J™]ÈT“
+‹‹‹ÜÙ\ÜÚ[Û‹Ú[œİ[\Ù\ÜÚ[Û‹œÚ‹[\Ü›Y]K\›
+K]ŠKˆ™XYš[J™]ÈT“
+‹‹‹ÜÙ\ÜÚ[Û‹ÛØ\œË\Ù\ÜÚ[Û‹™\ÚİÜš[ˆ‹[\Ü›Y]K\›
+K]ŠKˆ™XYš[J™]ÈT“
+‹‹‹ÛØØ[ÛØ\œ×ØœšYÙKœH‹[\Ü›Y]K\›
+K]ŠKˆ™XYš[J™]ÈT“
+‹‹‹Ù[Xİ›Û‹XZ[\‹[[‹[\Ü›Y]K\›
+K]ŠKˆ™XYš[J™]ÈT“
+‹‹‹Ù\ÚİÜÛXZ[‹˜ÚœÈ‹[\Ü›Y]K\›
+K]ŠKˆJNÂˆ]ØZ]XØÙ\ÜÊ™]ÈT“
+‹‹‹ÜÙ\ÜÚ[Û‹ÛØ\œË\Ù\ÜÚ[Ûˆ‹[\Ü›Y]K\›
+JNÂˆ\ÜÙ\›X]Ú
+[œİ[\‹ËKZ[œİ[K][š[œİ[K\İ]\ËÊNØ\ÜÙ\›X]Ú
+[œİ[\‹Ü™\]Z\™WÜ›ÛİÊNØ\ÜÙ\›X]Ú
+[œİ[\‹×İ\Ü—ÜÚ\™WİØ^[[™\Ù\ÜÚ[ÛœËÊNØ\ÜÙ\›X]Ú
+[œİ[\‹×İ\Ü—ÜÚ\™WŞÙ\ÜÚ[ÛœËÊNÂˆ\ÜÙ\›X]Ú
+[KÑ\ÚİÜ˜[Y\ÏSĞT”ËÊNØ\ÜÙ\›X]Ú
+Ü˜\\‹ÓĞT”×ÔÑTÔÒSÓLKÊNØ\ÜÙ\›X]Ú
+Ü˜\\‹ÜØY™WØY\—Ù˜Z[\™KÊNØ\ÜÙ\›X]Ú
+Ü˜\\‹Û›Ü›X[\ÚİÜÚJNØ\ÜÙ\›X]Ú
+Ü˜\\‹Ø][\ŠŒËÜÊNÂˆ\ÜÙ\›X]Ú
+œšYÙKÙYˆÙ\ÜÚ[Û—Üİ]\ËÊNØ\ÜÙ\›X]Ú
+œšYÙKÛ›Ü›X[\ÚİÜ˜[˜XÚËÊNØ\ÜÙ\›X]Ú
+œšYÙKÜİÚ]ÚYXÚËÊNØ\ÜÙ\›X]Ú
+œšYÙKØ\K\[\ËÊNØ\ÜÙ\›X]Ú
+œšYÙKÜÙ^XËÊNÂˆ\ÜÙ\›X]Ú
+Z[\‹Ùœ›ÛNˆÙ\ÜÚ[Û—ÊİÎˆÙ\ÜÚ[Û‹ÊNØ\ÜÙ\›X]Ú
+\ÚİÜËK[Ø\œË\Ù\ÜÚ[Û‹ÊNØ\ÜÙ\›X]Ú
+\ÚİÜËK[Ø\œËZÚ[ÜÚËÊNØ\ÜÙ\›X]Ú
+\ÚİÜËK[Ø\œË\ØY™KÊNÂŸJNÂ

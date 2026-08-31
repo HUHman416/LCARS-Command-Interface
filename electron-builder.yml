@@ -1,86 +1,1 @@
-appId: com.lcars.commandinterface
-productName: LCARS Command Interface
-artifactName: LCARS-Command-Interface-${version}-${arch}.${ext}
-directories:
-  output: release-desktop
-files:
-  - desktop/main.cjs
-  - desktop-dist/**/*
-  - package.json
-  - '!node_modules/**/*'
-npmRebuild: false
-linux:
-  syncDesktopName: true
-  icon: desktop/icons/512x512.png
-  target: [AppImage]
-  category: System
-  executableName: lcars-command-interface
-  extraResources:
-    - from: local/lcars_bridge.py
-      to: bridge/lcars_bridge_linux.py
-    - from: shared/lcars_updater.py
-      to: shared/lcars_updater.py
-    - from: shared/lcars_extensions.py
-      to: shared/lcars_extensions.py
-    - from: shared/lcars_documents.py
-      to: shared/lcars_documents.py
-    - from: shared/lcars_padd.py
-      to: shared/lcars_padd.py
-    - from: shared/lcars_federation_crypto.py
-      to: shared/lcars_federation_crypto.py
-    - from: padd
-      to: padd
-    - from: extensions
-      to: extensions
-    - from: local/lcars-recovery.sh
-      to: recovery/lcars-recovery.sh
-    - from: session
-      to: session
-    - from: install-autostart.sh
-      to: recovery/register-app.sh
-    - from: desktop/icons/512x512.png
-      to: icons/lcars-command-interface.png
-    - from: voice-runtime/linux
-      to: voice
-    - from: voice-runtime/LICENSES
-      to: voice/licenses
-win:
-  signAndEditExecutable: false
-  icon: desktop/icons/lcars-command-interface.ico
-  target: [nsis]
-  executableName: LCARS Command Interface
-  extraResources:
-    - from: windows/lcars_bridge_windows.py
-      to: bridge/lcars_bridge_windows.py
-    - from: shared/lcars_updater.py
-      to: shared/lcars_updater.py
-    - from: shared/lcars_extensions.py
-      to: shared/lcars_extensions.py
-    - from: shared/lcars_documents.py
-      to: shared/lcars_documents.py
-    - from: shared/lcars_padd.py
-      to: shared/lcars_padd.py
-    - from: shared/lcars_federation_crypto.py
-      to: shared/lcars_federation_crypto.py
-    - from: padd
-      to: padd
-    - from: extensions
-      to: extensions
-    - from: windows/install-runtime.ps1
-      to: windows/install-runtime.ps1
-    - from: desktop/icons/lcars-command-interface.ico
-      to: icons/lcars-command-interface.ico
-    - from: voice-runtime/windows
-      to: voice
-    - from: voice-runtime/LICENSES
-      to: voice/licenses
-nsis:
-  oneClick: false
-  perMachine: false
-  allowToChangeInstallationDirectory: true
-  createDesktopShortcut: true
-  createStartMenuShortcut: true
-  shortcutName: LCARS Command Interface
-  installerIcon: desktop/icons/lcars-command-interface.ico
-  uninstallerIcon: desktop/icons/lcars-command-interface.ico
-  include: windows/installer/lcars-options.nsh
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ]:ç­yÛ5ßÎùŞZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µé˜\YˆÛÛK›Ø\œË˜ÛÛ[X[™[\™˜XÙBœ›ÙXİ˜[YNˆĞT”ÈÛÛ[X[™[\™˜XÙB˜\Y˜Xİ˜[YNˆĞT”ËPÛÛ[X[™R[\™˜XÙKIİ™\œÚ[ÛŸKIØ\˜ÚK‰Ù^B™\™XİÜšY\Î‚ˆİ]]ˆ™[X\ÙKY\ÚİÜ™š[\Î‚ˆH\ÚİÜÛXZ[‹˜ÚœÂˆH\ÚİÜY\İÊŠ‹Ê‚ˆHXÚØYÙKšœÛÛ‚ˆH	È[›ÙWÛ[Ù[\ËÊŠ‹Ê‰Â›œT™XZ[ˆ˜[ÙB›[^‚ˆŞ[˜Ñ\ÚİÜ˜[YNˆYBˆXÛÛˆ\ÚİÜÚXÛÛœËÍLLLL‹œ™Âˆ\™Ù]ˆĞ\[XYÙWBˆØ]YÛÜNˆŞ\İ[Bˆ^Xİ]X›S˜[YNˆØ\œËXÛÛ[X[™Z[\™˜XÙBˆ^˜T™\Ûİ\˜Ù\Î‚ˆHœ›ÛNˆØØ[ÛØ\œ×ØœšYÙKœBˆÎˆœšYÙKÛØ\œ×ØœšYÙWÛ[^œBˆHœ›ÛNˆÚ\™YÛØ\œ×İ\]\‹œBˆÎˆÚ\™YÛØ\œ×İ\]\‹œBˆHœ›ÛNˆÚ\™YÛØ\œ×Ù^[œÚ[ÛœËœBˆÎˆÚ\™YÛØ\œ×Ù^[œÚ[ÛœËœBˆHœ›ÛNˆÚ\™YÛØ\œ×ÙØİ[Y[ËœBˆÎˆÚ\™YÛØ\œ×ÙØİ[Y[ËœBˆHœ›ÛNˆÚ\™YÛØ\œ×ÜYœBˆÎˆÚ\™YÛØ\œ×ÜYœBˆHœ›ÛNˆÚ\™YÛØ\œ×Ù™Y\˜][Û—ØÜ\ËœBˆÎˆÚ\™YÛØ\œ×Ù™Y\˜][Û—ØÜ\ËœBˆHœ›ÛNˆÚ\™YÛØ\œ×Ù]WÙ˜XœšXËœBˆÎˆÚ\™YÛØ\œ×Ù]WÙ˜XœšXËœBˆHœ›ÛNˆYˆÎˆYˆHœ›ÛNˆ^[œÚ[ÛœÂˆÎˆ^[œÚ[ÛœÂˆHœ›ÛNˆØØ[ÛØ\œË\™XÛİ™\KœÚˆÎˆ™XÛİ™\KÛØ\œË\™XÛİ™\KœÚˆHœ›ÛNˆÙ\ÜÚ[Û‚ˆÎˆÙ\ÜÚ[Û‚ˆHœ›ÛNˆ[œİ[X]]Üİ\œÚˆÎˆ™XÛİ™\KÜ™YÚ\İ\‹X\œÚˆHœ›ÛNˆ\ÚİÜÚXÛÛœËÍLLLL‹œ™ÂˆÎˆXÛÛœËÛØ\œËXÛÛ[X[™Z[\™˜XÙKœ™ÂˆHœ›ÛNˆ›ÚXÙK\[[YKÛ[^ˆÎˆ›ÚXÙBˆHœ›ÛNˆ›ÚXÙK\[[YKÓPÑS”ÑTÂˆÎˆ›ÚXÙKÛXÙ[œÙ\ÂÚ[‚ˆÚYÛ[™Y]^Xİ]X›Nˆ˜[ÙBˆXÛÛˆ\ÚİÜÚXÛÛœËÛØ\œËXÛÛ[X[™Z[\™˜XÙKšXÛÂˆ\™Ù]ˆÛœÚ\×Bˆ^Xİ]X›S˜[YNˆĞT”ÈÛÛ[X[™[\™˜XÙBˆ^˜T™\Ûİ\˜Ù\Î‚ˆHœ›ÛNˆÚ[™İÜËÛØ\œ×ØœšYÙWİÚ[™İÜËœBˆÎˆœšYÙKÛØ\œ×ØœšYÙWİÚ[™İÜËœBˆHœ›ÛNˆÚ\™YÛØ\œ×İ\]\‹œBˆÎˆÚ\™YÛØ\œ×İ\]\‹œBˆHœ›ÛNˆÚ\™YÛØ\œ×Ù^[œÚ[ÛœËœBˆÎˆÚ\™YÛØ\œ×Ù^[œÚ[ÛœËœBˆHœ›ÛNˆÚ\™YÛØ\œ×ÙØİ[Y[ËœBˆÎˆÚ\™YÛØ\œ×ÙØİ[Y[ËœBˆHœ›ÛNˆÚ\™YÛØ\œ×ÜYœBˆÎˆÚ\™YÛØ\œ×ÜYœBˆHœ›ÛNˆÚ\™YÛØ\œ×Ù™Y\˜][Û—ØÜ\ËœBˆÎˆÚ\™YÛØ\œ×Ù™Y\˜][Û—ØÜ\ËœBˆHœ›ÛNˆÚ\™YÛØ\œ×Ù]WÙ˜XœšXËœBˆÎˆÚ\™YÛØ\œ×Ù]WÙ˜XœšXËœBˆHœ›ÛNˆYˆÎˆYˆHœ›ÛNˆ^[œÚ[ÛœÂˆÎˆ^[œÚ[ÛœÂˆHœ›ÛNˆÚ[™İÜËÚ[œİ[\[[YKœÌBˆÎˆÚ[™İÜËÚ[œİ[\[[YKœÌBˆHœ›ÛNˆ\ÚİÜÚXÛÛœËÛØ\œËXÛÛ[X[™Z[\™˜XÙKšXÛÂˆÎˆXÛÛœËÛØ\œËXÛÛ[X[™Z[\™˜XÙKšXÛÂˆHœ›ÛNˆ›ÚXÙK\[[YKİÚ[™İÜÂˆÎˆ›ÚXÙBˆHœ›ÛNˆ›ÚXÙK\[[YKÓPÑS”ÑTÂˆÎˆ›ÚXÙKÛXÙ[œÙ\Â›œÚ\Î‚ˆÛ™PÛXÚÎˆ˜[ÙBˆ\“XXÚ[™Nˆ˜[ÙBˆ[İÕĞÚ[™ÙR[œİ[][Û‘\™XİÜNˆYBˆÜ™X]Q\ÚİÜÚÜİ]ˆYBˆÜ™X]Tİ\Y[TÚÜİ]ˆYBˆÚÜİ]˜[YNˆĞT”ÈÛÛ[X[™[\™˜XÙBˆ[œİ[\’XÛÛˆ\ÚİÜÚXÛÛœËÛØ\œËXÛÛ[X[™Z[\™˜XÙKšXÛÂˆ[š[œİ[\’XÛÛˆ\ÚİÜÚXÛÛœËÛØ\œËXÛÛ[X[™Z[\™˜XÙKšXÛÂˆ[˜ÛYNˆÚ[™İÜËÚ[œİ[\‹ÛØ\œË[Ü[ÛœË›œÚ

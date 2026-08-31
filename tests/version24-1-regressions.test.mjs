@@ -1,84 +1,88 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿn5ã_tãMwën·ŞZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\İœ›ÛH››ÙN\İÂš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜİšXİÂš[\ÜÈ™XYš[TŞ[˜ÈHœ›ÛH››ÙN™œÈÂ‚˜ÛÛœİYÙO\™XYš[TŞ[˜Ê™]ÈT“
+‹‹‹Ø\ÜYÙKŞ‹[\Ü›Y]K\›
+K]ŠNÂ˜ÛÛœİÜÜÏ\™XYš[TŞ[˜Ê™]ÈT“
+‹‹‹Ø\İŒLK˜ÜÜÈ‹[\Ü›Y]K\›
+K]ŠNÂ˜ÛÛœİ™[™\™\\™XYš[TŞ[˜Ê™]ÈT“
+‹‹‹Ù\ÚİÜÜ™[™\™\‹Ş‹[\Ü›Y]K\›
+K]ŠNÂ˜ÛÛœİ[^\™XYš[TŞ[˜Ê™]ÈT“
+‹‹‹ÛØØ[ÛØ\œ×ØœšYÙKœH‹[\Ü›Y]K\›
+K]ŠNÂ˜ÛÛœİÚ[™İÜÏ\™XYš[TŞ[˜Ê™]ÈT“
+‹‹‹İÚ[™İÜËÛØ\œ×ØœšYÙWİÚ[™İÜËœH‹[\Ü›Y]K\›
+K]ŠNÂ˜ÛÛœİ\]\\™XYš[TŞ[˜Ê™]ÈT“
+‹‹‹ÜÚ\™YÛØ\œ×İ\]\‹œH‹[\Ü›Y]K\›
+K]ŠNÂ˜ÛÛœİZ[\\™XYš[TŞ[˜Ê™]ÈT“
+‹‹‹Ù[Xİ›Û‹XZ[\‹[[‹[\Ü›Y]K\›
+K]ŠNÂ‚\İ
+“YYXH\ÈH™\ÜÛœÚ]™H™YK^›Û™HÛÛœÛÛHÚ][\›˜[\İØÜ›Û[™È‹
 
-const page=readFileSync(new URL("../app/page.tsx",import.meta.url),"utf8");
-const css=readFileSync(new URL("../app/v24-1.css",import.meta.url),"utf8");
-const renderer=readFileSync(new URL("../desktop/renderer.tsx",import.meta.url),"utf8");
-const linux=readFileSync(new URL("../local/lcars_bridge.py",import.meta.url),"utf8");
-const windows=readFileSync(new URL("../windows/lcars_bridge_windows.py",import.meta.url),"utf8");
-const updater=readFileSync(new URL("../shared/lcars_updater.py",import.meta.url),"utf8");
-const builder=readFileSync(new URL("../electron-builder.yml",import.meta.url),"utf8");
+OOÂˆ\ÜÙ\›X]Ú
+YÙKÙ[˜İ[ÛˆYYXPÛÛœÛÛKÊNÂˆ\ÜÙ\›X]Ú
+YÙKÙ[˜İ[Ûˆ\XØ][Û“Z^\‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÓ“ÕÈVRS‘ËÊNÂˆ\ÜÙ\›X]Ú
+YÙKÓPTÕTˆUQSËÊNÂˆ\ÜÙ\›X]Ú
+YÙKĞTPĞUSÓˆRVT‹ÊNÂˆ\ÜÙ\›X]Ú
+ÜÜËÜYÙKY[œÚ]K]ÚYH›YYXKXÛÛœÛÛKÊNÂˆ\ÜÙ\›X]Ú
+ÜÜËÜYÙKY[œÚ]KXÛÛ\Xİ›YYXKXÛÛœÛÛK]XœËÊNÂˆ\ÜÙ\›X]Ú
+ÜÜË×›YYXK\Ûİ\˜ÙK[\İ××J—ËÊNÂˆ\ÜÙ\›X]Ú
+ÜÜË×›YYXK[Z^\‹[\İ××J—ËÊNÂˆ\ÜÙ\›X]Ú
+ÜÜËÛİ™\™›İË^Nˆ]]ËÊNÂˆ\ÜÙ\›X]Ú
+ÜÜË×œYÙK[YYXHÖ×××JÛİ™\™›İÎˆY[‹ÊNÂŸJNÂ‚\İ
+“[^[™Ú[™İÜÈ^ÜÙHX\İ\‹İ™X[H]]K]šXÙ\Ë[™Ü›İ\Y\]Y[È‹
 
-test("Media is a responsive three-zone console with internal list scrolling",()=>{
-  assert.match(page,/function MediaConsole/);
-  assert.match(page,/function ApplicationMixer/);
-  assert.match(page,/NOW PLAYING/);
-  assert.match(page,/MASTER AUDIO/);
-  assert.match(page,/APPLICATION MIXER/);
-  assert.match(css,/page-density-wide \.media-console/);
-  assert.match(css,/page-density-compact \.media-console-tabs/);
-  assert.match(css,/\.media-source-list[^{]*\{/);
-  assert.match(css,/\.media-mixer-list[^{]*\{/);
-  assert.match(css,/overflow-y: auto/);
-  assert.match(css,/\.page-media \{[\s\S]*?overflow: hidden/);
-});
+OOÂˆ›ÜŠÛÛœİœšYÙHÙˆÛ[^Ú[™İÜ×J^Âˆ\ÜÙ\›X]Ú
+œšYÙK×Ø\WÜİ™X[K[]]KÊNÂˆ\ÜÙ\›X]Ú
+œšYÙK×Ø\WØ]Y[ËY]šXÙKÊNÂˆ\ÜÙ\›X]Ú
+œšYÙKÈ›]]Y‹ÊNÂˆ\ÜÙ\›X]Ú
+œšYÙKÈœ›İ]P]˜Z[X›H‹ÊNÂˆBˆ\ÜÙ\›X]Ú
+YÙKØÛÛœİÜ›İ\ÈH\œ˜^W™œ›ÛW
+™]ÈÙ]
+İ™X[\ËÊNÂˆ\ÜÙ\›X]Ú
+YÙKÔÒÕÈSÕ‘PSTËÊNÂŸJNÂ‚\İ
+‘XYÛ›ÜİXÜÈ^ÜÈ\™HØØ[[™^XÚ]Hš]˜XŞHØÜX˜™Y‹
 
-test("Linux and Windows expose master, stream mute, devices, and grouped app audio",()=>{
-  for(const bridge of [linux,windows]){
-    assert.match(bridge,/\/api\/stream-mute/);
-    assert.match(bridge,/\/api\/audio-device/);
-    assert.match(bridge,/"muted"/);
-    assert.match(bridge,/"routeAvailable"/);
-  }
-  assert.match(page,/const groups = Array\.from\(new Set\(streams/);
-  assert.match(page,/SHOW ALL STREAMS/);
-});
+OOÂˆ›ÜŠÛÛœİœšYÙHÙˆÛ[^Ú[™İÜ×J^Âˆ\ÜÙ\›X]Ú
+œšYÙKÙYˆXYÛ›ÜİXÜ×Ü™\ÜÊNÂˆ\ÜÙ\›X]Ú
+œšYÙKÙYˆ^ÜÙXYÛ›ÜİXÜËÊNÂˆ\ÜÙ\›X]Ú
+œšYÙK×Ø\WÙXYÛ›ÜİXÜËY^ÜÊNÂˆ\ÜÙ\›X]Ú
+œšYÙKÛ›È\Ù\›˜[Y\ËÛYH]Ëš[H˜[Y\ËÜ™Y[X[ËÊNÂˆBˆ\ÜÙ\›X]Ú
+YÙKÙ[˜İ[ÛˆXYÛ›ÜİXÜĞÙ[\‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÑVÔ•ĞQ‘HÕTÔ•‘TÔ•ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÔ’UPÖH’STˆPÕU‘KÊNÂŸJNÂ‚\İ
+”ØY™Hİ\\™\Ù\™\ÈÛ˜\ÚİÈ[™Ø[ˆ™\İÜ™H\İZÛ›İÛ‹YÛÛÙÙ][™ÜÈ‹
 
-test("Diagnostics exports are local and explicitly privacy scrubbed",()=>{
-  for(const bridge of [linux,windows]){
-    assert.match(bridge,/def diagnostics_report/);
-    assert.match(bridge,/def export_diagnostics/);
-    assert.match(bridge,/\/api\/diagnostics-export/);
-    assert.match(bridge,/no usernames, home paths, file names, credentials/);
-  }
-  assert.match(page,/function DiagnosticsCenter/);
-  assert.match(page,/EXPORT SAFE SUPPORT REPORT/);
-  assert.match(page,/PRIVACY FILTER ACTIVE/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+YÙKÛØ\œËXÛÛ™šYË\Û˜\ÚİËÊNÂˆ\ÜÙ\›X]Ú
+YÙKÛØ\œË[\İZÛ›İÛ‹YÛÛÙÊNÂˆ\ÜÙ\›X]Ú
+YÙKÛØ\œË\ØY™K[[ÙKÊNÂˆ\ÜÙ\›X]Ú
+YÙKÙ[˜İ[Ûˆ™XÛİ™\PÛÛ›ÛËÊNÂˆ\ÜÙ\›X]Ú
+™[™\™\‹Ø›Ûİ][\ÏLËÊNÂˆ\ÜÙ\›X]Ú
+™[™\™\‹ÔÕT•ĞQ‘HSÑKÊNÂˆ\ÜÙ\›X]Ú
+™[™\™\‹Ô‘TÕÔ‘HTÕÓ“ÕÓˆÓÓÑÊNÂŸJNÂ‚\İ
+‘^[œÚ[ÛœÈ\™H\ÛÛ]Y[™]X\˜[[™YY\ˆ™\X]Y™[™\™\ˆ˜Z[\™\È‹
 
-test("Safe startup preserves snapshots and can restore last-known-good settings",()=>{
-  assert.match(page,/lcars-config-snapshots/);
-  assert.match(page,/lcars-last-known-good/);
-  assert.match(page,/lcars-safe-mode/);
-  assert.match(page,/function RecoveryControls/);
-  assert.match(renderer,/bootAttempts>=3/);
-  assert.match(renderer,/START SAFE MODE/);
-  assert.match(renderer,/RESTORE LAST KNOWN GOOD/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+YÙKØÛ\ÜÈ^[œÚ[Û›İ[™\KÊNÂˆ\ÜÙ\›X]Ú
+YÙKÛØ\œËY^[œÚ[Û‹Y˜Z[\™\ËÊNÂˆ\ÜÙ\›X]Ú
+YÙKÙ˜Z[\™\ÏL‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÛØ\œËY^[œÚ[Û‹\]X\˜[[™KÊNÂˆ\ÜÙ\›X]Ú
+YÙKÔ‘U–HSÑSTËÊNÂŸJNÂ‚\İ
+•\]\ˆ\˜Ú]™\È[^™[X\Ù\Ë™\šYšY\ÈİÛ›ØYË[™İ\ÜÈ›Û˜XÚÈ‹
 
-test("Extensions are isolated and quarantined after repeated renderer failures",()=>{
-  assert.match(page,/class ExtensionBoundary/);
-  assert.match(page,/lcars-extension-failures/);
-  assert.match(page,/failures>=2/);
-  assert.match(page,/lcars-extension-quarantine/);
-  assert.match(page,/RETRY MODULES/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+\]\‹ÑİÛ›ØYY[œİ[\ˆ˜Z[YÒKLMˆ™\šYšXØ][Û‹ÊNÂˆ\ÜÙ\›X]Ú
+\]\‹ÙYˆ›Û˜XÚ×Üİ]\ËÊNÂˆ\ÜÙ\›X]Ú
+\]\‹ÙYˆØÚY[WÜ›Û˜XÚËÊNÂˆ\ÜÙ\›X]Ú
+\]\‹×œ™]š[İ\ËÊNÂˆ\ÜÙ\›X]Ú
+[^ÛÜ\˜][ÛOHœ›Û˜XÚÈ‹ÊNÂˆ\ÜÙ\›X]Ú
+Ú[™İÜËÛÜ\˜][ÛOHœ›Û˜XÚÈ‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÔ‘TÕÔ‘H‘U’SÕTÈ‘SPTÑKÊNÂŸJNÂ‚\İ
+”XÚØYÙY™\Z\ˆİ\Ü[™İ\œ™[œšYÙH™\œÚ[ÛœÈİ^H[YÛ™Y‹
 
-test("Updater archives Linux releases, verifies downloads, and supports rollback",()=>{
-  assert.match(updater,/Downloaded installer failed SHA-256 verification/);
-  assert.match(updater,/def rollback_status/);
-  assert.match(updater,/def schedule_rollback/);
-  assert.match(updater,/\.previous/);
-  assert.match(linux,/operation=="rollback"/);
-  assert.match(windows,/operation=="rollback"/);
-  assert.match(page,/RESTORE PREVIOUS RELEASE/);
-});
-
-test("Packaged repair support and current bridge versions stay aligned",()=>{
-  assert.match(builder,/recovery\/register-app\.sh/);
-  assert.match(linux,/repair-installation/);
-  assert.match(windows,/repair-installation/);
-  assert.match(linux,/LCARS_VERSION="(?:30\.[234]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(windows,/LCARS_VERSION="(?:30\.[234]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+Z[\‹Ü™XÛİ™\WÜ™YÚ\İ\‹X\œÚÊNÂˆ\ÜÙ\›X]Ú
+[^Ü™\Z\‹Z[œİ[][Û‹ÊNÂˆ\ÜÙ\›X]Ú
+Ú[™İÜËÜ™\Z\‹Z[œİ[][Û‹ÊNÂˆ\ÜÙ\›X]Ú
+[^ÓĞT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_WŒŒWŒ×Œ\˜×Œ_WŒ—ŒY]—Œ_ŒŒŒË\˜×Œ_Œ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
+JH‹ÊNÂˆ\ÜÙ\›X]Ú
+Ú[™İÜËÓĞT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_WŒŒWŒ×Œ\˜×Œ_WŒ—ŒY]—Œ_ŒŒŒË\˜×Œ_Œ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
+JH‹ÊNÂŸJNÂ

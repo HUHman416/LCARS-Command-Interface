@@ -1,41 +1,38 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ]xã8Ûnùó¾µòZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\İœ›ÛH	Û›ÙN\İ	ÎÂš[\Ü\ÜÙ\œ›ÛH	Û›ÙN˜\ÜÙ\ÜİšXİ	ÎÂš[\ÜÈ™XYš[TŞ[˜ÈHœ›ÛH	Û›ÙN™œÉÎÂ‚˜ÛÛœİ^[œÚ[ÛœÈH™XYš[TŞ[˜Ê	ÜÚ\™YÛØ\œ×Ù^[œÚ[ÛœËœIË	İ]	ÊNÂ˜ÛÛœİYÙHH™XYš[TŞ[˜Ê	Ø\ÜYÙKŞ	Ë	İ]	ÊNÂ˜ÛÛœİ™[™\™\ˆH™XYš[TŞ[˜Ê	Ù\ÚİÜÜ™[™\™\‹Ş	Ë	İ]	ÊNÂ˜ÛÛœİXÚØYÙRœÛÛˆH”ÓÓ‹œ\œÙJ™XYš[TŞ[˜Ê	ÜXÚØYÙKšœÛÛ‰Ë	İ]	ÊJNÂ‚\İ
+	Ì‹ŒH\İÈÛ›HHYXØ]Y[Ù[\Èœ˜[˜Ú	Ë
 
-const extensions = readFileSync('shared/lcars_extensions.py','utf8');
-const page = readFileSync('app/page.tsx','utf8');
-const renderer = readFileSync('desktop/renderer.tsx','utf8');
-const packageJson = JSON.parse(readFileSync('package.json','utf8'));
+OOÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËÔ‘SSÕWĞĞUSÑ×ÕT“KŠ“ĞT”ËPÛÛ[X[™R[\™˜XÙWÓ[Ù[\×ØØ][Ù×šœÛÛ‹ÊNÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËÕ•TÕQÔU×Ô‘Q’VKŠ“ĞT”ËPÛÛ[X[™R[\™˜XÙWÓ[Ù[\×ËÊNÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËÛ[Ù[HİÛ›ØYT“\Èİ]ÚYHH\İY[Ù[\Èœ˜[˜ÚÊNÂŸJNÂ‚\İ
+	Ì‹ŒH™\šYšY\ÈØ][ÙÈ[Ù[H^[ØYÈ™Y›Ü™H[œİ[][Û‰Ë
 
-test('26.1 trusts only the dedicated Modules branch',()=>{
-  assert.match(extensions,/REMOTE_CATALOG_URL=.*LCARS-Command-Interface\/Modules\/catalog\.json/);
-  assert.match(extensions,/TRUSTED_RAW_PREFIX=.*LCARS-Command-Interface\/Modules\//);
-  assert.match(extensions,/module download URL is outside the trusted Modules branch/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËÚ\ÚX—œÚLM—
+^[ØY
+Wš^YÙ\İ
+
+KÊNÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËÛ[Ù[HÚXÚÜİ[H™\šYšXØ][Ûˆ˜Z[YÊNÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËÙİÛ›ØYY[Ù[HYÙ\È›İX]ÚØ][ÙÈ[KÊNÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËÙİÛ›ØYY[Ù[H™\œÚ[ÛˆÙ\È›İX]ÚØ][ÙÈ[KÊNÂŸJNÂ‚\İ
+	Ú[YÜ˜]Y[Ù[H™\ÜÚ]ÜH\ÈH\]\ÈÛİÈœ›İÜÙ\‰Ë
 
-test('26.1 verifies catalog module payloads before installation',()=>{
-  assert.match(extensions,/hashlib\.sha256\(payload\)\.hexdigest\(\)/);
-  assert.match(extensions,/module checksum verification failed/);
-  assert.match(extensions,/downloaded module id does not match catalog entry/);
-  assert.match(extensions,/downloaded module version does not match catalog entry/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+YÙKÔÕP“HSÑSHTHŒÈ0­ÈÒQÓ‘QPÒĞQÑTÈ0­ÈTÓÓUQÔÕ‘S‘T‘T‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÓÔSˆU“Ô“KÊNÂˆ\ÜÙ\›X]Ú
+YÙKÔÑPTÒSÑSHU“Ô“KÊNÂˆ\ÜÙ\›X]Ú
+YÙKÛÜ\˜]W
+[K\]H—
+KÊNÂˆ\ÜÙ\™\]X[
 
-test('integrated Module Repository is the Updates slot 03 browser',()=>{
-  assert.match(page,/STABLE MODULE API V3 Â· SIGNED PACKAGES Â· ISOLATED HOST RENDERER/);
-  assert.match(page,/OPEN PLATFORM/);
-  assert.match(page,/SEARCH MODULE PLATFORM/);
-  assert.match(page,/operate\(entry,"update"\)/);
-  assert.equal((page.match(/<ExtensionHub openByDefault installed=\{extensions\}/g)||[]).length,1);
-});
+YÙK›X]Ú
+Ï^[œÚ[Û’XˆÜ[QY˜][[œİ[YWÙ^[œÚ[Ûœ×KÙÊ_×JK›[™İJNÂŸJNÂ‚\İ
+	Ù\ÚİÜ™[™\™\ˆØYÈ™\œÚ[Ûˆ‹ŒHİ[[™ÈY\ˆ™\œÚ[ÛˆIË
 
-test('desktop renderer loads Version 26.1 styling after Version 25',()=>{
-  const v25 = renderer.indexOf('import "../app/v25.css"');
-  const v261 = renderer.indexOf('import "../app/v26-1.css"');
-  assert.notEqual(v25,-1);
-  assert.ok(v261 > v25);
-});
+OOÂˆÛÛœİŒHH™[™\™\‹š[™^ÙŠ	Ú[\Ü‹‹‹Ø\İŒK˜ÜÜÈ‰ÊNÂˆÛÛœİŒŒHH™[™\™\‹š[™^ÙŠ	Ú[\Ü‹‹‹Ø\İŒ‹LK˜ÜÜÈ‰ÊNÂˆ\ÜÙ\››İ\]X[
+ŒKLJNÂˆ\ÜÙ\›ÚÊŒŒHˆŒJNÂŸJNÂ‚\İ
+	Û™]Ù\ˆØ[™Y]\È™]Z[ˆ™\œÚ[Ûˆ‹ŒH™\ÜÚ]ÜHÛİ™\˜YÙIË
 
-test('newer candidates retain Version 26.1 repository coverage',()=>{
-  assert.ok(['30.4.0-dev.1','30.3.0-dev.1','30.2.0-dev.1','30.1.0-dev.2','29.0.0','29.3.0-rc.1','29.2.0-dev.1','28.0.0','28.3.0-rc.1','28.2.0-dev.1','27.2.1-dev.1','27.2.0-dev.1','27.1.1-dev.1','26.3.0-dev.1','26.0.0'].includes(packageJson.version));
-  assert.match(page,/30\.4 DEV|30\.3 DEV|30\.2 DEV|30\.1 DEV|29 STABLE|29\.3 RC 1|29\.2 DEVELOPMENT|28 STABLE|28\.3 RC 1|28\.2 DEV|27\.2(?:\.1)? DEV|27\.1(?:\.1)? DEV|26\.3 RC|26 STABLE/);
-});
+OOÂˆ\ÜÙ\›ÚÊÉÌÌKŒY]‹ŒIË	ÌÌŒY]‹ŒIË	ÌÌŒËŒY]‹ŒIË	ÌÌŒ‹ŒY]‹ŒIË	ÌÌŒKŒY]‹Œ‰Ë	ÌKŒŒ	Ë	ÌKŒËŒ\˜ËŒIË	ÌKŒ‹ŒY]‹ŒIË	ÌŒŒ	Ë	ÌŒËŒ\˜ËŒIË	ÌŒ‹ŒY]‹ŒIË	ÌËŒ‹ŒKY]‹ŒIË	ÌËŒ‹ŒY]‹ŒIË	ÌËŒKŒKY]‹ŒIË	Ì‹ŒËŒY]‹ŒIË	Ì‹ŒŒ	×Kš[˜ÛY\ÊXÚØYÙRœÛÛ‹™\œÚ[ÛŠJNÂˆ\ÜÙ\›X]Ú
+YÙKÌÌHUŸÌUŸÌŒÈUŸÌŒˆUŸÌŒHUŸHÕP“_WŒÈÈ_WŒˆU‘SÔQS•ÕP“_ŒÈÈ_ŒˆUŸ×ŒŠÎ—ŒJOÈUŸ×ŒJÎ—ŒJOÈUŸ—ŒÈßˆÕP“KÊNÂŸJNÂ

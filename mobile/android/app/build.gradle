@@ -1,48 +1,2 @@
-plugins {
-    id "com.android.application"
-}
-
-android {
-    namespace "com.lcars.padd"
-    compileSdk 35
-
-    defaultConfig {
-        applicationId "com.lcars.padd"
-        minSdk 26
-        targetSdk 35
-        versionCode 304001
-        versionName "30.4.0"
-    }
-
-    signingConfigs {
-        release {
-            storeFile file(System.getenv("ANDROID_SIGNING_STORE_FILE") ?: "missing-release-keystore.jks")
-            storePassword System.getenv("ANDROID_SIGNING_STORE_PASSWORD")
-            keyAlias System.getenv("ANDROID_SIGNING_KEY_ALIAS")
-            keyPassword System.getenv("ANDROID_SIGNING_KEY_PASSWORD")
-        }
-    }
-
-    buildTypes {
-        debug {
-            applicationIdSuffix ".dev"
-            versionNameSuffix "-development"
-            if (System.getenv("ANDROID_SIGNING_STORE_FILE")) {
-                signingConfig signingConfigs.release
-            }
-        }
-        release {
-            signingConfig signingConfigs.release
-            minifyEnabled false
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
-}
-
-dependencies {
-    implementation "androidx.core:core:1.15.0"
-}
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ]üÛ]wßOu÷ŞµÖZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéœYÚ[œÈÂˆY˜ÛÛK˜[™›ÚY˜\XØ][Ûˆ‚ŸB‚˜[™›ÚYÂˆ˜[Y\ÜXÙH˜ÛÛK›Ø\œËœY‚ˆÛÛ\[TÙÈÍB‚ˆY˜][ÛÛ™šYÈÂˆ\XØ][Û’Y˜ÛÛK›Ø\œËœY‚ˆZ[”ÙÈ‚ˆ\™Ù]ÙÈÍBˆ™\œÚ[ÛÛÙHÌLBˆ™\œÚ[Û“˜[YHŒÌKŒ‚ˆB‚ˆÚYÛš[™ĞÛÛ™šYÜÈÂˆ™[X\ÙHÂˆİÜ™Qš[Hš[JŞ\İ[K™Ù][ŠS‘“ÒQÔÒQÓ’S‘×ÔÕÔ‘WÑ’SHŠHÎˆ›Z\ÜÚ[™Ë\™[X\ÙKZÙ^\İÜ™KššÜÈŠBˆİÜ™T\ÜİÛÜ™Ş\İ[K™Ù][ŠS‘“ÒQÔÒQÓ’S‘×ÔÕÔ‘WÔTÔÕÓÔ‘ŠBˆÙ^P[X\ÈŞ\İ[K™Ù][ŠS‘“ÒQÔÒQÓ’S‘×ÒÑVWĞSPTÈŠBˆÙ^T\ÜİÛÜ™Ş\İ[K™Ù][ŠS‘“ÒQÔÒQÓ’S‘×ÒÑVWÔTÔÕÓÔ‘ŠBˆBˆB‚ˆZ[\\ÈÂˆXYÈÂˆ\XØ][Û’YİY™š^‹™]ˆ‚ˆ™\œÚ[Û“˜[YTİY™š^‹Y]™[ÜY[‚ˆYˆ
+Ş\İ[K™Ù][ŠS‘“ÒQÔÒQÓ’S‘×ÔÕÔ‘WÑ’SHŠJHÂˆÚYÛš[™ĞÛÛ™šYÈÚYÛš[™ĞÛÛ™šYÜËœ™[X\ÙBˆBˆBˆ™[X\ÙHÂˆÚYÛš[™ĞÛÛ™šYÈÚYÛš[™ĞÛÛ™šYÜËœ™[X\ÙBˆZ[šYQ[˜X›Y˜[ÙBˆBˆB‚ˆÛÛ\[SÜ[ÛœÈÂˆÛİ\˜ÙPÛÛ\]Xš[]H˜]˜U™\œÚ[Û‹•‘T”ÒSÓ—ÌMÂˆ\™Ù]ÛÛ\]Xš[]H˜]˜U™\œÚ[Û‹•‘T”ÒSÓ—ÌMÂˆBŸB‚™\[™[˜ÚY\ÈÂˆ[\[Y[][Ûˆ˜[™›ÚY˜ÛÜ™N˜ÛÜ™NŒKŒMKŒ‚ŸB

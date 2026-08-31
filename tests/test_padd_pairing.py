@@ -1,214 +1,111 @@
-import json
-import hashlib
-import sys
-import tempfile
-import time
-import unittest
-from pathlib import Path
-from unittest.mock import patch
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ_9ï}¶÷ŸuÓ:ÚZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéš[\ÜœÛÛ‚š[\Ü\ÚX‚š[\ÜŞ\Âš[\Ü[\š[Bš[\Ü[YBš[\Ü[š]\İ™œ›ÛH]Xˆ[\Ü]™œ›ÛH[š]\İ›[ØÚÈ[\Ü]Ú‚œŞ\Ëœ]š[œÙ\
+İŠ]
+×Ùš[W×ÊKœ™\ÛÛ™J
+Kœ\™[ÖÌWHÈœÚ\™YŠJB™œ›ÛHØ\œ×ÜY[\ÜYÛÛ›Û\‚™œ›ÛHØ\œ×Ù™Y\˜][Û—ØÜ\È[\Ü[˜Ü\Ü[—ÚœÛÛ‹™\]Y\İÜÚYÛ˜]\™KÙX[ÚœÛÛ‚‚‚˜Û\ÜÈYZ\š[™Õ\İÊ[š]\İ•\İØ\ÙJN‚ˆYˆXZÙWØÛÛ›Û\ŠÙ[‹›Û\ŠN‚ˆ\ÜÙ]ÈH]
+›Û\ŠHÈœY‚ˆ\ÜÙ]Ë›ZÙ\Š
+Bˆ
+\ÜÙ]ÈÈš[™^š[ŠKÜš]Wİ^
+“ĞT”ÈQ‹[˜ÛÙ[™ÏH]‹NŠBˆ™]\›ˆYÛÛ›Û\Š]
+›Û\ŠHÈ˜ÛÛ™šYÈ‹\ÜÙ]ËŒŒŒ‹\İ‹\İ[Q˜[ÙJB‚ˆYˆ\İØY\×ÌM—ÙØÛWÛX]Ú\×Ûš\İİ™XİÜŠÙ[ŠN‚ˆÚ]]Ú
+›Ø\œ×Ù™Y\˜][Û—ØÜ\Ë›ÜË\˜[™ÛH‹™]\›—İ˜[YOXˆ—ˆ
+ˆLŠN‚ˆ›Û˜ÙKÚ\\^YÈH[˜Ü\
+ˆ—ˆ
+ˆÌ‹ˆ—ˆ
+ˆMŠBˆÙ[‹˜\ÜÙ\\]X[
+›Û˜ÙKˆ—ˆ
+ˆLŠBˆÙ[‹˜\ÜÙ\\]X[
+Ú\\^š^
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "shared"))
-from lcars_padd import PaddController
-from lcars_federation_crypto import encrypt, open_json, request_signature, seal_json
+K˜ÙXMÍÙŒ˜™LÍXÍYØ˜YŒÎYNŠBˆÙ[‹˜\ÜÙ\\]X[
+YËš^
 
+K™XÎMÎNNNM˜™ŒXNYXLNHŠB‚ˆYˆ\İÛÛ™Wİ\ÙWÜZ\š[™×Ú\Ú\×İÚÙ[œ×Ø[™Üİ\Ü×Ü™]›ØØ][ÛŠÙ[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
+H\È›Û\‚ˆÛÛ›Û\ˆHÙ[‹›XZÙWØÛÛ›Û\Š›Û\ŠBˆÙ[‹˜\ÜÙ\˜[ÙJÛÛ›Û\‹œİ]\ÊYJVÈ™[˜X›Y—JBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆÛÙHH\›YYÈœZ\š[™È—VÈ˜ÛÙH—BˆZ\™YHÛÛ›Û\‹œZ\ŠÛÙKØ\Z[‰ÜÈQ‹ŒNL‹ŒMŒKHŠBˆÙ[‹˜\ÜÙ\\]X[
+Z\™YÈ™]šXÙH—VÈœ›ÛH—K›Ü\˜]ÜˆŠBˆÙ[‹˜\ÜÙ\\Ó›Û™JÛÛ›Û\‹œİ]\ÊYJVÈœZ\š[™È—JBˆ™XÛÜ™HœÛÛ‹›ØYÊÛÛ›Û\‹™]šXÙWÙš[Kœ™XYİ^
+[˜ÛÙ[™ÏH]‹NŠJBˆÙ[‹˜\ÜÙ\›İ[ŠZ\™YÈÚÙ[ˆ—KÛÛ›Û\‹™]šXÙWÙš[Kœ™XYİ^
+[˜ÛÙ[™ÏH]‹NŠJBˆÙ[‹˜\ÜÙ\\]X[
+[Š™XÛÜ™È™]šXÙ\È—VÌVÈÚÙ[’\Ú—JK
+BˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JVÈšY—KZ\™YÈ™]šXÙH—VÈšY—JBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœ™]›ÚÙH‹šYˆZ\™YÈ™]šXÙH—VÈšY—_JBˆÙ[‹˜\ÜÙ\\Ó›Û™JÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JJB‚ˆYˆ\İÜ›Û\×ÙØ]WØÛÛ[X[™×Ø[™ØÛÛ[X[™Ü]Y]YWÚ\×Ù˜Z[™Y
+Ù[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
+H\È›Û\‚ˆÛÛ›Û\ˆHÙ[‹›XZÙWØÛÛ›Û\Š›Û\ŠBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆZ\™YHÛÛ›Û\‹œZ\Š\›YYÈœZ\š[™È—VÈ˜ÛÙH—K“ÜÈQ‹ŒNL‹ŒMŒKŠBˆ]šXÙHHÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JBˆÛÛ›Û\‹œ]Y]YWØXİ[ÛŠ]šXÙKÈ˜Xİ[Ûˆˆ›YYXH‹˜[YHˆœ^K\]\ÙHŸJBˆÚ]Ù[‹˜\ÜÙ\˜Z\Ù\Ê\›Z\ÜÚ[Û‘\œ›ÜŠN‚ˆÛÛ›Û\‹œ]Y]YWØXİ[ÛŠ]šXÙKÈ˜Xİ[Ûˆˆœ›İ][™H‹˜[YHˆœ›İ][™KLHŸJBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœ›ÛH‹šYˆ]šXÙVÈšY—Kœ›ÛHˆ˜ÛÛ[X[™ŸJBˆÛÛ[X[™Ù]šXÙHHÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JBˆ™\]Y\İYHÛÛ›Û\‹œ]Y]YWØXİ[ÛŠÛÛ[X[™Ù]šXÙKÈ˜Xİ[Ûˆˆœ›İ][™H‹˜[YHˆœ›İ][™KLHŸJBˆÙ[‹˜\ÜÙ\YJ™\]Y\İYÈ˜\›İ˜[™\]Z\™Y—JBˆÙ[‹˜\ÜÙ\\]X[
+Ú][VÈ˜Xİ[Ûˆ—H›Üˆ][H[ˆÛÛ›Û\‹œÜØÛÛ[X[™Ê
+WKÈ›YYXH—JBˆ\›İ˜[HÛÛ›Û\‹œİ]\Ê
+VÈ˜\›İ˜[È—VÌBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆ˜\›İ™H‹˜\›İ˜[Yˆ\›İ˜[ÈšY—_JBˆÙ[‹˜\ÜÙ\\]X[
+Ú][VÈ˜Xİ[Ûˆ—H›Üˆ][H[ˆÛÛ›Û\‹œÜØÛÛ[X[™Ê
+WKÈœ›İ][™H—JBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ›Û\‹œÜØÛÛ[X[™Ê
+K×JB‚ˆYˆ\İÜÚ\™YÜİ]WÙÙ\×Û›İÜÚİ×Ø\×İ×Û›Û—ØÛÛ[X[™Ü›Û\ÊÙ[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
+H\È›Û\‚ˆÛÛ›Û\ˆHÙ[‹›XZÙWØÛÛ›Û\Š›Û\ŠBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆZ\™YHÛÛ›Û\‹œZ\Š\›YYÈœZ\š[™È—VÈ˜ÛÙH—K”İ]\ÈQ‹ŒNL‹ŒMŒKHŠBˆÛÛ›Û\‹œŞ[˜ÊÈœYÙHˆ›YYXH‹›Û[YHˆÌ‹˜\ÈˆŞÈšYˆ™\ØÛÜ™‹›˜[YHˆ‘\ØÛÜ™ŸWKœ›İ][™\ÈˆŞÈšYˆ›Û™H‹›˜[YHˆ”›İ][™HŸW_JBˆİ]HHÛÛ›Û\‹œİ]WÙ›ÜŠÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JJBˆÙ[‹˜\ÜÙ\\]X[
+İ]VÈœİ]H—VÈœYÙH—K›YYXHŠBˆÙ[‹˜\ÜÙ\\]X[
+İ]VÈœİ]H—VÈ›Û[YH—KÌŠBˆÙ[‹˜\ÜÙ\\]X[
+İ]VÈœİ]H—VÈ˜\È—K×JBˆÙ[‹˜\ÜÙ\YJİ]VÈ˜Ø\Xš[]Y\È—VÈ›YYXH—JBˆÙ[‹˜\ÜÙ\˜[ÙJİ]VÈ˜Ø\Xš[]Y\È—VÈ˜\—JB‚ˆYˆ\İÛYYXWİ\™Ù]×Ø[™Ù\ÛZ\Ü×Ø[Ø\™WÜØY™[WÜ]Y]YY
+Ù[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
+H\È›Û\‚ˆÛÛ›Û\ˆHÙ[‹›XZÙWØÛÛ›Û\Š›Û\ŠBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆZ\™YHÛÛ›Û\‹œZ\Š\›YYÈœZ\š[™È—VÈ˜ÛÙH—K“YYXHQ‹ŒNL‹ŒMŒKŒLˆŠBˆ]šXÙHHÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JBˆÛÛ›Û\‹œ]Y]YWØXİ[ÛŠ]šXÙKÈ˜Xİ[Ûˆˆ›YYXH‹˜[YHˆÈœ^Y\ˆˆœÜİYKš[œİ[˜ÙMˆ‹˜ÛÛ[X[™ˆœ^K\]\ÙHŸ_JBˆÛÛ›Û\‹œ]Y]YWØXİ[ÛŠ]šXÙKÈ˜Xİ[Ûˆˆ››İXÙKY\ÛZ\ÜËX[‹˜[YHˆšYÛ›Ü™YŸJBˆÛÛ[X[™ÈHÛÛ›Û\‹œÜØÛÛ[X[™Ê
+BˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ[X[™ÖÌVÈ˜[YH—KÈœ^Y\ˆˆœÜİYKš[œİ[˜ÙMˆ‹˜ÛÛ[X[™ˆœ^K\]\ÙHŸJBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ[X[™ÖÌWVÈ˜Xİ[Ûˆ—K››İXÙKY\ÛZ\ÜËX[ŠBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ[X[™ÖÌWVÈ˜[YH—K˜[ŠBˆÚ]Ù[‹˜\ÜÙ\˜Z\Ù\Ê˜[YQ\œ›ÜŠN‚ˆÛÛ›Û\‹œ]Y]YWØXİ[ÛŠ]šXÙKÈ˜Xİ[Ûˆˆ›YYXH‹˜[YHˆÈœ^Y\ˆˆœÜİYH‹˜ÛÛ[X[™ˆ™[]HŸ_JB‚ˆYˆ\İÙÜ˜[[\—Ü\›Z\ÜÚ[Ûœ×Û^[İ]ÚX\™X]Ø[™ÚY[YJÙ[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
+H\È›Û\‚ˆÛÛ›Û\ˆHÙ[‹›XZÙWØÛÛ›Û\Š›Û\ŠBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆZ\™YHÛÛ›Û\‹œZ\Š\›YYÈœZ\š[™È—VÈ˜ÛÙH—K”ØÚY[˜ÙHQ‹ŒNL‹ŒMŒKŒLŠBˆY[HZ\™YÈ™]šXÙH—VÈšY—BˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœ\›Z\ÜÚ[ÛœÈ‹šYˆY[œ\›Z\ÜÚ[ÛœÈˆÈ›YYXHˆ˜[ÙK˜ÛÛ[][šXØ][ÛœÈˆ˜[ÙK[[Y]HˆY__JBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆ›^[İ]‹šYˆY[ÚYÙ]ÈˆÈœİ]\È‹˜ÛÛ[][šXØ][ÛœÈ—_JBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœ›Ùš[H‹šYˆY[˜[YHˆ˜œšYÙK\İ][ÛˆŸJBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœ›Ş[Z]H‹šYˆY[™[˜X›YˆY_JBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][ÛˆˆšY[YH‹šYˆY[JBˆ]šXÙHHÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JBˆX\™X]HÛÛ›Û\‹šX\™X]
+]šXÙKÈ˜˜]\Hˆ›™]ÛÜšÈˆÚYšH‹›][˜ŞS\ÈˆM™\œÚ[ÛˆˆŒŒË]\İŸKŒNL‹ŒMŒKŒLŠBˆÙ[‹˜\ÜÙ\\]X[
+X\™X]È™]šXÙH—VÈ˜˜]\H—K
+BˆÙ[‹˜\ÜÙ\\]X[
+X\™X]È™]šXÙH—VÈ›][˜ŞS\È—KM
+BˆÛÛ›Û\‹œŞ[˜ÊÈ››İXÙ\ÈˆŞÈšYˆ›Û™H‹^ˆ”š[Üš]HŸWK›Y]\œÈˆŞÈ›X™[ˆÔH‹˜[YHˆŸW_JBˆİ]HHÛÛ›Û\‹œİ]WÙ›ÜŠÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JJBˆÙ[‹˜\ÜÙ\˜[ÙJİ]VÈ˜Ø\Xš[]Y\È—VÈ›YYXH—JBˆÙ[‹˜\ÜÙ\\]X[
+İ]VÈœİ]H—VÈ››İXÙ\È—K×JBˆÙ[‹˜\ÜÙ\\]X[
+İ]VÈœİ]H—VÈÚYÙ]È—KÈœİ]\È‹˜ÛÛ[][šXØ][ÛœÈ—JBˆÙ[‹˜\ÜÙ\\]X[
+İ]VÈ™]šXÙH—VÈÛÜšÜİ][Ûˆ—K˜œšYÙK\İ][ÛˆŠBˆÙ[‹˜\ÜÙ\YJİ]VÈ™]šXÙH—VÈœ›Ş[Z]H—JBˆÙ[‹˜\ÜÙ\\]X[
+İ]VÈœÚYÛ˜[—VÈ\H—KšY[YHŠB‚ˆYˆ\İÜ™\Ù]×Û›İYšXØ][Ûœ×ØÛÜWØ[™İ™\œÚ[Û—ØÛÛ\]Xš[]JÙ[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
+H\È›Û\‚ˆÛÛ›Û\ˆHÙ[‹›XZÙWØÛÛ›Û\Š›Û\ŠBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆš\œİHÛÛ›Û\‹œZ\Š\›YYÈœZ\š[™È—VÈ˜ÛÙH—K“Û™H‹ŒNL‹ŒMŒKŒŒŠBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆÙXÛÛ™HÛÛ›Û\‹œZ\Š\›YYÈœZ\š[™È—VÈ˜ÛÙH—K•ÛÈ‹ŒNL‹ŒMŒKŒŒHŠBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœ™\Ù]‹šYˆš\œİÈ™]šXÙH—VÈšY—Kœ™\Ù]ˆ˜ÛÛ[X[™ŸJBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆ››İYšXØ][ÛœÈ‹šYˆš\œİÈ™]šXÙH—VÈšY—K››İYšXØ][ÛœÈˆÈœš[Üš]SÛ›Hˆ˜[ÙK˜ÛÛ›™Xİ[Û‘]™[Èˆ˜[ÙKœ›İ][™T™\İ[ÈˆY__JBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆ˜ÛÜK\Ù][™ÜÈ‹šYˆÙXÛÛ™È™]šXÙH—VÈšY—KœÛİ\˜ÙRYˆš\œİÈ™]šXÙH—VÈšY—_JBˆÛÜYYHÛÛ›Û\‹˜]][XØ]JÙXÛÛ™ÈÚÙ[ˆ—JBˆÙ[‹˜\ÜÙ\\]X[
+ÛÜYYÈœ›ÛH—K˜ÛÛ[X[™ŠBˆÙ[‹˜\ÜÙ\˜[ÙJÛÜYYÈ››İYšXØ][ÛœÈ—VÈœš[Üš]SÛ›H—JBˆÛÛ›Û\‹šX\™X]
+ÛÜYYÈ™\œÚ[ÛˆˆŒŒˆ‹›™]ÛÜšÈˆÚYšHŸJBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ›Û\‹˜]][XØ]JÙXÛÛ™ÈÚÙ[ˆ—JVÈ˜ÛÛ\]Xš[]H—K˜ÛÛ\]X›HŠBˆÛÛ›Û\‹šX\™X]
+ÛÜYYÈ™\œÚ[ÛˆˆŒËŒˆ‹›™]ÛÜšÈˆÚYšHŸJBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ›Û\‹˜]][XØ]JÙXÛÛ™ÈÚÙ[ˆ—JVÈ˜ÛÛ\]Xš[]H—K˜ÛY[[İ]]YŠBˆÛÛ›Û\‹šX\™X]
+ÛÜYYÈ™\œÚ[ÛˆˆŒKŒH‹›™]ÛÜšÈˆÚYšHŸJBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ›Û\‹˜]][XØ]JÙXÛÛ™ÈÚÙ[ˆ—JVÈ˜ÛÛ\]Xš[]H—Kœİ][Û‹[İ]]YŠB‚ˆYˆ\İİ^ØÛ\›Ø\™Ú\×ÛÜÚ[—Ø›İ[™YØ[™Ø\›İ˜[ÙØ]Y
+Ù[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
+H\È›Û\‚ˆÛÛ›Û\ˆHÙ[‹›XZÙWØÛÛ›Û\Š›Û\ŠBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆZ\™YHÛÛ›Û\‹œZ\Š\›YYÈœZ\š[™È—VÈ˜ÛÙH—KÛÛ[X[™Q‹ŒNL‹ŒMŒKŒLHŠBˆY[HZ\™YÈ™]šXÙH—VÈšY—BˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœ›ÛH‹šYˆY[œ›ÛHˆ˜ÛÛ[X[™ŸJBˆ]šXÙHHÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JBˆÙ[‹˜\ÜÙ\˜[ÙJÛÛ›Û\‹œİ]WÙ›ÜŠ]šXÙJVÈ˜Ø\Xš[]Y\È—VÈ˜Û\›Ø\™—JBˆÚ]Ù[‹˜\ÜÙ\˜Z\Ù\Ê\›Z\ÜÚ[Û‘\œ›ÜŠN‚ˆÛÛ›Û\‹œ]Y]YWØXİ[ÛŠ]šXÙKÈ˜Xİ[Ûˆˆ˜Û\›Ø\™‹˜[YHˆ˜[HŸJBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆ˜Û\›Ø\™‹™[˜X›YˆY_JBˆÙ[‹˜\ÜÙ\YJÛÛ›Û\‹œİ]WÙ›ÜŠ]šXÙJVÈ˜Ø\Xš[]Y\È—VÈ˜Û\›Ø\™—JBˆ™\]Y\İYHÛÛ›Û\‹œ]Y]YWØXİ[ÛŠ]šXÙKÈ˜Xİ[Ûˆˆ˜Û\›Ø\™‹˜[YHˆ˜[W˜™]HŸJBˆÙ[‹˜\ÜÙ\YJ™\]Y\İYÈ˜\›İ˜[™\]Z\™Y—JBˆ\›İ˜[HÛÛ›Û\‹œİ]\Ê
+VÈ˜\›İ˜[È—VÌBˆÙ[‹˜\ÜÙ\\]X[
+\›İ˜[È˜[YH—K˜[W˜™]HŠBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆ™[H‹˜\›İ˜[Yˆ\›İ˜[ÈšY—_JBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ›Û\‹œÜØÛÛ[X[™Ê
+K×JBˆÙ[‹˜\ÜÙ\YJ[J][VÈ˜Xİ[Ûˆ—HOHœ™\]Y\İY[šYYˆ›Üˆ][H[ˆÛÛ›Û\‹œİ]\Ê
+VÈ˜Xİ]š]H—JJB‚ˆYˆ\İÜÙ[œÚ]]™WØ\›İ˜[×Ù^\™WİÚ]İ]Ù[\š[™×İWØÛÛ[X[™Ü]Y]YJÙ[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
+H\È›Û\‚ˆÛÛ›Û\ˆHÙ[‹›XZÙWØÛÛ›Û\Š›Û\ŠBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆZ\™YHÛÛ›Û\‹œZ\Š\›YYÈœZ\š[™È—VÈ˜ÛÙH—KÛÛ[X[™Q‹ŒNL‹ŒMŒKŒÌŠBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœ›ÛH‹šYˆZ\™YÈ™]šXÙH—VÈšY—Kœ›ÛHˆ˜ÛÛ[X[™ŸJBˆÛÛ›Û\‹œ]Y]YWØXİ[ÛŠÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JKÈ˜Xİ[Ûˆˆœ›İ][™H‹˜[YHˆœ›İ][™KLHŸJBˆÛÛ›Û\‹˜\›İ˜[ÖÌVÈ™^\™\Ğ]—HH[
+[YK[YJ
+JHHBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ›Û\‹œİ]\Ê
+VÈ˜\›İ˜[È—K×JBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ›Û\‹œÜØÛÛ[X[™Ê
+K×JBˆÙ[‹˜\ÜÙ\YJ[J][VÈ˜Xİ[Ûˆ—HOHœ™\]Y\İY^\™Yˆ›Üˆ][H[ˆÛÛ›Û\‹œİ]\Ê
+VÈ˜Xİ]š]H—JJB‚ˆYˆ\İÙ™Y\˜][Û—ÚY[]WÜÙ[Xİ]™WÜŞ[˜×Ø[™ÛÙ™›[™WÙ[]™\JÙ[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
+H\È›Û\‚ˆÛÛ›Û\ˆHÙ[‹›XZÙWØÛÛ›Û\Š›Û\ŠBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆZ\™YHÛÛ›Û\‹œZ\Š\›YYÈœZ\š[™È—VÈ˜ÛÙH—K‘™Y\˜][ÛˆQ‹ŒNL‹ŒMŒKŠBˆY[HZ\™YÈ™]šXÙH—VÈšY—BˆÙ[‹˜\ÜÙ\YJZ\™YÈœİ][Ûˆ—VÈšY—Kœİ\İÚ]
+œİ][Û‹HŠJBˆÙ[‹˜\ÜÙ\\]X[
+Z\™YÈ˜[œÜÜ—K˜Y\ËLM‹YØÛHŠBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][ÛˆˆœŞ[˜Ë\ÛXŞH‹šYˆY[œŞ[˜ÈˆÈ›YYXHˆ˜[ÙK[[Y]Hˆ˜[ÙK››İYšXØ][ÛœÈˆY__JBˆÛÛ›Û\‹œŞ[˜ÊÈœYÙHˆ›YYXH‹›YYXHˆŞÈšYˆœÜİYHŸWK›Y]\œÈˆŞÈ›X™[ˆÔH‹˜[YHˆLWK››İXÙ\ÈˆŞÈšYˆœš[Üš]H‹œš[Üš]Hˆœš[Üš]H‹^ˆ”™Y[\ŸKÈšYˆœ›İ][™H‹œš[Üš]Hˆœ›İ][™H‹^ˆ”›İ][™HŸW_JBˆİ]HHÛÛ›Û\‹œİ]WÙ›ÜŠÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JJBˆÙ[‹˜\ÜÙ\\]X[
+İ]VÈœİ]H—VÈ›YYXH—K×JBˆÙ[‹˜\ÜÙ\\]X[
+İ]VÈœİ]H—VÈ›Y]\œÈ—K×JBˆÙ[‹˜\ÜÙ\\]X[
+Ú][VÈšY—H›Üˆ][H[ˆİ]VÈœİ]H—VÈ››İXÙ\È—WKÈœš[Üš]H—JBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆ™[]™\H‹šYˆY[šÚ[™ˆœYÙH‹œ^[ØYˆÈœYÙHˆ›YYXH‹]Hˆ“YYXHÛÛœÛÛHŸ_JBˆ]Y]YYHÛÛ›Û\‹œİ]WÙ›ÜŠÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JJBˆÙ[‹˜\ÜÙ\\]X[
+]Y]YYÈœ]Y]YQ\—KJBˆÙ[‹˜\ÜÙ\\]X[
+]Y]YYÈœÚYÛ˜[—VÈ\H—KœYÙHŠBˆÛÛ›Û\‹˜XÚÛ›İÛYÙWÜÚYÛ˜[
+]Y]YYÈ™]šXÙH—K]Y]YYÈœÚYÛ˜[—VÈšY—JBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ›Û\‹œİ]WÙ›ÜŠÛÛ›Û\‹˜]][XØ]JZ\™YÈÚÙ[ˆ—JJVÈœ]Y]YQ\—K
+B‚ˆYˆ\İÜÙ[œÚ]]™WÙ[]™\šY\×Ü™\]Z\™WÙÛØ˜[Ø[™Ü\—Üİ][Û—ÛÜÚ[ŠÙ[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
+H\È›Û\‚ˆÛÛ›Û\ˆHÙ[‹›XZÙWØÛÛ›Û\Š›Û\ŠBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆZ\™YHÛÛ›Û\‹œZ\Š\›YYÈœZ\š[™È—VÈ˜ÛÙH—KÛÛ[X[™Q‹ŒNL‹ŒMŒKˆŠBˆY[HZ\™YÈ™]šXÙH—VÈšY—BˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœ›ÛH‹šYˆY[œ›ÛHˆ˜ÛÛ[X[™ŸJBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆ˜Û\›Ø\™‹™[˜X›YˆY_JBˆÚ]Ù[‹˜\ÜÙ\˜Z\Ù\Ô™YÙ^
+\›Z\ÜÚ[Û‘\œ›Ü‹\Èİ][ÛˆŠN‚ˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆ™[]™\H‹šYˆY[šÚ[™ˆ˜Û\›Ø\™‹œ^[ØYˆÈ^ˆ˜[HŸ_JBˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][ÛˆˆœŞ[˜Ë\ÛXŞH‹šYˆY[œŞ[˜ÈˆÈ˜Û\›Ø\™ˆY__JBˆÚ]Ù[‹˜\ÜÙ\˜Z\Ù\Ô™YÙ^
+\›Z\ÜÚ[Û‘\œ›Ü‹™[˜Ü\Y˜]]™H™Y\˜][Ûˆ[šÈŠN‚ˆÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆ™[]™\H‹šYˆY[šÚ[™ˆ˜Û\›Ø\™‹œ^[ØYˆÈ^ˆ˜[HŸ_JB‚ˆYˆ\İÜÚYÛ™YØY\×ÙØÛWİ˜[œÜÜÜ™Z™Xİ×Ü™\^JÙ[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
+H\È›Û\‚ˆÛÛ›Û\ˆHÙ[‹›XZÙWØÛÛ›Û\Š›Û\ŠBˆ\›YYHÛÛ›Û\‹›X[˜YÙJÈ›Ü\˜][Ûˆˆœİ\ŸJBˆZ\™YHÛÛ›Û\‹œZ\Š\›YYÈœZ\š[™È—VÈ˜ÛÙH—K”ÙXİ\™HQ‹ŒNL‹ŒMŒKHŠBˆ]šXÙKÚÙ[ˆHZ\™YÈ™]šXÙH—KZ\™YÈÚÙ[ˆ—BˆÙ^HH\ÚX‹œÚLMŠÚÙ[‹™[˜ÛÙJ
+JK™YÙ\İ
 
-class PaddPairingTests(unittest.TestCase):
-    def make_controller(self, folder):
-        assets = Path(folder) / "padd"
-        assets.mkdir()
-        (assets / "index.html").write_text("LCARS PADD", encoding="utf-8")
-        return PaddController(Path(folder) / "config", assets, "28.0.0", "test", listen=False)
-
-    def test_aes_256_gcm_matches_nist_vector(self):
-        with patch("lcars_federation_crypto.os.urandom", return_value=b"\0" * 12):
-            nonce, ciphertext, tag = encrypt(b"\0" * 32, b"\0" * 16)
-        self.assertEqual(nonce, b"\0" * 12)
-        self.assertEqual(ciphertext.hex(), "cea7403d4d606b6e074ec5d3baf39d18")
-        self.assertEqual(tag.hex(), "d0d1c8a799996bf0265b98b5d48ab919")
-
-    def test_one_use_pairing_hashes_tokens_and_supports_revocation(self):
-        with tempfile.TemporaryDirectory() as folder:
-            controller = self.make_controller(folder)
-            self.assertFalse(controller.status(True)["enabled"])
-            armed = controller.manage({"operation": "start"})
-            code = armed["pairing"]["code"]
-            paired = controller.pair(code, "Captain's PADD", "192.168.1.5")
-            self.assertEqual(paired["device"]["role"], "operator")
-            self.assertIsNone(controller.status(True)["pairing"])
-            record = json.loads(controller.device_file.read_text(encoding="utf-8"))
-            self.assertNotIn(paired["token"], controller.device_file.read_text(encoding="utf-8"))
-            self.assertEqual(len(record["devices"][0]["tokenHash"]), 64)
-            self.assertEqual(controller.authenticate(paired["token"])["id"], paired["device"]["id"])
-            controller.manage({"operation": "revoke", "id": paired["device"]["id"]})
-            self.assertIsNone(controller.authenticate(paired["token"]))
-
-    def test_roles_gate_commands_and_command_queue_is_drained(self):
-        with tempfile.TemporaryDirectory() as folder:
-            controller = self.make_controller(folder)
-            armed = controller.manage({"operation": "start"})
-            paired = controller.pair(armed["pairing"]["code"], "Ops PADD", "192.168.1.8")
-            device = controller.authenticate(paired["token"])
-            controller.queue_action(device, {"action": "media", "value": "play-pause"})
-            with self.assertRaises(PermissionError):
-                controller.queue_action(device, {"action": "routine", "value": "routine-1"})
-            controller.manage({"operation": "role", "id": device["id"], "role": "command"})
-            command_device = controller.authenticate(paired["token"])
-            requested = controller.queue_action(command_device, {"action": "routine", "value": "routine-1"})
-            self.assertTrue(requested["approvalRequired"])
-            self.assertEqual([item["action"] for item in controller.pop_commands()], ["media"])
-            approval = controller.status()["approvals"][0]
-            controller.manage({"operation": "approve", "approvalId": approval["id"]})
-            self.assertEqual([item["action"] for item in controller.pop_commands()], ["routine"])
-            self.assertEqual(controller.pop_commands(), [])
-
-    def test_shared_state_does_not_show_apps_to_non_command_roles(self):
-        with tempfile.TemporaryDirectory() as folder:
-            controller = self.make_controller(folder)
-            armed = controller.manage({"operation": "start"})
-            paired = controller.pair(armed["pairing"]["code"], "Status PADD", "192.168.1.9")
-            controller.sync({"page": "media", "volume": 72, "apps": [{"id": "discord", "name": "Discord"}], "routines": [{"id": "one", "name": "Routine"}]})
-            state = controller.state_for(controller.authenticate(paired["token"]))
-            self.assertEqual(state["state"]["page"], "media")
-            self.assertEqual(state["state"]["volume"], 72)
-            self.assertEqual(state["state"]["apps"], [])
-            self.assertTrue(state["capabilities"]["media"])
-            self.assertFalse(state["capabilities"]["app"])
-
-    def test_media_targets_and_dismiss_all_are_safely_queued(self):
-        with tempfile.TemporaryDirectory() as folder:
-            controller = self.make_controller(folder)
-            armed = controller.manage({"operation": "start"})
-            paired = controller.pair(armed["pairing"]["code"], "Media PADD", "192.168.1.12")
-            device = controller.authenticate(paired["token"])
-            controller.queue_action(device, {"action": "media", "value": {"player": "spotify.instance42", "command": "play-pause"}})
-            controller.queue_action(device, {"action": "notice-dismiss-all", "value": "ignored"})
-            commands = controller.pop_commands()
-            self.assertEqual(commands[0]["value"], {"player": "spotify.instance42", "command": "play-pause"})
-            self.assertEqual(commands[1]["action"], "notice-dismiss-all")
-            self.assertEqual(commands[1]["value"], "all")
-            with self.assertRaises(ValueError):
-                controller.queue_action(device, {"action": "media", "value": {"player": "spotify", "command": "delete"}})
-
-    def test_granular_permissions_layout_heartbeat_and_identify(self):
-        with tempfile.TemporaryDirectory() as folder:
-            controller = self.make_controller(folder)
-            armed = controller.manage({"operation": "start"})
-            paired = controller.pair(armed["pairing"]["code"], "Science PADD", "192.168.1.10")
-            ident = paired["device"]["id"]
-            controller.manage({"operation": "permissions", "id": ident, "permissions": {"media": False, "communications": False, "telemetry": True}})
-            controller.manage({"operation": "layout", "id": ident, "widgets": ["status", "communications"]})
-            controller.manage({"operation": "profile", "id": ident, "value": "bridge-station"})
-            controller.manage({"operation": "proximity", "id": ident, "enabled": True})
-            controller.manage({"operation": "identify", "id": ident})
-            device = controller.authenticate(paired["token"])
-            heartbeat = controller.heartbeat(device, {"battery": 0, "network": "wifi", "latencyMs": 14, "version": "28.3-test"}, "192.168.1.10")
-            self.assertEqual(heartbeat["device"]["battery"], 0)
-            self.assertEqual(heartbeat["device"]["latencyMs"], 14)
-            controller.sync({"notices": [{"id": "one", "text": "Priority"}], "meters": [{"label": "CPU", "value": 42}]})
-            state = controller.state_for(controller.authenticate(paired["token"]))
-            self.assertFalse(state["capabilities"]["media"])
-            self.assertEqual(state["state"]["notices"], [])
-            self.assertEqual(state["state"]["widgets"], ["status", "communications"])
-            self.assertEqual(state["device"]["workstation"], "bridge-station")
-            self.assertTrue(state["device"]["proximity"])
-            self.assertEqual(state["signal"]["type"], "identify")
-
-    def test_presets_notifications_copy_and_version_compatibility(self):
-        with tempfile.TemporaryDirectory() as folder:
-            controller = self.make_controller(folder)
-            armed = controller.manage({"operation": "start"})
-            first = controller.pair(armed["pairing"]["code"], "One", "192.168.1.20")
-            armed = controller.manage({"operation": "start"})
-            second = controller.pair(armed["pairing"]["code"], "Two", "192.168.1.21")
-            controller.manage({"operation": "preset", "id": first["device"]["id"], "preset": "command"})
-            controller.manage({"operation": "notifications", "id": first["device"]["id"], "notifications": {"priorityOnly": False, "connectionEvents": False, "routineResults": True}})
-            controller.manage({"operation": "copy-settings", "id": second["device"]["id"], "sourceId": first["device"]["id"]})
-            copied = controller.authenticate(second["token"])
-            self.assertEqual(copied["role"], "command")
-            self.assertFalse(copied["notifications"]["priorityOnly"])
-            controller.heartbeat(copied, {"version": "28.2", "network": "wifi"})
-            self.assertEqual(controller.authenticate(second["token"])["compatibility"], "compatible")
-            controller.heartbeat(copied, {"version": "27.2", "network": "wifi"})
-            self.assertEqual(controller.authenticate(second["token"])["compatibility"], "client-outdated")
-            controller.heartbeat(copied, {"version": "29.1", "network": "wifi"})
-            self.assertEqual(controller.authenticate(second["token"])["compatibility"], "station-outdated")
-
-    def test_text_clipboard_is_opt_in_bounded_and_approval_gated(self):
-        with tempfile.TemporaryDirectory() as folder:
-            controller = self.make_controller(folder)
-            armed = controller.manage({"operation": "start"})
-            paired = controller.pair(armed["pairing"]["code"], "Command PADD", "192.168.1.11")
-            ident = paired["device"]["id"]
-            controller.manage({"operation": "role", "id": ident, "role": "command"})
-            device = controller.authenticate(paired["token"])
-            self.assertFalse(controller.state_for(device)["capabilities"]["clipboard"])
-            with self.assertRaises(PermissionError):
-                controller.queue_action(device, {"action": "clipboard", "value": "alpha"})
-            controller.manage({"operation": "clipboard", "enabled": True})
-            self.assertTrue(controller.state_for(device)["capabilities"]["clipboard"])
-            requested = controller.queue_action(device, {"action": "clipboard", "value": "alpha\nbeta"})
-            self.assertTrue(requested["approvalRequired"])
-            approval = controller.status()["approvals"][0]
-            self.assertEqual(approval["value"], "alpha\nbeta")
-            controller.manage({"operation": "deny", "approvalId": approval["id"]})
-            self.assertEqual(controller.pop_commands(), [])
-            self.assertTrue(any(item["action"] == "request-denied" for item in controller.status()["activity"]))
-
-    def test_sensitive_approvals_expire_without_entering_the_command_queue(self):
-        with tempfile.TemporaryDirectory() as folder:
-            controller = self.make_controller(folder)
-            armed = controller.manage({"operation": "start"})
-            paired = controller.pair(armed["pairing"]["code"], "Command PADD", "192.168.1.30")
-            controller.manage({"operation": "role", "id": paired["device"]["id"], "role": "command"})
-            controller.queue_action(controller.authenticate(paired["token"]), {"action": "routine", "value": "routine-1"})
-            controller.approvals[0]["expiresAt"] = int(time.time()) - 1
-            self.assertEqual(controller.status()["approvals"], [])
-            self.assertEqual(controller.pop_commands(), [])
-            self.assertTrue(any(item["action"] == "request-expired" for item in controller.status()["activity"]))
-
-    def test_federation_identity_selective_sync_and_offline_delivery(self):
-        with tempfile.TemporaryDirectory() as folder:
-            controller = self.make_controller(folder)
-            armed = controller.manage({"operation": "start"})
-            paired = controller.pair(armed["pairing"]["code"], "Federation PADD", "192.168.1.40")
-            ident = paired["device"]["id"]
-            self.assertTrue(paired["station"]["id"].startswith("station-"))
-            self.assertEqual(paired["transport"], "aes-256-gcm")
-            controller.manage({"operation": "sync-policy", "id": ident, "sync": {"media": False, "telemetry": False, "notifications": True}})
-            controller.sync({"page": "media", "media": [{"id": "spotify"}], "meters": [{"label": "CPU", "value": 50}], "notices": [{"id": "priority", "priority": "priority", "text": "Red alert"}, {"id": "routine", "priority": "routine", "text": "Routine"}]})
-            state = controller.state_for(controller.authenticate(paired["token"]))
-            self.assertEqual(state["state"]["media"], [])
-            self.assertEqual(state["state"]["meters"], [])
-            self.assertEqual([item["id"] for item in state["state"]["notices"]], ["priority"])
-            controller.manage({"operation": "delivery", "id": ident, "kind": "page", "payload": {"page": "media", "title": "Media Console"}})
-            queued = controller.state_for(controller.authenticate(paired["token"]))
-            self.assertEqual(queued["queueDepth"], 1)
-            self.assertEqual(queued["signal"]["type"], "page")
-            controller.acknowledge_signal(queued["device"], queued["signal"]["id"])
-            self.assertEqual(controller.state_for(controller.authenticate(paired["token"]))["queueDepth"], 0)
-
-    def test_signed_aes_gcm_transport_rejects_replay(self):
-        with tempfile.TemporaryDirectory() as folder:
-            controller = self.make_controller(folder)
-            armed = controller.manage({"operation": "start"})
-            paired = controller.pair(armed["pairing"]["code"], "Secure PADD", "192.168.1.41")
-            device, token = paired["device"], paired["token"]
-            key = hashlib.sha256(token.encode()).digest()
-            route, timestamp, nonce = "/api/padd/action", str(int(time.time())), "nonce-001"
-            envelope = seal_json(key, {"action": "media", "value": "play-pause"}, f"POST:{route}:{device['id']}")
-            raw = json.dumps(envelope, separators=(",", ":")).encode()
-            headers = {"X-LCARS-Device": device["id"], "X-LCARS-Time": timestamp, "X-LCARS-Nonce": nonce, "X-LCARS-Signature": request_signature(key, timestamp, nonce, "POST", route, raw)}
-            authenticated, authenticated_key, secure = controller.authenticate_request(headers, "POST", route, raw, "192.168.1.41")
-            self.assertTrue(secure)
-            self.assertEqual(authenticated["id"], device["id"])
-            self.assertEqual(authenticated["transport"], "aes-256-gcm")
-            self.assertEqual(controller.status()["devices"][0]["transport"], "aes-256-gcm")
-            self.assertEqual(controller.decode_secure_body(authenticated_key, "POST", route, authenticated, raw)["action"], "media")
-            response = controller.encode_secure_response(authenticated_key, route, authenticated, {"ok": True})
-            self.assertTrue(open_json(key, response, f"RESPONSE:{route}:{device['id']}")["ok"])
-            replayed, _, _ = controller.authenticate_request(headers, "POST", route, raw, "192.168.1.41")
-            self.assertIsNone(replayed)
-
-
-if __name__ == "__main__":
-    unittest.main()
+Bˆ›İ]K[Y\İ[\›Û˜ÙHH‹Ø\KÜYØXİ[Ûˆ‹İŠ[
+[YK[YJ
+JJK››Û˜ÙKLH‚ˆ[™[ÜHHÙX[ÚœÛÛŠÙ^KÈ˜Xİ[Ûˆˆ›YYXH‹˜[YHˆœ^K\]\ÙHŸKˆ”ÔÕÜ›İ]_NÙ]šXÙVÉÚY	×_HŠBˆ˜]ÈHœÛÛ‹™[\Ê[™[ÜKÙ\\˜]ÜœÏJ‹‹ˆŠJK™[˜ÛÙJ
+BˆXY\œÈHÈ–SĞT”ËQ]šXÙHˆ]šXÙVÈšY—K–SĞT”ËU[YHˆ[Y\İ[\–SĞT”ËS›Û˜ÙHˆ›Û˜ÙK–SĞT”ËTÚYÛ˜]\™Hˆ™\]Y\İÜÚYÛ˜]\™JÙ^K[Y\İ[\›Û˜ÙK”ÔÕ‹›İ]K˜]Ê_Bˆ]][XØ]Y]][XØ]YÚÙ^KÙXİ\™HHÛÛ›Û\‹˜]][XØ]WÜ™\]Y\İ
+XY\œË”ÔÕ‹›İ]K˜]ËŒNL‹ŒMŒKHŠBˆÙ[‹˜\ÜÙ\YJÙXİ\™JBˆÙ[‹˜\ÜÙ\\]X[
+]][XØ]YÈšY—K]šXÙVÈšY—JBˆÙ[‹˜\ÜÙ\\]X[
+]][XØ]YÈ˜[œÜÜ—K˜Y\ËLM‹YØÛHŠBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ›Û\‹œİ]\Ê
+VÈ™]šXÙ\È—VÌVÈ˜[œÜÜ—K˜Y\ËLM‹YØÛHŠBˆÙ[‹˜\ÜÙ\\]X[
+ÛÛ›Û\‹™XÛÙWÜÙXİ\™WØ›ÙJ]][XØ]YÚÙ^K”ÔÕ‹›İ]K]][XØ]Y˜]ÊVÈ˜Xİ[Ûˆ—K›YYXHŠBˆ™\ÜÛœÙHHÛÛ›Û\‹™[˜ÛÙWÜÙXİ\™WÜ™\ÜÛœÙJ]][XØ]YÚÙ^K›İ]K]][XØ]YÈ›ÚÈˆY_JBˆÙ[‹˜\ÜÙ\YJÜ[—ÚœÛÛŠÙ^K™\ÜÛœÙKˆ”‘TÔÓ”ÑNÜ›İ]_NÙ]šXÙVÉÚY	×_HŠVÈ›ÚÈ—JBˆ™\^YYËÈHÛÛ›Û\‹˜]][XØ]WÜ™\]Y\İ
+XY\œË”ÔÕ‹›İ]K˜]ËŒNL‹ŒMŒKHŠBˆÙ[‹˜\ÜÙ\\Ó›Û™J™\^YY
+B‚‚šYˆ×Û˜[YW×ÈOH—×ÛXZ[—×È‚ˆ[š]\İ›XZ[Š
+B

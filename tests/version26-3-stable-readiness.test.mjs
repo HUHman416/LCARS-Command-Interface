@@ -1,55 +1,66 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import fs from "node:fs";
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿm6ç]ô÷5ãwÖZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\İœ›ÛH››ÙN\İÂš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜİšXİÂš[\ÜœÈœ›ÛH››ÙN™œÈÂ‚˜ÛÛœİ™XYH
+]
+HOˆœËœ™XYš[TŞ[˜Ê™]ÈT“
+‹‹ÉÜ]X[\Ü›Y]K\›
+K]ŠNÂ˜ÛÛœİYÙHH™XY
+˜\ÜYÙKŞŠNÂ˜ÛÛœİ^[İ]H™XY
+˜\Û^[İ]ŞŠNÂ˜ÛÛœİ™[™\™\ˆH™XY
+™\ÚİÜÜ™[™\™\‹ŞŠNÂ˜ÛÛœİXÚØYÙRœÛÛˆH”ÓÓ‹œ\œÙJ™XY
+œXÚØYÙKšœÛÛˆŠJNÂ˜ÛÛœİ[^H™XY
+›ØØ[ÛØ\œ×ØœšYÙKœHŠNÂ˜ÛÛœİÚ[™İÜÈH™XY
+Ú[™İÜËÛØ\œ×ØœšYÙWİÚ[™İÜËœHŠNÂ˜ÛÛœİ]™[ÜY[ÛÜšÙ›İÈH™XY
+‹™Ú]X‹İÛÜšÙ›İÜËİŒ‹LË]\İ[[ŠNÂ˜ÛÛœİİX›UÛÜšÙ›İÈH™XY
+‹™Ú]X‹İÛÜšÙ›İÜËİŒ‹\İX›K[[ŠNÂ‚\İ
+Œ‹ŒÈÈ[™™\œÚ[ÛˆˆİX›HY[]Y\È™[XZ[ˆ^XÚ]‹
 
-const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-const page = read("app/page.tsx");
-const layout = read("app/layout.tsx");
-const renderer = read("desktop/renderer.tsx");
-const packageJson = JSON.parse(read("package.json"));
-const linux = read("local/lcars_bridge.py");
-const windows = read("windows/lcars_bridge_windows.py");
-const developmentWorkflow = read(".github/workflows/v26-3-test.yml");
-const stableWorkflow = read(".github/workflows/v26-stable.yml");
+HOˆÂˆ\ÜÙ\›ÚÊÈŒÌKŒY]‹ŒH‹ŒÌŒY]‹ŒH‹ŒÌŒËŒY]‹ŒH‹ŒÌŒ‹ŒY]‹ŒH‹ŒÌŒKŒY]‹Œˆ‹ŒKŒŒ‹ŒKŒËŒ\˜ËŒH‹ŒKŒ‹ŒY]‹ŒH‹ŒŒŒ‹ŒŒËŒ\˜ËŒH‹ŒŒ‹ŒY]‹ŒH‹ŒËŒ‹ŒKY]‹ŒH‹ŒËŒ‹ŒY]‹ŒH‹ŒËŒKŒKY]‹ŒH‹Œ‹ŒËŒY]‹ŒH‹Œ‹ŒŒ—Kš[˜ÛY\ÊXÚØYÙRœÛÛ‹™\œÚ[ÛŠJNÂˆ\ÜÙ\›X]Ú
+YÙKØÛÛœİĞT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_WŒŒWŒ×Œ\˜×Œ_WŒ—ŒY]—Œ_ŒŒŒË\˜×Œ_Œ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
+JH‹ÊNÂˆ\ÜÙ\›X]Ú
+[^ÓĞT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_WŒŒWŒ×Œ\˜×Œ_WŒ—ŒY]—Œ_ŒŒŒË\˜×Œ_Œ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
+JH‹ÊNÂˆ\ÜÙ\›X]Ú
+Ú[™İÜËÓĞT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_WŒŒWŒ×Œ\˜×Œ_WŒ—ŒY]—Œ_ŒŒŒË\˜×Œ_Œ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
+JH‹ÊNÂˆ\ÜÙ\™Ù\Ó›İX]Ú
+YÙKÕ‘T”ÒSÓˆHS‘ÒS‘QT’S‘ÈÔTUSÓ”ßUUËL_S‘ËL_ÓÓKL_ÑËLKÊNÂŸJNÂ‚\İ
+˜ÛÛ™šYİ\˜][Ûˆ˜XÚİ\Ûİ™\œÈÛÜšÜÜXÙH[™ÛÛ[][š]H™\ÜÚ]ÜHİ]H‹
 
-test("26.3 RC and Version 26 stable identities remain explicit", () => {
-  assert.ok(["30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1", "27.2.1-dev.1", "27.2.0-dev.1", "27.1.1-dev.1", "26.3.0-dev.1", "26.0.0"].includes(packageJson.version));
-  assert.match(page, /const LCARS_VERSION="(?:30\.[234]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(linux, /LCARS_VERSION="(?:30\.[234]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(windows, /LCARS_VERSION="(?:30\.[234]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.doesNotMatch(page, /VERSION 25 ENGINEERING OPERATIONS|AUTO-25|ENG-25|COM-25|LOG-25/);
-});
+HOˆÂˆ\ÜÙ\›X]Ú
+YÙKÜØÚ[XN—ÊŠÎŒßŠKÊNÂˆ\ÜÙ\›X]Ú
+YÙKİ™\œÚ[Û—Ê“ĞT”×Õ‘T”ÒSÓ‹ÊNÂˆ›Üˆ
+ÛÛœİšY[ÙˆÈ™Y˜][ÛÜšÜİ][Ûˆ‹œÙ[XİY^Y\ˆ‹œÜ\^[İ]‹œYÙTYZÜÈ‹›[Ù[TÛİ\˜Ù\È—JH\ÜÙ\›X]Ú
+YÙK™]È™YÑ^
+	ÙšY[N˜
+JNÂˆ\ÜÙ\›X]Ú
+YÙKÜ™\İÜ™S[Ù[TÛİ\˜Ù\ËÊNÂˆ\ÜÙ\›X]Ú
+YÙKÛÜ\˜][Û—˜Y‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKØÛÛ[X[™—œ™\İÜ™W‹^[İ]Îš[\ÜY^[İ]ËÊNÂŸJNÂ‚\İ
+\Ü˜YYÜ\˜]ÜœÈ™XÙZ]™HHÛ™K][YHİ\œ™[]™\œÚ[ÛˆÜšY[][Ûˆ‹
 
-test("configuration backup covers workspace and community repository state", () => {
-  assert.match(page, /schema:\s*(?:28|27|26)/);
-  assert.match(page, /version:\s*LCARS_VERSION/);
-  for (const field of ["defaultWorkstation", "selectedPlayer", "popupLayout", "pagePeeks", "moduleSources"]) assert.match(page, new RegExp(`${field}:`));
-  assert.match(page, /restoreModuleSources/);
-  assert.match(page, /operation:\"add\"/);
-  assert.match(page, /command:\"restore\",layouts:importedLayouts/);
-});
+HOˆÂˆ\ÜÙ\›X]Ú
+YÙKÛØ\œË]Ú]Ë[™]Ë]ŠÎŒÌVÌLŒÍW_KVÌLŒ×_
+KÊNÂˆ\ÜÙ\›X]Ú
+YÙKÊÎ•‘T”ÒSÓˆÌH0­ÈUHP”’Pß‘T”ÒSÓˆÌ0­ÈĞT”ÈÑTÔÒSÓŸ‘T”ÒSÓˆÌŒÈ0­È“ÒPÑHÔTUSÓ”ß‘T”ÒSÓˆÌŒˆ0­È‘QTUSÓŸ‘T”ÒSÓˆÌŒH0­ÈÓÓTUTˆÓÔ‘_ÑSÓÓQHÈ‘T”ÒSÓˆ_ÑSÓÓQHÈ‘T”ÒSÓˆWŒÈÈ_ÑSÓÓQHÈ‘T”ÒSÓˆWŒŸÑSÓÓQHÈ‘T”ÒSÓˆ
+KÊNÂˆ\ÜÙ\›X]Ú
+YÙKÊÎ•ÒU
+Î‰ß	˜\ÜÎÊTÈ‘UÈSˆ‘T”ÒSÓˆÌ_ÒU
+Î‰ß	˜\ÜÎÊTÈ‘UÈSˆ‘T”ÒSÓˆÌÒU
+Î‰ß	˜\ÜÎÊTÈ‘UÈSˆ‘T”ÒSÓˆÌŒŸÒU	ÔÈ‘UÈSˆ‘T”ÒSÓˆÌŒ_ÒU	ÔÈ‘UÈSˆ‘T”ÒSÓˆ_ÒU	ÔÈ‘UÈSˆ‘T”ÒSÓˆWŒÈÈ_ÒU	ÔÈ‘UÈSˆ‘T”ÒSÓˆWŒŸÒU	ÔÈ‘UÈSˆ‘T”ÒSÓˆ
+KÊNÂˆ\ÜÙ\›X]Ú
+YÙKĞÓÓ“‘PÕQÕUSÓˆĞÒËÊNÂˆ\ÜÙ\›X]Ú
+YÙKÕ‘T’Q’QQSĞ’SHTUTËÊNÂŸJNÂ‚\İ
+•™\œÚ[Ûˆ‹ŒÈİ[[™È\ÈHš[˜[™[™\™\ˆ^Y\ˆ‹
 
-test("upgraded operators receive a one-time current-version orientation", () => {
-  assert.match(page, /lcars-whats-new-v(?:30-[1234]|29-[123]|28)/);
-  assert.match(page, /(?:VERSION 30\.4 Â· LCARS SESSION|VERSION 30\.3 Â· VOICE OPERATIONS|VERSION 30\.2 Â· FEDERATION|VERSION 30\.1 Â· COMPUTER CORE|WELCOME TO VERSION 29|WELCOME TO VERSION 29\.3 RC 1|WELCOME TO VERSION 29\.2|WELCOME TO VERSION 28)/);
-  assert.match(page, /(?:WHAT(?:'|&apos;)S NEW IN VERSION 30\.4|WHAT(?:'|&apos;)S NEW IN VERSION 30\.2|WHAT'S NEW IN VERSION 30\.1|WHAT'S NEW IN VERSION 29|WHAT'S NEW IN VERSION 29\.3 RC 1|WHAT'S NEW IN VERSION 29\.2|WHAT'S NEW IN VERSION 28)/);
-  assert.match(page, /CONNECTED STATION DOCK/);
-  assert.match(page, /VERIFIED MOBILE UPDATES/);
-});
+HOˆÂˆ\ÜÙ\›X]Ú
+^[İ]İŒ‹L—˜ÜÜÖ×××JŒ‹L×˜ÜÜËÊNÂˆ\ÜÙ\›X]Ú
+™[™\™\‹İŒ‹L—˜ÜÜÖ×××JŒ‹L×˜ÜÜËÊNÂŸJNÂ‚\İ
+™]™[ÜY[[™İX›HÛÜšÙ›İÜÈXÚØYÙH›İÜ\˜][™ÈŞ\İ[\ÈÚ]ÚXÚÜİ[\È‹
 
-test("Version 26.3 styling is the final renderer layer", () => {
-  assert.match(layout, /v26-2\.css[\s\S]*v26-3\.css/);
-  assert.match(renderer, /v26-2\.css[\s\S]*v26-3\.css/);
-});
-
-test("development and stable workflows package both operating systems with checksums", () => {
-  assert.match(developmentWorkflow, /branches:\s*\[26\.3\]/);
-  assert.match(developmentWorkflow, /gh release create v26\.3/);
-  assert.match(developmentWorkflow, /--prerelease/);
-  assert.match(stableWorkflow, /branches:\s*\[26-stable\]/);
-  assert.match(stableWorkflow, /LCARS-Windows-Setup-v26\.exe/);
-  assert.match(stableWorkflow, /LCARS-Command-Interface-v26-x86_64\.AppImage/);
-  assert.match(stableWorkflow, /sha256sum --check SHA256SUMS\.txt/);
-  assert.match(stableWorkflow, /gh release create v26/);
-  assert.doesNotMatch(stableWorkflow, /--prerelease/);
-});
+HOˆÂˆ\ÜÙ\›X]Ú
+]™[ÜY[ÛÜšÙ›İËØœ˜[˜Ú\Î—Ê—Ì—Œ×KÊNÂˆ\ÜÙ\›X]Ú
+]™[ÜY[ÛÜšÙ›İËÙÚ™[X\ÙHÜ™X]HŒ—ŒËÊNÂˆ\ÜÙ\›X]Ú
+]™[ÜY[ÛÜšÙ›İËËK\™\™[X\ÙKÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËØœ˜[˜Ú\Î—Ê—Ì‹\İX›WKÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËÓĞT”ËUÚ[™İÜËTÙ]\]Œ—™^KÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËÓĞT”ËPÛÛ[X[™R[\™˜XÙK]Œ‹^—Í\[XYÙKÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËÜÚLMœİ[HKXÚXÚÈÒLM”ÕST×ÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËÙÚ™[X\ÙHÜ™X]HŒ‹ÊNÂˆ\ÜÙ\™Ù\Ó›İX]Ú
+İX›UÛÜšÙ›İËËK\™\™[X\ÙKÊNÂŸJNÂ

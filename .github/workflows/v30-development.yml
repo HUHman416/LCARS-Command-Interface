@@ -1,176 +1,17 @@
-name: Version 30.4 LCARS Session Development
-
-on:
-  push:
-    branches: [30-development]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-jobs:
-  linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Build hosted renderer
-        run: npm run build
-      - name: LCARS Session, Voice Operations, Module Platform, and regression suite
-        run: |
-          node --test tests/*.test.mjs
-          python3 -m unittest discover -s tests -p 'test_*.py'
-      - name: Bridge and packaging validation
-        run: |
-          python3 -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/*.py
-          bash -n scripts/prepare-voice-runtime.sh install.sh install-autostart.sh uninstall-linux.sh start-local.sh local/lcars-recovery.sh session/lcars-session session/install-session.sh
-          node --check desktop/main.cjs
-      - name: Build Linux AppImage with verified offline voice runtime
-        run: npm run desktop:package:linux -- --publish never
-      - name: Verify bundled Computer Core voice resources
-        run: |
-          set -euo pipefail
-          test -x voice-runtime/linux/whisper-cli
-          test -s voice-runtime/linux/ggml-tiny.en-q5_1.bin
-          voice-runtime/linux/whisper-cli --version
-      - name: Assemble Linux development package
-        run: |
-          set -euo pipefail
-          appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
-          test -n "$appimage"
-          checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          stage="release-assets/LCARS-Universal-Linux-Desktop-v30.4"
-          mkdir -p "$stage/local" "$stage/session"
-          cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
-          cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
-          cp desktop/icons/512x512.png "$stage/lcars-command-interface.png"
-          cp local/lcars-recovery.sh "$stage/local/"
-          cp session/lcars-session session/install-session.sh session/lcars-session.desktop.in "$stage/session/"
-          sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
-          sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
-          chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh" "$stage/session/lcars-session" "$stage/session/install-session.sh"
-          cp "$appimage" release-assets/LCARS-Command-Interface-v30.4-x86_64.AppImage
-          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.4.sh
-          chmod +x release-assets/LCARS-Linux-Integration-v30.4.sh
-          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.4.zip LCARS-Universal-Linux-Desktop-v30.4)
-      - uses: actions/upload-artifact@v4
-        with:
-          name: LCARS-v30.4-development-linux
-          path: |
-            release-assets/LCARS-Command-Interface-v30.4-x86_64.AppImage
-            release-assets/LCARS-Universal-Linux-Desktop-v30.4.zip
-            release-assets/LCARS-Linux-Integration-v30.4.sh
-          retention-days: 30
-
-  windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Module Platform, Federation, and Computer Core regression suite
-        run: node --test tests/version30-module-platform.test.mjs tests/version30-computer-core.test.mjs tests/version29-launcher.test.mjs tests/accessibility-css.test.mjs
-      - name: Validate Windows bridge and desktop process
-        run: |
-          python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py shared/lcars_federation_crypto.py shared/lcars_padd.py
-          node --check desktop/main.cjs
-      - name: Build Windows installer with verified offline voice runtime
-        run: npm run desktop:package:windows -- --publish never
-      - name: Verify and prepare Windows development installer
-        shell: pwsh
-        run: |
-          if (-not (Test-Path voice-runtime/windows/whisper-cli.exe)) { throw 'whisper.cpp executable is missing' }
-          if (-not (Test-Path voice-runtime/windows/ggml-tiny.en-q5_1.bin)) { throw 'Whisper model is missing' }
-          New-Item -ItemType Directory -Force release-assets | Out-Null
-          $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
-          if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.4.exe
-      - uses: actions/upload-artifact@v4
-        with:
-          name: LCARS-v30.4-development-windows
-          path: release-assets/LCARS-Windows-Setup-v30.4.exe
-          retention-days: 30
-
-  android:
-    runs-on: ubuntu-latest
-    env:
-      ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
-      ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-      ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-      ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-      - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: 8.9
-      - name: Validate station address and battery guards
-        run: |
-          mkdir -p mobile/android/build/address-test
-          javac -d mobile/android/build/address-test mobile/android/app/src/main/java/com/lcars/padd/StationAddress.java mobile/android/app/src/main/java/com/lcars/padd/BatteryStatus.java mobile/android/tools/StationAddressSelfTest.java mobile/android/tools/BatteryStatusSelfTest.java
-          java -cp mobile/android/build/address-test com.lcars.padd.StationAddressSelfTest
-          java -cp mobile/android/build/address-test com.lcars.padd.BatteryStatusSelfTest
-      - name: Restore persistent Android development identity
-        run: |
-          set -euo pipefail
-          test -n "$ANDROID_SIGNING_KEY_BASE64"
-          printf '%s' "$ANDROID_SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/lcars-release.jks"
-          test -s "$RUNNER_TEMP/lcars-release.jks"
-      - name: Build signed Android development APK
-        env:
-          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/lcars-release.jks
-        run: gradle -p mobile/android --no-daemon :app:assembleDebug
-      - name: Verify Android signature and prepare Mobile Environment
-        run: |
-          set -euo pipefail
-          apk="mobile/android/app/build/outputs/apk/debug/app-debug.apk"
-          signer="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
-          test -n "$signer"
-          "$signer" verify --verbose --print-certs "$apk"
-          mkdir -p release-assets
-          cp "$apk" release-assets/LCARS-Mobile-Environment-v30.4-Android.apk
-      - uses: actions/upload-artifact@v4
-        with:
-          name: LCARS-v30.4-development-android
-          path: release-assets/LCARS-Mobile-Environment-v30.4-Android.apk
-          retention-days: 30
-
-  publish-development-release:
-    needs: [linux, windows, android]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          path: release-assets
-          merge-multiple: true
-      - name: Create source archive and checksums
-        run: |
-          set -euo pipefail
-          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.4-Source.zip HEAD
-          (cd release-assets && sha256sum LCARS-Command-Interface-v30.4-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.4.zip LCARS-Linux-Integration-v30.4.sh LCARS-Windows-Setup-v30.4.exe LCARS-Mobile-Environment-v30.4-Android.apk LCARS-Command-Interface-v30.4-Source.zip > SHA256SUMS.txt)
-          (cd release-assets && sha256sum --check SHA256SUMS.txt)
-      - name: Publish Version 30.4 LCARS Session development release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          notes='Version 30.4 Development introduces a real optional Linux LCARS login session built on the existing Wayland and X11 desktop infrastructure. Operators explicitly register or remove the display-manager entries from Settings; normal application mode remains unchanged and LCARS is never silently made the default. The session uses the ordinary desktop underneath for window management and a guaranteed fallback, presents virtual desktops as LCARS decks, reuses Workstations and multi-monitor routing, applies KWin or X11 window placement rules, supports lock, logout, power, crash recovery, safe-mode escalation, and optional dedicated-command-terminal behavior, and includes an Exit to Normal Desktop route. Computer voice operations now understand broader deterministic playback phrases, mute, status, locate, display, calendar, stardate, hailing, lock, logout, and related commands. Red Alert, Yellow Alert, Condition Green, and protected Self Destruct are included; Self Destruct closes only LCARS. The affirmative cue now plays only after a command is accepted, and Communications item actions are readable rounded controls. Version 30.3 Module Platform, Version 30.2 Federation, the bundled local whisper.cpp runtime, Procedures, audit, undo, and the Version 29 Mobile Command Environment remain included.'
-          if gh release view v30.4 >/dev/null 2>&1; then
-            gh release upload v30.4 release-assets/* --clobber
-            gh release edit v30.4 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.4 Development Â· LCARS Session" --notes "$notes" --prerelease
-          else
-            gh release create v30.4 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.4 Development Â· LCARS Session" --notes "$notes" --prerelease
-          fi
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿ_xïôÓŽµÛÍµÞZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µé›˜[YNˆ™\œÚ[ÛˆÌH[š]™\œØ[ÙX\˜Ú[™]H˜XœšXÈ]™[ÜY[‚›ÛŽ‚ˆ\Ú‚ˆœ˜[˜Ú\ÎˆÌÌY]™[ÜY[BˆÛÜšÙ›Ý×Ù\Ü]Ú‚‚œ\›Z\ÜÚ[ÛœÎ‚ˆÛÛ[Îˆ™XY‚š›ØœÎ‚ˆ[^‚ˆ[œË[ÛŽˆX[K[]\ÝˆÝ\Î‚ˆH\Ù\ÎˆXÝ[ÛœËØÚXÚÛÝ]ˆH\Ù\ÎˆXÝ[ÛœËÜÙ]\[›ÙPˆÚ]‚ˆ›ÙK]™\œÚ[ÛŽˆŒ‚ˆØXÚNˆœBˆH[ŽˆœHÚBˆH˜[YNˆZ[ÜÝY™[™\™\‚ˆ[ŽˆœH[ˆZ[ˆH˜[YNˆÙX\˜Ú]H˜XœšXËÐT”ÈÙ\ÜÚ[Û‹›ÚXÙHÜ\˜][ÛœË[™™YÜ™\ÜÚ[ÛˆÝZ]Bˆ[Žˆˆ›ÙHK]\Ý\ÝËÊ‹\Ý›ZœÂˆ]ÛŒÈ[H[š]\Ý\ØÛÝ™\ˆ\È\ÝÈ\	Ý\ÝÊ‹œIÂˆH˜[YNˆœšYÙH[™XÚØYÚ[™È˜[Y][Û‚ˆ[Žˆˆ]ÛŒÈ[HWØÛÛ\[HØØ[ÛØ\œ×ØœšYÙKœHÚ[™ÝÜËÛØ\œ×ØœšYÙWÝÚ[™ÝÜËœHÚ\™YÊ‹œBˆ˜\Ú[ˆØÜš\ËÜ™\\™K]›ÚXÙK\[[YKœÚ[œÝ[œÚ[œÝ[X]]ÜÝ\œÚ[š[œÝ[[[^œÚÝ\[ØØ[œÚØØ[ÛØ\œË\™XÛÝ™\žKœÚÙ\ÜÚ[Û‹ÛØ\œË\Ù\ÜÚ[ÛˆÙ\ÜÚ[Û‹Ú[œÝ[\Ù\ÜÚ[Û‹œÚˆ›ÙHKXÚXÚÈ\ÚÝÜÛXZ[‹˜ÚœÂˆH˜[YNˆZ[[^\[XYÙHÚ]™\šYšYYÙ™›[™H›ÚXÙH[[YBˆ[ŽˆœH[ˆ\ÚÝÜœXÚØYÙN›[^KHK\X›\Ú™]™\‚ˆH˜[YNˆ™\šYžH[™YÛÛ\]\ˆÛÜ™H›ÚXÙH™\ÛÝ\˜Ù\Âˆ[ŽˆˆÙ]Y][È\Y˜Z[ˆ\Ý^›ÚXÙK\[[YKÛ[^ÝÚ\Ü\‹XÛBˆ\Ý\È›ÚXÙK\[[YKÛ[^ÙÙÛ[][žK™[‹\MWÌK˜š[‚ˆ›ÚXÙK\[[YKÛ[^ÝÚ\Ü\‹XÛHK]™\œÚ[Û‚ˆH˜[YNˆ\ÜÙ[X›H[^]™[ÜY[XÚØYÙBˆ[ŽˆˆÙ]Y][È\Y˜Z[ˆ\[XYÙOH‰
+š[™™[X\ÙKY\ÚÝÜ[X^\H[˜[YH	Ê‹\[XYÙIÈ\š[\]Z]
+H‚ˆ\Ý[ˆ‰\[XYÙH‚ˆÚXÚÜÝ[OH‰
+ÚLMœÝ[H‰\[XYÙHˆ]ÚÈ	ÞÜš[	_IÊH‚ˆÝYÙOHœ™[X\ÙKX\ÜÙ]ËÓÐT”ËU[š]™\œØ[S[^Q\ÚÝÜ]ŒÌH‚ˆZÙ\ˆ\‰ÝYÙKÛØØ[ˆ‰ÝYÙKÜÙ\ÜÚ[Ûˆ‚ˆÜ‰\[XYÙHˆ‰ÝYÙKÓÐT”ËPÛÛ[X[™R[\™˜XÙK\[XYÙH‚ˆÜ‘PQQKSÐT”Ë›YÝ\[ØØ[œÚ[œÝ[œÚ[š[œÝ[SÐT”ËS[^™\ÚÝÜ[œÝ[X]]ÜÝ\œÚ•RSRS‘“ËSS•V[š[œÝ[[[^œÚ[œÝ[SÐT”ËS[^™\ÚÝÜÝ\SÐT”ËS[^™\ÚÝÜ[œÝ[SÐT”ËS[^œ[ˆ‰ÝYÙKÈ‚ˆÜ\ÚÝÜÚXÛÛœËÍLLžLL‹œ™È‰ÝYÙKÛØ\œËXÛÛ[X[™Z[\™˜XÙKœ™È‚ˆÜØØ[ÛØ\œË\™XÛÝ™\žKœÚ‰ÝYÙKÛØØ[È‚ˆÜÙ\ÜÚ[Û‹ÛØ\œË\Ù\ÜÚ[ÛˆÙ\ÜÚ[Û‹Ú[œÝ[\Ù\ÜÚ[Û‹œÚÙ\ÜÚ[Û‹ÛØ\œË\Ù\ÜÚ[Û‹™\ÚÝÜš[ˆ‰ÝYÙKÜÙ\ÜÚ[Û‹È‚ˆÙYZHœË×™^XÝYØ\[XYÙWÜÚLMKŠ‹Ù^XÝYØ\[XYÙWÜÚLMW‰ÚXÚÜÝ[W‹Èˆ‰ÝYÙKÚ[œÝ[œÚ‚ˆÙYZHœË×\[XYÙHÒKLMŽ‹Š‹Ð\[XYÙHÒKLMŽˆ	ÚXÚÜÝ[KÈˆ‰ÝYÙKÐ•RSRS‘“ËSS•V‚ˆÚ[Ù
+Þ‰ÝYÙKÓÐT”ËPÛÛ[X[™R[\™˜XÙK\[XYÙHˆ‰ÝYÙH‹Ê‹œÚ‰ÝYÙH‹Ê‹œ[ˆ‰ÝYÙH‹Ê‹™\ÚÝÜ‰ÝYÙKÛØØ[ÛØ\œË\™XÛÝ™\žKœÚˆ‰ÝYÙKÜÙ\ÜÚ[Û‹ÛØ\œË\Ù\ÜÚ[Ûˆˆ‰ÝYÙKÜÙ\ÜÚ[Û‹Ú[œÝ[\Ù\ÜÚ[Û‹œÚ‚ˆÜ‰\[XYÙHˆ™[X\ÙKX\ÜÙ]ËÓÐT”ËPÛÛ[X[™R[\™˜XÙK]ŒÌK^—Í\[XYÙBˆÜ[œÝ[X]]ÜÝ\œÚ™[X\ÙKX\ÜÙ]ËÓÐT”ËS[^R[YÜ˜][Û‹]ŒÌKœÚˆÚ[Ù
+Þ™[X\ÙKX\ÜÙ]ËÓÐT”ËS[^R[YÜ˜][Û‹]ŒÌKœÚˆ
+Ù™[X\ÙKX\ÜÙ]È	‰ˆš\\\ˆÐT”ËU[š]™\œØ[S[^Q\ÚÝÜ]ŒÌKžš\ÐT”ËU[š]™\œØ[S[^Q\ÚÝÜ]ŒÌJBˆH\Ù\ÎˆXÝ[ÛœËÝ\ØYX\Y˜XÝˆÚ]‚ˆ˜[YNˆÐT”Ë]ŒÌKY]™[ÜY[[[^ˆ]ˆˆ™[X\ÙKX\ÜÙ]ËÓÐT”ËPÛÛ[X[™R[\™˜XÙK]ŒÌK^—Í\[XYÙBˆ™[X\ÙKX\ÜÙ]ËÓÐT”ËU[š]™\œØ[S[^Q\ÚÝÜ]ŒÌKžš\ˆ™[X\ÙKX\ÜÙ]ËÓÐT”ËS[^R[YÜ˜][Û‹]ŒÌKœÚˆ™][[Û‹Y^\ÎˆÌ‚ˆÚ[™ÝÜÎ‚ˆ[œË[ÛŽˆÚ[™ÝÜË[]\ÝˆÝ\Î‚ˆH\Ù\ÎˆXÝ[ÛœËØÚXÚÛÝ]ˆH\Ù\ÎˆXÝ[ÛœËÜÙ]\[›ÙPˆÚ]‚ˆ›ÙK]™\œÚ[ÛŽˆŒ‚ˆØXÚNˆœBˆH[ŽˆœHÚBˆH˜[YNˆÙX\˜Ú]H˜XœšXË™Y\˜][Û‹[™ÛÛ\]\ˆÛÜ™H™YÜ™\ÜÚ[ÛˆÝZ]Bˆ[Žˆ›ÙHK]\Ý\ÝËÝ™\œÚ[ÛŒÌMK\ÙX\˜ÚY˜XœšXË\Ý›ZœÈ\ÝËÝ™\œÚ[ÛŒÌ[[Ù[K\]›Ü›K\Ý›ZœÈ\ÝËÝ™\œÚ[ÛŒÌXÛÛ\]\‹XÛÜ™K\Ý›ZœÈ\ÝËÝ™\œÚ[ÛŒŽK[][˜Ú\‹\Ý›ZœÈ\ÝËØXØÙ\ÜÚXš[]KXÜÜË\Ý›ZœÂˆH˜[YNˆ˜[Y]HÚ[™ÝÜÈœšYÙH[™\ÚÝÜ›ØÙ\ÜÂˆ[Žˆˆ]Ûˆ[HWØÛÛ\[HØØ[ÛØ\œ×ØœšYÙKœHÚ[™ÝÜËÛØ\œ×ØœšYÙWÝÚ[™ÝÜËœHÚ\™YÛØ\œ×Ý\]\‹œHÚ\™YÛØ\œ×Ù^[œÚ[ÛœËœHÚ\™YÛØ\œ×ÙØÝ[Y[ËœHÚ\™YÛØ\œ×Ù™Y\˜][Û—ØÜž\ËœHÚ\™YÛØ\œ×ÜYœHÚ\™YÛØ\œ×Ù]WÙ˜XœšXËœBˆ›ÙHKXÚXÚÈ\ÚÝÜÛXZ[‹˜ÚœÂˆH˜[YNˆZ[Ú[™ÝÜÈ[œÝ[\ˆÚ]™\šYšYYÙ™›[™H›ÚXÙH[[YBˆ[ŽˆœH[ˆ\ÚÝÜœXÚØYÙNÚ[™ÝÜÈKHK\X›\Ú™]™\‚ˆH˜[YNˆ™\šYžH[™™\\™HÚ[™ÝÜÈ]™[ÜY[[œÝ[\‚ˆÚ[ˆÜÚˆ[ŽˆˆYˆ
+[›Ý
+\ÝT]›ÚXÙK\[[YKÝÚ[™ÝÜËÝÚ\Ü\‹XÛK™^JJHÈ›ÝÈ	ÝÚ\Ü\‹˜Ü^XÝ]X›H\ÈZ\ÜÚ[™ÉÈBˆYˆ
+[›Ý
+\ÝT]›ÚXÙK\[[YKÝÚ[™ÝÜËÙÙÛ[][žK™[‹\MWÌK˜š[ŠJHÈ›ÝÈ	ÕÚ\Ü\ˆ[Ù[\ÈZ\ÜÚ[™ÉÈBˆ™]ËR][HR][U\H\™XÝÜžHQ›Ü˜ÙH™[X\ÙKX\ÜÙ]ÈÝ]S[ˆ	[œÝ[\ˆHÙ]PÚ[][H™[X\ÙKY\ÚÝÜQš[\ˆ	Ê‹™^IÈÚ\™KSØš™XÝÈ	Ë“˜[YH[›ÝX]Ú	Ý[š[œÝ[	ÈHÙ[XÝSØš™XÝQš\œÝBˆYˆ
+[›Ý	[œÝ[\ŠHÈ›ÝÈ	ÕÚ[™ÝÜÈ[œÝ[\ˆØ\È›Ý›ÙXÙY‰ÈBˆÛÜKR][H	[œÝ[\‹‘[˜[YH™[X\ÙKX\ÜÙ]ËÓÐT”ËUÚ[™ÝÜËTÙ]\]ŒÌK™^BˆH\Ù\ÎˆXÝ[ÛœËÝ\ØYX\Y˜XÝˆÚ]‚ˆ˜[YNˆÐT”Ë]ŒÌKY]™[ÜY[]Ú[™ÝÜÂˆ]ˆ™[X\ÙKX\ÜÙ]ËÓÐT”ËUÚ[™ÝÜËTÙ]\]ŒÌK™^Bˆ™][[Û‹Y^\ÎˆÌ‚ˆ[™›ÚY‚ˆ[œË[ÛŽˆX[K[]\Ýˆ[Ž‚ˆS‘“ÒQÔÒQÓ’S‘×ÒÑVWÐTÑMˆ	ÞÈÙXÜ™]ËS‘“ÒQÔÒQÓ’S‘×ÒÑVWÐTÑM_BˆS‘“ÒQÔÒQÓ’S‘×ÔÕÔ‘WÔTÔÕÓÔ‘ˆ	ÞÈÙXÜ™]ËS‘“ÒQÔÒQÓ’S‘×ÔÕÔ‘WÔTÔÕÓÔ‘_BˆS‘“ÒQÔÒQÓ’S‘×ÒÑVWÐSPTÎˆ	ÞÈÙXÜ™]ËS‘“ÒQÔÒQÓ’S‘×ÒÑVWÐSPTÈ_BˆS‘“ÒQÔÒQÓ’S‘×ÒÑVWÔTÔÕÓÔ‘ˆ	ÞÈÙXÜ™]ËS‘“ÒQÔÒQÓ’S‘×ÒÑVWÔTÔÕÓÔ‘_BˆÝ\Î‚ˆH\Ù\ÎˆXÝ[ÛœËØÚXÚÛÝ]ˆH\Ù\ÎˆXÝ[ÛœËÜÙ]\Z˜]˜PˆÚ]‚ˆ\ÝšX][ÛŽˆ[]\š[‚ˆ˜]˜K]™\œÚ[ÛŽˆMÂˆH\Ù\ÎˆÜ˜YKØXÝ[ÛœËÜÙ]\YÜ˜YPˆÚ]‚ˆÜ˜YK]™\œÚ[ÛŽˆŽBˆH˜[YNˆ˜[Y]HÝ][ÛˆY™\ÜÈ[™˜]\žHÝX\™Âˆ[ŽˆˆZÙ\ˆ\[Øš[KØ[™›ÚYØZ[ØY™\ÜË]\Ýˆ˜]˜XÈY[Øš[KØ[™›ÚYØZ[ØY™\ÜË]\Ý[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÔÝ][ÛY™\ÜËš˜]˜H[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÐ˜]\žTÝ]\Ëš˜]˜H[Øš[KØ[™›ÚYÝÛÛËÔÝ][ÛY™\ÜÔÙ[•\Ýš˜]˜H[Øš[KØ[™›ÚYÝÛÛËÐ˜]\žTÝ]\ÔÙ[•\Ýš˜]˜Bˆ˜]˜HXÜ[Øš[KØ[™›ÚYØZ[ØY™\ÜË]\ÝÛÛK›Ø\œËœY”Ý][ÛY™\ÜÔÙ[•\Ýˆ˜]˜HXÜ[Øš[KØ[™›ÚYØZ[ØY™\ÜË]\ÝÛÛK›Ø\œËœY˜]\žTÝ]\ÔÙ[•\ÝˆH˜[YNˆ™\ÝÜ™H\œÚ\Ý[[™›ÚY]™[ÜY[Y[]Bˆ[ŽˆˆÙ]Y][È\Y˜Z[ˆ\Ý[ˆ‰S‘“ÒQÔÒQÓ’S‘×ÒÑVWÐTÑM‚ˆš[ˆ	É\ÉÈ‰S‘“ÒQÔÒQÓ’S‘×ÒÑVWÐTÑMˆ˜\ÙMKYXÛÙHˆ‰•S“‘T—ÕSTÛØ\œË\™[X\ÙKššÜÈ‚ˆ\Ý\È‰•S“‘T—ÕSTÛØ\œË\™[X\ÙKššÜÈ‚ˆH˜[YNˆZ[ÚYÛ™Y[™›ÚY]™[ÜY[TÂˆ[Ž‚ˆS‘“ÒQÔÒQÓ’S‘×ÔÕÔ‘WÑ’SNˆ	ÞÈ[›™\‹[\_KÛØ\œË\™[X\ÙKššÜÂˆ[ŽˆÜ˜YH\[Øš[KØ[™›ÚYK[›ËYY[[Ûˆ˜\˜\ÜÙ[X›QXYÂˆH˜[YNˆ™\šYžH[™›ÚYÚYÛ˜]\™H[™™\\™H[Øš[H[š\›Û›Y[ˆ[ŽˆˆÙ]Y][È\Y˜Z[ˆ\ÏH›[Øš[KØ[™›ÚYØ\ØZ[ÛÝ]]ËØ\ËÙXYËØ\YXYË˜\È‚ˆÚYÛ™\H‰
+š[™‰S‘“ÒQÒÓQKØZ[]ÛÛÈˆ]\Hˆ[˜[YH\ÜÚYÛ™\ˆ\š[ÛÜUˆZ[[ˆJH‚ˆ\Ý[ˆ‰ÚYÛ™\ˆ‚ˆ‰ÚYÛ™\ˆˆ™\šYžHK]™\˜›ÜÙHK\š[XÙ\È‰\È‚ˆZÙ\ˆ\™[X\ÙKX\ÜÙ]ÂˆÜ‰\Èˆ™[X\ÙKX\ÜÙ]ËÓÐT”ËS[Øš[KQ[š\›Û›Y[]ŒÌKP[™›ÚY˜\ÂˆH\Ù\ÎˆXÝ[ÛœËÝ\ØYX\Y˜XÝˆÚ]‚ˆ˜[YNˆÐT”Ë]ŒÌKY]™[ÜY[X[™›ÚYˆ]ˆ™[X\ÙKX\ÜÙ]ËÓÐT”ËS[Øš[KQ[š\›Û›Y[]ŒÌKP[™›ÚY˜\Âˆ™][[Û‹Y^\ÎˆÌ‚ˆX›\ÚY]™[ÜY[\™[X\ÙN‚ˆ™YYÎˆÛ[^Ú[™ÝÜË[™›ÚYBˆ[œË[ÛŽˆX[K[]\Ýˆ\›Z\ÜÚ[ÛœÎ‚ˆÛÛ[ÎˆÜš]BˆÝ\Î‚ˆH\Ù\ÎˆXÝ[ÛœËØÚXÚÛÝ]ˆH\Ù\ÎˆXÝ[ÛœËÙÝÛ›ØYX\Y˜XÝˆÚ]‚ˆ]ˆ™[X\ÙKX\ÜÙ]ÂˆY\™ÙK[][\NˆYBˆH˜[YNˆÜ™X]HÛÝ\˜ÙH\˜Ú]™H[™ÚXÚÜÝ[\Âˆ[ŽˆˆÙ]Y][È\Y˜Z[ˆÚ]\˜Ú]™HKY›Ü›X]^š\K[Ý]]\™[X\ÙKX\ÜÙ]ËÓÐT”ËPÛÛ[X[™R[\™˜XÙK]ŒÌKTÛÝ\˜ÙKžš\PQˆ
+Ù™[X\ÙKX\ÜÙ]È	‰ˆÚLMœÝ[HÐT”ËPÛÛ[X[™R[\™˜XÙK]ŒÌK^—Í\[XYÙHÐT”ËU[š]™\œØ[S[^Q\ÚÝÜ]ŒÌKžš\ÐT”ËS[^R[YÜ˜][Û‹]ŒÌKœÚÐT”ËUÚ[™ÝÜËTÙ]\]ŒÌK™^HÐT”ËS[Øš[KQ[š\›Û›Y[]ŒÌKP[™›ÚY˜\ÈÐT”ËPÛÛ[X[™R[\™˜XÙK]ŒÌKTÛÝ\˜ÙKžš\ˆÒLM”ÕSTË
+Bˆ
+Ù™[X\ÙKX\ÜÙ]È	‰ˆÚLMœÝ[HKXÚXÚÈÒLM”ÕSTË
+BˆH˜[YNˆX›\Ú™\œÚ[ÛˆÌH[š]™\œØ[ÙX\˜Ú[™]H˜XœšXÈ]™[ÜY[™[X\ÙBˆ[Ž‚ˆÒÕÒÑSŽˆ	ÞÈÚ]X‹ÚÙ[ˆ_Bˆ[ŽˆˆÙ]Y][È\Y˜Z[ˆ›Ý\ÏIÕ™\œÚ[ÛˆÌH]™[ÜY[[›ÙXÙ\È[š]™\œØ[ÐT”ÈÙX\˜ÚXÜ›ÜÜÈ\XØ][ÛœËØØ[š[\È[™™XÙ[ØÝ[Y[ËÙ][™ÜËÛÛ[X[™ËÝ][ÛœË›ÝYšXØ][ÛœËYYXKÛÛXÝË[Ù[\Ë]]ÛX][Ûˆ›ØÙY\™\Ë[™XÝ]š]H\ÝÜžKˆ™\Ý[È\™HXÝ[Û˜X›Nˆš[\ÈØ[ˆÜ[ˆ[œÚYHÐT”Ë›Ý]HÈH\ÝY[˜Üž\YQÜˆÝ][Û‹Üˆ]XÚÈH›ØÙY\™KˆH™]ÈØØ[Yš\œÝ]H˜XœšXÈYÈÜZ[ˆÛ\›Ø\™[™ÛX[Yš[H[™Ù™‹Ù[XÝ]™H\‹XØ]YÛÜžHÞ[˜Ú›Ûš^˜][Û‹›Ý[™Y™XÙ[Z][H\ÝÜžK^XÚ]ÛÛ™›XÝ[™[™Ë™XÛÜ™™\œÚ[Ûˆ\ÝÜžK[™[ˆÜZ[ˆÝ][Û‹[ØØ[QTËLM‹QÐÓHš]˜]H˜][ˆ^\Ý[™È™Y\˜][Ûˆ]šXÙH\ÝÚYÛ™YQTËLM‹QÐÓH˜[œÜÜ\›Z\ÜÚ[ÛœË[™Ù™›[™H]Y]Y\È™[XZ[ˆ[™›Ü˜ÙYˆ›ÚXÙHÜ\˜][ÛœÈYÜ™Y[ˆ[\[™›È[\™]Z[ˆØ[›ÛšXØ[Ø[˜Ù[™Y[\˜\Ú[™ËØ^HY™š\›X]]™HY\ˆHš\œÝXØÙ\YÛÛ[X[™[™\ÙHHÚÜ[œ]SÒÈÝYH›Üˆ][K\Ý\Üˆ˜\Y›ÛÝË]\ÛÛ[X[™Ëˆ™\œÚ[ÛˆÌÐT”ÈÙ\ÜÚ[Û‹™\œÚ[ÛˆÌŒÈ[Ù[H]›Ü›KH[™YØØ[Ú\Ü\‹˜Ü[[YK›ØÙY\™\Ë]Y][™Ë[™H™\œÚ[ÛˆŽH[Øš[HÛÛ[X[™[š\›Û›Y[™[XZ[ˆ[˜ÛYY‰ÂˆYˆÚ™[X\ÙHšY]ÈŒÌH‹Ù]‹Û[‰ŒNÈ[‚ˆÚ™[X\ÙH\ØYŒÌH™[X\ÙKX\ÜÙ]ËÊˆKXÛØ˜™\‚ˆÚ™[X\ÙHY]ŒÌHK]\™Ù]‰ÒUP—ÔÒHˆK]]H“ÐT”ÈÛÛ[X[™[\™˜XÙH™\œÚ[ÛˆÌH]™[ÜY[0­È[š]™\œØ[ÙX\˜Ú	ˆ]H˜XœšXÈˆK[›Ý\È‰›Ý\ÈˆK\™\™[X\ÙBˆ[ÙBˆÚ™[X\ÙHÜ™X]HŒÌH™[X\ÙKX\ÜÙ]ËÊˆK]\™Ù]‰ÒUP—ÔÒHˆK]]H“ÐT”ÈÛÛ[X[™[\™˜XÙH™\œÚ[ÛˆÌH]™[ÜY[0­È[š]™\œØ[ÙX\˜Ú	ˆ]H˜XœšXÈˆK[›Ý\È‰›Ý\ÈˆK\™\™[X\ÙBˆšB

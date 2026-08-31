@@ -1,132 +1,155 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import fs from "node:fs";
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ^ùã]»×}5×ß5ŞZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\İœ›ÛH››ÙN\İÂš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜİšXİÂš[\ÜœÈœ›ÛH››ÙN™œÈÂ‚˜ÛÛœİ™XYH]OˆœËœ™XYš[TŞ[˜Ê™]ÈT“
+‹‹ÉÜ]X[\Ü›Y]K\›
+K]ŠNÂ˜ÛÛœİYÙHH™XY
+˜\ÜYÙKŞŠNÂ˜ÛÛœİÛÛ›™XİYH™XY
+˜\İŒXÛÛ›™XİYŞŠNÂ˜ÛÛœİÜÜÈH™XY
+˜\İŒ˜ÜÜÈŠNÂ˜ÛÛœİYH™XY
+œÚ\™YÛØ\œ×ÜYœHŠNÂ˜ÛÛœİÙX”YH™XY
+œYØ\šœÈŠNÂ˜ÛÛœİÙX”Ú[H™XY
+œYÚ[™^š[ŠNÂ˜ÛÛœİ[™›ÚYH™XY
+›[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÓXZ[Xİ]š]Kš˜]˜HŠH
+È™XY
+›[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÒÛYPXİ]š]Kš˜]˜HŠH
+È™XY
+›[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYĞÛÛ\[š[Û‘ØÚËš˜]˜HŠNÂ˜ÛÛœİÚYÙ]H™XY
+›[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÔYÚYÙ]›İšY\‹š˜]˜HŠNÂ˜ÛÛœİX[šY™\İH™XY
+›[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ğ[™›ÚYX[šY™\İ[ŠNÂ˜ÛÛœİÛÜšÙ›İÈH™XY
+‹™Ú]X‹İÛÜšÙ›İÜËİŒY]™[ÜY[[[ŠNÂ˜ÛÛœİİX›UÛÜšÙ›İÈH™XY
+‹™Ú]X‹İÛÜšÙ›İÜËİŒ\İX›K[[ŠNÂ‚\İ
+•™\œÚ[ÛˆY[]H[™ÛÛ›™XİYÜ\˜][ÛœÈ™[™\™\ˆ\™HÚ\™Y‹
 
-const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-const page = read("app/page.tsx");
-const connected = read("app/v28-connected.tsx");
-const css = read("app/v28.css");
-const padd = read("shared/lcars_padd.py");
-const webPadd = read("padd/app.js");
-const webShell = read("padd/index.html");
-const android = read("mobile/android/app/src/main/java/com/lcars/padd/MainActivity.java") + read("mobile/android/app/src/main/java/com/lcars/padd/HomeActivity.java") + read("mobile/android/app/src/main/java/com/lcars/padd/CompanionDock.java");
-const widget = read("mobile/android/app/src/main/java/com/lcars/padd/PaddWidgetProvider.java");
-const manifest = read("mobile/android/app/src/main/AndroidManifest.xml");
-const workflow = read(".github/workflows/v28-development.yml");
-const stableWorkflow = read(".github/workflows/v28-stable.yml");
+HOˆÂˆ\ÜÙ\›X]Ú
+™XY
+œXÚØYÙKšœÛÛˆŠKÈ™\œÚ[ÛˆˆŠÎŒÌWŒY]—Œ_ÌŒY]—Œ_ÌŒ×ŒY]—Œ_ÌŒ—ŒY]—Œ_ÌŒWŒY]—ŒŸWŒŒWŒ×Œ\˜×Œ_WŒ—ŒY]—Œ_ŒŒ
+H‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÓĞT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_WŒŒWŒ×Œ\˜×Œ_WŒ—ŒY]—Œ_ŒŒ
+H‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKĞÛÛ›™XİYÜ\˜][ÛœÔ[™[ÊNÂˆ\ÜÙ\›X]Ú
+YÙKØ\WÜYY]™[ËÊNÂˆ\ÜÙ\›X]Ú
+YÙKØXİ]™UÛÜšÜİ][Û˜Xİ]™T›Ùš[KÊNÂˆ\ÜÙ\›X]Ú
+YÙKÜ]ZXÚĞXİ[ÛœËÊNÂˆ\ÜÙ\›X]Ú
+YÙKÚ[™Ù™‹ÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYÊÎ”Q“QUÓÓSPS‘‘QTUSÓˆÔTUSÓ”ÊKÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYÊÎ”Q“QU‘QTUSÓŠKŠT“ÕSËŠPÕU’UKŠ‘PQÓ“ÔÕPÔËÜÊNÂˆ\ÜÙ\›X]Ú
+ÜÜË×˜ÛÛ›™XİY[Ü\˜][ÛœË\[™[ÊNÂˆ\ÜÙ\›X]Ú
+™XY
+™\ÚİÜÜ™[™\™\‹ŞŠKİŒ˜ÜÜËÊNÂŸJNÂ‚\İ
+”Q›Y]\Ù\È™]›ØØX›H\‹Y]šXÙHÛXŞH[™^XÚ]\›İ˜[È‹
 
-test("Version 28 identity and Connected Operations renderer are wired", () => {
-  assert.match(read("package.json"), /"version": "(?:30\.4\.0-dev\.1|30\.3\.0-dev\.1|30\.2\.0-dev\.1|30\.1\.0-dev\.2|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0)"/);
-  assert.match(page, /LCARS_VERSION="(?:30\.[234]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0)"/);
-  assert.match(page, /ConnectedOperationsPanel/);
-  assert.match(page, /api\/padd-events/);
-  assert.match(page, /activeWorkstation:activeProfile/);
-  assert.match(page, /quickActions/);
-  assert.match(page, /handoff/);
-  assert.match(connected, /(?:PADD FLEET COMMAND|FEDERATION OPERATIONS)/);
-  assert.match(connected, /(?:PADD FLEET|FEDERATION).*APPROVALS.*ACTIVITY.*DIAGNOSTICS/s);
-  assert.match(css, /\.connected-operations-panel/);
-  assert.match(read("desktop/renderer.tsx"), /v28\.css/);
-});
+HOˆÂˆ›Üˆ
+ÛÛœİÚÙ[ˆÙˆÈ”T“RTÔÒSÓ—ÓSQTÈ‹T“ÕSĞPÕSÓ”È‹‘QUSÕÒQÑUÈ‹šX\™X]‹›[Øš[WÜ™Y™\™[˜Ù\È‹œÜÙ]™[È‹˜Û\›Ø\™[˜X›Y‹˜]]Ğ\›İ™H‹œ›Ş[Z]H‹šY[YH—JHÂˆ\ÜÙ\›X]Ú
+Y™]È™YÑ^
+ÚÙ[ŠJNÂˆBˆ\ÜÙ\›X]Ú
+YØ\›İ˜[\™\]Y\İYÊNÂˆ\ÜÙ\›X]Ú
+YÕ^Û\›Ø\™Ú\š[™È\È\ØX›YÊNÂˆ\ÜÙ\›X]Ú
+Yİ˜[YHHØÛX[—ØÛ\›Ø\™
+˜[YW
+KÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYÕVÓT“ĞT‘ÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYĞUUËPT“Õ‘KÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYÔ“ÖSRUH“Ñ’SKÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYĞÓÓ“‘PÕQÓÔ’ÔÕUSÓ‹ÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYÒQS•Q–KÊNÂŸJNÂ‚\İ
+›˜]]™H[™œ›İÜÙ\ˆQÈ^ÜÙHHÛÛ›™XİYÜ\˜][ÛœÈİ\™˜XÙ\È‹
 
-test("PADD fleet uses revocable per-device policy and explicit approvals", () => {
-  for (const token of ["PERMISSION_NAMES", "APPROVAL_ACTIONS", "DEFAULT_WIDGETS", "heartbeat", "mobile_preferences", "pop_events", "clipboardEnabled", "autoApprove", "proximity", "identify"]) {
-    assert.match(padd, new RegExp(token));
-  }
-  assert.match(padd, /approval-requested/);
-  assert.match(padd, /Text clipboard sharing is disabled/);
-  assert.match(padd, /value = _clean_clipboard\(value\)/);
-  assert.match(connected, /TEXT CLIPBOARD/);
-  assert.match(connected, /AUTO-APPROVE/);
-  assert.match(connected, /PROXIMITY PROFILE/);
-  assert.match(connected, /CONNECTED WORKSTATION/);
-  assert.match(connected, /IDENTIFY/);
-});
+HOˆÂˆ\ÜÙ\›X]Ú
+[™›ÚYÔÕUTËŠ“QQPKŠÓÓSTËŠÓQŠ“SÔ‘KÜÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYØ\WÜYÚX\™X]ÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYØ\WÜYÜ™Y™\™[˜Ù\ËÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYÔÔÕÓ“ÕQ’PĞUSÓ”ËÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYÕšXœ˜]Ü“X[˜YÙ\‹ÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYÔYÚYÙ]›İšY\—\]P[ÊNÂˆ\ÜÙ\›X]Ú
+ÚYÙ]Ğ\ÚYÙ]›İšY\‹ÊNÂˆ\ÜÙ\›X]Ú
+X[šY™\İÔYÚYÙ]›İšY\‹ÊNÂˆ\ÜÙ\›X]Ú
+X[šY™\İÔÔÕÓ“ÕQ’PĞUSÓ”ËÊNÂˆ\ÜÙ\›X]Ú
+ÙX”YÛØ\œË\Y]ÚÙ[‹]ŒÊNÂˆ\ÜÙ\›X]Ú
+ÙX”YØ\WÜYÚX\™X]ÊNÂˆ\ÜÙ\›X]Ú
+ÙX”YØÛ\›Ø\™\™\]Y\İÊNÂˆ\ÜÙ\›X]Ú
+ÙX”Ú[ĞÓÓSUS’PĞUSÓ”ËÊNÂˆ\ÜÙ\›X]Ú
+ÙX”Ú[ÔURPÒÈPÕSÓ”ËÊNÂˆ\ÜÙ\›X]Ú
+ÙX”Ú[Ù\ÛZ\ÜËX[XÛÛ[][šXØ][ÛœËÊNÂˆ\ÜÙ\›X]Ú
+ÙX”YÜ^Y\›YYXU\™Ù]ÛÛ[X[™˜]Û—™]\Ù]˜[YKÊNÂˆ\ÜÙ\™Ù\Ó›İX]Ú
+ÙX”Ú[Ù]K]˜[YOHŠÎ\›Z[˜[š[\ßÚ]İÛŸ™\İ\
+H‹ÊNÂŸJNÂ‚\İ
+•™\œÚ[ÛˆŒÈQÛÛ›ÛÈÙY\˜]šYØ][Û‹YYXKÛÛ[][šXØ][ÛœË[™™XÛİ™\H\ØX›H‹
 
-test("native and browser PADDs expose the Connected Operations surfaces", () => {
-  assert.match(android, /STATUS.*MEDIA.*COMMS.*CMD.*MORE/s);
-  assert.match(android, /api\/padd\/heartbeat/);
-  assert.match(android, /api\/padd\/preferences/);
-  assert.match(android, /POST_NOTIFICATIONS/);
-  assert.match(android, /VibratorManager/);
-  assert.match(android, /PaddWidgetProvider\.updateAll/);
-  assert.match(widget, /AppWidgetProvider/);
-  assert.match(manifest, /PaddWidgetProvider/);
-  assert.match(manifest, /POST_NOTIFICATIONS/);
-  assert.match(webPadd, /lcars-padd-token-v28/);
-  assert.match(webPadd, /api\/padd\/heartbeat/);
-  assert.match(webPadd, /clipboard-request/);
-  assert.match(webShell, /COMMUNICATIONS/);
-  assert.match(webShell, /QUICK ACTIONS/);
-  assert.match(webShell, /dismiss-all-communications/);
-  assert.match(webPadd, /player:mediaTarget,command:button\.dataset\.value/);
-  assert.doesNotMatch(webShell, /data-value="(?:terminal|files|shutdown|restart)"/);
-});
+HOˆÂˆ\ÜÙ\›X]Ú
+[™›ÚY×ÈÓQ‹˜ÛÛ[X[™—KÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYÛ™]ÈÛÛ\[š[Û‘ØÚ×
+\Ëİ][Û”İÜ™W
+KÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYÜÙ][˜ÛYQ›ÛY[™×
+˜[ÙW
+KÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYÛYYXU˜[YW
+Yœ^K\]\ÙH—
+KÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYÓQQPWÕT‘ÑUÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYØYYYXTÛİ\˜ÙS\İÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYĞÓÓ“‘PÕSÓˆ‘PÓÕ‘T–KÊNÂˆ\ÜÙ\›X]Ú
+[™›ÚYÈ››İXÙKY\ÛZ\ÜËX[‹ÊNÂˆ\ÜÙ\›X]Ú
+YÈ››İXÙKY\ÛZ\ÜËX[ˆ›Ü\˜]Üˆ‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÙ^\™\Ğ]ÊNÂˆ\ÜÙ\›X]Ú
+YÙKØÛÛ[X[™˜Xİ[ÛOOH››İXÙKY\ÛZ\ÜËX[‹ÊNÂˆÛÛœİÛÛ˜\ˆHYÙKš[™^ÙŠ	ØÛ\ÜÓ˜[YOH›YYXK\]ZXÚË\İš\YYXKXÛÛ[X[™]ÛÛ˜\ˆ‰ÊNÂˆÛÛœİÛÛœÛÛHHYÙKš[™^ÙŠ	ØÛ\ÜÓ˜[YOH›YYXKXÛÛœÛÛH‰ËÛÛ˜\ŠNÂˆ\ÜÙ\›ÚÊÛÛ˜\ˆˆ	‰ˆÛÛœÛÛHˆÛÛ˜\‹›YYXHÛÛ˜\ˆÚİ[™HX›İ™HHÛÛœÛÛHŠNÂˆ\ÜÙ\›X]Ú
+™XY
+˜\İŒLK˜ÜÜÈŠK×›YYXKXÛÛ[X[™]ÛÛ˜\‹ÊNÂˆ\ÜÙ\›X]Ú
+ÙX”YÙ]K[YYXK]\™Ù]ÊNÂˆ\ÜÙ\›X]Ú
+ÙX”Ú[ØÛÛ\]Xš[]K\İ]KÊNÂŸJNÂ‚\İ
+•™\œÚ[ÛˆŒÈ™[X\ÙHØ[™Y]HØZ]È›Üˆ[]›Ü›H˜[Y][Ûˆ‹
 
-test("Version 28.3 PADD controls keep navigation, media, communications, and recovery usable", () => {
-  assert.match(android, /\{"CMD","command"\}/);
-  assert.match(android, /new CompanionDock\(this,stationStore\)/);
-  assert.match(android, /setIncludeFontPadding\(false\)/);
-  assert.match(android, /mediaValue\(id,"play-pause"\)/);
-  assert.match(android, /MEDIA_TARGET/);
-  assert.match(android, /addMediaSourceList/);
-  assert.match(android, /CONNECTION RECOVERY/);
-  assert.match(android, /"notice-dismiss-all"/);
-  assert.match(padd, /"notice-dismiss-all": "operator"/);
-  assert.match(page, /expiresAt/);
-  assert.match(page, /command\.action==="notice-dismiss-all"/);
-  const toolbar = page.indexOf('className="media-quick-strip media-command-toolbar"');
-  const console = page.indexOf('className="media-console"', toolbar);
-  assert.ok(toolbar > 0 && console > toolbar, "media toolbar should be above the console");
-  assert.match(read("app/v24-1.css"), /\.media-command-toolbar/);
-  assert.match(webPadd, /data-media-target/);
-  assert.match(webShell, /compatibility-state/);
-});
+HOˆÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËØœ˜[˜Ú\ÎˆİŒY]™[ÜY[KÊNÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËÛ™YYÎˆÛ[^Ú[™İÜË[™›ÚYKÊNÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËİ™\œÚ[ÛŒXÛÛ›™XİY[Ü\˜][Ûœ×\İ›ZœËÊNÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËÓĞT”ËTQPÛÛ\[š[Û‹]ŒŒËP[™›ÚY˜\ËÊNÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËÜÚLMœİ[HKXÚXÚÈÒLM”ÕST×ÊNÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËÙÚ™[X\ÙH
+ÎšY]ßÜ™X]JHŒŒËÊNÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËËK\™\™[X\ÙKÊNÂŸJNÂ‚\İ
+•™\œÚ[ÛˆİX›HX›\Ú\ÈHXZ›Ü‹[Û›HÜ›ÜÜË\]›Ü›H™[X\ÙH‹
 
-test("Version 28.3 release candidate waits for all platform validation", () => {
-  assert.match(workflow, /branches: \[v28-development\]/);
-  assert.match(workflow, /needs: \[linux, windows, android\]/);
-  assert.match(workflow, /version28-connected-operations\.test\.mjs/);
-  assert.match(workflow, /LCARS-PADD-Companion-v28\.3-Android\.apk/);
-  assert.match(workflow, /sha256sum --check SHA256SUMS\.txt/);
-  assert.match(workflow, /gh release (?:view|create) v28\.3/);
-  assert.match(workflow, /--prerelease/);
-});
+HOˆÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËØœ˜[˜Ú\ÎˆÌ\İX›WKÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËÛ™YYÎˆÛ[^Ú[™İÜË[™›ÚYKÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËÓĞT”ËTQPÛÛ\[š[Û‹]ŒP[™›ÚY˜\ËÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËÙÚ™[X\ÙH
+ÎšY]ßÜ™X]JHŒÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËÓĞT”ÈÛÛ[X[™[\™˜XÙH™\œÚ[ÛˆÊNÂˆ\ÜÙ\™Ù\Ó›İX]Ú
+İX›UÛÜšÙ›İËİŒŒËÊNÂˆ\ÜÙ\™Ù\Ó›İX]Ú
+İX›UÛÜšÙ›İËËK\™\™[X\ÙJÎ—ß	
+KÊNÂŸJNÂ‚\İ
+•™\œÚ[ÛˆŒÈÛÜÙ\ÈHÛÛ›™XİYÜ\˜][ÛœÈ™[X\ÙKXØ[™Y]HÚXÚÛ\İ‹
 
-test("Version 28 Stable publishes a major-only cross-platform release", () => {
-  assert.match(stableWorkflow, /branches: \[28-stable\]/);
-  assert.match(stableWorkflow, /needs: \[linux, windows, android\]/);
-  assert.match(stableWorkflow, /LCARS-PADD-Companion-v28-Android\.apk/);
-  assert.match(stableWorkflow, /gh release (?:view|create) v28/);
-  assert.match(stableWorkflow, /LCARS Command Interface Version 28/);
-  assert.doesNotMatch(stableWorkflow, /v28\.3/);
-  assert.doesNotMatch(stableWorkflow, /--prerelease(?:\s|$)/);
-});
+HOˆÂˆ›Üˆ
+ÛÛœİÚÙ[ˆÙˆÈT“ÕSÕ‹‘QUSÓ“ÕQ’PĞUSÓ”È‹”T“RTÔÒSÓ—Ô‘TÑUÈ‹˜ÛÜK\Ù][™ÜÈ‹˜ÛY[[İ]]Y‹œ™\]Y\İY^\™Y—JHÂˆ\ÜÙ\›X]Ú
+Y™]È™YÑ^
+ÚÙ[ŠJNÂˆBˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYÔT“RTÔÒSÓˆ‘TÑUÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYĞÓÔHÓPÖH”“ÓKÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYÓ“ÕQ’PĞUSÓˆ“ÕUKÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYÑVÔ•’UUHPQÓ“ÔÕPÔËÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYĞÓÓ“‘PÕSÓˆ‘PÓÕ‘T–KÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ›™XİYÑVT‘TÈS‹ÊNÂŸJNÂ‚\İ
+‘\Ü^HX]š^\Ù\ÈÚ^™\ÙX\˜ÚYİXİ\˜[ĞT”È˜[Z[Y\È‹
 
-test("Version 28.3 closes the Connected Operations release-candidate checklist", () => {
-  for (const token of ["APPROVAL_TTL", "DEFAULT_NOTIFICATIONS", "PERMISSION_PRESETS", "copy-settings", "client-outdated", "request-expired"]) {
-    assert.match(padd, new RegExp(token));
-  }
-  assert.match(connected, /PERMISSION PRESET/);
-  assert.match(connected, /COPY POLICY FROM/);
-  assert.match(connected, /NOTIFICATION ROUTE/);
-  assert.match(connected, /EXPORT PRIVATE DIAGNOSTICS/);
-  assert.match(connected, /CONNECTION RECOVERY/);
-  assert.match(connected, /EXPIRES IN/);
-});
-
-test("Display Matrix uses six researched structural LCARS families", () => {
-  for (const token of ["Enterprise-D", "Voyager", "Enterprise-E", "Picard Starfleet", "Cerritos", "Defiant"]) assert.match(page, new RegExp(token));
-  const globals = read("app/globals.css");
-  for (const selector of ["theme-voyager", "theme-nemesis", "theme-picard", "theme-lower-decks", "theme-defiant"]) assert.match(globals, new RegExp(`\\.${selector}`));
-  assert.match(globals, /researched LCARS families/);
-  assert.match(page, /value === "padd" \? "defiant"/);
-  assert.doesNotMatch(page, /id:"padd"/);
-  assert.match(globals, /\.theme-voyager \.brand,[\s\S]*\.theme-lower-decks \.brand[\s\S]*border-radius: 46px 3px 3px 3px/);
-  assert.match(globals, /\.theme-defiant \.shell[\s\S]*grid-template-columns: 166px minmax\(0, 1fr\)/);
-  const reference = read("docs/LCARS-THEME-REFERENCE.md");
-  assert.match(reference, /Explicit exclusions/);
-  assert.match(reference, /La Sirena/);
-  assert.match(reference, /Cardassian/);
-  assert.match(reference, /Defiant/);
-});
+HOˆÂˆ›Üˆ
+ÛÛœİÚÙ[ˆÙˆÈ‘[\œš\ÙKQ‹•›ŞXYÙ\ˆ‹‘[\œš\ÙKQH‹”XØ\™İ\™›Y]‹Ù\œš]ÜÈ‹‘YšX[—JH\ÜÙ\›X]Ú
+YÙK™]È™YÑ^
+ÚÙ[ŠJNÂˆÛÛœİÛØ˜[ÈH™XY
+˜\ÙÛØ˜[Ë˜ÜÜÈŠNÂˆ›Üˆ
+ÛÛœİÙ[XİÜˆÙˆÈ[YK]›ŞXYÙ\ˆ‹[YK[™[Y\Ú\È‹[YK\XØ\™‹[YK[İÙ\‹YXÚÜÈ‹[YKYYšX[—JH\ÜÙ\›X]Ú
+ÛØ˜[Ë™]È™YÑ^
+‰ÜÙ[XİÜŸX
+JNÂˆ\ÜÙ\›X]Ú
+ÛØ˜[ËÜ™\ÙX\˜ÚYĞT”È˜[Z[Y\ËÊNÂˆ\ÜÙ\›X]Ú
+YÙKİ˜[YHOOHœYˆÈ™YšX[‹ÊNÂˆ\ÜÙ\™Ù\Ó›İX]Ú
+YÙKÚYˆœY‹ÊNÂˆ\ÜÙ\›X]Ú
+ÛØ˜[Ë×[YK]›ŞXYÙ\ˆ˜œ˜[™×××J—[YK[İÙ\‹YXÚÜÈ˜œ˜[™×××J˜›Ü™\‹\˜Y]\ÎˆœÜÜÜÊNÂˆ\ÜÙ\›X]Ú
+ÛØ˜[Ë×[YKYYšX[œÚ[×××J™ÜšY][\]KXÛÛ[[œÎˆMœZ[›X^
+Yœ—
+KÊNÂˆÛÛœİ™Y™\™[˜ÙHH™XY
+™ØÜËÓĞT”ËUSQKT‘Q‘T‘SÑK›YŠNÂˆ\ÜÙ\›X]Ú
+™Y™\™[˜ÙKÑ^XÚ]^Û\Ú[ÛœËÊNÂˆ\ÜÙ\›X]Ú
+™Y™\™[˜ÙKÓHÚ\™[˜KÊNÂˆ\ÜÙ\›X]Ú
+™Y™\™[˜ÙKĞØ\™\ÜÚX[‹ÊNÂˆ\ÜÙ\›X]Ú
+™Y™\™[˜ÙKÑYšX[ÊNÂŸJNÂ

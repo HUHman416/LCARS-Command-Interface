@@ -1,55 +1,1 @@
-{
-  "name": "lcars-command-interface",
-  "version": "30.4.0-dev.1",
-  "description": "A standalone LCARS desktop command environment for Windows and Linux.",
-  "author": "LCARS Command Interface Project",
-  "desktopName": "lcars-command-interface.desktop",
-  "main": "desktop/main.cjs",
-  "private": true,
-  "engines": {
-    "node": ">=22.13.0"
-  },
-  "scripts": {
-    "install:ci": "bash scripts/install-ci.sh",
-    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vite",
-    "build": "bash scripts/build-verified.sh",
-    "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs",
-    "validate:artifact": "bash scripts/validate-artifact.sh",
-    "lint": "bash scripts/sites-env.sh -- eslint . --ignore-pattern dist --ignore-pattern .next",
-    "db:generate": "bash scripts/sites-env.sh -- drizzle-kit generate",
-    "desktop:build": "vite build --config desktop/vite.config.ts",
-    "voice:prepare:linux": "bash scripts/prepare-voice-runtime.sh linux",
-    "voice:prepare:windows": "bash scripts/prepare-voice-runtime.sh windows",
-    "desktop:package:linux": "npm run voice:prepare:linux && npm run desktop:build && electron-builder --linux AppImage",
-    "desktop:package:windows": "npm run voice:prepare:windows && npm run desktop:build && electron-builder --win nsis"
-  },
-  "dependencies": {
-    "drizzle-orm": "0.45.2",
-    "next": "16.2.6",
-    "react": "19.2.6",
-    "react-dom": "19.2.6"
-  },
-  "devDependencies": {
-    "@cloudflare/vite-plugin": "1.37.1",
-    "@tailwindcss/postcss": "4.2.1",
-    "@types/node": "22.19.19",
-    "@types/react": "19.2.14",
-    "@types/react-dom": "19.2.3",
-    "@vitejs/plugin-react": "6.0.2",
-    "@vitejs/plugin-rsc": "0.5.26",
-    "drizzle-kit": "0.31.10",
-    "electron": "^43.4.0",
-    "electron-builder": "^26.15.3",
-    "eslint": "9.39.4",
-    "eslint-config-next": "16.2.6",
-    "react-server-dom-webpack": "19.2.6",
-    "tailwindcss": "4.2.1",
-    "typescript": "5.9.3",
-    "vinext": "0.0.50",
-    "vite": "8.0.13",
-    "wrangler": "4.92.0"
-  },
-  "type": "module",
-  "displayName": "LCARS Command Interface"
-}
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨ŸÎ·÷]}×¸ß~vÚZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéÂˆ›˜[YHˆ›Ø\œËXÛÛ[X[™Z[\™˜XÙH‹ˆ™\œÚ[ÛˆˆŒÌKŒY]‹ŒH‹ˆ™\ØÜš\[ÛˆˆHİ[™[Û™HĞT”È\ÚİÜÛÛ[X[™[š\›Û›Y[›ÜˆÚ[™İÜÈ[™[^ˆ‹ˆ˜]]Üˆˆ“ĞT”ÈÛÛ[X[™[\™˜XÙH›Ú™Xİ‹ˆ™\ÚİÜ˜[YHˆ›Ø\œËXÛÛ[X[™Z[\™˜XÙK™\ÚİÜ‹ˆ›XZ[ˆˆ™\ÚİÜÛXZ[‹˜ÚœÈ‹ˆœš]˜]HˆYKˆ™[™Ú[™\ÈˆÂˆ››ÙHˆLŒ‹ŒLËŒ‚ˆKˆœØÜš\ÈˆÂˆš[œİ[˜ÚHˆ˜˜\ÚØÜš\ËÚ[œİ[XÚKœÚ‹ˆ™]ˆˆ•ÔS‘ÓT—ÓÑ×ÔUKÜ˜[™Û\‹İÜ˜[™Û\‹›ÙÈš]H‹ˆ˜Z[ˆ˜˜\ÚØÜš\ËØZ[]™\šYšYYœÚ‹ˆœİ\ˆ•ÔS‘ÓT—ÓÑ×ÔUKÜ˜[™Û\‹İÜ˜[™Û\‹›ÙÈš[™^İ\‹ˆ\İˆ›œH[ˆZ[	‰ˆ›ÙHK]\İ\İËÜ™[™\™YZ[\İ›ZœÈ‹ˆ˜[Y]N˜\Y˜Xİˆ˜˜\ÚØÜš\Ëİ˜[Y]KX\Y˜XİœÚ‹ˆ›[ˆ˜˜\ÚØÜš\ËÜÚ]\ËY[‹œÚKH\Û[ˆKZYÛ›Ü™K\]\›ˆ\İKZYÛ›Ü™K\]\›ˆ›™^‹ˆ™™Ù[™\˜]Hˆ˜˜\ÚØÜš\ËÜÚ]\ËY[‹œÚKHš^›KZÚ]Ù[™\˜]H‹ˆ™\ÚİÜ˜Z[ˆš]HZ[KXÛÛ™šYÈ\ÚİÜİš]K˜ÛÛ™šYËÈ‹ˆ›ÚXÙNœ™\\™N›[^ˆ˜˜\ÚØÜš\ËÜ™\\™K]›ÚXÙK\[[YKœÚ[^‹ˆ›ÚXÙNœ™\\™NÚ[™İÜÈˆ˜˜\ÚØÜš\ËÜ™\\™K]›ÚXÙK\[[YKœÚÚ[™İÜÈ‹ˆ™\ÚİÜœXÚØYÙN›[^ˆ›œH[ˆ›ÚXÙNœ™\\™N›[^	‰ˆœH[ˆ\ÚİÜ˜Z[	‰ˆ[Xİ›Û‹XZ[\ˆK[[^\[XYÙH‹ˆ™\ÚİÜœXÚØYÙNÚ[™İÜÈˆ›œH[ˆ›ÚXÙNœ™\\™NÚ[™İÜÈ	‰ˆœH[ˆ\ÚİÜ˜Z[	‰ˆ[Xİ›Û‹XZ[\ˆK]Ú[ˆœÚ\È‚ˆKˆ™\[™[˜ÚY\ÈˆÂˆ™š^›K[Ü›HˆŒKŒˆ‹ˆ›™^ˆŒM‹Œ‹ˆ‹ˆœ™XXİˆŒNKŒ‹ˆ‹ˆœ™XXİYÛHˆŒNKŒ‹ˆ‚ˆKˆ™]‘\[™[˜ÚY\ÈˆÂˆÛİY›\™Kİš]K\YÚ[ˆˆŒKŒÍËŒH‹ˆZ[Ú[™ÜÜËÜÜİÜÜÈˆŒ‹ŒH‹ˆ\\ËÛ›ÙHˆŒŒ‹ŒNKŒNH‹ˆ\\ËÜ™XXİˆŒNKŒ‹ŒM‹ˆ\\ËÜ™XXİYÛHˆŒNKŒ‹ŒÈ‹ˆš]ZœËÜYÚ[‹\™XXİˆ‹ŒŒˆ‹ˆš]ZœËÜYÚ[‹\œØÈˆŒKŒˆ‹ˆ™š^›KZÚ]ˆŒŒÌKŒL‹ˆ™[Xİ›Ûˆˆ—ËŒ‹ˆ™[Xİ›Û‹XZ[\ˆˆ—Œ‹ŒMKŒÈ‹ˆ™\Û[ˆKŒÎK‹ˆ™\Û[XÛÛ™šYË[™^ˆŒM‹Œ‹ˆ‹ˆœ™XXİ\Ù\™\‹YÛK]ÙXœXÚÈˆŒNKŒ‹ˆ‹ˆZ[Ú[™ÜÜÈˆŒ‹ŒH‹ˆ\\ØÜš\ˆKKŒÈ‹ˆš[™^ˆŒŒL‹ˆš]HˆŒŒLÈ‹ˆÜ˜[™Û\ˆˆL‹Œ‚ˆKˆ\Hˆ›[Ù[H‹ˆ™\Ü^S˜[YHˆ“ĞT”ÈÛÛ[X[™[\™˜XÙH‚ŸB

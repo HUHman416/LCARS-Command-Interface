@@ -1,122 +1,83 @@
-"use client";
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿm¹çwçİ8ïŞ<âZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéˆ\ÙHÛY[Â‚š[\ÜÈ\ÙQY™™Xİ\ÙSY[[Ë\ÙT™Y‹\ÙTİ]HHœ›ÛHœ™XXİÂš[\Ü\HÈÛÛ\]\]Y][KÛÛ\]\”[‹ÛÛ\]\”š\ÚËÛÛ\]\•[™ÔÛ˜\ÚİHœ›ÛH‹‹İŒÌXÛÜ™HÂ‚\H›ØÙY\™Tİ[[X\HHÂˆYˆİš[™ÎÂˆ˜[YNˆİš[™ÎÂˆ\ØÜš\[Ûˆİš[™ÎÂˆšYÙÙ\ˆİš[™ÎÂˆİ\Ûİ[ˆ[X™\Âˆ[˜X›Yˆ›ÛÛX[Âˆš\ÚÎˆÛÛ\]\”š\ÚÎÂˆ™]™\œÚX›Nˆ›ÛÛX[ÂŸNÂ‚™^Ü[˜İ[ÛˆÛÛ\]\ÛÜ™PÛÛœÛÛJÂˆœšYÙKˆ›ØÙY\™\Ëˆ]Y]ˆ[™ÔÛ˜\Úİˆ[›š[™Ëˆ[š]X[ÛÛ[X[™Hˆ‹ˆ›ÚXÙP]]Üš^˜][Û”™\]Z\™YH˜[ÙKˆ›ÚXÙP]]Üš^˜][Û”Ø]\ÙšYYH˜[ÙKˆ™\ÛÛ™Kˆ^Xİ]Kˆ[™ËˆÜ[Z[\‹ˆÛX\]Y]ˆÛÜÙKŸNˆÂˆœšYÙNˆ›ÛÛX[Âˆ›ØÙY\™\Îˆ›ØÙY\™Tİ[[X\V×NÂˆ]Y]ˆÛÛ\]\]Y][V×NÂˆ[™ÔÛ˜\ÚİˆÛÛ\]\•[™ÔÛ˜\Úİ[Âˆ[›š[™Îˆ›ÛÛX[Âˆ[š]X[ÛÛ[X[™Îˆİš[™ÎÂˆ›ÚXÙP]]Üš^˜][Û”™\]Z\™YÎˆ›ÛÛX[Âˆ›ÚXÙP]]Üš^˜][Û”Ø]\ÙšYYÎˆ›ÛÛX[Âˆ™\ÛÛ™Nˆ
+[œ]ˆİš[™ÊHOˆÛÛ\]\”[Âˆ^Xİ]Nˆ
+[ˆÛÛ\]\”[‹T[ˆ›ÛÛX[ŠHOˆ›ÛZ\ÙO›ÛÛX[Âˆ[™Îˆ
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { ComputerAuditEntry, ComputerPlan, ComputerRisk, ComputerUndoSnapshot } from "./v30-core";
+HOˆ›ÚYÂˆÜ[Z[\ˆ
 
-type ProcedureSummary = {
-  id: string;
-  name: string;
-  description: string;
-  trigger: string;
-  stepCount: number;
-  enabled: boolean;
-  risk: ComputerRisk;
-  reversible: boolean;
-};
+HOˆ›ÚYÂˆÛX\]Y]ˆ
 
-export function ComputerCoreConsole({
-  bridge,
-  procedures,
-  audit,
-  undoSnapshot,
-  running,
-  initialCommand = "",
-  voiceAuthorizationRequired = false,
-  voiceAuthorizationSatisfied = false,
-  resolve,
-  execute,
-  undo,
-  openBuilder,
-  clearAudit,
-  close,
-}: {
-  bridge: boolean;
-  procedures: ProcedureSummary[];
-  audit: ComputerAuditEntry[];
-  undoSnapshot: ComputerUndoSnapshot | null;
-  running: boolean;
-  initialCommand?: string;
-  voiceAuthorizationRequired?: boolean;
-  voiceAuthorizationSatisfied?: boolean;
-  resolve: (input: string) => ComputerPlan;
-  execute: (plan: ComputerPlan, dryRun: boolean) => Promise<boolean>;
-  undo: () => void;
-  openBuilder: () => void;
-  clearAudit: () => void;
-  close: () => void;
-}) {
-  const [area, setArea] = useState<"command" | "procedures" | "audit">("command");
-  const [query, setQuery] = useState("");
-  const [plan, setPlan] = useState<ComputerPlan | null>(null);
-  const [transmitting, setTransmitting] = useState<"execute" | "dry-run" | "">("");
-  const appliedInitial = useRef("");
-  const activeTriggers = useMemo(() => procedures.filter((item) => item.enabled && item.trigger !== "manual").length, [procedures]);
-  const protectedProcedures = useMemo(() => procedures.filter((item) => item.risk === "protected").length, [procedures]);
-  const voiceGate=Boolean(plan?.source==="voice"&&plan.requiresConfirmation&&voiceAuthorizationRequired&&!voiceAuthorizationSatisfied);
-  const examples = [
-    "Open Media then set volume to 40",
-    "Enable Do Not Disturb",
-    procedures[0] ? `Run ${procedures[0].name}` : "Check for updates",
-    "Computer, pause the music",
-    "Computer, red alert",
-  ];
-  const prepare = (value = query) => {
-    const next = resolve(value);
-    setQuery(value);
-    setPlan(next);
-    setArea("command");
-  };
-  useEffect(() => {
-    if (!initialCommand.trim() || appliedInitial.current === initialCommand) return;
-    appliedInitial.current = initialCommand;
-    const next = resolve(initialCommand);
-    setQuery(initialCommand);
-    setPlan(next);
-    setArea("command");
-  }, [initialCommand, resolve]);
-  const run = async (dryRun: boolean) => {
-    if (!plan?.valid || transmitting || running) return;
-    setTransmitting(dryRun ? "dry-run" : "execute");
-    try { await execute(plan, dryRun); }
-    finally { setTransmitting(""); }
-  };
-  const riskLabel = (risk: ComputerRisk) => risk === "protected" ? "PROTECTED" : risk === "attention" ? "OPERATING" : "SAFE";
-  return <div className="backdrop computer-core-backdrop" onMouseDown={(event) => event.target === event.currentTarget && !running && close()}>
-    <section className="computer-core-console" role="dialog" aria-modal="true" aria-label="LCARS Computer Core">
-      <header className="computer-core-header">
-        <div><small>LCARS 30.4 DEVELOPMENT Â· LOCAL-FIRST COMMAND PROCESSOR</small><h2>COMPUTER CORE</h2><p>Translate operator language into visible, permission-aware plans before anything changes.</p></div>
-        <section><span className={bridge ? "online" : "standby"}><i/>LOCAL CORE {bridge ? "ONLINE" : "STANDBY"}</span><span>{activeTriggers} ACTIVE TRIGGERS</span><span>{protectedProcedures} GUARDED PROCEDURES</span><button onClick={close}>CLOSE Ã—</button></section>
-      </header>
-      <nav className="computer-core-tabs" aria-label="Computer Core areas">
-        <button className={area === "command" ? "active" : ""} onClick={() => setArea("command")}><i>01</i>COMMAND</button>
-        <button className={area === "procedures" ? "active" : ""} onClick={() => setArea("procedures")}><i>02</i>PROCEDURES <small>{procedures.length}</small></button>
-        <button className={area === "audit" ? "active" : ""} onClick={() => setArea("audit")}><i>03</i>AUDIT <small>{audit.length}</small></button>
-      </nav>
-      {area === "command" && <main className="computer-command-area">
-        <section className="computer-command-entry">
-          <label htmlFor="computer-command-input">OPERATOR COMMAND</label>
-          <div><input id="computer-command-input" autoFocus value={query} placeholder="COMPUTER, OPEN MEDIA THEN SET VOLUME TO 40â€¦" onChange={(event) => { setQuery(event.target.value); setPlan(null); }} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); prepare(); } }}/><button disabled={!query.trim()} onClick={() => prepare()}>BUILD PLAN</button></div>
-          <p>Commands are parsed locally. Enter builds a plan; it never skips the preview or confirmation gate.</p>
-          <nav>{examples.map((example) => <button key={example} onClick={() => prepare(example)}>{example}</button>)}</nav>
-        </section>
-        {plan ? <section className={`computer-plan plan-${plan.risk} ${plan.valid ? "valid" : "invalid"}`}>
-          <header><span><small>{plan.valid ? `${Math.round(plan.confidence * 100)}% INTERPRETATION CONFIDENCE` : "CLARIFICATION REQUIRED"}</small><h3>{plan.title}</h3><p>{plan.summary}</p></span><i>{plan.valid ? riskLabel(plan.risk) : "HOLD"}</i></header>
-          {plan.valid ? <ol>{plan.steps.map((item, index) => <li key={item.id}><i>{String(index + 1).padStart(2, "0")}</i><span><b>{item.label}</b><small>{item.detail}</small></span><em className={`risk-${item.risk}`}>{riskLabel(item.risk)}{item.reversible ? " Â· UNDO" : ""}{item.requiresBridge ? " Â· LOCAL CORE" : ""}</em></li>)}</ol> : <div className="computer-plan-errors">{plan.errors.map((error) => <p key={error}>{error}</p>)}<small>Try one of the examples or use the exact visible application, workstation, procedure, theme, or page name.</small></div>}
-          <footer>
-            <span>{voiceGate ? "Protected voice plan held: repeat the command with â€œauthorizationâ€ followed by the configured vocal code. Manual confirmation remains required." : plan.requiresConfirmation ? voiceAuthorizationSatisfied&&plan.source==="voice"?"Vocal authorization verified. The visible protected-action confirmation is still required.":"This plan contains protected operations. EXECUTE is the explicit operator confirmation." : plan.reversible ? "Every step in this plan can be reverted from the Audit panel." : "The plan is visible before execution; irreversible steps are clearly identified."}</span>
-            <nav><button disabled={!plan.valid || Boolean(transmitting) || running} onClick={() => void run(true)}>{transmitting === "dry-run" ? "SIMULATINGâ€¦" : "DRY RUN"}</button><button className={plan.requiresConfirmation ? "protected" : "execute"} disabled={!plan.valid || Boolean(transmitting) || running || voiceGate} onClick={() => void run(false)}>{voiceGate?"VOCAL CODE REQUIRED":transmitting === "execute" || running ? "EXECUTINGâ€¦" : plan.requiresConfirmation ? "CONFIRM & EXECUTE" : "EXECUTE PLAN"}</button></nav>
-          </footer>
-        </section> : <section className="computer-core-idle"><i>30</i><span><b>COMMAND PROCESSOR READY</b><p>Use plain operator language or chain actions with â€œthen.â€ The Computer Core resolves pages, applications, procedures, Workstations, media, Display Matrix themes, system controls, and guarded local commands.</p></span></section>}
-      </main>}
-      {area === "procedures" && <main className="computer-procedure-matrix">
-        <header><span><small>VERSIONED MULTI-STEP OPERATIONS</small><h3>PROCEDURE LIBRARY</h3><p>Procedures retain conditions, timing, retries, failure paths, triggers, and protected-action gates.</p></span><button onClick={openBuilder}>OPEN PROCEDURE BUILDER</button></header>
-        <div>{procedures.map((procedure, index) => <article className={!procedure.enabled ? "disabled" : ""} key={procedure.id}><i>{String(index + 1).padStart(2, "0")}</i><span><small>{procedure.trigger.toUpperCase()} TRIGGER Â· {procedure.stepCount} STEPS</small><b>{procedure.name}</b><p>{procedure.description || "Operator-defined Computer Core procedure"}</p></span><em className={`risk-${procedure.risk}`}>{riskLabel(procedure.risk)}{procedure.reversible ? " Â· UNDO" : ""}</em><button disabled={!procedure.enabled} onClick={() => prepare(`Run ${procedure.name}`)}>BUILD RUN PLAN</button></article>)}{!procedures.length && <p className="computer-empty">NO PROCEDURES CONFIGURED Â· OPEN THE BUILDER TO CREATE THE FIRST OPERATIONS SEQUENCE</p>}</div>
-      </main>}
-      {area === "audit" && <main className="computer-audit-matrix">
-        <header><span><small>LOCAL EXECUTION JOURNAL Â· MAXIMUM 300 RECORDS</small><h3>COMPUTER AUDIT</h3><p>Dry runs, trigger requests, protected commands, failures, successful plans, and undo operations remain attributable.</p></span><nav><button disabled={!undoSnapshot || running} onClick={undo}>{undoSnapshot ? `UNDO Â· ${undoSnapshot.label}` : "NO UNDO AVAILABLE"}</button><button disabled={!audit.length} onClick={clearAudit}>CLEAR AUDIT</button></nav></header>
-        <div>{audit.map((entry, index) => <article className={`audit-${entry.status}`} key={entry.id}><i>{String(index + 1).padStart(3, "0")}</i><span><small>{new Date(entry.time).toLocaleString()} Â· {entry.source.toUpperCase()}</small><b>{entry.title}</b><p>{entry.detail}</p></span><em className={`risk-${entry.risk}`}>{entry.status.toUpperCase()} Â· {riskLabel(entry.risk)}{entry.reversible ? " Â· UNDO" : ""}</em></article>)}{!audit.length && <p className="computer-empty">NO COMPUTER CORE OPERATIONS RECORDED</p>}</div>
-      </main>}
-      <footer className="computer-core-footer"><span>LOCAL-FIRST Â· EXPLICIT AUTHORITY Â· DRY-RUN CAPABLE Â· AUDITABLE</span><small>30.4 LCARS SESSION</small></footer>
-    </section>
-  </div>;
-}
+HOˆ›ÚYÂˆÛÜÙNˆ
+
+HOˆ›ÚYÂŸJHÂˆÛÛœİØ\™XKÙ]\™XWHH\ÙTİ]O˜ÛÛ[X[™ˆœ›ØÙY\™\Èˆ˜]Y]Š˜ÛÛ[X[™ŠNÂˆÛÛœİÜ]Y\KÙ]]Y\WHH\ÙTİ]JˆŠNÂˆÛÛœİÜ[‹Ù][—HH\ÙTİ]OÛÛ\]\”[ˆ[Š[
+NÂˆÛÛœİİ˜[œÛZ][™ËÙ]˜[œÛZ][™×HH\ÙTİ]O™^Xİ]Hˆ™K\[ˆˆˆŠˆŠNÂˆÛÛœİ\YY[š]X[H\ÙT™YŠˆŠNÂˆÛÛœİXİ]™UšYÙÙ\œÈH\ÙSY[[Ê
+
+HOˆ›ØÙY\™\Ë™š[\Š
+][JHOˆ][K™[˜X›Y	‰ˆ][KšYÙÙ\ˆOOH›X[X[ŠK›[™İÜ›ØÙY\™\×JNÂˆÛÛœİ›İXİY›ØÙY\™\ÈH\ÙSY[[Ê
+
+HOˆ›ØÙY\™\Ë™š[\Š
+][JHOˆ][Kœš\ÚÈOOHœ›İXİYŠK›[™İÜ›ØÙY\™\×JNÂˆÛÛœİ›ÚXÙQØ]OP›ÛÛX[Š[ËœÛİ\˜ÙOOOH›ÚXÙH‰‰œ[‹œ™\]Z\™\ĞÛÛ™š\›X][Û‰‰›ÚXÙP]]Üš^˜][Û”™\]Z\™Y	‰ˆ]›ÚXÙP]]Üš^˜][Û”Ø]\ÙšYY
+NÂˆÛÛœİ^[\\ÈHÂˆ“Ü[ˆYYXH[ˆÙ]›Û[YHÈ‹ˆ‘[˜X›HÈ›İ\İ\˜ˆ‹ˆ›ØÙY\™\ÖÌHÈ[ˆ	Ü›ØÙY\™\ÖÌK›˜[Y_XˆÚXÚÈ›Üˆ\]\È‹ˆÛÛ\]\‹]\ÙHH]\ÚXÈ‹ˆÛÛ\]\‹™Y[\‹ˆNÂˆÛÛœİ™\\™HH
+˜[YHH]Y\JHOˆÂˆÛÛœİ™^H™\ÛÛ™J˜[YJNÂˆÙ]]Y\J˜[YJNÂˆÙ][Š™^
+NÂˆÙ]\™XJ˜ÛÛ[X[™ŠNÂˆNÂˆ\ÙQY™™Xİ
+
+
+HOˆÂˆYˆ
+Z[š]X[ÛÛ[X[™š[J
+H\YY[š]X[˜İ\œ™[OOH[š]X[ÛÛ[X[™
+H™]\›Âˆ\YY[š]X[˜İ\œ™[H[š]X[ÛÛ[X[™ÂˆÛÛœİ™^H™\ÛÛ™J[š]X[ÛÛ[X[™
+NÂˆÙ]]Y\J[š]X[ÛÛ[X[™
+NÂˆÙ][Š™^
+NÂˆÙ]\™XJ˜ÛÛ[X[™ŠNÂˆKÚ[š]X[ÛÛ[X[™™\ÛÛ™WJNÂˆÛÛœİ[ˆH\Ş[˜È
+T[ˆ›ÛÛX[ŠHOˆÂˆYˆ
+\[Ë˜[Y˜[œÛZ][™È[›š[™ÊH™]\›ÂˆÙ]˜[œÛZ][™ÊT[ˆÈ™K\[ˆˆˆ™^Xİ]HŠNÂˆHÈ]ØZ]^Xİ]J[‹T[ŠNÈBˆš[˜[HÈÙ]˜[œÛZ][™ÊˆŠNÈBˆNÂˆÛÛœİš\ÚÓX™[H
+š\ÚÎˆÛÛ\]\”š\ÚÊHOˆš\ÚÈOOHœ›İXİYˆÈ”“ÕPÕQˆˆš\ÚÈOOH˜][[ÛˆˆÈ“ÔTUS‘Èˆˆ”ĞQ‘HÂˆ™]\›ˆ]ˆÛ\ÜÓ˜[YOH˜˜XÚÙ›ÜÛÛ\]\‹XÛÜ™KX˜XÚÙ›ÜˆÛ“[İ\ÙQİÛ^Ê]™[
+HOˆ]™[\™Ù]OOH]™[˜İ\œ™[\™Ù]	‰ˆ\[›š[™È	‰ˆÛÜÙJ
+_O‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹XÛÜ™KXÛÛœÛÛHˆ›ÛOH™X[ÙÈˆ\šXK[[Ù[HYHˆ\šXK[X™[H“ĞT”ÈÛÛ\]\ˆÛÜ™H‚ˆXY\ˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹XÛÜ™KZXY\ˆ‚ˆ]ÛX[“ĞT”ÈÌHU‘SÔQS•0­ÈĞĞSQ’T”ÕÓÓSPS‘“ĞÑTÔÓÔÜÛX[ÓÓTUTˆÓÔ‘OÚ•˜[œÛ]HÜ\˜]Üˆ[™İXYÙH[Èš\ÚX›K\›Z\ÜÚ[Û‹X]Ø\™H[œÈ™Y›Ü™H[][™ÈÚ[™Ù\ËÜÙ]‚ˆÙXİ[ÛÜ[ˆÛ\ÜÓ˜[YO^ØœšYÙHÈ›Û›[™Hˆˆœİ[™HŸOKÏ“ĞĞSÓÔ‘HØœšYÙHÈ“Ó“S‘Hˆˆ”ÕS‘–HŸOÜÜ[Ü[ØXİ]™UšYÙÙ\œßHPÕU‘H’QÑÑT”ÏÜÜ[Ü[Ü›İXİY›ØÙY\™\ßHÕPT‘Q“ĞÑQT‘TÏÜÜ[]ÛˆÛÛXÚÏ^ØÛÜÙ_OÓÔÑH0åÏØ]ÛÜÙXİ[Û‚ˆÚXY\‚ˆ˜]ˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹XÛÜ™K]XœÈˆ\šXK[X™[HÛÛ\]\ˆÛÜ™H\™X\È‚ˆ]ÛˆÛ\ÜÓ˜[YO^Ø\™XHOOH˜ÛÛ[X[™ˆÈ˜Xİ]™HˆˆˆŸHÛÛXÚÏ^Ê
+HOˆÙ]\™XJ˜ÛÛ[X[™Š_OOŒOÚOÓÓSPS‘Ø]Û‚ˆ]ÛˆÛ\ÜÓ˜[YO^Ø\™XHOOHœ›ØÙY\™\ÈˆÈ˜Xİ]™HˆˆˆŸHÛÛXÚÏ^Ê
+HOˆÙ]\™XJœ›ØÙY\™\ÈŠ_OOŒÚO”“ĞÑQT‘TÈÛX[Ü›ØÙY\™\Ë›[™İOÜÛX[Ø]Û‚ˆ]ÛˆÛ\ÜÓ˜[YO^Ø\™XHOOH˜]Y]ˆÈ˜Xİ]™HˆˆˆŸHÛÛXÚÏ^Ê
+HOˆÙ]\™XJ˜]Y]Š_OOŒÏÚOUQUÛX[Ø]Y]›[™İOÜÛX[Ø]Û‚ˆÛ˜]‚ˆØ\™XHOOH˜ÛÛ[X[™ˆ	‰ˆXZ[ˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹XÛÛ[X[™X\™XH‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹XÛÛ[X[™Y[H‚ˆX™[[›ÜH˜ÛÛ\]\‹XÛÛ[X[™Z[œ]“ÔTUÔˆÓÓSPS‘ÛX™[‚ˆ][œ]YH˜ÛÛ\]\‹XÛÛ[X[™Z[œ]ˆ]]Ñ›Øİ\È˜[YO^Ü]Y\_HXÙZÛ\HÓÓTUT‹ÔSˆQQPHSˆÑU“ÓSQHÈ8 )ˆˆÛÚ[™ÙO^Ê]™[
+HOˆÈÙ]]Y\J]™[\™Ù]˜[YJNÈÙ][Š[
+NÈ_HÛ’Ù^QİÛ^Ê]™[
+HOˆÈYˆ
+]™[šÙ^HOOH‘[\ˆŠHÈ]™[œ™]™[Y˜][
+
+NÈ™\\™J
+NÈH_KÏ]Ûˆ\ØX›Y^È\]Y\Kš[J
+_HÛÛXÚÏ^Ê
+HOˆ™\\™J
+_O•RSSØ]ÛÙ]‚ˆÛÛ[X[™È\™H\œÙYØØ[Kˆ[\ˆZ[ÈH[È]™]™\ˆÚÚ\ÈH™]šY]ÈÜˆÛÛ™š\›X][ÛˆØ]KÜ‚ˆ˜]Ù^[\\Ë›X\
+
+^[\JHOˆ]ÛˆÙ^O^Ù^[\_HÛÛXÚÏ^Ê
+HOˆ™\\™J^[\J_OÙ^[\_OØ]ÛŠ_OÛ˜]‚ˆÜÙXİ[Û‚ˆÜ[ˆÈÙXİ[ÛˆÛ\ÜÓ˜[YO^ØÛÛ\]\‹\[ˆ[‹IÜ[‹œš\ÚßH	Ü[‹˜[YÈ˜[Yˆˆš[˜[YŸXO‚ˆXY\Ü[ÛX[Ü[‹˜[YÈ	ÓX]œ›İ[™
+[‹˜ÛÛ™šY[˜ÙH
+ˆL
+_IHS•T”‘UUSÓˆÓÓ‘’QSÑXˆÓT’Q’PĞUSÓˆ‘TURT‘QŸOÜÛX[ÏÜ[‹]_OÚÏÜ[‹œİ[[X\_OÜÜÜ[OÜ[‹˜[YÈš\ÚÓX™[
+[‹œš\ÚÊHˆ’ÓŸOÚOÚXY\‚ˆÜ[‹˜[YÈÛÜ[‹œİ\Ë›X\
+
+][K[™^
+HOˆHÙ^O^Ú][KšYOOÔİš[™Ê[™^
+ÈJKœYİ\
+‹ŒŠ_OÚOÜ[Ú][K›X™[OØÛX[Ú][K™]Z[OÜÛX[ÜÜ[[HÛ\ÜÓ˜[YO^Øš\ÚËIÚ][Kœš\ÚßXOÜš\ÚÓX™[
+][Kœš\ÚÊ_^Ú][Kœ™]™\œÚX›HÈˆ0­ÈS‘ÈˆˆˆŸ^Ú][Kœ™\]Z\™\ĞœšYÙHÈˆ0­ÈĞĞSÓÔ‘HˆˆˆŸOÙ[OÛOŠ_OÛÛˆˆ]ˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹\[‹Y\œ›ÜœÈÜ[‹™\œ›ÜœË›X\
+
+\œ›ÜŠHOˆÙ^O^Ù\œ›ÜŸOÙ\œ›ÜŸOÜŠ_OÛX[•HÛ™HÙˆH^[\\ÈÜˆ\ÙHH^Xİš\ÚX›H\XØ][Û‹ÛÜšÜİ][Û‹›ØÙY\™K[YKÜˆYÙH˜[YKÜÛX[Ù]ŸBˆ›Ûİ\‚ˆÜ[İ›ÚXÙQØ]HÈ”›İXİY›ÚXÙH[ˆ[ˆ™\X]HÛÛ[X[™Ú]8 ']]Üš^˜][Û¸ 'H›ÛİÙYHHÛÛ™šYİ\™Y›ØØ[ÛÙKˆX[X[ÛÛ™š\›X][Ûˆ™[XZ[œÈ™\]Z\™Yˆˆˆ[‹œ™\]Z\™\ĞÛÛ™š\›X][ÛˆÈ›ÚXÙP]]Üš^˜][Û”Ø]\ÙšYY	‰œ[‹œÛİ\˜ÙOOOH›ÚXÙHÈ•›ØØ[]]Üš^˜][Ûˆ™\šYšYYˆHš\ÚX›H›İXİYXXİ[ÛˆÛÛ™š\›X][Ûˆ\Èİ[™\]Z\™Yˆˆ•\È[ˆÛÛZ[œÈ›İXİYÜ\˜][ÛœËˆVPÕUH\ÈH^XÚ]Ü\˜]ÜˆÛÛ™š\›X][Û‹ˆˆˆ[‹œ™]™\œÚX›HÈ‘]™\Hİ\[ˆ\È[ˆØ[ˆ™H™]™\Yœ›ÛHH]Y][™[ˆˆˆ•H[ˆ\Èš\ÚX›H™Y›Ü™H^Xİ][ÛÈ\œ™]™\œÚX›Hİ\È\™HÛX\›HY[YšYYˆŸOÜÜ[‚ˆ˜]]Ûˆ\ØX›Y^È\[‹˜[Y›ÛÛX[Š˜[œÛZ][™ÊH[›š[™ßHÛÛXÚÏ^Ê
+HOˆ›ÚY[ŠYJ_Oİ˜[œÛZ][™ÈOOH™K\[ˆˆÈ”ÒSUSUS‘ø )ˆˆˆ‘–H•SˆŸOØ]Û]ÛˆÛ\ÜÓ˜[YO^Ü[‹œ™\]Z\™\ĞÛÛ™š\›X][ÛˆÈœ›İXİYˆˆ™^Xİ]HŸH\ØX›Y^È\[‹˜[Y›ÛÛX[Š˜[œÛZ][™ÊH[›š[™È›ÚXÙQØ]_HÛÛXÚÏ^Ê
+HOˆ›ÚY[Š˜[ÙJ_Oİ›ÚXÙQØ]OÈ•“ĞĞSÓÑH‘TURT‘Q˜[œÛZ][™ÈOOH™^Xİ]Hˆ[›š[™ÈÈ‘VPÕUS‘ø )ˆˆˆ[‹œ™\]Z\™\ĞÛÛ™š\›X][ÛˆÈÓÓ‘’T“H	ˆVPÕUHˆˆ‘VPÕUHSˆŸOØ]ÛÛ˜]‚ˆÙ›Ûİ\‚ˆÜÙXİ[ÛˆˆÙXİ[ÛˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹XÛÜ™KZYHOŒÌÚOÜ[ÓÓSPS‘“ĞÑTÔÓÔˆ‘PQOØ•\ÙHZ[ˆÜ\˜]Üˆ[™İXYÙHÜˆÚZ[ˆXİ[ÛœÈÚ]8 '[‹¸ 'HHÛÛ\]\ˆÛÜ™H™\ÛÛ™\ÈYÙ\Ë\XØ][ÛœË›ØÙY\™\ËÛÜšÜİ][ÛœËYYXK\Ü^HX]š^[Y\ËŞ\İ[HÛÛ›ÛË[™İX\™YØØ[ÛÛ[X[™ËÜÜÜ[ÜÙXİ[ÛŸBˆÛXZ[ŸBˆØ\™XHOOHœ›ØÙY\™\Èˆ	‰ˆXZ[ˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹\›ØÙY\™K[X]š^‚ˆXY\Ü[ÛX[•‘T”ÒSÓ‘QUSKTÕTÔTUSÓ”ÏÜÛX[Ï”“ĞÑQT‘HP”T–OÚÏ”›ØÙY\™\È™]Z[ˆÛÛ™][ÛœË[Z[™Ë™]šY\Ë˜Z[\™H]ËšYÙÙ\œË[™›İXİYXXİ[ÛˆØ]\ËÜÜÜ[]ÛˆÛÛXÚÏ^ÛÜ[Z[\ŸO“ÔSˆ“ĞÑQT‘H•RSTØ]ÛÚXY\‚ˆ]Ü›ØÙY\™\Ë›X\
+
+›ØÙY\™K[™^
+HOˆ\XÛHÛ\ÜÓ˜[YO^È\›ØÙY\™K™[˜X›YÈ™\ØX›YˆˆˆŸHÙ^O^Ü›ØÙY\™KšYOOÔİš[™Ê[™^
+ÈJKœYİ\
+‹ŒŠ_OÚOÜ[ÛX[Ü›ØÙY\™KšYÙÙ\‹Õ\\Ø\ÙJ
+_H’QÑÑTˆ0­ÈÜ›ØÙY\™Kœİ\Ûİ[HÕTÏÜÛX[Ü›ØÙY\™K›˜[Y_OØÜ›ØÙY\™K™\ØÜš\[Ûˆ“Ü\˜]Ü‹YYš[™YÛÛ\]\ˆÛÜ™H›ØÙY\™HŸOÜÜÜ[[HÛ\ÜÓ˜[YO^Øš\ÚËIÜ›ØÙY\™Kœš\ÚßXOÜš\ÚÓX™[
+›ØÙY\™Kœš\ÚÊ_^Ü›ØÙY\™Kœ™]™\œÚX›HÈˆ0­ÈS‘ÈˆˆˆŸOÙ[O]Ûˆ\ØX›Y^È\›ØÙY\™K™[˜X›YHÛÛXÚÏ^Ê
+HOˆ™\\™J[ˆ	Ü›ØÙY\™K›˜[Y_X
+_O•RS•SˆSØ]ÛØ\XÛOŠ_^È\›ØÙY\™\Ë›[™İ	‰ˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹Y[\H““È“ĞÑQT‘TÈÓÓ‘’QÕT‘Q0­ÈÔSˆH•RSTˆÈÔ‘PUHH’T”ÕÔTUSÓ”ÈÑTUQSÑOÜŸOÙ]‚ˆÛXZ[ŸBˆØ\™XHOOH˜]Y]ˆ	‰ˆXZ[ˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹X]Y][X]š^‚ˆXY\Ü[ÛX[“ĞĞSVPÕUSÓˆ“ÕT“S0­ÈPVSUSHÌ‘PÓÔ‘ÏÜÛX[ÏÓÓTUTˆUQUÚÏ‘H[œËšYÙÙ\ˆ™\]Y\İË›İXİYÛÛ[X[™Ë˜Z[\™\ËİXØÙ\ÜÙ[[œË[™[™ÈÜ\˜][ÛœÈ™[XZ[ˆ]šX]X›KÜÜÜ[˜]]Ûˆ\ØX›Y^È][™ÔÛ˜\Úİ[›š[™ßHÛÛXÚÏ^İ[™ßOİ[™ÔÛ˜\ÚİÈS‘È0­È	İ[™ÔÛ˜\Úİ›X™[Xˆ““ÈS‘ÈURSP“HŸOØ]Û]Ûˆ\ØX›Y^ÈX]Y]›[™İHÛÛXÚÏ^ØÛX\]Y]OÓPTˆUQUØ]ÛÛ˜]ÚXY\‚ˆ]Ø]Y]›X\
+
+[K[™^
+HOˆ\XÛHÛ\ÜÓ˜[YO^Ø]Y]IÙ[Kœİ]\ßXHÙ^O^Ù[KšYOOÔİš[™Ê[™^
+ÈJKœYİ\
+ËŒŠ_OÚOÜ[ÛX[Û™]È]J[K[YJKÓØØ[Tİš[™Ê
+_H0­ÈÙ[KœÛİ\˜ÙKÕ\\Ø\ÙJ
+_OÜÛX[Ù[K]_OØÙ[K™]Z[OÜÜÜ[[HÛ\ÜÓ˜[YO^Øš\ÚËIÙ[Kœš\ÚßXOÙ[Kœİ]\ËÕ\\Ø\ÙJ
+_H0­ÈÜš\ÚÓX™[
+[Kœš\ÚÊ_^Ù[Kœ™]™\œÚX›HÈˆ0­ÈS‘ÈˆˆˆŸOÙ[OØ\XÛOŠ_^ÈX]Y]›[™İ	‰ˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹Y[\H““ÈÓÓTUTˆÓÔ‘HÔTUSÓ”È‘PÓÔ‘QÜŸOÙ]‚ˆÛXZ[ŸBˆ›Ûİ\ˆÛ\ÜÓ˜[YOH˜ÛÛ\]\‹XÛÜ™KY›Ûİ\ˆÜ[“ĞĞSQ’T”Õ0­ÈVPÒUUUÔ’UH0­È–KT•SˆĞTP“H0­ÈUQUP“OÜÜ[ÛX[ŒÌHUHP”’PÏÜÛX[Ù›Ûİ\‚ˆÜÙXİ[Û‚ˆÙ]ÂŸB

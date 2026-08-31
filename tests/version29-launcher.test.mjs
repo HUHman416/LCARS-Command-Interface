@@ -1,136 +1,146 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ]øëÎ¸ÓÍ¹ï}öŞZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\İœ›ÛH››ÙN\İÂš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜİšXİÂš[\ÜÈ™XYš[TŞ[˜ÈHœ›ÛH››ÙN™œÈÂ‚˜ÛÛœİ™XYJ]
+OOœ™XYš[TŞ[˜Ê™]ÈT“
+][\Ü›Y]K\›
+K]ŠNÂ˜ÛÛœİXÚØYÙRœÛÛR”ÓÓ‹œ\œÙJ™XY
+‹‹‹ÜXÚØYÙKšœÛÛˆŠJNÂ˜ÛÛœİYÙO\™XY
+‹‹‹Ø\ÜYÙKŞŠNÂ˜ÛÛœİ^[İ]\™XY
+‹‹‹Ø\Û^[İ]ŞŠNÂ˜ÛÛœİ™[™\™\\™XY
+‹‹‹Ù\ÚİÜÜ™[™\™\‹ŞŠNÂ˜ÛÛœİÜÜÏ\™XY
+‹‹‹Ø\İŒK˜ÜÜÈŠNÂ˜ÛÛœİX[šY™\İ\™XY
+‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ğ[™›ÚYX[šY™\İ[ŠNÂ˜ÛÛœİÜ˜YO\™XY
+‹‹‹Û[Øš[KØ[™›ÚYØ\ØZ[™Ü˜YHŠNÂ˜ÛÛœİÜ˜YT›Ü\Y\Ï\™XY
+‹‹‹Û[Øš[KØ[™›ÚYÙÜ˜YKœ›Ü\Y\ÈŠNÂ˜ÛÛœİXZ[\™XY
+‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÓXZ[Xİ]š]Kš˜]˜HŠNÂ˜ÛÛœİÛYO\™XY
+‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÒÛYPXİ]š]Kš˜]˜HŠNÂ˜ÛÛœİÛÛ\[š[Û\™XY
+‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYĞÛÛ\[š[Û‘ØÚËš˜]˜HŠNÂ˜ÛÛœİÜ™Y[X[Ï\™XY
+‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÔÙXİ\™Tİ][Û”İÜ™Kš˜]˜HŠNÂ˜ÛÛœİ\]\\™XY
+‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÓ[Øš[U\]SX[˜YÙ\‹š˜]˜HŠNÂ˜ÛÛœİ˜]\O\™XY
+‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYĞ˜]\Tİ]\Ëš˜]˜HŠNÂ˜ÛÛœİÛÜšÙ›İÏ\™XY
+‹‹‹Ë™Ú]X‹İÛÜšÙ›İÜËİŒKY]™[ÜY[[[ŠNÂ˜ÛÛœİİX›UÛÜšÙ›İÏ\™XY
+‹‹‹Ë™Ú]X‹İÛÜšÙ›İÜËİŒK\İX›K[[ŠNÂ‚\İ
+˜İ\œ™[]™[ÜY[Y[]HY˜[˜Ù\ÈÚ]İ]Ú[™Ú[™ÈH[™›ÚYXÚØYÙH‹
 
-const read=(path)=>readFileSync(new URL(path,import.meta.url),"utf8");
-const packageJson=JSON.parse(read("../package.json"));
-const page=read("../app/page.tsx");
-const layout=read("../app/layout.tsx");
-const renderer=read("../desktop/renderer.tsx");
-const css=read("../app/v29.css");
-const manifest=read("../mobile/android/app/src/main/AndroidManifest.xml");
-const gradle=read("../mobile/android/app/build.gradle");
-const gradleProperties=read("../mobile/android/gradle.properties");
-const main=read("../mobile/android/app/src/main/java/com/lcars/padd/MainActivity.java");
-const home=read("../mobile/android/app/src/main/java/com/lcars/padd/HomeActivity.java");
-const companion=read("../mobile/android/app/src/main/java/com/lcars/padd/CompanionDock.java");
-const credentials=read("../mobile/android/app/src/main/java/com/lcars/padd/SecureStationStore.java");
-const updater=read("../mobile/android/app/src/main/java/com/lcars/padd/MobileUpdateManager.java");
-const battery=read("../mobile/android/app/src/main/java/com/lcars/padd/BatteryStatus.java");
-const workflow=read("../.github/workflows/v29-development.yml");
-const stableWorkflow=read("../.github/workflows/v29-stable.yml");
+OOÂˆ\ÜÙ\™\]X[
+XÚØYÙRœÛÛ‹™\œÚ[Û‹ŒÌKŒY]‹ŒHŠNÂˆ\ÜÙ\›X]Ú
+YÙKÓĞT”×Õ‘T”ÒSÓHŒÌH‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÌÌHU‹ÊNÂˆ\ÜÙ\›X]Ú
+Ü˜YKİ™\œÚ[ÛÛÙHÌLKÊNÂˆ\ÜÙ\›X]Ú
+Ü˜YKİ™\œÚ[Û“˜[YHŒÌWŒ‹ÊNÂˆ\ÜÙ\›X]Ú
+Ü˜YKØ\XØ][Û’YİY™š^—™]ˆ‹ÊNÂˆ\ÜÙ\›X]Ú
+Ü˜YKİ™\œÚ[Û“˜[YTİY™š^‹Y]™[ÜY[‹ÊNÂˆ\ÜÙ\›X]Ú
+Ü˜YKÜÚYÛš[™ĞÛÛ™šYÈÚYÛš[™ĞÛÛ™šYÜ×œ™[X\ÙKÊNÂŸJNÂ‚\İ
+[™›ÚYÙY\ÈHÙ[Z[™HÛYH›ÛH[™›İ]\ÈÛÛ\[š[Ûˆ[ÈH[šYšYYÚ[‹
 
-test("current development identity advances without changing the Android package",()=>{
-  assert.equal(packageJson.version,"30.4.0-dev.1");
-  assert.match(page,/LCARS_VERSION="30\.4"/);
-  assert.match(page,/30\.4 DEV/);
-  assert.match(gradle,/versionCode 304001/);
-  assert.match(gradle,/versionName "30\.4\.0"/);
-  assert.match(gradle,/applicationIdSuffix "\.dev"/);
-  assert.match(gradle,/versionNameSuffix "-development"/);
-  assert.match(gradle,/signingConfig signingConfigs\.release/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+X[šY™\İØ[™›ÚY›˜[YOH—“XZ[Xİ]š]H–×××J˜[™›ÚYš[[˜Ø]YÛÜW“USÒT‹ÊNÂˆ\ÜÙ\›X]Ú
+X[šY™\İØ[™›ÚY›˜[YOH—’ÛYPXİ]š]H–×××J˜[™›ÚYš[[˜Ø]YÛÜW‘QUS×××J˜[™›ÚYš[[˜Ø]YÛÜW’ÓQKÊNÂˆ\ÜÙ\›X]Ú
+X[šY™\İØ[™›ÚY˜[Ø^\Ô™]Z[•\ÚÔİ]OHYH‹ÊNÂˆ\ÜÙ\›X]Ú
+X[šY™\İØ[™›ÚYœİ]S›İ™YYYH™˜[ÙH‹ÊNÂˆ\ÜÙ\›X]Ú
+ÛYKÔ›ÛSX[˜YÙ\—”“ÓWÒÓQKÊNÂˆ\ÜÙ\›X]Ú
+ÛYKÛ™]ÈÛÛ\[š[Û‘ØÚ×
+\Ëİ][Û”İÜ™W
+KÊNÂˆ\ÜÙ\›X]Ú
+XZ[‹Ü]^˜W
+›Ü[‹\YÙH‹˜ÛÛ\[š[Ûˆ—
+KÊNÂˆ\ÜÙ\™Ù\Ó›İX]Ú
+XZ[‹ÜÙ]ÛÛ[šY]ßT“ÛÛ›™Xİ[ÛŸÙX•šY]ËÊNÂŸJNÂ‚\İ
+’ÛYHš^\ÈÛÛ\Xİ]\Ë[›ØÚÈ][˜ŞK[™\XØ][Ûˆ][˜Ú][˜ŞH‹
 
-test("Android keeps the genuine Home role and routes Companion into the unified shell",()=>{
-  assert.match(manifest,/android:name="\.MainActivity"[\s\S]*android\.intent\.category\.LAUNCHER/);
-  assert.match(manifest,/android:name="\.HomeActivity"[\s\S]*android\.intent\.category\.DEFAULT[\s\S]*android\.intent\.category\.HOME/);
-  assert.match(manifest,/android:alwaysRetainTaskState="true"/);
-  assert.match(manifest,/android:stateNotNeeded="false"/);
-  assert.match(home,/RoleManager\.ROLE_HOME/);
-  assert.match(home,/new CompanionDock\(this,stationStore\)/);
-  assert.match(main,/putExtra\("open-page", "companion"\)/);
-  assert.doesNotMatch(main,/setContentView|HttpURLConnection|WebView/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+ÛYKØÛÛZ[™YX™[
+S‘“ÒQÓÓSPS‘S•T‘PÑH–×××J‹—
+KÊNÂˆ\ÜÙ\›X]Ú
+ÛYKÜÙ]X^[™\×
+[™\×
+KÊNÂˆ\ÜÙ\›X]Ú
+ÛYKÜÙ][˜ÛYQ›ÛY[™×
+˜[ÙW
+KÊNÂˆ\ÜÙ\›X]Ú
+ÛYKÑ^Xİ]Ü”Ù\šXÙH\ØY\‹ÊNÂˆ\ÜÙ\›X]Ú
+ÛYKØ\ØY\—™^Xİ]KÊNÂˆ\ÜÙ\›X]Ú
+ÛYKÒ[[›XZÙSXZ[Xİ]š]KÊNÂˆ\ÜÙ\›X]Ú
+ÛYKİš\ÚX›P\[Z]MŒÊNÂˆÛÛœİ™\İ[YOZÛYK›X]Ú
+Ğİ™\œšYH›İXİY›ÚYÛ”™\İ[YW
+
+WÊ×——JÊWKÊOË–ÌW_ˆÂˆ\ÜÙ\™Ù\Ó›İX]Ú
+™\İ[YKÜ™[ØY\ßZ[ÛY_™[™\”YÙKÊNÂŸJNÂ‚\İ
+\XØ][ÛœÈ^ÜÙHÙ[H›Û\‹Z[™\[™[˜]›Üš]\È™Y›Ü™H›Û\œÈ‹
 
-test("Home fixes compact titles, unlock latency, and application launch latency",()=>{
-  assert.match(home,/containedLabel\("ANDROID COMMAND INTERFACE"[\s\S]*,2\)/);
-  assert.match(home,/setMaxLines\(lines\)/);
-  assert.match(home,/setIncludeFontPadding\(false\)/);
-  assert.match(home,/ExecutorService appLoader/);
-  assert.match(home,/appLoader\.execute/);
-  assert.match(home,/Intent\.makeMainActivity/);
-  assert.match(home,/visibleAppLimit=60/);
-  const resume=home.match(/@Override protected void onResume\(\)\{([^\n]+)\}/)?.[1]||"";
-  assert.doesNotMatch(resume,/reloadApps|buildHome|renderPage/);
-});
+OOÂˆÛÛœİ\XØ][ÛœÏZÛYKš[™^ÙŠœš]˜]H›ÚY™[™\\XØ][ÛœÔYÙHŠNÂˆÛÛœİ˜]›Üš]\ÏZÛYKš[™^ÙŠ‘U“Ô’UHTPĞUSÓ”È‹\XØ][ÛœÊNÂˆÛÛœİ›Û\œÏZÛYKš[™^ÙŠTPĞUSÓˆ“ÓT”È‹\XØ][ÛœÊNÂˆ\ÜÙ\›ÚÊ\XØ][ÛœÏL	‰™˜]›Üš]\Ï˜\XØ][ÛœÉ‰™›Û\œÏ™˜]›Üš]\ÊNÂˆ\ÜÙ\›X]Ú
+ÛYKÙ˜]›Üš]\×œÚ^™W
+
+W
+ÈˆÈŒ‹ÊNÂˆ\ÜÙ\›X]Ú
+ÛYKİ˜[Y\×œÚ^™W
+
+OLŒÊNÂˆ\ÜÙ\›X]Ú
+ÛYKÑU“Ô’UTÈ•SÊNÂŸJNÂ‚\İ
+•™\œÚ[ÛˆKŒÈİ\Y\ÈØ[[™\‹][K\İ][ÛˆØÚË›İYšXØ][ÛœË[™˜]\HÛXŞH‹
 
-test("Applications expose twenty folder-independent Favorites before folders",()=>{
-  const applications=home.indexOf("private void renderApplicationsPage");
-  const favorites=home.indexOf("FAVORITE APPLICATIONS",applications);
-  const folders=home.indexOf("APPLICATION FOLDERS",applications);
-  assert.ok(applications>=0&&favorites>applications&&folders>favorites);
-  assert.match(home,/favorites\.size\(\)\+" \/ 20"/);
-  assert.match(home,/values\.size\(\)>=20/);
-  assert.match(home,/FAVORITES FULL/);
-});
+OOÂˆ›ÜŠÛÛœİÚÙ[ˆÙˆÈ•STÔSÔTUSÓ”È‹œ™[™\Ø[[™\”YÙH‹”ÑSPÕQÕT‘UH‹œÙ]ÛÛXÚÓ\İ[™\Š‹OœİÚ]ÚYÙJ˜Ø[[™\—ŠJH—JX\ÜÙ\›ÚÊÛYKš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂˆ›ÜŠÛÛœİÚÙ[ˆÙˆÈÓÓ“‘PÕQÕUSÓˆĞÒÈ‹”ĞU‘QÕUSÓ”È‹”ÕUTÈ‹“QQPH‹ÓÓSTÈ‹ÓQ‹““ÕQ’PĞUSÓˆÑS•Tˆ‹‘TÓRTÔÈS‹˜\KÜYÚX\™X]—JX\ÜÙ\›ÚÊÛÛ\[š[Û‹š[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂˆ\ÜÙ\›X]Ú
+ÛÛ\[š[Û‹Üİ][Ûœ×˜[
+
+WœÚ^™W
+
+W
+È—Î‹ÊNÂˆ\ÜÙ\›X]Ú
+ÛÛ\[š[Û‹Ğ˜]\Tİ]\×˜Û\ÜÚYKÊNÂˆ\ÜÙ\›X]Ú
+˜]\KĞÔ’UPĞSÒT‘ÒS‘ß‘PQKÊNÂŸJNÂ‚\İ
+”Z\š[™ÈÜ™Y[X[ÈZYÜ˜]H[È[™›ÚYÙ^\İÜ™H[˜Ü\[Ûˆ‹
 
-test("Version 29.3 supplies calendar, multi-station Dock, notifications, and battery policy",()=>{
-  for(const token of ["TEMPORAL OPERATIONS","renderCalendarPage","SELECTED STARDATE","setOnClickListener(v->switchPage(\"calendar\"))"])assert.ok(home.includes(token),token);
-  for(const token of ["CONNECTED STATION DOCK","SAVED STATIONS","STATUS","MEDIA","COMMS","CMD","NOTIFICATION CENTER","DISMISS ALL","api/padd/heartbeat"])assert.ok(companion.includes(token),token);
-  assert.match(companion,/stations\.all\(\)\.size\(\)\+"\/8"/);
-  assert.match(companion,/BatteryStatus\.classify/);
-  assert.match(battery,/CRITICAL|CHARGING|READY/);
-});
+OOÂˆ›ÜŠÛÛœİÚÙ[ˆÙˆÈ[™›ÚYÙ^TİÜ™H‹QTËÑĞÓKÓ›ÔY[™È‹‘ĞÓT\˜[Y]\”ÜXÈ‹›ZYÜ˜]SYØXŞH‹›\İ\İ][Ûˆ‹œİ][Û‹]ÚÙ[ˆ—JX\ÜÙ\›ÚÊÜ™Y[X[Ëš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂˆ\ÜÙ\›X]Ú
+Ü™Y[X[ËÓPVÔÕUSÓ”×ÊWÊÊNÂˆ\ÜÙ\›X]Ú
+Ü™Y[X[ËÛYØXŞW™Y]
+
+Wœ™[[İ™W
+QĞPÖWÕÒÑS—
+Wœ™[[İ™W
+QĞPÖWÔÕUSÓ—
+KÊNÂˆ\ÜÙ\›X]Ú
+Ü™Y[X[ËØÛX\Ü™Y[X[ÊNÂŸJNÂ‚\İ
+›Û™K]\[Øš[H\]\È\ÙHH™\šYšYYTÈ[™[™›ÚY	ÜÈ[œİ[\ˆ‹
 
-test("Pairing credentials migrate into Android Keystore encryption",()=>{
-  for(const token of ["AndroidKeyStore","AES/GCM/NoPadding","GCMParameterSpec","migrateLegacy","last-station","station-token"])assert.ok(credentials.includes(token),token);
-  assert.match(credentials,/MAX_STATIONS\s*=\s*8/);
-  assert.match(credentials,/legacy\.edit\(\)\.remove\(LEGACY_TOKEN\)\.remove\(LEGACY_STATION\)/);
-  assert.match(credentials,/clearCredential/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+Ü˜YT›Ü\Y\ËØ[™›ÚY\ÙP[™›ÚY]YKÊNÂˆ\ÜÙ\›X]Ú
+X[šY™\İÔ‘TUQTÕÒS”ÕSÔPÒĞQÑTËÊNÂˆ\ÜÙ\›X]Ú
+X[šY™\İØ[™›ÚY˜ÛÜ™W˜ÛÛ[‘š[T›İšY\‹ÊNÂˆ›ÜŠÛÛœİÚÙ[ˆÙˆÈ”ÒLM”ÕSTË‹“Y\ÜØYÙQYÙ\İ™Ù][œİ[˜ÙJ”ÒKLM—ŠH‹PÕSÓ—ÓPSQÑWÕS’Ó“ÕÓ—ĞTÔÓÕTÑTÈ‹˜\XØ][Û‹İ›™˜[™›ÚYœXÚØYÙKX\˜Ú]™H‹‘“Q×ÑÔS•Ô‘PQÕT’WÔT“RTÔÒSÓˆ—JX\ÜÙ\›ÚÊ\]\‹š[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂˆ\ÜÙ\›X]Ú
+ÛYKĞÒPÒÈ
+ÈS”ÕSSĞ’SHTUKÊNÂŸJNÂ‚\İ
+Ü˜\Y[Ù[HÛÛ›ÛÈ[™\ÚİÜÜ\˜[Z[Y\È™]Z[ˆ™\XØ[™\Ú^š[™È‹
 
-test("one-tap mobile updates use a verified APK and Android's installer",()=>{
-  assert.match(gradleProperties,/android\.useAndroidX=true/);
-  assert.match(manifest,/REQUEST_INSTALL_PACKAGES/);
-  assert.match(manifest,/androidx\.core\.content\.FileProvider/);
-  for(const token of ["SHA256SUMS.txt","MessageDigest.getInstance(\"SHA-256\")","ACTION_MANAGE_UNKNOWN_APP_SOURCES","application/vnd.android.package-archive","FLAG_GRANT_READ_URI_PERMISSION"])assert.ok(updater.includes(token),token);
-  assert.match(home,/CHECK \+ INSTALL MOBILE UPDATE/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+^[İ]Ú[\Ü——İŒW˜ÜÜÈ‹ÊNÂˆ\ÜÙ\›X]Ú
+™[™\™\‹Ú[\Ü———Ø\İŒW˜ÜÜÈ‹ÊNÂˆ\ÜÙ\›X]Ú
+ÜÜË×›İ™\šY]ËYY][™È›İ™\šY]Ë[[Ù[\ÈÚYÙ]]Ü˜\Ê—Ö×××J™ÜšY][\]K\›İÜÎ—Ê˜]]ÈZ[›X^
+Yœ—
+KÊNÂˆ›ÜŠÛÛœİİ\™˜XÙHÙˆÈœÜYYYX[\YÙK\YZÈ‹››İXÙKZ\İÜH‹˜^KY˜]Ù\ˆ—JX\ÜÙ\›ÚÊÜÜËš[˜ÛY\Ê‰Üİ\™˜XÙ_Kœ™\Ú^˜X›K\Ü\Y›Ø][™Ø
+Kİ\™˜XÙJNÂˆ\ÜÙ\›X]Ú
+ÜÜËÛX^ZZYÚ—Ê˜Ø[×
+LšH
+HZ[\Ü[ÊNÂŸJNÂ‚\İ
+•™\œÚ[ÛˆKŒÈÈ]]ÛX][Ûˆ™[XZ[œÈ]˜Z[X›H›Üˆ\İÜšXØ[]™[ÜY[Z[È‹
 
-test("wrapped module controls and desktop popup families retain vertical resizing",()=>{
-  assert.match(layout,/import "\.\/v29\.css"/);
-  assert.match(renderer,/import "\.\.\/app\/v29\.css"/);
-  assert.match(css,/\.overview-editing \.overview-modules \.widget-wrap\s*\{[\s\S]*grid-template-rows:\s*auto minmax\(0, 1fr\)/);
-  for(const surface of ["speed-dial-page-peek","notice-history","tray-drawer"])assert.ok(css.includes(`.${surface}.resizable-popup-floating`),surface);
-  assert.match(css,/max-height:\s*calc\(100vh - 24px\) !important/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËØœ˜[˜Ú\Î—Ê—ÌKY]™[ÜY[KÊNÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËĞ˜]\Tİ]\ÔÙ[•\İÊNÂˆ›ÜŠÛÛœİ›ØˆÙˆÈ›[^ˆ‹Ú[™İÜÎˆ‹˜[™›ÚYˆ‹œX›\ÚY]™[ÜY[\™[X\ÙNˆ—JX\ÜÙ\›ÚÊÛÜšÙ›İËš[˜ÛY\Ê›ØŠK›ØŠNÂˆ›ÜŠÛÛœİ\ÜÙ]ÙˆÂˆ“ĞT”ËPÛÛ[X[™R[\™˜XÙK]ŒKŒË^—Í\[XYÙH‹ˆ“ĞT”ËU[š]™\œØ[S[^Q\ÚİÜ]ŒKŒËš\‹ˆ“ĞT”ËS[^R[YÜ˜][Û‹]ŒKŒËœÚ‹ˆ“ĞT”ËUÚ[™İÜËTÙ]\]ŒKŒË™^H‹ˆ“ĞT”ËS[Øš[KQ[š\›Û›Y[]ŒKŒËP[™›ÚY˜\È‹ˆ“ĞT”ËPÛÛ[X[™R[\™˜XÙK]ŒKŒËTÛİ\˜ÙKš\‹ˆ”ÒLM”ÕSTË‹ˆJX\ÜÙ\›ÚÊÛÜšÙ›İËš[˜ÛY\Ê\ÜÙ]
+K\ÜÙ]
+NÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËÙÚ™[X\ÙHÜ™X]HŒWŒËÊNÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËÕ™\œÚ[ÛˆWŒÈÈKÊNÂˆ\ÜÙ\›X]Ú
+ÛÜšÙ›İËËK\™\™[X\ÙKÊNÂŸJNÂ‚\İ
+•™\œÚ[ÛˆHİX›H]]ÛX][ÛˆÚYÛœÈ[™X›\Ú\È]™\H]›Ü›H‹
 
-test("Version 29.3 RC automation remains available for historical development builds",()=>{
-  assert.match(workflow,/branches:\s*\[29-development\]/);
-  assert.match(workflow,/BatteryStatusSelfTest/);
-  for(const job of ["linux:","windows:","android:","publish-development-release:"])assert.ok(workflow.includes(job),job);
-  for(const asset of [
-    "LCARS-Command-Interface-v29.3-x86_64.AppImage",
-    "LCARS-Universal-Linux-Desktop-v29.3.zip",
-    "LCARS-Linux-Integration-v29.3.sh",
-    "LCARS-Windows-Setup-v29.3.exe",
-    "LCARS-Mobile-Environment-v29.3-Android.apk",
-    "LCARS-Command-Interface-v29.3-Source.zip",
-    "SHA256SUMS.txt",
-  ])assert.ok(workflow.includes(asset),asset);
-  assert.match(workflow,/gh release create v29\.3/);
-  assert.match(workflow,/Version 29\.3 RC 1/);
-  assert.match(workflow,/--prerelease/);
-});
-
-test("Version 29 Stable automation signs and publishes every platform",()=>{
-  assert.match(stableWorkflow,/branches:\s*\[29-stable\]/);
-  assert.match(stableWorkflow,/BatteryStatusSelfTest/);
-  for(const job of ["linux:","windows:","android:","publish-stable-release:"])assert.ok(stableWorkflow.includes(job),job);
-  for(const secret of ["ANDROID_SIGNING_KEY_BASE64","ANDROID_SIGNING_STORE_PASSWORD","ANDROID_SIGNING_KEY_ALIAS","ANDROID_SIGNING_KEY_PASSWORD"])assert.ok(stableWorkflow.includes(secret),secret);
-  for(const asset of [
-    "LCARS-Command-Interface-v29-x86_64.AppImage",
-    "LCARS-Universal-Linux-Desktop-v29.zip",
-    "LCARS-Linux-Integration-v29.sh",
-    "LCARS-Windows-Setup-v29.exe",
-    "LCARS-Mobile-Environment-v29-Android.apk",
-    "LCARS-Command-Interface-v29-Source.zip",
-    "SHA256SUMS.txt",
-  ])assert.ok(stableWorkflow.includes(asset),asset);
-  assert.match(stableWorkflow,/:app:assembleRelease/);
-  assert.match(stableWorkflow,/apksigner[\s\S]*verify/);
-  assert.match(stableWorkflow,/gh release create v29/);
-  assert.match(stableWorkflow,/LCARS Command Interface Version 29/);
-  assert.match(stableWorkflow,/--latest/);
-  assert.doesNotMatch(stableWorkflow,/--prerelease(?:\s|$)/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËØœ˜[˜Ú\Î—Ê—ÌK\İX›WKÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËĞ˜]\Tİ]\ÔÙ[•\İÊNÂˆ›ÜŠÛÛœİ›ØˆÙˆÈ›[^ˆ‹Ú[™İÜÎˆ‹˜[™›ÚYˆ‹œX›\Ú\İX›K\™[X\ÙNˆ—JX\ÜÙ\›ÚÊİX›UÛÜšÙ›İËš[˜ÛY\Ê›ØŠK›ØŠNÂˆ›ÜŠÛÛœİÙXÜ™]ÙˆÈS‘“ÒQÔÒQÓ’S‘×ÒÑVWĞTÑM‹S‘“ÒQÔÒQÓ’S‘×ÔÕÔ‘WÔTÔÕÓÔ‘‹S‘“ÒQÔÒQÓ’S‘×ÒÑVWĞSPTÈ‹S‘“ÒQÔÒQÓ’S‘×ÒÑVWÔTÔÕÓÔ‘—JX\ÜÙ\›ÚÊİX›UÛÜšÙ›İËš[˜ÛY\ÊÙXÜ™]
+KÙXÜ™]
+NÂˆ›ÜŠÛÛœİ\ÜÙ]ÙˆÂˆ“ĞT”ËPÛÛ[X[™R[\™˜XÙK]ŒK^—Í\[XYÙH‹ˆ“ĞT”ËU[š]™\œØ[S[^Q\ÚİÜ]ŒKš\‹ˆ“ĞT”ËS[^R[YÜ˜][Û‹]ŒKœÚ‹ˆ“ĞT”ËUÚ[™İÜËTÙ]\]ŒK™^H‹ˆ“ĞT”ËS[Øš[KQ[š\›Û›Y[]ŒKP[™›ÚY˜\È‹ˆ“ĞT”ËPÛÛ[X[™R[\™˜XÙK]ŒKTÛİ\˜ÙKš\‹ˆ”ÒLM”ÕSTË‹ˆJX\ÜÙ\›ÚÊİX›UÛÜšÙ›İËš[˜ÛY\Ê\ÜÙ]
+K\ÜÙ]
+NÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËÎ˜\˜\ÜÙ[X›T™[X\ÙKÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËØ\ÜÚYÛ™\–×××J™\šYKÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËÙÚ™[X\ÙHÜ™X]HŒKÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËÓĞT”ÈÛÛ[X[™[\™˜XÙH™\œÚ[ÛˆKÊNÂˆ\ÜÙ\›X]Ú
+İX›UÛÜšÙ›İËËK[]\İÊNÂˆ\ÜÙ\™Ù\Ó›İX]Ú
+İX›UÛÜšÙ›İËËK\™\™[X\ÙJÎ—ß	
+KÊNÂŸJNÂ

@@ -1,88 +1,86 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿvç]õÛ½´çn7ÚZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\İœ›ÛH››ÙN\İÂš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜİšXİÂš[\ÜÈ™XYš[TŞ[˜ÈHœ›ÛH››ÙN™œÈÂ‚˜ÛÛœİ™XYJ]
+OOœ™XYš[TŞ[˜Ê™]ÈT“
+][\Ü›Y]K\›
+K]ŠNÂ˜ÛÛœİYÙO\™XY
+‹‹‹Ø\ÜYÙKŞŠNÂ˜ÛÛœİÛÜ™O\™XY
+‹‹‹Ø\İŒKXÛÜ™KÈŠNÂ˜ÛÛœİÜÜÏ\™XY
+‹‹‹Ø\İŒK˜ÜÜÈŠNÂ˜ÛÛœİ[^\™XY
+‹‹‹ÛØØ[ÛØ\œ×ØœšYÙKœHŠNÂ˜ÛÛœİÚ[™İÜÏ\™XY
+‹‹‹İÚ[™İÜËÛØ\œ×ØœšYÙWİÚ[™İÜËœHŠNÂ˜ÛÛœİ\]\\™XY
+‹‹‹ÜÚ\™YÛØ\œ×İ\]\‹œHŠNÂ˜ÛÛœİ^[œÚ[ÛœÏ\™XY
+‹‹‹ÜÚ\™YÛØ\œ×Ù^[œÚ[ÛœËœHŠNÂ˜ÛÛœİ™[™\™\\™XY
+‹‹‹Ù\ÚİÜÜ™[™\™\‹ŞŠNÂ˜ÛÛœİÙÏR”ÓÓ‹œ\œÙJ™XY
+‹‹‹ÜXÚØYÙKšœÛÛˆŠJNÂ‚\İ
+•™\œÚ[ÛˆH^ÜÙ\ÈY]X›KİX\™YÜ\˜][ÛœÈ]]ÛX][Ûˆ‹
 
-const read=(path)=>readFileSync(new URL(path,import.meta.url),"utf8");
-const page=read("../app/page.tsx");
-const core=read("../app/v25-core.ts");
-const css=read("../app/v25.css");
-const linux=read("../local/lcars_bridge.py");
-const windows=read("../windows/lcars_bridge_windows.py");
-const updater=read("../shared/lcars_updater.py");
-const extensions=read("../shared/lcars_extensions.py");
-const renderer=read("../desktop/renderer.tsx");
-const pkg=JSON.parse(read("../package.json"));
+OOÂˆ\ÜÙ\›X]Ú
+ÛÜ™KÙ^Ü\H›İ][™KÊNÂˆ\ÜÙ\›X]Ú
+ÛÜ™KÜ›İ][™S™YYĞÛÛ™š\›X][Û‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÙ[˜İ[Ûˆ›İ][™PÙ[\‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÙ[˜İ[Ûˆ›İ][™T™]šY]ËÊNÂˆ\ÜÙ\›X]Ú
+YÙKÔ“ÕPÕQÔTUÔˆÓÓ‘’T“PUSÓ‹ÊNÂˆ\ÜÙ\›X]Ú
+[^ÙYˆ›İ][™WØÛÛ[X[™ÊNÂˆ\ÜÙ\›X]Ú
+Ú[™İÜËÙYˆ›İ][™WØÛÛ[X[™ÊNÂˆ\ÜÙ\›X]Ú
+[^Ü›İ][™HÛÛ[X[™\È›İÛˆHĞT”È[İÛ\İÊNÂŸJNÂ‚\İ
+”ÜYYX[YÙ\È™[™\ˆ[‹XØ\X›HYÙHYZÜÈX›İ™HÜ™[˜\HĞT”Èİ™\›^\È‹
 
-test("Version 25 exposes editable, guarded Operations Automation",()=>{
-  assert.match(core,/export type Routine/);
-  assert.match(core,/routineNeedsConfirmation/);
-  assert.match(page,/function RoutineCenter/);
-  assert.match(page,/function RoutinePreview/);
-  assert.match(page,/PROTECTED OPERATOR CONFIRMATION/);
-  assert.match(linux,/def routine_command/);
-  assert.match(windows,/def routine_command/);
-  assert.match(linux,/routine command is not on the LCARS allowlist/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+YÙKÙ[˜İ[ÛˆÜYYX[YÙTYZËÊNÂˆ\ÜÙ\›X]Ú
+YÙKÔS“‘QQÑHQRËÊNÂˆ\ÜÙ\›X]Ú
+YÙKÓÔSˆ•SQÑKÊNÂˆ\ÜÙ\›X]Ú
+ÜÜË×œÜYYYX[\YÙK\YZ×œ[›™YÊ—Ö×ŸWJ‹Z[™^—ÊŒNMÊNÂˆ\ÜÙ\›X]Ú
+ÜÜË×œ›İ][™K\™]šY]ËX˜XÚÙ›ÜÊ—Ö×ŸWJ‹Z[™^—ÊŒNMKÊNÂŸJNÂ‚\İ
+•˜^HÛÛ[X[™XÚÈZ^\ÈÛÛ™šYİ\˜X›HÛÛ[X[™È[™˜[YYÙ\šXÙ\È[ˆÛ™HØÜ›Û™YÚ[Ûˆ‹
 
-test("Speed Dial pages render pin-capable Page Peeks above ordinary LCARS overlays",()=>{
-  assert.match(page,/function SpeedDialPagePeek/);
-  assert.match(page,/PINNED PAGE PEEK/);
-  assert.match(page,/OPEN FULL PAGE/);
-  assert.match(css,/\.speed-dial-page-peek\.pinned\s*\{[^}]*z-index:\s*194/);
-  assert.match(css,/\.routine-preview-backdrop\s*\{[^}]*z-index:\s*195/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+YÙKÙ[˜İ[Ûˆ˜^PÛÛ[X[™XÚÑY]Ü‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKİ˜^K\ØÜ›Û\™YÚ[Û‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÜÚÜİ]šÚ[™OOH˜\‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÜÚÜİ]šÚ[™OOHœYÙH‹ÊNÂˆ\ÜÙ\›X]Ú
+ÜÜË×˜^K\ØÜ›Û\™YÚ[Û—Ê—Ö×ŸWJ›İ™\™›İÎ—Ê˜]]ËÊNÂˆ\ÜÙ\›X]Ú
+ÛÜ™KÙ^Ü\H˜^TÚÜİ]ÊNÂŸJNÂ‚\İ
+‘[™Ú[™Y\š[™È\ÈÜ›ÜÜË\]›Ü›H[™›İXİÈ[]˜]YÜˆĞT”È›ØÙ\ÜÙ\È‹
 
-test("Tray Command Deck mixes configurable commands and named services in one scroll region",()=>{
-  assert.match(page,/function TrayCommandDeckEditor/);
-  assert.match(page,/tray-scroll-region/);
-  assert.match(page,/shortcut\.kind==="app"/);
-  assert.match(page,/shortcut\.kind==="page"/);
-  assert.match(css,/\.tray-scroll-region\s*\{[^}]*overflow:\s*auto/);
-  assert.match(core,/export type TrayShortcut/);
-});
+OOÂˆ›ÜŠÛÛœİœšYÙHÙˆÛ[^Ú[™İÜ×J^Âˆ\ÜÙ\›X]Ú
+œšYÙKÙYˆ[™Ú[™Y\š[™×Ù]KÊNÂˆ\ÜÙ\›X]Ú
+œšYÙKÙYˆ›ØÙ\Ü×ØXİ[Û‹ÊNÂˆ\ÜÙ\›X]Ú
+œšYÙK×Ø\WÙ[™Ú[™Y\š[™ËÊNÂˆ\ÜÙ\›X]Ú
+œšYÙK×Ø\WÜ›ØÙ\ÜËXXİ[Û‹ÊNÂˆ\ÜÙ\›X]Ú
+œšYÙKØİ\œ™[\Ù\‹ÊNÂˆBˆ\ÜÙ\›X]Ú
+YÙKÙ[˜İ[Ûˆ[™Ú[™Y\š[™ĞÛÛœÛÛKÊNÂˆ\ÜÙ\›X]Ú
+YÙKÕ[œØ]™YÛÜšÈ[ˆ]\XØ][ÛˆX^H™HÜİÊNÂŸJNÂ‚\İ
+ÛÛ[][šXØ][ÛœÈÛÛXš[™\È›İXÙHš[Üš]Y\ÈÚ]\œÚ\İ[ÛÛ[X[™Xİ]š]H‹
 
-test("Engineering is cross-platform and protects elevated or LCARS processes",()=>{
-  for(const bridge of [linux,windows]){
-    assert.match(bridge,/def engineering_data/);
-    assert.match(bridge,/def process_action/);
-    assert.match(bridge,/\/api\/engineering/);
-    assert.match(bridge,/\/api\/process-action/);
-    assert.match(bridge,/current user/);
-  }
-  assert.match(page,/function EngineeringConsole/);
-  assert.match(page,/Unsaved work in that application may be lost/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+YÙKĞÓÓSUS’PĞUSÓ”ÈÑS•T‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKĞÓÓSPS‘PÕU’UKÊNÂˆ\ÜÙ\›X]Ú
+YÙKÛØ\œËXXİ]š]K[ÙËÊNÂˆ\ÜÙ\›X]Ú
+ÜÜËÜš[Üš]KXÜš]XØ[ÊNÂˆ\ÜÙ\›X]Ú
+ÛÜ™KÙ^Ü\HXİ]š]Q[KÊNÂŸJNÂ‚\İ
+‘^[œÚ[ÛˆŞ\İ[H™[XZ[œÈXÛ\˜]]™H[™İ\ÜÈ[˜X›K\ØX›K[œİ[[™İX\™Y™[[İ˜[‹
 
-test("Communications combines notice priorities with persistent command activity",()=>{
-  assert.match(page,/COMMUNICATIONS CENTER/);
-  assert.match(page,/COMMAND ACTIVITY/);
-  assert.match(page,/lcars-activity-log/);
-  assert.match(css,/priority-critical/);
-  assert.match(core,/export type ActivityEntry/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+YÙKÙ[˜İ[Ûˆ^[œÚ[Û’X‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKÔÕP“HSÑSHTHŒËÊNÂˆ\ÜÙ\›X]Ú
+YÙKÓSÑSHU“Ô“KÊNÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËÙYˆ^[œÚ[Û—ØØ][ÙËÊNÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËÙYˆ^[œÚ[Û—ÛÜ\˜][Û‹ÊNÂˆ\ÜÙ\›X]Ú
+^[œÚ[ÛœËØ[™Y^[œÚ[ÛœÈØ[ˆ™H\ØX›Y]›İ™[[İ™YÊNÂˆ\ÜÙ\›X]Ú
+[^×Ø\WÙ^[œÚ[Û‹XØ][ÙËÊNÂˆ\ÜÙ\›X]Ú
+Ú[™İÜË×Ø\WÙ^[œÚ[Û‹XØ][ÙËÊNÂŸJNÂ‚\İ
+”İX›H[™]™[ÜY[\]HÚ[›™[È\™H^XÚ][™İ^HÚ[[[ˆH˜XÚÙÜ›İ[™‹
 
-test("Extension system remains declarative and supports enable, disable, install, and guarded removal",()=>{
-  assert.match(page,/function ExtensionHub/);
-  assert.match(page,/STABLE MODULE API V3/);
-  assert.match(page,/MODULE PLATFORM/);
-  assert.match(extensions,/def extension_catalog/);
-  assert.match(extensions,/def extension_operation/);
-  assert.match(extensions,/bundled extensions can be disabled but not removed/);
-  assert.match(linux,/\/api\/extension-catalog/);
-  assert.match(windows,/\/api\/extension-catalog/);
-});
+OOÂˆ\ÜÙ\›X]Ú
+\]\‹ÙYˆÜ™[X\ÙWÙ›Ü—ØÚ[›™[ÊNÂˆ\ÜÙ\›X]Ú
+\]\‹ØÚ[›™[OH™]™[ÜY[‹ÊNÂˆ\ÜÙ\›X]Ú
+YÙKĞ˜XÚÙÜ›İ[™ÚXÚÜÈİ^HÚ[[Ú[ˆÙ™›[™KÊNÂˆ\ÜÙ\›X]Ú
+YÙKØ\WÛØ\œË]\]WØÚ[›™[KÊNÂŸJNÂ‚\İ
+•™\œÚ[ÛˆY]Y]HY˜[˜Ù\È›Üˆ™\œÚ[ÛˆˆÚ[H\ÚİÜ™XÛİ™\H™]Z[œÈ™\œÚ[ÛˆHİ]H‹
 
-test("Stable and development update channels are explicit and stay silent in the background",()=>{
-  assert.match(updater,/def _release_for_channel/);
-  assert.match(updater,/channel == "development"/);
-  assert.match(page,/Background checks stay silent when offline/);
-  assert.match(page,/api\/lcars-update\?channel=/);
-});
-
-test("Version metadata advances for Version 26 while desktop recovery retains Version 25 state",()=>{
-  assert.ok(["30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(pkg.version));
-  assert.match(linux,/LCARS_VERSION="(?:30\.[234]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(windows,/LCARS_VERSION="(?:30\.[234]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(renderer,/lcars-routines/);
-  assert.match(renderer,/lcars-tray-shortcuts/);
-});
+OOÂˆ\ÜÙ\›ÚÊÈŒÌKŒY]‹ŒH‹ŒÌŒY]‹ŒH‹ŒÌŒËŒY]‹ŒH‹ŒÌŒ‹ŒY]‹ŒH‹ŒÌŒKŒY]‹Œˆ‹ŒKŒŒ‹ŒKŒËŒ\˜ËŒH‹ŒKŒ‹ŒY]‹ŒH‹ŒŒŒ‹ŒŒËŒ\˜ËŒH‹ŒŒ‹ŒY]‹ŒH‹ŒËŒ‹ŒKY]‹ŒH‹ŒËŒ‹ŒY]‹ŒH‹ŒËŒKŒKY]‹ŒH‹Œ‹ŒËŒY]‹ŒH‹Œ‹ŒŒ—Kš[˜ÛY\ÊÙË™\œÚ[ÛŠJNÂˆ\ÜÙ\›X]Ú
+[^ÓĞT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_WŒŒWŒ×Œ\˜×Œ_WŒ—ŒY]—Œ_ŒŒŒË\˜×Œ_Œ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
+JH‹ÊNÂˆ\ÜÙ\›X]Ú
+Ú[™İÜËÓĞT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_WŒŒWŒ×Œ\˜×Œ_WŒ—ŒY]—Œ_ŒŒŒË\˜×Œ_Œ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
+JH‹ÊNÂˆ\ÜÙ\›X]Ú
+™[™\™\‹ÛØ\œË\›İ][™\ËÊNÂˆ\ÜÙ\›X]Ú
+™[™\™\‹ÛØ\œË]˜^K\ÚÜİ]ËÊNÂŸJNÂ

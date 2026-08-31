@@ -1,530 +1,625 @@
-"""Validation, state, signing, and repository support for LCARS Module API v3."""
-from __future__ import annotations
-
-import base64
-import hashlib
-import json
-import re
-import secrets
-import shutil
-import time
-import zipfile
-from pathlib import Path
-from urllib.parse import urlparse
-from urllib.request import Request, urlopen
-
-API_VERSION=3
-SUPPORTED_API_VERSIONS={2,3}
-PLACEMENTS={"overview","header","page","tray","panel"}
-PRIMITIVES={"text","button","input","toggle","list","progress","clock","timer","tabs","grid"}
-CAPABILITIES={"time-date","system-read","notifications","safe-files","app-launch","network-read","media-read","media-control"}
-CAPABILITY_LABELS={
-    "time-date":"Read local date and time",
-    "system-read":"Read system telemetry",
-    "notifications":"Create LCARS notices",
-    "safe-files":"Read operator-selected files",
-    "app-launch":"Launch installed applications",
-    "network-read":"Read network status",
-    "media-read":"Read media session metadata",
-    "media-control":"Control media playback",
-}
-SIZES={"compact","standard","wide"}
-REMOTE_CATALOG_URL="https://raw.githubusercontent.com/HUHman416/LCARS-Command-Interface/Modules/catalog.json"
-TRUSTED_RAW_HOST="raw.githubusercontent.com"
-TRUSTED_RAW_PREFIX="/HUHman416/LCARS-Command-Interface/Modules/"
-OFFICIAL_SOURCE={"id":"official","name":"LCARS OFFICIAL","owner":"HUHman416","repository":"LCARS-Command-Interface","ref":"Modules","catalogUrl":REMOTE_CATALOG_URL,"enabled":True,"official":True,"channel":"stable"}
-REMOTE_CACHE={}
-
-
-def _text(value,limit=160):return str(value or "").strip()[:limit]
-
-
-def _primitive(node,depth=0):
-    if depth>5 or not isinstance(node,dict):raise ValueError("invalid UI primitive tree")
-    kind=_text(node.get("type"),24)
-    if kind not in PRIMITIVES:raise ValueError(f"unsupported UI primitive: {kind}")
-    clean={"type":kind}
-    for key,limit in (("id",48),("text",240),("label",80),("action",48),("source",64),("format",80),("placeholder",100)):
-        if key in node:clean[key]=_text(node.get(key),limit)
-    if "value" in node and isinstance(node["value"],(str,int,float,bool)):clean["value"]=node["value"]
-    if "min" in node:clean["min"]=float(node["min"])
-    if "max" in node:clean["max"]=float(node["max"])
-    if "items" in node and isinstance(node["items"],list):clean["items"]=[_text(item,120) for item in node["items"][:40]]
-    if "children" in node and isinstance(node["children"],list):clean["children"]=[_primitive(child,depth+1) for child in node["children"][:40]]
-    return clean
-
-
-def _legacy(data):
-    module=data.get("module",{});items=module.get("defaultItems",[])
-    return {"apiVersion":1,"schema":1,"id":_text(data.get("id"),48),"name":_text(data.get("name"),48),"version":_text(data.get("version","1.0.0"),20),"description":_text(data.get("description","Local LCARS extension"),180),"author":_text(data.get("author","Unknown"),64),"capabilities":[],"settings":[],"placements":[{"id":"primary","type":"overview","title":_text(data.get("name"),48),"defaultSize":module.get("defaultSize") if module.get("defaultSize") in SIZES else "standard","ui":[{"type":"list","id":"items","items":[_text(item,100) for item in items[:24] if _text(item,100)]}]}],"voiceCommands":data.get("voiceCommands",[])[:12]}
-
-
-def validate_manifest(data):
-    if not isinstance(data,dict):raise ValueError("manifest must be an object")
-    if data.get("schema")==1:return _legacy(data)
-    api_version=data.get("apiVersion")
-    if api_version not in SUPPORTED_API_VERSIONS:raise ValueError("unsupported Extension API version")
-    ident=_text(data.get("id"),48)
-    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,47}",ident):raise ValueError("invalid extension id")
-    requested=data.get("capabilities",[])
-    if not isinstance(requested,list) or any(item not in CAPABILITIES for item in requested):raise ValueError("unsupported extension capability")
-    version=_text(data.get("version","1.0.0"),20)
-    if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?",version):raise ValueError("module version must use semantic versioning")
-    placements=[];placement_ids=set()
-    for placement in data.get("placements",[])[:12]:
-        if not isinstance(placement,dict) or placement.get("type") not in PLACEMENTS:raise ValueError("unsupported extension placement")
-        ui=placement.get("ui",[])
-        if not isinstance(ui,list):raise ValueError("placement UI must be a list")
-        placement_id=_text(placement.get("id","primary"),48)
-        if not re.fullmatch(r"[a-z0-9][a-z0-9-]{1,47}",placement_id) or placement_id in placement_ids:raise ValueError("placement ids must be unique kebab-case values")
-        placement_ids.add(placement_id)
-        placements.append({"id":placement_id,"type":placement["type"],"title":_text(placement.get("title",data.get("name",ident)),80),"defaultSize":placement.get("defaultSize") if placement.get("defaultSize") in SIZES else "standard","ui":[_primitive(node) for node in ui[:40]]})
-    if not placements:raise ValueError("extension has no placements")
-    settings=[];setting_keys=set()
-    for setting in data.get("settings",[])[:32]:
-        if not isinstance(setting,dict) or setting.get("type") not in {"text","number","toggle","select"}:raise ValueError("unsupported extension setting")
-        key=_text(setting.get("key"),48)
-        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,47}",key) or key in setting_keys:raise ValueError("setting keys must be unique identifiers")
-        setting_keys.add(key)
-        entry={"key":key,"type":setting["type"],"label":_text(setting.get("label"),80),"description":_text(setting.get("description"),180),"default":setting.get("default")}
-        if setting.get("type")=="select":entry["options"]=[_text(item,80) for item in setting.get("options",[])[:20]]
-        settings.append(entry)
-    return {"apiVersion":api_version,"id":ident,"name":_text(data.get("name",ident),48),"version":version,"description":_text(data.get("description","Local LCARS extension"),180),"author":_text(data.get("author","Unknown"),64),"capabilities":requested,"settings":settings,"placements":placements,"tickSeconds":max(1,min(3600,int(data.get("tickSeconds",1)))),"minimumLcarsVersion":_text(data.get("minimumLcarsVersion","30.3" if api_version==3 else "27.1"),20),"moduleApiStatus":"stable" if api_version==3 else "compatible"}
-
-
-def load_extensions(extension_dir:Path,bundled_dir:Path|None=None):
-    extension_dir.mkdir(parents=True,exist_ok=True);items=[];errors=[];seen=set()
-    roots=[extension_dir]+([bundled_dir] if bundled_dir and bundled_dir.exists() else [])
-    paths=[]
-    for root in roots:paths+=list(root.glob("*/lcars-module.json"))+list(root.glob("*.lcars-module.json"))
-    for path in paths[:64]:
-        try:
-            if path.stat().st_size>131072:raise ValueError("manifest exceeds 128 KiB")
-            item=validate_manifest(json.loads(path.read_text(encoding="utf-8")))
-            if item["id"] in seen:continue
-            seen.add(item["id"]);items.append(item)
-        except Exception as exc:errors.append({"file":path.name,"error":str(exc)})
-    return {"extensions":items,"errors":errors,"directory":str(extension_dir),"apiVersion":API_VERSION}
-
-
-def _trusted_url(value:str):
-    parsed=urlparse(value)
-    return parsed.scheme=="https" and parsed.hostname==TRUSTED_RAW_HOST and parsed.path.startswith(TRUSTED_RAW_PREFIX)
-
-
-def _source_prefix(source):
-    return f'/{source["owner"]}/{source["repository"]}/{source["ref"]}/'
-
-
-def _source_url(value:str,source):
-    parsed=urlparse(value)
-    repository_prefix=f'/{source["owner"]}/{source["repository"]}/'
-    required_prefix=_source_prefix(source) if source.get("official") else repository_prefix
-    return parsed.scheme=="https" and parsed.hostname==TRUSTED_RAW_HOST and parsed.path.startswith(required_prefix) and not parsed.query and not parsed.fragment
-
-
-def _download(url:str,limit:int,source=None):
-    if source is None:
-        if not _trusted_url(url):raise ValueError("module download URL is outside the trusted Modules branch")
-    elif not _source_url(url,source):raise ValueError("module download URL is outside its declared public GitHub repository")
-    request=Request(url,headers={"User-Agent":"LCARS-Command-Interface-Module-API/30.4","Accept":"application/json"})
-    with urlopen(request,timeout=8) as response:
-        length=response.headers.get("Content-Length")
-        if length and int(length)>limit:raise ValueError("remote module payload exceeds size limit")
-        payload=response.read(limit+1)
-    if len(payload)>limit:raise ValueError("remote module payload exceeds size limit")
-    return payload
-
-
-def _atomic_json(path:Path,value):
-    path.parent.mkdir(parents=True,exist_ok=True);temporary=path.with_suffix(path.suffix+".tmp")
-    temporary.write_text(json.dumps(value,indent=2)+"\n",encoding="utf-8");temporary.replace(path)
-
-
-def _read_json(path:Path,fallback):
-    try:
-        value=json.loads(path.read_text(encoding="utf-8"))
-        return value if isinstance(value,type(fallback)) else fallback
-    except Exception:return fallback
-
-
-def _b64url(value:bytes):return base64.urlsafe_b64encode(value).decode("ascii").rstrip("=")
-
-
-def _b64url_decode(value:str):return base64.urlsafe_b64decode(value+"="*((4-len(value)%4)%4))
-
-
-def _signature_payload(ident:str,version:str,digest:str):
-    return json.dumps({"id":ident,"version":version,"sha256":digest},sort_keys=True,separators=(",",":")).encode("utf-8")
-
-
-def _rsa_sign(payload:bytes,key):
-    modulus=int(key["n"],16);private=int(key["d"],16);size=(modulus.bit_length()+7)//8
-    digest_info=bytes.fromhex("3031300d060960864801650304020105000420")+hashlib.sha256(payload).digest()
-    encoded=b"\x00\x01"+b"\xff"*(size-len(digest_info)-3)+b"\x00"+digest_info
-    return _b64url(pow(int.from_bytes(encoded,"big"),private,modulus).to_bytes(size,"big"))
-
-
-def _rsa_verify(payload:bytes,signature:str,public_key):
-    try:
-        modulus=int(str(public_key["n"]),16);exponent=int(public_key.get("e",65537));size=(modulus.bit_length()+7)//8
-        raw=_b64url_decode(signature)
-        if len(raw)!=size:return False
-        decoded=pow(int.from_bytes(raw,"big"),exponent,modulus).to_bytes(size,"big")
-        digest_info=bytes.fromhex("3031300d060960864801650304020105000420")+hashlib.sha256(payload).digest()
-        return len(decoded)>=len(digest_info)+11 and decoded.startswith(b"\x00\x01") and decoded.endswith(b"\x00"+digest_info) and set(decoded[2:-(len(digest_info)+1)])=={255}
-    except Exception:return False
-
-
-def _is_probable_prime(candidate:int,rounds=24):
-    if candidate<2:return False
-    for prime in (2,3,5,7,11,13,17,19,23,29,31,37):
-        if candidate%prime==0:return candidate==prime
-    odd=candidate-1;power=0
-    while odd%2==0:power+=1;odd//=2
-    for _ in range(rounds):
-        base=secrets.randbelow(candidate-3)+2;value=pow(base,odd,candidate)
-        if value in (1,candidate-1):continue
-        for __ in range(power-1):
-            value=pow(value,2,candidate)
-            if value==candidate-1:break
-        else:return False
-    return True
-
-
-def _prime(bits:int):
-    while True:
-        candidate=secrets.randbits(bits)|(1<<(bits-1))|1
-        if _is_probable_prime(candidate):return candidate
-
-
-def _load_or_create_signing_key(path:Path):
-    existing=_read_json(path,{})
-    if all(existing.get(name) for name in ("n","d","e","keyId")):return existing
-    exponent=65537
-    while True:
-        first=_prime(1024);second=_prime(1024)
-        if first==second:continue
-        phi=(first-1)*(second-1)
-        if phi%exponent:break
-    modulus=first*second;private=pow(exponent,-1,phi)
-    public={"algorithm":"rsa-sha256","n":format(modulus,"x"),"e":exponent}
-    key={**public,"d":format(private,"x"),"keyId":hashlib.sha256(json.dumps(public,sort_keys=True,separators=(",",":")).encode()).hexdigest()[:24]}
-    _atomic_json(path,key)
-    try:path.chmod(0o600)
-    except OSError:pass
-    return key
-
-
-def _signature_state(entry,payload:bytes):
-    signature=_text(entry.get("signature"),4096);public_key=entry.get("signingKey")
-    if not signature or not isinstance(public_key,dict):return {"status":"legacy","verified":False,"keyId":""}
-    key_id=_text(entry.get("signerKeyId"),64)
-    public={"algorithm":_text(public_key.get("algorithm"),32),"n":_text(public_key.get("n"),1024),"e":int(public_key.get("e",65537))}
-    expected=hashlib.sha256(json.dumps(public,sort_keys=True,separators=(",",":")).encode()).hexdigest()[:24]
-    verified=public.get("algorithm")=="rsa-sha256" and key_id==expected and _rsa_verify(_signature_payload(_text(entry.get("id"),48),_text(entry.get("version"),20),hashlib.sha256(payload).hexdigest()),signature,public)
-    return {"status":"verified" if verified else "invalid","verified":verified,"keyId":key_id}
-
-
-def module_platform_status(extension_dir:Path,bundled_dir:Path|None,runtime_dir:Path):
-    loaded=load_extensions(extension_dir,bundled_dir);permissions=_read_json(runtime_dir/"permissions.json",{});health=_read_json(runtime_dir/"health.json",{})
-    bundled_ids=set()
-    if bundled_dir and bundled_dir.exists():
-        for path in list(bundled_dir.glob("*/lcars-module.json"))+list(bundled_dir.glob("*.lcars-module.json")):
-            try:bundled_ids.add(validate_manifest(json.loads(path.read_text(encoding="utf-8")))["id"])
-            except Exception:pass
-    changed=False;records=[];extensions=[]
-    for item in loaded.get("extensions",[]):
-        ident=item["id"]
-        if ident not in permissions:
-            permissions[ident]=list(item.get("capabilities",[]));changed=True
-        grants=[name for name in permissions.get(ident,[]) if name in item.get("capabilities",[])]
-        target=extension_dir/ident;previous=target/".previous-lcars-module.json";installation=_read_json(target/".lcars-installation.json",{})
-        entry_health=health.get(ident,{}) if isinstance(health.get(ident),dict) else {}
-        record={"id":ident,"apiVersion":item.get("apiVersion",1),"apiStatus":item.get("moduleApiStatus","legacy"),"requestedCapabilities":item.get("capabilities",[]),"grantedCapabilities":grants,"permissionLabels":{name:CAPABILITY_LABELS[name] for name in item.get("capabilities",[])},"health":entry_health.get("status","ready"),"failureCount":int(entry_health.get("failureCount",0) or 0),"lastFailure":entry_health.get("lastFailure",""),"rollbackAvailable":previous.is_file(),"signed":installation.get("signatureStatus","bundled" if ident in bundled_ids else "local"),"signerKeyId":installation.get("signerKeyId",""),"sourceId":installation.get("sourceId","bundled" if ident in bundled_ids else "local"),"bundled":ident in bundled_ids}
-        records.append(record);extensions.append({**item,"grantedCapabilities":grants,"moduleHealth":record})
-    if changed:_atomic_json(runtime_dir/"permissions.json",permissions)
-    return {**loaded,"extensions":extensions,"platform":{"apiVersion":API_VERSION,"supportedApiVersions":sorted(SUPPORTED_API_VERSIONS),"contract":"stable","executionModel":"host-rendered-declarative"},"records":records}
-
-
-def module_platform_operation(extension_dir:Path,bundled_dir:Path|None,runtime_dir:Path,operation:str,ident="",capabilities=None,detail=""):
-    if ident and not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,47}",ident):raise ValueError("invalid module id")
-    if operation=="permissions":
-        manifest=next((item for item in load_extensions(extension_dir,bundled_dir).get("extensions",[]) if item["id"]==ident),None)
-        if not manifest:raise ValueError("module is not installed")
-        grants=list(dict.fromkeys(capabilities or []))
-        if any(name not in manifest.get("capabilities",[]) for name in grants):raise ValueError("permission is not requested by this module")
-        permissions=_read_json(runtime_dir/"permissions.json",{});permissions[ident]=grants;_atomic_json(runtime_dir/"permissions.json",permissions)
-        return {"ok":True,"message":f"{manifest['name']} permissions updated","grantedCapabilities":grants}
-    if operation in {"failure","ready"}:
-        health=_read_json(runtime_dir/"health.json",{});entry=health.get(ident,{}) if isinstance(health.get(ident),dict) else {}
-        if operation=="failure":entry={"status":"isolated","failureCount":min(999,int(entry.get("failureCount",0) or 0)+1),"lastFailure":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"detail":_text(detail,200)}
-        else:entry={"status":"ready","failureCount":0,"lastFailure":entry.get("lastFailure",""),"detail":"Renderer recovered"}
-        health[ident]=entry;_atomic_json(runtime_dir/"health.json",health)
-        return {"ok":True,"message":f"Module {ident} health recorded","health":entry}
-    if operation=="rollback":
-        target=extension_dir/ident;previous=target/".previous-lcars-module.json";current=target/"lcars-module.json"
-        if not previous.is_file() or not current.is_file():raise ValueError("no previous module version is available")
-        current_raw=current.read_bytes();previous_raw=previous.read_bytes();restored=validate_manifest(json.loads(previous_raw.decode("utf-8")))
-        temporary=current.with_suffix(".json.tmp");temporary.write_bytes(previous_raw);temporary.replace(current);previous.write_bytes(current_raw)
-        return {"ok":True,"message":f"{restored['name']} restored to {restored['version']}","version":restored["version"]}
-    raise ValueError("unsupported module platform operation")
-
-
-def _github_source(value,channel="stable"):
-    raw=_text(value,512).rstrip("/")
-    parsed=urlparse(raw)
-    if parsed.scheme!="https" or parsed.hostname!="github.com" or parsed.username or parsed.password or parsed.port or parsed.query or parsed.fragment:raise ValueError("use a public https://github.com/OWNER/REPOSITORY URL")
-    parts=[part for part in parsed.path.split("/") if part]
-    if len(parts)!=2:raise ValueError("repository URL must identify one public GitHub repository")
-    owner,repositories=parts;repository=repositories[:-4] if repositories.lower().endswith(".git") else repositories
-    if not re.fullmatch(r"[A-Za-z0-9_.-]{1,100}",owner) or not re.fullmatch(r"[A-Za-z0-9_.-]{1,100}",repository):raise ValueError("repository owner or name is invalid")
-    if channel not in {"stable","development"}:raise ValueError("module channel must be stable or development")
-    ident=(f"community-{owner}-{repository}").lower();ident=re.sub(r"[^a-z0-9-]+","-",ident).strip("-")[:96]
-    catalog_name="catalog-development.json" if channel=="development" else "catalog.json"
-    return {"id":ident,"name":f"{owner} / {repository}","owner":owner,"repository":repository,"ref":"HEAD","catalogUrl":f"https://raw.githubusercontent.com/{owner}/{repository}/HEAD/{catalog_name}","repositoryUrl":f"https://github.com/{owner}/{repository}","enabled":True,"official":False,"channel":channel}
-
-
-def repository_sources(source_file:Path|None=None):
-    community=[]
-    if source_file and source_file.is_file():
-        try:
-            data=json.loads(source_file.read_text(encoding="utf-8"))
-            if isinstance(data,list):
-                for item in data[:24]:
-                    if not isinstance(item,dict):continue
-                    try:
-                        source=_github_source(str(item.get("repositoryUrl") or ""),str(item.get("channel","stable")));source["enabled"]=item.get("enabled") is not False;community.append(source)
-                    except Exception:continue
-        except Exception:pass
-    seen={OFFICIAL_SOURCE["id"]};result=[dict(OFFICIAL_SOURCE)]
-    for source in community:
-        if source["id"] not in seen:seen.add(source["id"]);result.append(source)
-    return result
-
-
-def _write_sources(source_file:Path,sources):
-    source_file.parent.mkdir(parents=True,exist_ok=True);temporary=source_file.with_suffix(".tmp")
-    payload=[{"repositoryUrl":item["repositoryUrl"],"enabled":item.get("enabled") is not False,"channel":item.get("channel","stable")} for item in sources if not item.get("official")]
-    temporary.write_text(json.dumps(payload,indent=2)+"\n",encoding="utf-8");temporary.replace(source_file)
-
-
-def repository_source_operation(source_file:Path,operation:str,value="",ident="",channel="stable"):
-    sources=repository_sources(source_file)
-    if operation=="add":
-        source=_github_source(value,channel)
-        if any(item["id"]==source["id"] for item in sources):raise ValueError("that GitHub repository is already configured")
-        sources.append(source);_write_sources(source_file,sources);REMOTE_CACHE.pop(source["id"],None)
-        return {"ok":True,"message":f'{source["name"]} added as a community module source',"source":source,"sources":repository_sources(source_file)}
-    source=next((item for item in sources if item["id"]==ident),None)
-    if not source:raise ValueError("module source is not configured")
-    if source.get("official") and operation in {"remove","disable"}:raise ValueError("the official LCARS source cannot be removed or disabled")
-    if operation=="refresh":
-        REMOTE_CACHE.pop(source["id"],None);result=_remote_catalog(source,force=True)
-        return {"ok":not bool(result.get("error")),"message":f'{source["name"]} returned {len(result.get("catalog",[]))} validated module(s)',"error":result.get("error",""),"sources":repository_sources(source_file)}
-    if operation in {"enable","disable"}:
-        source["enabled"]=operation=="enable";_write_sources(source_file,sources);REMOTE_CACHE.pop(source["id"],None)
-        return {"ok":True,"message":f'{source["name"]} {operation}d',"sources":repository_sources(source_file)}
-    if operation=="channel":
-        if source.get("official"):raise ValueError("the official source channel is fixed")
-        replacement=_github_source(source["repositoryUrl"],channel);replacement["enabled"]=source.get("enabled") is not False
-        sources=[replacement if item["id"]==ident else item for item in sources];_write_sources(source_file,sources);REMOTE_CACHE.pop(ident,None)
-        return {"ok":True,"message":f'{source["name"]} now follows the {channel} channel',"sources":repository_sources(source_file)}
-    if operation=="remove":
-        _write_sources(source_file,[item for item in sources if item["id"]!=ident]);REMOTE_CACHE.pop(ident,None)
-        return {"ok":True,"message":f'{source["name"]} removed from Module Repository',"sources":repository_sources(source_file)}
-    raise ValueError("unsupported module source operation")
-
-
-def _manifest_url(value,source,ident):
-    candidate=_text(value,512)
-    if not candidate:candidate=f"modules/{ident}/lcars-module.json"
-    if candidate.startswith("https://github.com/"):
-        parsed=urlparse(candidate);parts=[part for part in parsed.path.split("/") if part]
-        if len(parts)>=5 and parts[0]==source["owner"] and parts[1]==source["repository"] and parts[2]=="blob":candidate=f"https://raw.githubusercontent.com/{parts[0]}/{parts[1]}/{'/'.join(parts[3:])}"
-    if not urlparse(candidate).scheme:candidate=f'https://raw.githubusercontent.com/{source["owner"]}/{source["repository"]}/{source["ref"]}/{candidate.lstrip("/")}'
-    if not _source_url(candidate,source):raise ValueError("manifest URL is outside its catalog repository")
-    return candidate
-
-
-def _remote_catalog(source_config,force=False):
-    import time
-    now=time.time()
-    cached=REMOTE_CACHE.get(source_config["id"],{})
-    if not force and cached and now-cached.get("at",0)<60:return cached
-    try:
-        raw=_download(source_config["catalogUrl"],262144,source_config)
-        data=json.loads(raw.decode("utf-8"))
-        if not isinstance(data,dict) or data.get("schemaVersion") not in {1,2} or not isinstance(data.get("modules"),list):raise ValueError("unsupported module catalog schema")
-        entries=[]
-        for source in data["modules"][:128]:
-            if not isinstance(source,dict):continue
-            ident=_text(source.get("id"),48)
-            manifest_url=_manifest_url(source.get("manifestUrl"),source_config,ident)
-            checksum=_text(source.get("sha256"),64).lower()
-            capabilities=source.get("capabilities",[])
-            if not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,47}",ident):continue
-            if not re.fullmatch(r"[0-9a-f]{64}",checksum):continue
-            if not isinstance(capabilities,list) or any(item not in CAPABILITIES for item in capabilities):continue
-            signature=_text(source.get("signature"),4096);signing_key=source.get("signingKey") if isinstance(source.get("signingKey"),dict) else None
-            if data.get("schemaVersion")==2 and (not signature or not signing_key):continue
-            entries.append({"id":ident,"name":_text(source.get("name",ident),48),"version":_text(source.get("version","1.0.0"),20),"description":_text(source.get("description","Downloadable LCARS module"),180),"author":_text(source.get("author","Unknown"),64),"capabilities":capabilities,"manifestUrl":manifest_url,"sha256":checksum,"minimumLcarsVersion":_text(source.get("minimumLcarsVersion"),20),"category":_text(source.get("category"),40),"featured":bool(source.get("featured")),"lastUpdated":_text(source.get("lastUpdated"),40),"repository":True,"sourceId":source_config["id"],"sourceName":source_config["name"],"official":bool(source_config.get("official")),"channel":source_config.get("channel","stable"),"signature":signature,"signingKey":signing_key,"signerKeyId":_text(source.get("signerKeyId"),64),"signatureStatus":"signed" if signature else "legacy"})
-        result={"at":now,"catalog":entries,"error":""}
-    except Exception as exc:result={"at":now,"catalog":[],"error":str(exc)}
-    REMOTE_CACHE[source_config["id"]]=result;return result
-
-
-def extension_catalog(extension_dir:Path,bundled_dir:Path|None=None,source_file:Path|None=None,force=False,runtime_dir:Path|None=None):
-    installed=load_extensions(extension_dir,bundled_dir).get("extensions",[])
-    installed_map={item["id"]:item for item in installed};bundled_ids=set()
-    if bundled_dir and bundled_dir.exists():
-        for path in list(bundled_dir.glob("*/lcars-module.json"))+list(bundled_dir.glob("*.lcars-module.json")):
-            try:bundled_ids.add(validate_manifest(json.loads(path.read_text(encoding="utf-8")))["id"])
-            except Exception:pass
-    known={item["id"]:{"id":item["id"],"name":item["name"],"version":item["version"],"description":item["description"],"author":item["author"],"capabilities":item.get("capabilities",[]),"installed":True,"bundled":item["id"] in bundled_ids} for item in installed}
-    source_status=[]
-    for source_config in repository_sources(source_file):
-        if not source_config.get("enabled"):
-            source_status.append({**source_config,"count":0,"error":"","status":"disabled"});continue
-        remote=_remote_catalog(source_config,force=force);source_status.append({**source_config,"count":len(remote.get("catalog",[])),"error":remote.get("error",""),"status":"attention" if remote.get("error") else "ready"})
-        for entry in remote.get("catalog",[]):
-            if entry["id"] in known and known[entry["id"]].get("repository") and not entry.get("official"):continue
-            current=installed_map.get(entry["id"]);merged=dict(entry);merged["installed"]=bool(current);merged["installedVersion"]=current.get("version") if current else "";merged["updateAvailable"]=bool(current and current.get("version")!=entry.get("version"));merged["bundled"]=entry["id"] in bundled_ids;known[entry["id"]]=merged
-    if runtime_dir:
-        records={item["id"]:item for item in module_platform_status(extension_dir,bundled_dir,runtime_dir).get("records",[])}
-        for ident,item in known.items():
-            if ident in records:item.update({"moduleHealth":records[ident],"rollbackAvailable":records[ident]["rollbackAvailable"],"grantedCapabilities":records[ident]["grantedCapabilities"],"signatureStatus":item.get("signatureStatus") or records[ident]["signed"],"signerKeyId":item.get("signerKeyId") or records[ident]["signerKeyId"]})
-    errors=[f'{item["name"]}: {item["error"]}' for item in source_status if item.get("error")]
-    return {"catalog":list(known.values()),"apiVersion":API_VERSION,"supportedApiVersions":sorted(SUPPORTED_API_VERSIONS),"contract":"stable","repository":"Modules","repositoryUrl":REMOTE_CATALOG_URL,"repositoryError":" В· ".join(errors),"sources":source_status,"capabilities":CAPABILITY_LABELS}
-
-
-def extension_operation(extension_dir:Path,bundled_dir:Path|None,ident:str,operation:str,source_file:Path|None=None,source_id="",runtime_dir:Path|None=None,approved_capabilities=None):
-    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,47}",ident):raise ValueError("invalid extension id")
-    catalog=extension_catalog(extension_dir,bundled_dir,source_file).get("catalog",[])
-    bundled_ids={item["id"] for item in catalog if item.get("bundled")}
-    if ident in bundled_ids:raise ValueError("bundled extensions can be disabled but not removed")
-    target=(extension_dir/ident).resolve();root=extension_dir.resolve()
-    if root not in target.parents:raise ValueError("invalid extension path")
-    if operation=="remove":
-        if not target.is_dir():raise ValueError("extension is not installed in the local module folder")
-        shutil.rmtree(target)
-        if runtime_dir:
-            permissions=_read_json(runtime_dir/"permissions.json",{});permissions.pop(ident,None);_atomic_json(runtime_dir/"permissions.json",permissions)
-        return {"ok":True,"message":f"Extension {ident} removed"}
-    if operation not in {"install","update"}:raise ValueError("unsupported extension operation")
-    entry=next((item for item in catalog if item.get("id")==ident and item.get("repository") and (not source_id or item.get("sourceId")==source_id)),None)
-    if not entry:raise ValueError("module is not present in an enabled validated repository")
-    source=next((item for item in repository_sources(source_file) if item["id"]==entry.get("sourceId")),None)
-    if not source:raise ValueError("module source is no longer configured")
-    payload=_download(entry.get("manifestUrl",""),131072,source)
-    actual=hashlib.sha256(payload).hexdigest()
-    if actual!=entry.get("sha256"):raise ValueError("module checksum verification failed")
-    manifest=validate_manifest(json.loads(payload.decode("utf-8")))
-    if manifest["id"]!=ident:raise ValueError("downloaded module id does not match catalog entry")
-    if manifest["version"]!=entry.get("version"):raise ValueError("downloaded module version does not match catalog entry")
-    signature=_signature_state(entry,payload)
-    if signature["status"]=="invalid":raise ValueError("module package signature verification failed")
-    if manifest.get("apiVersion")==API_VERSION and not signature["verified"]:raise ValueError("Extension API v3 repository packages must be signed")
-    previous_installation=_read_json(target/".lcars-installation.json",{})
-    if operation=="update" and previous_installation.get("signerKeyId") and signature.get("keyId") and previous_installation["signerKeyId"]!=signature["keyId"]:raise ValueError("module publisher identity changed; remove and reinstall only after verifying the new signer")
-    requested=manifest.get("capabilities",[]);approved=list(dict.fromkeys(approved_capabilities or []))
-    if any(item not in requested for item in approved):raise ValueError("approved permission is not requested by the module")
-    if requested and set(approved)!=set(requested):raise ValueError("operator capability approval is required before installation")
-    extension_dir.mkdir(parents=True,exist_ok=True);target.mkdir(parents=True,exist_ok=True)
-    temporary=target/"lcars-module.json.tmp";destination=target/"lcars-module.json"
-    if operation=="update" and destination.is_file():shutil.copy2(destination,target/".previous-lcars-module.json")
-    temporary.write_bytes(payload);temporary.replace(destination)
-    _atomic_json(target/".lcars-installation.json",{"installedAt":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"sourceId":entry.get("sourceId"),"channel":entry.get("channel","stable"),"sha256":actual,"signatureStatus":signature["status"],"signerKeyId":signature["keyId"]})
-    if runtime_dir:
-        permissions=_read_json(runtime_dir/"permissions.json",{});permissions[ident]=approved;_atomic_json(runtime_dir/"permissions.json",permissions)
-    return {"ok":True,"message":f"{manifest['name']} {manifest['version']} installed from {entry.get('sourceName','Module Repository')}","id":ident,"version":manifest["version"],"sha256":actual,"sourceId":entry.get("sourceId"),"signature":signature,"grantedCapabilities":approved,"rollbackAvailable":operation=="update"}
-
-
-def prepare_module_publication(extension_dir:Path,bundled_dir:Path|None,publisher_dir:Path,ident:str,repository_slug="YOUR-GITHUB-NAME/YOUR-REPOSITORY"):
-    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,47}",ident):raise ValueError("select a valid installed module id")
-    if repository_slug!="YOUR-GITHUB-NAME/YOUR-REPOSITORY" and not re.fullmatch(r"[A-Za-z0-9_.-]{1,100}/[A-Za-z0-9_.-]{1,100}",repository_slug):raise ValueError("GitHub repository must use OWNER/REPOSITORY format")
-    paths=list(extension_dir.glob(f"{ident}/lcars-module.json"))
-    if bundled_dir:paths+=list(bundled_dir.glob(f"{ident}/lcars-module.json"))
-    if not paths:raise ValueError("the selected module manifest is not installed")
-    raw=paths[0].read_bytes()
-    if len(raw)>131072:raise ValueError("manifest exceeds 128 KiB")
-    manifest=validate_manifest(json.loads(raw.decode("utf-8")))
-    digest=hashlib.sha256(raw).hexdigest();target=publisher_dir/ident;module_dir=target/"modules"/ident
-    if target.exists():shutil.rmtree(target)
-    module_dir.mkdir(parents=True,exist_ok=True);(module_dir/"lcars-module.json").write_bytes(raw)
-    manifest_url=f"https://raw.githubusercontent.com/{repository_slug}/main/modules/{ident}/lcars-module.json"
-    key=_load_or_create_signing_key(publisher_dir/"publisher-signing-key.json");public={"algorithm":"rsa-sha256","n":key["n"],"e":key["e"]}
-    entry={"id":ident,"name":manifest["name"],"version":manifest["version"],"description":manifest["description"],"author":manifest["author"],"capabilities":manifest.get("capabilities",[]),"manifestUrl":manifest_url,"sha256":digest,"minimumLcarsVersion":manifest.get("minimumLcarsVersion","30.3" if manifest.get("apiVersion")==3 else "27.1"),"category":"COMMUNITY","lastUpdated":__import__("datetime").date.today().isoformat(),"signature":_rsa_sign(_signature_payload(ident,manifest["version"],digest),key),"signerKeyId":key["keyId"],"signingKey":public}
-    (target/"catalog.json").write_text(json.dumps({"schemaVersion":2,"moduleApiVersion":API_VERSION,"channel":"stable","modules":[entry]},indent=2)+"\n",encoding="utf-8")
-    (target/"catalog-development.json").write_text(json.dumps({"schemaVersion":2,"moduleApiVersion":API_VERSION,"channel":"development","modules":[entry]},indent=2)+"\n",encoding="utf-8")
-    (target/"SHA256SUMS.txt").write_text(f"{digest}  modules/{ident}/lcars-module.json\n",encoding="utf-8")
-    readme=f"# {manifest['name']} вЂ” LCARS Module Repository\n\nThis package was generated by LCARS Module Forge 30.4. It contains host-rendered declarative Extension API v{manifest['apiVersion']} JSON only.\n\n1. Create a public GitHub repository.\n2. Copy the contents of this folder to its `main` branch.\n3. Replace `YOUR-GITHUB-NAME/YOUR-REPOSITORY` in both catalogs.\n4. Use `catalog.json` for Stable and `catalog-development.json` for Development.\n5. In LCARS, open Updates в†’ Module Platform в†’ Sources and add the repository URL.\n\nLCARS verifies SHA-256, the RSA-SHA256 publisher signature, requested capabilities, and the stable manifest contract before installation. Executable plug-in code is not supported. Keep the private signing key in the parent Module Forge folder secure; it is never included in this package.\n"
-    (target/"README.md").write_text(readme,encoding="utf-8")
-    return {"ok":True,"message":f"Signed repository package prepared for {manifest['name']}","path":str(target),"id":ident,"sha256":digest,"signatureStatus":"verified","signerKeyId":key["keyId"],"files":["README.md","catalog.json","catalog-development.json","SHA256SUMS.txt",f"modules/{ident}/lcars-module.json"]}
-
-
-def create_module_draft(extension_dir:Path,data):
-    if not isinstance(data,dict):raise ValueError("Module Forge draft must be an object")
-    ident=_text(data.get("id"),48);name=_text(data.get("name"),48);description=_text(data.get("description"),180);placement=_text(data.get("placement","overview"),24)
-    if placement not in PLACEMENTS:raise ValueError("unsupported Module Forge placement")
-    capabilities=data.get("capabilities",[]) if isinstance(data.get("capabilities"),list) else []
-    manifest={"apiVersion":API_VERSION,"id":ident,"name":name or ident,"version":_text(data.get("version","0.1.0"),20),"description":description or "Module Forge declarative module","author":_text(data.get("author","LCARS Operator"),64),"minimumLcarsVersion":"30.3","capabilities":capabilities,"settings":[],"placements":[{"id":"primary","type":placement,"title":name or ident,"defaultSize":"standard","ui":[{"type":"text","id":"status","text":_text(data.get("text","MODULE READY"),240)}]}]}
-    clean=validate_manifest(manifest);target=(extension_dir/clean["id"]).resolve();root=extension_dir.resolve()
-    if root not in target.parents:raise ValueError("invalid Module Forge path")
-    target.mkdir(parents=True,exist_ok=True);path=target/"lcars-module.json"
-    if path.exists():shutil.copy2(path,target/".previous-lcars-module.json")
-    _atomic_json(path,manifest)
-    return {"ok":True,"message":f"{clean['name']} draft created with stable Extension API v{API_VERSION}","id":clean["id"],"path":str(path),"manifest":clean}
-
-
-def module_package_operation(extension_dir:Path,bundled_dir:Path|None,publisher_dir:Path,runtime_dir:Path,operation:str,ident="",path_value="",approved_capabilities=None):
-    if operation=="export":
-        if not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,47}",ident):raise ValueError("select a valid installed module id")
-        paths=list(extension_dir.glob(f"{ident}/lcars-module.json"))+([] if not bundled_dir else list(bundled_dir.glob(f"{ident}/lcars-module.json")))
-        if not paths:raise ValueError("module is not installed")
-        raw=paths[0].read_bytes();manifest=validate_manifest(json.loads(raw.decode("utf-8")));digest=hashlib.sha256(raw).hexdigest();key=_load_or_create_signing_key(publisher_dir/"publisher-signing-key.json");public={"algorithm":"rsa-sha256","n":key["n"],"e":key["e"]}
-        package={"schemaVersion":1,"moduleApiVersion":manifest["apiVersion"],"id":ident,"version":manifest["version"],"sha256":digest,"signature":_rsa_sign(_signature_payload(ident,manifest["version"],digest),key),"signerKeyId":key["keyId"],"signingKey":public}
-        exports=publisher_dir/"exports";exports.mkdir(parents=True,exist_ok=True);destination=exports/f"{ident}-{manifest['version']}.lcars-module"
-        with zipfile.ZipFile(destination,"w",compression=zipfile.ZIP_DEFLATED) as archive:
-            archive.writestr("lcars-module.json",raw);archive.writestr("package.json",json.dumps(package,indent=2)+"\n")
-        return {"ok":True,"message":f"Signed {manifest['name']} package exported","path":str(destination),"sha256":digest,"signerKeyId":key["keyId"]}
-    if operation in {"inspect","import"}:
-        source=Path(path_value).expanduser().resolve()
-        if not source.is_file() or source.stat().st_size>2097152:raise ValueError("module package is missing or exceeds 2 MiB")
-        with zipfile.ZipFile(source,"r") as archive:
-            names=set(archive.namelist())
-            if names!={"lcars-module.json","package.json"}:raise ValueError("module package contains unsupported files")
-            if any(item.file_size>262144 for item in archive.infolist()):raise ValueError("module package entry exceeds size limit")
-            raw=archive.read("lcars-module.json");package=json.loads(archive.read("package.json").decode("utf-8"))
-        manifest=validate_manifest(json.loads(raw.decode("utf-8")));digest=hashlib.sha256(raw).hexdigest()
-        if package.get("schemaVersion")!=1 or package.get("id")!=manifest["id"] or package.get("version")!=manifest["version"] or package.get("sha256")!=digest:raise ValueError("module package metadata does not match its manifest")
-        signature=_signature_state(package,raw)
-        if not signature["verified"]:raise ValueError("module package signature verification failed")
-        requested=manifest.get("capabilities",[]);approved=list(dict.fromkeys(approved_capabilities or []))
-        if operation=="inspect":return {"ok":True,"message":f"Signed {manifest['name']} package verified","id":manifest["id"],"name":manifest["name"],"version":manifest["version"],"capabilities":requested,"signature":signature,"apiVersion":manifest["apiVersion"]}
-        if requested and set(requested)!=set(approved):raise ValueError("operator capability approval is required before import")
-        target=(extension_dir/manifest["id"]).resolve();root=extension_dir.resolve();previous_installation=_read_json(target/".lcars-installation.json",{})
-        if previous_installation.get("signerKeyId") and previous_installation["signerKeyId"]!=signature["keyId"]:raise ValueError("module publisher identity changed; remove the installed module before trusting a different signer")
-        if root not in target.parents:raise ValueError("invalid module package path")
-        target.mkdir(parents=True,exist_ok=True);destination=target/"lcars-module.json";had_previous=destination.exists()
-        if had_previous:shutil.copy2(destination,target/".previous-lcars-module.json")
-        temporary=destination.with_suffix(".json.tmp");temporary.write_bytes(raw);temporary.replace(destination)
-        _atomic_json(target/".lcars-installation.json",{"installedAt":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"sourceId":"import","channel":"local","sha256":digest,"signatureStatus":"verified","signerKeyId":signature["keyId"]})
-        permissions=_read_json(runtime_dir/"permissions.json",{});permissions[manifest["id"]]=approved;_atomic_json(runtime_dir/"permissions.json",permissions)
-        return {"ok":True,"message":f"Signed {manifest['name']} package imported","id":manifest["id"],"version":manifest["version"],"signature":signature,"rollbackAvailable":had_previous}
-    raise ValueError("unsupported module package operation")
-
-
-def extension_state(state_dir:Path,ident:str):
-    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,47}",ident):raise ValueError("invalid extension id")
-    path=state_dir/f"{ident}.json"
-    try:return json.loads(path.read_text(encoding="utf-8"))
-    except Exception:return {}
-
-
-def save_extension_state(state_dir:Path,ident:str,state):
-    if not isinstance(state,dict):raise ValueError("extension state must be an object")
-    encoded=json.dumps(state,separators=(",",":"))
-    if len(encoded)>65536:raise ValueError("extension state exceeds 64 KiB")
-    state_dir.mkdir(parents=True,exist_ok=True);path=state_dir/f"{ident}.json";temporary=path.with_suffix(".tmp")
-    temporary.write_text(encoded,encoding="utf-8");temporary.replace(path);return state
+Rv›•лhў—§±л,Љ‰еўв•пбўgї†иfjЬiИ^юЛZ®Иb§ыІИЁџ^tзMyуЌxг^чТZ :З(uнф’)ЭEжќ:yr)^і+-ziћІЖ yљv‰еЙшҐzМ¬µй€€€•[Y][Ы‹Э]KЪYЫљ[™Л[™™\ЬЪ]ЬћHЭ\Ьќ›Ь€РT”И[Щ[HTHЊЛ€€€‚™њ›ЫHЧЩќ]\™WЧИ[\Ьќ[››Э][ЫњВ‚љ[\Ьќ\ЩMЌљ[\Ьќ\ЪX‚љ[\ЬќњЫЫ‚љ[\Ьќ™Bљ[\ЬќЩXЬ™]Вљ[\ЬќЪ][љ[\Ьќ[YBљ[\Ьќљ\љ[B™њ›ЫH]X€[\Ьќ]™њ›ЫH\›X‹њ\њЩH[\Ьќ\›\њЩB™њ›ЫH\›X‹њ™\]Y\Э[\Ьќ™\]Y\Э\›Ь[‚‚ђTWХ‘T”ТSУЏLВ”ХTФ•QРTWХ‘T”ТSУ”П^М‹ЯB”PСSQS•П^И›Э™\ќљY]И‹љXY\€‹њYЩH‹ќ^H‹њ[™[џB”’SRUU‘TП^Иќ^‹ќ]Ы€‹љ[њ]‹ќЩЩЫH‹›\Э‹њ›ЩЬ™\ЬИ‹ЫШЪИ‹ќ[Y\€‹ќXњИ‹™ЬљYџBђРTP’SUQTП^Иќ[YKY]H‹њЮ\Э[K\™XY‹››ЭYљXШ][ЫњИ‹њШY™KYљ[\И‹\[][Ъ‹›™]ЫЬљЛ\™XY‹›YYXK\™XY‹›YYXKXЫЫќ›ЫџBђРTP’SUWУP‘SП^В€ќ[YKY]HЋ€”™XYШШ[]H[™[YH‹€њЮ\Э[K\™XYЋ€”™XYЮ\Э[H[[Y]ћH‹€››ЭYљXШ][ЫњИЋ€ђЬ™X]HРT”И›ЭXЩ\И‹€њШY™KYљ[\ИЋ€”™XYЬ\]Ь‹\Щ[XЭYљ[\И‹€\[][ЪЋ€“][Ъ[њЭ[Y\XШ][ЫњИ‹€›™]ЫЬљЛ\™XYЋ€”™XY™]ЫЬљИЭ]\И‹€›YYXK\™XYЋ€”™XYYYXHЩ\ЬЪ[Ы€Y]Y]H‹€›YYXKXЫЫќ›ЫЋ€ђЫЫќ›ЫYYXH^XXЪИ‹џB”ТV‘TП^ИЫЫ\XЭ‹њЭ[™\™‹ќЪYHџB”‘SSХWРРUSСЧХT“HљО‹ЛЬ]Л™Ъ]Xќ\Щ\ЫЫќ[ќЫЫKТRX[ЌM‹УРT”ЛPЫЫ[X[™R[ќ\™XЩKУ[Щ[\ЛШШ][ЩЛљњЫЫ€‚••TХQФђUЧТФХHњ]Л™Ъ]Xќ\Щ\ЫЫќ[ќЫЫH‚••TХQФђUЧФ‘Q’VH‹ТRX[ЌM‹УРT”ЛPЫЫ[X[™R[ќ\™XЩKУ[Щ[\ЛИ‚“С‘’PТPSФУХTђСO^ИљYЋ€›Щ™љXЪX[‹›[YHЋ€“РT”ИС‘’PТPS‹›ЭЫ™\€Ћ€’RX[ЌM€‹њ™\ЬЪ]ЬћHЋ€“РT”ЛPЫЫ[X[™R[ќ\™XЩH‹њ™Y€Ћ€“[Щ[\И‹Ш][ЩХ\›Ћ”‘SSХWРРUSСЧХT“™[X›YЋ•ќYK›Щ™љXЪX[Ћ•ќYKЪ[›™[Ћ€њЭX›HџB”‘SSХWРРPТO^ЯB‚‚™Y€Э^
+[YK[Z]LMЊ
+Nњ™]\›€ЭЉ[YHЬ€€ЉKњЭљ\
+
+VО›[Z]B‚‚™Y€Ьљ[Z]]™J›ЩK\L
+N‚€Y€\ЌHЬ€›Э\Ъ[њЭ[ЩJ›ЩKXЭ
+NњZ\ЩH[YQ\њ›ЬЉљ[ќ[YRHљ[Z]]™H™YHЉB€Ъ[™WЭ^
+›ЩK™Щ]
+ќ\HЉKЌ
+B€Y€Ъ[™›Э[€’SRUU‘TОњZ\ЩH[YQ\њ›ЬЉ€ќ[њЭ\ЬќYRHљ[Z]]™N€ЪЪ[™HЉB€ЫX[Џ^Иќ\HЋљЪ[™B€›Ь€Щ^K[Z][€
+
+љY‹
+K
+ќ^‹Ќ
+K
+›X™[‹
+K
+XЭ[Ы€‹
+K
+њЫЭ\ЩH‹Ќ
+K
+™›Ь›X]‹
+K
+њXЩZЫ\€‹L
+JN‚€Y€Щ^H[€›ЩNЫX[–ЪЩ^WOWЭ^
+›ЩK™Щ]
+Щ^JK[Z]
+B€Y€ќ[YH€[€›ЩH[™\Ъ[њЭ[ЩJ›ЩVИќ[YH—K
+Э‹[ќ›Ш]›ЫЫ
+JNЫX[–Иќ[YH—O[›ЩVИќ[YH—B€Y€›Z[€€[€›ЩNЫX[–И›Z[€—OY›Ш]
+›ЩVИ›Z[€—JB€Y€›X^€[€›ЩNЫX[–И›X^—OY›Ш]
+›ЩVИ›X^—JB€Y€љ][\И€[€›ЩH[™\Ъ[њЭ[ЩJ›ЩVИљ][\И—K\Э
+NЫX[–Иљ][\И—OVЧЭ^
+][KLЊ
+H›Ь€][H[€›ЩVИљ][\И—VОЌWB€Y€Ъ[™[€€[€›ЩH[™\Ъ[њЭ[ЩJ›ЩVИЪ[™[€—K\Э
+NЫX[–ИЪ[™[€—OVЧЬљ[Z]]™JЪ[\
+МJH›Ь€Ъ[[€›ЩVИЪ[™[€—VОЌWB€™]\›€ЫX[‚‚‚™Y€ЫYШXЮJ]JN‚€[Щ[OY]K™Щ]
+›[Щ[H‹ЯJNЪ][\П[[Щ[K™Щ]
+™Y][][\И‹ЧJB€™]\›€И\U™\њЪ[Ы€ЋЊKњШЪ[XHЋЊKљYЋ—Э^
+]K™Щ]
+љYЉK
+K›[YHЋ—Э^
+]K™Щ]
+›[YHЉK
+Kќ™\њЪ[Ы€Ћ—Э^
+]K™Щ]
+ќ™\њЪ[Ы€‹ЊKЊЊЉKЊ
+K™\ШЬљ\[Ы€Ћ—Э^
+]K™Щ]
+™\ШЬљ\[Ы€‹“ШШ[РT”И^[њЪ[Ы€ЉKN
+K]]Ь€Ћ—Э^
+]K™Щ]
+]]Ь€‹•[љЫ›ЭЫ€ЉKЌ
+KШ\Xљ[]Y\ИЋ–ЧKњЩ][™ЬИЋ–ЧKњXЩ[Y[ќИЋ–ЮИљYЋ€њљ[X\ћH‹ќ\HЋ€›Э™\ќљY]И‹ќ]HЋ—Э^
+]K™Щ]
+›[YHЉK
+K™Y][Ъ^™HЋ›[Щ[K™Щ]
+™Y][Ъ^™HЉHY€[Щ[K™Щ]
+™Y][Ъ^™HЉH[€ТV‘TИ[ЩHњЭ[™\™‹ќZHЋ–ЮИќ\HЋ€›\Э‹љYЋ€љ][\И‹љ][\ИЋ–ЧЭ^
+][KL
+H›Ь€][H[€][\ЦОЊЌHY€Э^
+][KL
+W_W_WKќ›ЪXЩPЫЫ[X[™ИЋ™]K™Щ]
+ќ›ЪXЩPЫЫ[X[™И‹ЧJVОЊL—_B‚‚™Y€[Y]WЫX[љY™\Э
+]JN‚€Y€›Э\Ъ[њЭ[ЩJ]KXЭ
+NњZ\ЩH[YQ\њ›ЬЉ›X[љY™\Э]\Э™H[€Шљ™XЭЉB€Y€]K™Щ]
+њШЪ[XHЉOOLNњ™]\›€ЫYШXЮJ]JB€\WЭ™\њЪ[ЫЏY]K™Щ]
+\U™\њЪ[Ы€ЉB€Y€\WЭ™\њЪ[Ы€›Э[€ХTФ•QРTWХ‘T”ТSУ”ОњZ\ЩH[YQ\њ›ЬЉќ[њЭ\ЬќY^[њЪ[Ы€TH™\њЪ[Ы€ЉB€Y[ќWЭ^
+]K™Щ]
+љYЉK
+B€Y€›Э™K™ќ[X]Ъ
+€–ШK^ЊNWVШK^ЊNKW^М‹ЯH‹Y[ќ
+NњZ\ЩH[YQ\њ›ЬЉљ[ќ[Y^[њЪ[Ы€YЉB€™\]Y\ЭYY]K™Щ]
+Ш\Xљ[]Y\И‹ЧJB€Y€›Э\Ъ[њЭ[ЩJ™\]Y\ЭY\Э
+HЬ€[ћJ][H›Э[€РTP’SUQTИ›Ь€][H[€™\]Y\ЭY
+NњZ\ЩH[YQ\њ›ЬЉќ[њЭ\ЬќY^[њЪ[Ы€Ш\Xљ[]HЉB€™\њЪ[ЫЏWЭ^
+]K™Щ]
+ќ™\њЪ[Ы€‹ЊKЊЊЉKЊ
+B€Y€›Э™K™ќ[X]Ъ
+€–МNWJЧ–МNWJЧ–МNWJКО‹VМNPKVK^‹‹WJКOИ‹™\њЪ[ЫЉNњZ\ЩH[YQ\њ›ЬЉ›[Щ[H™\њЪ[Ы€]\Э\ЩHЩ[X[ќXИ™\њЪ[Ыљ[™ИЉB€XЩ[Y[ќПVЧNЬXЩ[Y[ќЪYП\Щ]
+
+B€›Ь€XЩ[Y[ќ[€]K™Щ]
+њXЩ[Y[ќИ‹ЧJVОЊL—N‚€Y€›Э\Ъ[њЭ[ЩJXЩ[Y[ќXЭ
+HЬ€XЩ[Y[ќ™Щ]
+ќ\HЉH›Э[€PСSQS•ОњZ\ЩH[YQ\њ›ЬЉќ[њЭ\ЬќY^[њЪ[Ы€XЩ[Y[ќЉB€ZO\XЩ[Y[ќ™Щ]
+ќZH‹ЧJB€Y€›Э\Ъ[њЭ[ЩJZK\Э
+NњZ\ЩH[YQ\њ›ЬЉњXЩ[Y[ќRH]\Э™HH\ЭЉB€XЩ[Y[ќЪYWЭ^
+XЩ[Y[ќ™Щ]
+љY‹њљ[X\ћHЉK
+B€Y€›Э™K™ќ[X]Ъ
+€–ШK^ЊNWVШK^ЊNKW^МKЯH‹XЩ[Y[ќЪY
+HЬ€XЩ[Y[ќЪY[€XЩ[Y[ќЪYОњZ\ЩH[YQ\њ›ЬЉњXЩ[Y[ќYИ]\Э™H[љ\]YHЩXX‹XШ\ЩH[Y\ИЉB€XЩ[Y[ќЪYЛY
+XЩ[Y[ќЪY
+B€XЩ[Y[ќЛ\[™
+ИљYЋњXЩ[Y[ќЪYќ\HЋњXЩ[Y[ќИќ\H—Kќ]HЋ—Э^
+XЩ[Y[ќ™Щ]
+ќ]H‹]K™Щ]
+›[YH‹Y[ќ
+JK
+K™Y][Ъ^™HЋњXЩ[Y[ќ™Щ]
+™Y][Ъ^™HЉHY€XЩ[Y[ќ™Щ]
+™Y][Ъ^™HЉH[€ТV‘TИ[ЩHњЭ[™\™‹ќZHЋ–ЧЬљ[Z]]™J›ЩJH›Ь€›ЩH[€ZVОЌW_JB€Y€›ЭXЩ[Y[ќОњZ\ЩH[YQ\њ›ЬЉ™^[њЪ[Ы€\И›ИXЩ[Y[ќИЉB€Щ][™ЬПVЧNЬЩ][™ЧЪЩ^\П\Щ]
+
+B€›Ь€Щ][™И[€]K™Щ]
+њЩ][™ЬИ‹ЧJVОЊМ—N‚€Y€›Э\Ъ[њЭ[ЩJЩ][™ЛXЭ
+HЬ€Щ][™Л™Щ]
+ќ\HЉH›Э[€Иќ^‹›ќ[X™\€‹ќЩЩЫH‹њЩ[XЭџNњZ\ЩH[YQ\њ›ЬЉќ[њЭ\ЬќY^[њЪ[Ы€Щ][™ИЉB€Щ^OWЭ^
+Щ][™Л™Щ]
+љЩ^HЉK
+B€Y€›Э™K™ќ[X]Ъ
+€–РKVK^—VРKVK^ЊNWЛW^МЯH‹Щ^JHЬ€Щ^H[€Щ][™ЧЪЩ^\ОњZ\ЩH[YQ\њ›ЬЉњЩ][™ИЩ^\И]\Э™H[љ\]YHY[ќYљY\њИЉB€Щ][™ЧЪЩ^\ЛY
+Щ^JB€[ќћO^ИљЩ^HЋљЩ^Kќ\HЋњЩ][™ЦИќ\H—K›X™[Ћ—Э^
+Щ][™Л™Щ]
+›X™[ЉK
+K™\ШЬљ\[Ы€Ћ—Э^
+Щ][™Л™Щ]
+™\ШЬљ\[Ы€ЉKN
+K™Y][ЋњЩ][™Л™Щ]
+™Y][Љ_B€Y€Щ][™Л™Щ]
+ќ\HЉOOHњЩ[XЭЋ™[ќћVИ›Ь[ЫњИ—OVЧЭ^
+][K
+H›Ь€][H[€Щ][™Л™Щ]
+›Ь[ЫњИ‹ЧJVОЊЊWB€Щ][™ЬЛ\[™
+[ќћJB€™]\›€И\U™\њЪ[Ы€Ћ\WЭ™\њЪ[Ы‹љYЋљY[ќ›[YHЋ—Э^
+]K™Щ]
+›[YH‹Y[ќ
+K
+Kќ™\њЪ[Ы€Ћќ™\њЪ[Ы‹™\ШЬљ\[Ы€Ћ—Э^
+]K™Щ]
+™\ШЬљ\[Ы€‹“ШШ[РT”И^[њЪ[Ы€ЉKN
+K]]Ь€Ћ—Э^
+]K™Щ]
+]]Ь€‹•[љЫ›ЭЫ€ЉKЌ
+KШ\Xљ[]Y\ИЋњ™\]Y\ЭYњЩ][™ЬИЋњЩ][™ЬЛњXЩ[Y[ќИЋњXЩ[Y[ќЛќXЪФЩXЫЫ™ИЋ›X^
+KZ[ЉНЊ[ќ
+]K™Щ]
+ќXЪФЩXЫЫ™И‹JJJJK›Z[љ[][SШ\њХ™\њЪ[Ы€Ћ—Э^
+]K™Щ]
+›Z[љ[][SШ\њХ™\њЪ[Ы€‹ЊМЊИ€Y€\WЭ™\њЪ[ЫЏOLИ[ЩHЊЌЛЊHЉKЊ
+K›[Щ[P\TЭ]\ИЋ€њЭX›H€Y€\WЭ™\њЪ[ЫЏOLИ[ЩHЫЫ\]X›HџB‚‚™Y€ШYЩ^[њЪ[ЫњК^[њЪ[Ы—Щ\Ћ”]ќ[™YЩ\Ћ”]›Ы™OS›Ы™JN‚€^[њЪ[Ы—Щ\‹›ZЩ\Љ\™[ќПUќYK^\ЭЫЪПUќYJNЪ][\ПVЧNЩ\њ›ЬњПVЧNЬЩY[Џ\Щ]
+
+B€›ЫЭПVЩ^[њЪ[Ы—Щ\—JКШќ[™YЩ\—HY€ќ[™YЩ\€[™ќ[™YЩ\‹™^\ЭК
+H[ЩHЧJB€]ПVЧB€›Ь€›ЫЭ[€›ЫЭОњ]КП[\Э
+›ЫЭ™ЫШЉЉ‹ЫШ\њЛ[[Щ[KљњЫЫ€ЉJJЫ\Э
+›ЫЭ™ЫШЉЉ‹›Ш\њЛ[[Щ[KљњЫЫ€ЉJB€›Ь€][€]ЦОЌЌN‚€ћN‚€Y€]њЭ]
+
+KњЭЬЪ^™OЊLМLМЋњZ\ЩH[YQ\њ›ЬЉ›X[љY™\Э^ЩYYИLЋЪP€ЉB€][O][Y]WЫX[љY™\Э
+њЫЫ‹›ШYК]њ™XYЭ^
+[ЫЩ[™ПHќ]‹NЉJJB€Y€][VИљY—H[€ЩY[ЋЫЫќ[ќYB€ЩY[‹Y
+][VИљY—JNЪ][\Л\[™
+][JB€^Щ\^Щ\[Ы€\И^О™\њ›ЬњЛ\[™
+И™љ[HЋњ]›[YK™\њ›Ь€ЋњЭЉ^К_JB€™]\›€И™^[њЪ[ЫњИЋљ][\Л™\њ›ЬњИЋ™\њ›ЬњЛ™\™XЭЬћHЋњЭЉ^[њЪ[Ы—Щ\ЉK\U™\њЪ[Ы€ЋђTWХ‘T”ТSУџB‚‚™Y€Эќ\ЭYЭ\›
+[YNњЭЉN‚€\њЩY]\›\њЩJ[YJB€™]\›€\њЩYњШЪ[YOOHљИ€[™\њЩYљЬЭ[YOOU•TХQФђUЧТФХ[™\њЩYњ]њЭ\ќЭЪ]
+•TХQФђUЧФ‘Q’V
+B‚‚™Y€ЬЫЭ\ЩWЬ™Yљ^
+ЫЭ\ЩJN‚€™]\›€‰ЛЮЬЫЭ\ЩVИ›ЭЫ™\€—_KЮЬЫЭ\ЩVИњ™\ЬЪ]ЬћH—_KЮЬЫЭ\ЩVИњ™Y€—_KЙВ‚‚™Y€ЬЫЭ\ЩWЭ\›
+[YNњЭ‹ЫЭ\ЩJN‚€\њЩY]\›\њЩJ[YJB€™\ЬЪ]ЬћWЬ™Yљ^Y‰ЛЮЬЫЭ\ЩVИ›ЭЫ™\€—_KЮЬЫЭ\ЩVИњ™\ЬЪ]ЬћH—_KЙВ€™\]Z\™YЬ™Yљ^WЬЫЭ\ЩWЬ™Yљ^
+ЫЭ\ЩJHY€ЫЭ\ЩK™Щ]
+›Щ™љXЪX[ЉH[ЩH™\ЬЪ]ЬћWЬ™Yљ^€™]\›€\њЩYњШЪ[YOOHљИ€[™\њЩYљЬЭ[YOOU•TХQФђUЧТФХ[™\њЩYњ]њЭ\ќЭЪ]
+™\]Z\™YЬ™Yљ^
+H[™›Э\њЩYњ]Y\ћH[™›Э\њЩY™њYЫY[ќ‚‚™Y€ЩЭЫ›ШY
+\›њЭ‹[Z]љ[ќЫЭ\ЩOS›Ы™JN‚€Y€ЫЭ\ЩH\И›Ы™N‚€Y€›ЭЭќ\ЭYЭ\›
+\›
+NњZ\ЩH[YQ\њ›ЬЉ›[Щ[HЭЫ›ШYT“\ИЭ]ЪYHHќ\ЭY[Щ[\Ињ[ЪЉB€[Y€›ЭЬЫЭ\ЩWЭ\›
+\›ЫЭ\ЩJNњZ\ЩH[YQ\њ›ЬЉ›[Щ[HЭЫ›ШYT“\ИЭ]ЪYH]ИXЫ\™YX›XИЪ]X€™\ЬЪ]ЬћHЉB€™\]Y\ЭT™\]Y\Э
+\›XY\њП^И•\Щ\‹PYЩ[ќЋ€“РT”ЛPЫЫ[X[™R[ќ\™XЩKS[Щ[KPTKММЌH‹ђXШЩ\Ћ€\XШ][Ы‹ЪњЫЫ€џJB€Ъ]\›Ь[Љ™\]Y\Э[Y[Э]N
+H\И™\ЬЫњЩN‚€[™Э\™\ЬЫњЩKљXY\њЛ™Щ]
+ђЫЫќ[ќS[™ЭЉB€Y€[™Э[™[ќ
+[™Э
+O›[Z]њZ\ЩH[YQ\њ›ЬЉњ™[[ЭH[Щ[H^[ШY^ЩYYИЪ^™H[Z]ЉB€^[ШY\™\ЬЫњЩKњ™XY
+[Z]
+МJB€Y€[Љ^[ШY
+O›[Z]њZ\ЩH[YQ\њ›ЬЉњ™[[ЭH[Щ[H^[ШY^ЩYYИЪ^™H[Z]ЉB€™]\›€^[ШY‚‚™Y€Ш]ЫZXЧЪњЫЫЉ]”][YJN‚€]њ\™[ќ›ZЩ\Љ\™[ќПUќYK^\ЭЫЪПUќYJNЭ[\Ь\ћO\]ќЪ]ЬЭY™љ^
+]њЭY™љ^
+И‹ќ\ЉB€[\Ь\ћKќЬљ]WЭ^
+њЫЫ‹™[\К[YK[™[ќLЉJИ—€‹[ЫЩ[™ПHќ]‹NЉNЭ[\Ь\ћKњ™\XЩJ]
+B‚‚™Y€Ь™XYЪњЫЫЉ]”][XЪКN‚€ћN‚€[YOZњЫЫ‹›ШYК]њ™XYЭ^
+[ЫЩ[™ПHќ]‹NЉJB€™]\›€[YHY€\Ъ[њЭ[ЩJ[YK\J[XЪКJH[ЩH[XЪВ€^Щ\^Щ\[ЫЋњ™]\›€[XЪВ‚‚™Y€ШЌЌ\›
+[YNћ]\КNњ™]\›€\ЩMЌќ\›ШY™WШЌЌ[ЫЩJ[YJK™XЫЩJ\ШЪZHЉKњњЭљ\
+ЏHЉB‚‚™Y€ШЌЌ\›ЩXЫЩJ[YNњЭЉNњ™]\›€\ЩMЌќ\›ШY™WШЌЌXЫЩJ[YJИЏHЉЉ
+[[Љ[YJIM
+IM
+JB‚‚™Y€ЬЪYЫ]\™WЬ^[ШY
+Y[ќњЭ‹™\њЪ[ЫЋњЭ‹YЩ\ЭњЭЉN‚€™]\›€њЫЫ‹™[\КИљYЋљY[ќќ™\њЪ[Ы€Ћќ™\њЪ[Ы‹њЪLЌM€Ћ™YЩ\ЭKЫЬќЪЩ^\ПUќYKЩ\\]ЬњПJ‹‹Ћ€ЉJK™[ЫЩJќ]‹NЉB‚‚™Y€ЬњШWЬЪYЫЉ^[ШYћ]\ЛЩ^JN‚€[Щ[\ПZ[ќ
+Щ^VИ›€—KMЉNЬљ]]OZ[ќ
+Щ^VИ™—KMЉNЬЪ^™OJ[Щ[\Лљ]Ы[™Э
+
+JНКKЛО€YЩ\ЭЪ[™›ПXћ]\Л™њ›ЫZ^
+ЊММLМЊMЊЌMЌLМЊLLЊЉJЪ\ЪX‹њЪLЌMЉ^[ШY
+K™YЩ\Э
+
+B€[ЫЩYX€—HЉШ€—™€ЉЉЪ^™K[[ЉYЩ\ЭЪ[™›КKLКJШ€—ЉЩYЩ\ЭЪ[™›В€™]\›€ШЌЌ\›
+ЭК[ќ™њ›ЫWШћ]\К[ЫЩYљYИЉKљ]]K[Щ[\КKќЧШћ]\КЪ^™KљYИЉJB‚‚™Y€ЬњШWЭ™\љYћJ^[ШYћ]\ЛЪYЫ]\™NњЭ‹X›XЧЪЩ^JN‚€ћN‚€[Щ[\ПZ[ќ
+ЭЉX›XЧЪЩ^VИ›€—JKMЉNЩ^Ы™[ќZ[ќ
+X›XЧЪЩ^K™Щ]
+™H‹ЌMLНКJNЬЪ^™OJ[Щ[\Лљ]Ы[™Э
+
+JНКKЛО€]ПWШЌЌ\›ЩXЫЩJЪYЫ]\™JB€Y€[Љ]КHO\Ъ^™Nњ™]\›€[ЩB€XЫЩY\ЭК[ќ™њ›ЫWШћ]\К]ЛљYИЉK^Ы™[ќ[Щ[\КKќЧШћ]\КЪ^™KљYИЉB€YЩ\ЭЪ[™›ПXћ]\Л™њ›ЫZ^
+ЊММLМЊMЊЌMЌLМЊLLЊЉJЪ\ЪX‹њЪLЌMЉ^[ШY
+K™YЩ\Э
+
+B€™]\›€[ЉXЫЩY
+OЏ[[ЉYЩ\ЭЪ[™›КJМLH[™XЫЩYњЭ\ќЭЪ]
+€—HЉH[™XЫЩY™[™ЭЪ]
+€—ЉЩYЩ\ЭЪ[™›КH[™Щ]
+XЫЩYМЋ‹J[ЉYЩ\ЭЪ[™›КJМJWJOO^МЌM_B€^Щ\^Щ\[ЫЋњ™]\›€[ЩB‚‚™Y€Ъ\ЧЬ›ШX›WЬљ[YJШ[™Y]Nљ[ќ›Э[™ПLЌ
+N‚€Y€Ш[™Y]OЋњ™]\›€[ЩB€›Ь€љ[YH[€
+‹ЛKЛLKLЛMЛNKЊЛЋKМKНКN‚€Y€Ш[™Y]I\љ[YOOLњ™]\›€Ш[™Y]OO\љ[YB€ЩXШ[™Y]KLNЬЭЩ\ЏL€Ъ[HЩ	LЏOLњЭЩ\ЉПLNЫЩЛПL‚€›Ь€И[€[™ЩJ›Э[™КN‚€\ЩO\ЩXЬ™]Лњ[™™[ЭКШ[™Y]KLКJМЋЭ[YO\ЭК\ЩKЩШ[™Y]JB€Y€[YH[€
+KШ[™Y]KLJNЫЫќ[ќYB€›Ь€ЧИ[€[™ЩJЭЩ\‹LJN‚€[YO\ЭК[YK‹Ш[™Y]JB€Y€[YOOXШ[™Y]KLNњ™XZВ€[ЩNњ™]\›€[ЩB€™]\›€ќYB‚‚™Y€Ьљ[YJљ]Ољ[ќ
+N‚€Ъ[HќYN‚€Ш[™Y]O\ЩXЬ™]Лњ[™љ]Кљ]К_
+O
+љ]ЛLJJ_B€Y€Ъ\ЧЬ›ШX›WЬљ[YJШ[™Y]JNњ™]\›€Ш[™Y]B‚‚™Y€ЫШYЫЬ—ШЬ™X]WЬЪYЫљ[™ЧЪЩ^J]”]
+N‚€^\Э[™ПWЬ™XYЪњЫЫЉ]ЯJB€Y€[
+^\Э[™Л™Щ]
+[YJH›Ь€[YH[€
+›€‹™‹™H‹љЩ^RYЉJNњ™]\›€^\Э[™В€^Ы™[ќMЌMLНВ€Ъ[HќYN‚€љ\њЭWЬљ[YJLЌ
+NЬЩXЫЫ™WЬљ[YJLЌ
+B€Y€љ\њЭO\ЩXЫЫ™ЫЫќ[ќYB€OJљ\њЭLJJЉЩXЫЫ™LJB€Y€IY^Ы™[ќњ™XZВ€[Щ[\ПYљ\њЭ
+њЩXЫЫ™Ьљ]]O\ЭК^Ы™[ќLKJB€X›XП^И[ЫЬљ]HЋ€њњШK\ЪLЌM€‹›€Ћ™›Ь›X]
+[Щ[\ЛћЉK™HЋ™^Ы™[ќB€Щ^O^КЉњX›XЛ™Ћ™›Ь›X]
+љ]]KћЉKљЩ^RYЋљ\ЪX‹њЪLЌMЉњЫЫ‹™[\КX›XЛЫЬќЪЩ^\ПUќYKЩ\\]ЬњПJ‹‹Ћ€ЉJK™[ЫЩJ
+JKљ^YЩ\Э
+
+VОЊЌ_B€Ш]ЫZXЧЪњЫЫЉ]Щ^JB€ћNњ]Ъ[Щ
+НЊ
+B€^Щ\ФС\њ›ЬЋњ\ЬВ€™]\›€Щ^B‚‚™Y€ЬЪYЫ]\™WЬЭ]J[ќћK^[ШYћ]\КN‚€ЪYЫ]\™OWЭ^
+[ќћK™Щ]
+њЪYЫ]\™HЉKMЉNЬX›XЧЪЩ^OY[ќћK™Щ]
+њЪYЫљ[™ТЩ^HЉB€Y€›ЭЪYЫ]\™HЬ€›Э\Ъ[њЭ[ЩJX›XЧЪЩ^KXЭ
+Nњ™]\›€ИњЭ]\ИЋ€›YШXЮH‹ќ™\љYљYYЋ‘[ЩKљЩ^RYЋ€€џB€Щ^WЪYWЭ^
+[ќћK™Щ]
+њЪYЫ™\’Щ^RYЉKЌ
+B€X›XП^И[ЫЬљ]HЋ—Э^
+X›XЧЪЩ^K™Щ]
+[ЫЬљ]HЉKМЉK›€Ћ—Э^
+X›XЧЪЩ^K™Щ]
+›€ЉKLЌ
+K™HЋљ[ќ
+X›XЧЪЩ^K™Щ]
+™H‹ЌMLНКJ_B€^XЭYZ\ЪX‹њЪLЌMЉњЫЫ‹™[\КX›XЛЫЬќЪЩ^\ПUќYKЩ\\]ЬњПJ‹‹Ћ€ЉJK™[ЫЩJ
+JKљ^YЩ\Э
+
+VОЊЌB€™\љYљYY\X›XЛ™Щ]
+[ЫЬљ]HЉOOHњњШK\ЪLЌM€€[™Щ^WЪYOY^XЭY[™ЬњШWЭ™\љYћJЬЪYЫ]\™WЬ^[ШY
+Э^
+[ќћK™Щ]
+љYЉK
+KЭ^
+[ќћK™Щ]
+ќ™\њЪ[Ы€ЉKЊ
+K\ЪX‹њЪLЌMЉ^[ШY
+Kљ^YЩ\Э
+
+JKЪYЫ]\™KX›XКB€™]\›€ИњЭ]\ИЋ€ќ™\љYљYY€Y€™\љYљYY[ЩHљ[ќ[Y‹ќ™\љYљYYЋќ™\љYљYYљЩ^RYЋљЩ^WЪYB‚‚™Y€[Щ[WЬ]›Ь›WЬЭ]\К^[њЪ[Ы—Щ\Ћ”]ќ[™YЩ\Ћ”]›Ы™Kќ[ќ[YWЩ\Ћ”]
+N‚€ШYY[ШYЩ^[њЪ[ЫњК^[њЪ[Ы—Щ\‹ќ[™YЩ\ЉNЬ\›Z\ЬЪ[ЫњПWЬ™XYЪњЫЫЉќ[ќ[YWЩ\‹Ињ\›Z\ЬЪ[ЫњЛљњЫЫ€‹ЯJNЪX[WЬ™XYЪњЫЫЉќ[ќ[YWЩ\‹ИљX[љњЫЫ€‹ЯJB€ќ[™YЪYП\Щ]
+
+B€Y€ќ[™YЩ\€[™ќ[™YЩ\‹™^\ЭК
+N‚€›Ь€][€\Э
+ќ[™YЩ\‹™ЫШЉЉ‹ЫШ\њЛ[[Щ[KљњЫЫ€ЉJJЫ\Э
+ќ[™YЩ\‹™ЫШЉЉ‹›Ш\њЛ[[Щ[KљњЫЫ€ЉJN‚€ћNќ[™YЪYЛY
+[Y]WЫX[љY™\Э
+њЫЫ‹›ШYК]њ™XYЭ^
+[ЫЩ[™ПHќ]‹NЉJJVИљY—JB€^Щ\^Щ\[ЫЋњ\ЬВ€Ъ[™ЩYQ[ЩNЬ™XЫЬ™ПVЧNЩ^[њЪ[ЫњПVЧB€›Ь€][H[€ШYY™Щ]
+™^[њЪ[ЫњИ‹ЧJN‚€Y[ќZ][VИљY—B€Y€Y[ќ›Э[€\›Z\ЬЪ[ЫњО‚€\›Z\ЬЪ[ЫњЦЪY[ќO[\Э
+][K™Щ]
+Ш\Xљ[]Y\И‹ЧJJNШЪ[™ЩYUќYB€Ь[ќПVЫ[YH›Ь€[YH[€\›Z\ЬЪ[ЫњЛ™Щ]
+Y[ќЧJHY€[YH[€][K™Щ]
+Ш\Xљ[]Y\И‹ЧJWB€\™Щ]Y^[њЪ[Ы—Щ\‹ЪY[ќЬ™]љ[Э\П]\™Щ]И‹њ™]љ[Э\Л[Ш\њЛ[[Щ[KљњЫЫ€ЋЪ[њЭ[][ЫЏWЬ™XYЪњЫЫЉ\™Щ]И‹›Ш\њЛZ[њЭ[][Ы‹љњЫЫ€‹ЯJB€[ќћWЪX[ZX[™Щ]
+Y[ќЯJHY€\Ъ[њЭ[ЩJX[™Щ]
+Y[ќ
+KXЭ
+H[ЩHЯB€™XЫЬ™^ИљYЋљY[ќ\U™\њЪ[Ы€Ћљ][K™Щ]
+\U™\њЪ[Ы€‹JK\TЭ]\ИЋљ][K™Щ]
+›[Щ[P\TЭ]\И‹›YШXЮHЉKњ™\]Y\ЭYШ\Xљ[]Y\ИЋљ][K™Щ]
+Ш\Xљ[]Y\И‹ЧJK™Ь[ќYШ\Xљ[]Y\ИЋ™Ь[ќЛњ\›Z\ЬЪ[Ы“X™[ИЋћЫ[YNђРTP’SUWУP‘SЦЫ[YWH›Ь€[YH[€][K™Щ]
+Ш\Xљ[]Y\И‹ЧJ_KљX[Ћ™[ќћWЪX[™Щ]
+њЭ]\И‹њ™XYHЉK™Z[\™PЫЭ[ќЋљ[ќ
+[ќћWЪX[™Щ]
+™Z[\™PЫЭ[ќ‹
+HЬ€
+K›\ЭZ[\™HЋ™[ќћWЪX[™Щ]
+›\ЭZ[\™H‹€ЉKњ›ЫXЪР]Z[X›HЋњ™]љ[Э\Лљ\ЧЩљ[J
+KњЪYЫ™YЋљ[њЭ[][Ы‹™Щ]
+њЪYЫ]\™TЭ]\И‹ќ[™Y€Y€Y[ќ[€ќ[™YЪYИ[ЩH›ШШ[ЉKњЪYЫ™\’Щ^RYЋљ[њЭ[][Ы‹™Щ]
+њЪYЫ™\’Щ^RY‹€ЉKњЫЭ\ЩRYЋљ[њЭ[][Ы‹™Щ]
+њЫЭ\ЩRY‹ќ[™Y€Y€Y[ќ[€ќ[™YЪYИ[ЩH›ШШ[ЉKќ[™YЋљY[ќ[€ќ[™YЪYЯB€™XЫЬ™Л\[™
+™XЫЬ™
+NЩ^[њЪ[ЫњЛ\[™
+КЉљ][K™Ь[ќYШ\Xљ[]Y\ИЋ™Ь[ќЛ›[Щ[RX[Ћњ™XЫЬ™JB€Y€Ъ[™ЩY—Ш]ЫZXЧЪњЫЫЉќ[ќ[YWЩ\‹Ињ\›Z\ЬЪ[ЫњЛљњЫЫ€‹\›Z\ЬЪ[ЫњКB€™]\›€КЉ›ШYY™^[њЪ[ЫњИЋ™^[њЪ[ЫњЛњ]›Ь›HЋћИ\U™\њЪ[Ы€ЋђTWХ‘T”ТSУ‹њЭ\ЬќY\U™\њЪ[ЫњИЋњЫЬќY
+ХTФ•QРTWХ‘T”ТSУ”КKЫЫќXЭЋ€њЭX›H‹™^XЭ][Ы“[Щ[Ћ€љЬЭ\™[™\™YYXЫ\]]™HџKњ™XЫЬ™ИЋњ™XЫЬ™ЯB‚‚™Y€[Щ[WЬ]›Ь›WЫЬ\][ЫЉ^[њЪ[Ы—Щ\Ћ”]ќ[™YЩ\Ћ”]›Ы™Kќ[ќ[YWЩ\Ћ”]Ь\][ЫЋњЭ‹Y[ќH€‹Ш\Xљ[]Y\ПS›Ы™K]Z[H€ЉN‚€Y€Y[ќ[™›Э™K™ќ[X]Ъ
+€–ШK^ЊNWVШK^ЊNKW^М‹ЯH‹Y[ќ
+NњZ\ЩH[YQ\њ›ЬЉљ[ќ[Y[Щ[HYЉB€Y€Ь\][ЫЏOHњ\›Z\ЬЪ[ЫњИЋ‚€X[љY™\Э[™^
+
+][H›Ь€][H[€ШYЩ^[њЪ[ЫњК^[њЪ[Ы—Щ\‹ќ[™YЩ\ЉK™Щ]
+™^[њЪ[ЫњИ‹ЧJHY€][VИљY—OOZY[ќ
+K›Ы™JB€Y€›ЭX[љY™\ЭњZ\ЩH[YQ\њ›ЬЉ›[Щ[H\И›Э[њЭ[YЉB€Ь[ќП[\Э
+XЭ™њ›ЫZЩ^\КШ\Xљ[]Y\ИЬ€ЧJJB€Y€[ћJ[YH›Э[€X[љY™\Э™Щ]
+Ш\Xљ[]Y\И‹ЧJH›Ь€[YH[€Ь[ќКNњZ\ЩH[YQ\њ›ЬЉњ\›Z\ЬЪ[Ы€\И›Э™\]Y\ЭYћH\И[Щ[HЉB€\›Z\ЬЪ[ЫњПWЬ™XYЪњЫЫЉќ[ќ[YWЩ\‹Ињ\›Z\ЬЪ[ЫњЛљњЫЫ€‹ЯJNЬ\›Z\ЬЪ[ЫњЦЪY[ќOYЬ[ќОЧШ]ЫZXЧЪњЫЫЉќ[ќ[YWЩ\‹Ињ\›Z\ЬЪ[ЫњЛљњЫЫ€‹\›Z\ЬЪ[ЫњКB€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™€ћЫX[љY™\ЭЙЫ[YIЧ_H\›Z\ЬЪ[ЫњИ\]Y‹™Ь[ќYШ\Xљ[]Y\ИЋ™Ь[ќЯB€Y€Ь\][Ы€[€И™Z[\™H‹њ™XYHџN‚€X[WЬ™XYЪњЫЫЉќ[ќ[YWЩ\‹ИљX[љњЫЫ€‹ЯJNЩ[ќћOZX[™Щ]
+Y[ќЯJHY€\Ъ[њЭ[ЩJX[™Щ]
+Y[ќ
+KXЭ
+H[ЩHЯB€Y€Ь\][ЫЏOH™Z[\™HЋ™[ќћO^ИњЭ]\ИЋ€љ\ЫЫ]Y‹™Z[\™PЫЭ[ќЋ›Z[ЉNNK[ќ
+[ќћK™Щ]
+™Z[\™PЫЭ[ќ‹
+HЬ€
+JМJK›\ЭZ[\™HЋќ[YKњЭ™ќ[YJ‰VKI[KIY	R‰SN‰TЦ€‹[YK™Ы][YJ
+JK™]Z[Ћ—Э^
+]Z[Њ
+_B€[ЩN™[ќћO^ИњЭ]\ИЋ€њ™XYH‹™Z[\™PЫЭ[ќЋЊ›\ЭZ[\™HЋ™[ќћK™Щ]
+›\ЭZ[\™H‹€ЉK™]Z[Ћ€”™[™\™\€™XЫЭ™\™YџB€X[ЪY[ќOY[ќћNЧШ]ЫZXЧЪњЫЫЉќ[ќ[YWЩ\‹ИљX[љњЫЫ€‹X[
+B€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™€“[Щ[HЪY[ќHX[™XЫЬ™Y‹љX[Ћ™[ќћ_B€Y€Ь\][ЫЏOHњ›ЫXЪИЋ‚€\™Щ]Y^[њЪ[Ы—Щ\‹ЪY[ќЬ™]љ[Э\П]\™Щ]И‹њ™]љ[Э\Л[Ш\њЛ[[Щ[KљњЫЫ€ЋШЭ\њ™[ќ]\™Щ]И›Ш\њЛ[[Щ[KљњЫЫ€‚€Y€›Э™]љ[Э\Лљ\ЧЩљ[J
+HЬ€›ЭЭ\њ™[ќљ\ЧЩљ[J
+NњZ\ЩH[YQ\њ›ЬЉ››И™]љ[Э\И[Щ[H™\њЪ[Ы€\И]Z[X›HЉB€Э\њ™[ќЬ]ПXЭ\њ™[ќњ™XYШћ]\К
+NЬ™]љ[Э\ЧЬ]П\™]љ[Э\Лњ™XYШћ]\К
+NЬ™\ЭЬ™Y][Y]WЫX[љY™\Э
+њЫЫ‹›ШYК™]љ[Э\ЧЬ]Л™XЫЩJќ]‹NЉJJB€[\Ь\ћOXЭ\њ™[ќќЪ]ЬЭY™љ^
+‹љњЫЫ‹ќ\ЉNЭ[\Ь\ћKќЬљ]WШћ]\К™]љ[Э\ЧЬ]КNЭ[\Ь\ћKњ™\XЩJЭ\њ™[ќ
+NЬ™]љ[Э\ЛќЬљ]WШћ]\КЭ\њ™[ќЬ]КB€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™€ћЬ™\ЭЬ™YЙЫ[YIЧ_H™\ЭЬ™YИЬ™\ЭЬ™YЙЭ™\њЪ[Ы‰Ч_H‹ќ™\њЪ[Ы€Ћњ™\ЭЬ™YИќ™\њЪ[Ы€—_B€Z\ЩH[YQ\њ›ЬЉќ[њЭ\ЬќY[Щ[H]›Ь›HЬ\][Ы€ЉB‚‚™Y€ЩЪ]X—ЬЫЭ\ЩJ[YKЪ[›™[HњЭX›HЉN‚€]ПWЭ^
+[YKLLЉKњњЭљ\
+‹ИЉB€\њЩY]\›\њЩJ]КB€Y€\њЩYњШЪ[YHOHљИ€Ь€\њЩYљЬЭ[YHOH™Ъ]X‹ЫЫH€Ь€\њЩYќ\Щ\›[YHЬ€\њЩYњ\ЬЭЫЬ™Ь€\њЩYњЬќЬ€\њЩYњ]Y\ћHЬ€\њЩY™њYЫY[ќњZ\ЩH[YQ\њ›ЬЉќ\ЩHHX›XИО‹ЛЩЪ]X‹ЫЫKУХУ‘T‹Ф‘TФТUФ–HT“ЉB€\ќПVЬ\ќ›Ь€\ќ[€\њЩYњ]њЬ]
+‹ИЉHY€\ќB€Y€[Љ\ќКHOLЋњZ\ЩH[YQ\њ›ЬЉњ™\ЬЪ]ЬћHT“]\ЭY[ќYћHЫ™HX›XИЪ]X€™\ЬЪ]ЬћHЉB€ЭЫ™\‹™\ЬЪ]ЬљY\П\\ќОЬ™\ЬЪ]ЬћO\™\ЬЪ]ЬљY\ЦО‹MHY€™\ЬЪ]ЬљY\Л›ЭЩ\Љ
+K™[™ЭЪ]
+‹™Ъ]ЉH[ЩH™\ЬЪ]ЬљY\В€Y€›Э™K™ќ[X]Ъ
+€–РKVK^ЊNWЛ‹W^МKLH‹ЭЫ™\ЉHЬ€›Э™K™ќ[X]Ъ
+€–РKVK^ЊNWЛ‹W^МKLH‹™\ЬЪ]ЬћJNњZ\ЩH[YQ\њ›ЬЉњ™\ЬЪ]ЬћHЭЫ™\€Ь€[YH\И[ќ[YЉB€Y€Ъ[›™[›Э[€ИњЭX›H‹™]™[ЬY[ќџNњZ\ЩH[YQ\њ›ЬЉ›[Щ[HЪ[›™[]\Э™HЭX›HЬ€]™[ЬY[ќЉB€Y[ќJ€ЫЫ[][љ]K^ЫЭЫ™\џK^Ь™\ЬЪ]Ьћ_HЉK›ЭЩ\Љ
+NЪY[ќ\™KњЭXЉ€–ЧK^ЊNKWJИ‹‹H‹Y[ќ
+KњЭљ\
+‹HЉVОЋM—B€Ш][ЩЧЫ[YOHШ][ЩЛY]™[ЬY[ќљњЫЫ€€Y€Ъ[›™[OH™]™[ЬY[ќ€[ЩHШ][ЩЛљњЫЫ€‚€™]\›€ИљYЋљY[ќ›[YHЋ™€ћЫЭЫ™\џHИЬ™\ЬЪ]Ьћ_H‹›ЭЫ™\€Ћ›ЭЫ™\‹њ™\ЬЪ]ЬћHЋњ™\ЬЪ]ЬћKњ™Y€Ћ€’PQ‹Ш][ЩХ\›Ћ™€љО‹ЛЬ]Л™Ъ]Xќ\Щ\ЫЫќ[ќЫЫKЮЫЭЫ™\џKЮЬ™\ЬЪ]Ьћ_KТPQЮШШ][ЩЧЫ[Y_H‹њ™\ЬЪ]ЬћU\›Ћ™€љО‹ЛЩЪ]X‹ЫЫKЮЫЭЫ™\џKЮЬ™\ЬЪ]Ьћ_H‹™[X›YЋ•ќYK›Щ™љXЪX[Ћ‘[ЩKЪ[›™[ЋЪ[›™[B‚‚™Y€™\ЬЪ]ЬћWЬЫЭ\Щ\КЫЭ\ЩWЩљ[N”]›Ы™OS›Ы™JN‚€ЫЫ[][љ]OVЧB€Y€ЫЭ\ЩWЩљ[H[™ЫЭ\ЩWЩљ[Kљ\ЧЩљ[J
+N‚€ћN‚€]OZњЫЫ‹›ШYКЫЭ\ЩWЩљ[Kњ™XYЭ^
+[ЫЩ[™ПHќ]‹NЉJB€Y€\Ъ[њЭ[ЩJ]K\Э
+N‚€›Ь€][H[€]VОЊЌN‚€Y€›Э\Ъ[њЭ[ЩJ][KXЭ
+NЫЫќ[ќYB€ћN‚€ЫЭ\ЩOWЩЪ]X—ЬЫЭ\ЩJЭЉ][K™Щ]
+њ™\ЬЪ]ЬћU\›ЉHЬ€€ЉKЭЉ][K™Щ]
+Ъ[›™[‹њЭX›HЉJJNЬЫЭ\ЩVИ™[X›Y—OZ][K™Щ]
+™[X›YЉH\И›Э[ЩNШЫЫ[][љ]K\[™
+ЫЭ\ЩJB€^Щ\^Щ\[ЫЋЫЫќ[ќYB€^Щ\^Щ\[ЫЋњ\ЬВ€ЩY[Џ^УС‘’PТPSФУХTђСVИљY—_NЬ™\Э[VЩXЭ
+С‘’PТPSФУХTђСJWB€›Ь€ЫЭ\ЩH[€ЫЫ[][љ]N‚€Y€ЫЭ\ЩVИљY—H›Э[€ЩY[ЋњЩY[‹Y
+ЫЭ\ЩVИљY—JNЬ™\Э[\[™
+ЫЭ\ЩJB€™]\›€™\Э[‚‚™Y€ЭЬљ]WЬЫЭ\Щ\КЫЭ\ЩWЩљ[N”]ЫЭ\Щ\КN‚€ЫЭ\ЩWЩљ[Kњ\™[ќ›ZЩ\Љ\™[ќПUќYK^\ЭЫЪПUќYJNЭ[\Ь\ћO\ЫЭ\ЩWЩљ[KќЪ]ЬЭY™љ^
+‹ќ\ЉB€^[ШYVЮИњ™\ЬЪ]ЬћU\›Ћљ][VИњ™\ЬЪ]ЬћU\›—K™[X›YЋљ][K™Щ]
+™[X›YЉH\И›Э[ЩKЪ[›™[Ћљ][K™Щ]
+Ъ[›™[‹њЭX›HЉ_H›Ь€][H[€ЫЭ\Щ\ИY€›Э][K™Щ]
+›Щ™љXЪX[ЉWB€[\Ь\ћKќЬљ]WЭ^
+њЫЫ‹™[\К^[ШY[™[ќLЉJИ—€‹[ЫЩ[™ПHќ]‹NЉNЭ[\Ь\ћKњ™\XЩJЫЭ\ЩWЩљ[JB‚‚™Y€™\ЬЪ]ЬћWЬЫЭ\ЩWЫЬ\][ЫЉЫЭ\ЩWЩљ[N”]Ь\][ЫЋњЭ‹[YOH€‹Y[ќH€‹Ъ[›™[HњЭX›HЉN‚€ЫЭ\Щ\П\™\ЬЪ]ЬћWЬЫЭ\Щ\КЫЭ\ЩWЩљ[JB€Y€Ь\][ЫЏOHYЋ‚€ЫЭ\ЩOWЩЪ]X—ЬЫЭ\ЩJ[YKЪ[›™[
+B€Y€[ћJ][VИљY—OO\ЫЭ\ЩVИљY—H›Ь€][H[€ЫЭ\Щ\КNњZ\ЩH[YQ\њ›ЬЉќ]Ъ]X€™\ЬЪ]ЬћH\И[™XYHЫЫ™љYЭ\™YЉB€ЫЭ\Щ\Л\[™
+ЫЭ\ЩJNЧЭЬљ]WЬЫЭ\Щ\КЫЭ\ЩWЩљ[KЫЭ\Щ\КNФ‘SSХWРРPТKњЬ
+ЫЭ\ЩVИљY—K›Ы™JB€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™‰ЮЬЫЭ\ЩVИ›[YH—_HYY\ИHЫЫ[][љ]H[Щ[HЫЭ\ЩIЛњЫЭ\ЩHЋњЫЭ\ЩKњЫЭ\Щ\ИЋњ™\ЬЪ]ЬћWЬЫЭ\Щ\КЫЭ\ЩWЩљ[J_B€ЫЭ\ЩO[™^
+
+][H›Ь€][H[€ЫЭ\Щ\ИY€][VИљY—OOZY[ќ
+K›Ы™JB€Y€›ЭЫЭ\ЩNњZ\ЩH[YQ\њ›ЬЉ›[Щ[HЫЭ\ЩH\И›ЭЫЫ™љYЭ\™YЉB€Y€ЫЭ\ЩK™Щ]
+›Щ™љXЪX[ЉH[™Ь\][Ы€[€Ињ™[[Э™H‹™\ШX›HџNњZ\ЩH[YQ\њ›ЬЉќHЩ™љXЪX[РT”ИЫЭ\ЩHШ[››Э™H™[[Э™YЬ€\ШX›YЉB€Y€Ь\][ЫЏOHњ™Yњ™\ЪЋ‚€‘SSХWРРPТKњЬ
+ЫЭ\ЩVИљY—K›Ы™JNЬ™\Э[WЬ™[[ЭWШШ][ЩКЫЭ\ЩK›ЬЩOUќYJB€™]\›€И›ЪИЋ››Э›ЫЫ
+™\Э[™Щ]
+™\њ›Ь€ЉJK›Y\ЬШYЩHЋ™‰ЮЬЫЭ\ЩVИ›[YH—_H™]\›™YЫ[Љ™\Э[™Щ]
+Ш][ЩИ‹ЧJJ_H[Y]Y[Щ[JКIЛ™\њ›Ь€Ћњ™\Э[™Щ]
+™\њ›Ь€‹€ЉKњЫЭ\Щ\ИЋњ™\ЬЪ]ЬћWЬЫЭ\Щ\КЫЭ\ЩWЩљ[J_B€Y€Ь\][Ы€[€И™[X›H‹™\ШX›HџN‚€ЫЭ\ЩVИ™[X›Y—O[Ь\][ЫЏOH™[X›HЋЧЭЬљ]WЬЫЭ\Щ\КЫЭ\ЩWЩљ[KЫЭ\Щ\КNФ‘SSХWРРPТKњЬ
+ЫЭ\ЩVИљY—K›Ы™JB€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™‰ЮЬЫЭ\ЩVИ›[YH—_HЫЬ\][ЫџY	ЛњЫЭ\Щ\ИЋњ™\ЬЪ]ЬћWЬЫЭ\Щ\КЫЭ\ЩWЩљ[J_B€Y€Ь\][ЫЏOHЪ[›™[Ћ‚€Y€ЫЭ\ЩK™Щ]
+›Щ™љXЪX[ЉNњZ\ЩH[YQ\њ›ЬЉќHЩ™љXЪX[ЫЭ\ЩHЪ[›™[\Иљ^YЉB€™\XЩ[Y[ќWЩЪ]X—ЬЫЭ\ЩJЫЭ\ЩVИњ™\ЬЪ]ЬћU\›—KЪ[›™[
+NЬ™\XЩ[Y[ќИ™[X›Y—O\ЫЭ\ЩK™Щ]
+™[X›YЉH\И›Э[ЩB€ЫЭ\Щ\ПVЬ™\XЩ[Y[ќY€][VИљY—OOZY[ќ[ЩH][H›Ь€][H[€ЫЭ\Щ\ЧNЧЭЬљ]WЬЫЭ\Щ\КЫЭ\ЩWЩљ[KЫЭ\Щ\КNФ‘SSХWРРPТKњЬ
+Y[ќ›Ы™JB€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™‰ЮЬЫЭ\ЩVИ›[YH—_H›ЭИ›ЫЭЬИHШЪ[›™[HЪ[›™[	ЛњЫЭ\Щ\ИЋњ™\ЬЪ]ЬћWЬЫЭ\Щ\КЫЭ\ЩWЩљ[J_B€Y€Ь\][ЫЏOHњ™[[Э™HЋ‚€ЭЬљ]WЬЫЭ\Щ\КЫЭ\ЩWЩљ[KЪ][H›Ь€][H[€ЫЭ\Щ\ИY€][VИљY—HOZY[ќJNФ‘SSХWРРPТKњЬ
+Y[ќ›Ы™JB€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™‰ЮЬЫЭ\ЩVИ›[YH—_H™[[Э™Yњ›ЫH[Щ[H™\ЬЪ]ЬћIЛњЫЭ\Щ\ИЋњ™\ЬЪ]ЬћWЬЫЭ\Щ\КЫЭ\ЩWЩљ[J_B€Z\ЩH[YQ\њ›ЬЉќ[њЭ\ЬќY[Щ[HЫЭ\ЩHЬ\][Ы€ЉB‚‚™Y€ЫX[љY™\ЭЭ\›
+[YKЫЭ\ЩKY[ќ
+N‚€Ш[™Y]OWЭ^
+[YKLLЉB€Y€›ЭШ[™Y]NШ[™Y]OY€›[Щ[\ЛЮЪY[ќKЫШ\њЛ[[Щ[KљњЫЫ€‚€Y€Ш[™Y]KњЭ\ќЭЪ]
+љО‹ЛЩЪ]X‹ЫЫKИЉN‚€\њЩY]\›\њЩJШ[™Y]JNЬ\ќПVЬ\ќ›Ь€\ќ[€\њЩYњ]њЬ]
+‹ИЉHY€\ќB€Y€[Љ\ќКOЏMH[™\ќЦМOO\ЫЭ\ЩVИ›ЭЫ™\€—H[™\ќЦМWOO\ЫЭ\ЩVИњ™\ЬЪ]ЬћH—H[™\ќЦМ—OOH›Ш€ЋШ[™Y]OY€љО‹ЛЬ]Л™Ъ]Xќ\Щ\ЫЫќ[ќЫЫKЮЬ\ќЦМ_KЮЬ\ќЦМW_KЮЙЛЙЛљ›Ъ[Љ\ќЦМО—J_H‚€Y€›Э\›\њЩJШ[™Y]JKњШЪ[YNШ[™Y]OY‰ЪО‹ЛЬ]Л™Ъ]Xќ\Щ\ЫЫќ[ќЫЫKЮЬЫЭ\ЩVИ›ЭЫ™\€—_KЮЬЫЭ\ЩVИњ™\ЬЪ]ЬћH—_KЮЬЫЭ\ЩVИњ™Y€—_KЮШШ[™Y]K›Эљ\
+‹ИЉ_IВ€Y€›ЭЬЫЭ\ЩWЭ\›
+Ш[™Y]KЫЭ\ЩJNњZ\ЩH[YQ\њ›ЬЉ›X[љY™\ЭT“\ИЭ]ЪYH]ИШ][ЩИ™\ЬЪ]ЬћHЉB€™]\›€Ш[™Y]B‚‚™Y€Ь™[[ЭWШШ][ЩКЫЭ\ЩWШЫЫ™љYЛ›ЬЩOQ[ЩJN‚€[\Ьќ[YB€›ЭП][YKќ[YJ
+B€ШXЪYT‘SSХWРРPТK™Щ]
+ЫЭ\ЩWШЫЫ™љYЦИљY—KЯJB€Y€›Э›ЬЩH[™ШXЪY[™›ЭЛXШXЪY™Щ]
+]‹
+OЊњ™]\›€ШXЪY€ћN‚€]ПWЩЭЫ›ШY
+ЫЭ\ЩWШЫЫ™љYЦИШ][ЩХ\›—KЌЊЊMЫЭ\ЩWШЫЫ™љYКB€]OZњЫЫ‹›ШYК]Л™XЫЩJќ]‹NЉJB€Y€›Э\Ъ[њЭ[ЩJ]KXЭ
+HЬ€]K™Щ]
+њШЪ[XU™\њЪ[Ы€ЉH›Э[€МKџHЬ€›Э\Ъ[њЭ[ЩJ]K™Щ]
+›[Щ[\ИЉK\Э
+NњZ\ЩH[YQ\њ›ЬЉќ[њЭ\ЬќY[Щ[HШ][ЩИШЪ[XHЉB€[ќљY\ПVЧB€›Ь€ЫЭ\ЩH[€]VИ›[Щ[\И—VОЊLЋN‚€Y€›Э\Ъ[њЭ[ЩJЫЭ\ЩKXЭ
+NЫЫќ[ќYB€Y[ќWЭ^
+ЫЭ\ЩK™Щ]
+љYЉK
+B€X[љY™\ЭЭ\›WЫX[љY™\ЭЭ\›
+ЫЭ\ЩK™Щ]
+›X[љY™\Э\›ЉKЫЭ\ЩWШЫЫ™љYЛY[ќ
+B€ЪXЪЬЭ[OWЭ^
+ЫЭ\ЩK™Щ]
+њЪLЌM€ЉKЌ
+K›ЭЩ\Љ
+B€Ш\Xљ[]Y\П\ЫЭ\ЩK™Щ]
+Ш\Xљ[]Y\И‹ЧJB€Y€›Э™K™ќ[X]Ъ
+€–ШK^ЊNWVШK^ЊNKW^М‹ЯH‹Y[ќ
+NЫЫќ[ќYB€Y€›Э™K™ќ[X]Ъ
+€–МNXKY—^НЌH‹ЪXЪЬЭ[JNЫЫќ[ќYB€Y€›Э\Ъ[њЭ[ЩJШ\Xљ[]Y\Л\Э
+HЬ€[ћJ][H›Э[€РTP’SUQTИ›Ь€][H[€Ш\Xљ[]Y\КNЫЫќ[ќYB€ЪYЫ]\™OWЭ^
+ЫЭ\ЩK™Щ]
+њЪYЫ]\™HЉKMЉNЬЪYЫљ[™ЧЪЩ^O\ЫЭ\ЩK™Щ]
+њЪYЫљ[™ТЩ^HЉHY€\Ъ[њЭ[ЩJЫЭ\ЩK™Щ]
+њЪYЫљ[™ТЩ^HЉKXЭ
+H[ЩH›Ы™B€Y€]K™Щ]
+њШЪ[XU™\њЪ[Ы€ЉOOL€[™
+›ЭЪYЫ]\™HЬ€›ЭЪYЫљ[™ЧЪЩ^JNЫЫќ[ќYB€[ќљY\Л\[™
+ИљYЋљY[ќ›[YHЋ—Э^
+ЫЭ\ЩK™Щ]
+›[YH‹Y[ќ
+K
+Kќ™\њЪ[Ы€Ћ—Э^
+ЫЭ\ЩK™Щ]
+ќ™\њЪ[Ы€‹ЊKЊЊЉKЊ
+K™\ШЬљ\[Ы€Ћ—Э^
+ЫЭ\ЩK™Щ]
+™\ШЬљ\[Ы€‹‘ЭЫ›ШYX›HРT”И[Щ[HЉKN
+K]]Ь€Ћ—Э^
+ЫЭ\ЩK™Щ]
+]]Ь€‹•[љЫ›ЭЫ€ЉKЌ
+KШ\Xљ[]Y\ИЋШ\Xљ[]Y\Л›X[љY™\Э\›Ћ›X[љY™\ЭЭ\›њЪLЌM€ЋЪXЪЬЭ[K›Z[љ[][SШ\њХ™\њЪ[Ы€Ћ—Э^
+ЫЭ\ЩK™Щ]
+›Z[љ[][SШ\њХ™\њЪ[Ы€ЉKЊ
+KШ]YЫЬћHЋ—Э^
+ЫЭ\ЩK™Щ]
+Ш]YЫЬћHЉK
+K™™X]\™YЋ›ЫЫ
+ЫЭ\ЩK™Щ]
+™™X]\™YЉJK›\Э\]YЋ—Э^
+ЫЭ\ЩK™Щ]
+›\Э\]YЉK
+Kњ™\ЬЪ]ЬћHЋ•ќYKњЫЭ\ЩRYЋњЫЭ\ЩWШЫЫ™љYЦИљY—KњЫЭ\ЩS[YHЋњЫЭ\ЩWШЫЫ™љYЦИ›[YH—K›Щ™љXЪX[Ћ›ЫЫ
+ЫЭ\ЩWШЫЫ™љYЛ™Щ]
+›Щ™љXЪX[ЉJKЪ[›™[ЋњЫЭ\ЩWШЫЫ™љYЛ™Щ]
+Ъ[›™[‹њЭX›HЉKњЪYЫ]\™HЋњЪYЫ]\™KњЪYЫљ[™ТЩ^HЋњЪYЫљ[™ЧЪЩ^KњЪYЫ™\’Щ^RYЋ—Э^
+ЫЭ\ЩK™Щ]
+њЪYЫ™\’Щ^RYЉKЌ
+KњЪYЫ]\™TЭ]\ИЋ€њЪYЫ™Y€Y€ЪYЫ]\™H[ЩH›YШXЮHџJB€™\Э[^И]Ћ››ЭЛШ][ЩИЋ™[ќљY\Л™\њ›Ь€Ћ€€џB€^Щ\^Щ\[Ы€\И^Оњ™\Э[^И]Ћ››ЭЛШ][ЩИЋ–ЧK™\њ›Ь€ЋњЭЉ^К_B€‘SSХWРРPТVЬЫЭ\ЩWШЫЫ™љYЦИљY—WO\™\Э[Ь™]\›€™\Э[‚‚™Y€^[њЪ[Ы—ШШ][ЩК^[њЪ[Ы—Щ\Ћ”]ќ[™YЩ\Ћ”]›Ы™OS›Ы™KЫЭ\ЩWЩљ[N”]›Ы™OS›Ы™K›ЬЩOQ[ЩKќ[ќ[YWЩ\Ћ”]›Ы™OS›Ы™JN‚€[њЭ[Y[ШYЩ^[њЪ[ЫњК^[њЪ[Ы—Щ\‹ќ[™YЩ\ЉK™Щ]
+™^[њЪ[ЫњИ‹ЧJB€[њЭ[YЫX\^Ъ][VИљY—Nљ][H›Ь€][H[€[њЭ[YNШќ[™YЪYП\Щ]
+
+B€Y€ќ[™YЩ\€[™ќ[™YЩ\‹™^\ЭК
+N‚€›Ь€][€\Э
+ќ[™YЩ\‹™ЫШЉЉ‹ЫШ\њЛ[[Щ[KљњЫЫ€ЉJJЫ\Э
+ќ[™YЩ\‹™ЫШЉЉ‹›Ш\њЛ[[Щ[KљњЫЫ€ЉJN‚€ћNќ[™YЪYЛY
+[Y]WЫX[љY™\Э
+њЫЫ‹›ШYК]њ™XYЭ^
+[ЫЩ[™ПHќ]‹NЉJJVИљY—JB€^Щ\^Щ\[ЫЋњ\ЬВ€Ы›ЭЫЏ^Ъ][VИљY—NћИљYЋљ][VИљY—K›[YHЋљ][VИ›[YH—Kќ™\њЪ[Ы€Ћљ][VИќ™\њЪ[Ы€—K™\ШЬљ\[Ы€Ћљ][VИ™\ШЬљ\[Ы€—K]]Ь€Ћљ][VИ]]Ь€—KШ\Xљ[]Y\ИЋљ][K™Щ]
+Ш\Xљ[]Y\И‹ЧJKљ[њЭ[YЋ•ќYKќ[™YЋљ][VИљY—H[€ќ[™YЪYЯH›Ь€][H[€[њЭ[YB€ЫЭ\ЩWЬЭ]\ПVЧB€›Ь€ЫЭ\ЩWШЫЫ™љYИ[€™\ЬЪ]ЬћWЬЫЭ\Щ\КЫЭ\ЩWЩљ[JN‚€Y€›ЭЫЭ\ЩWШЫЫ™љYЛ™Щ]
+™[X›YЉN‚€ЫЭ\ЩWЬЭ]\Л\[™
+КЉњЫЭ\ЩWШЫЫ™љYЛЫЭ[ќЋЊ™\њ›Ь€Ћ€€‹њЭ]\ИЋ€™\ШX›YџJNШЫЫќ[ќYB€™[[ЭOWЬ™[[ЭWШШ][ЩКЫЭ\ЩWШЫЫ™љYЛ›ЬЩOY›ЬЩJNЬЫЭ\ЩWЬЭ]\Л\[™
+КЉњЫЭ\ЩWШЫЫ™љYЛЫЭ[ќЋ›[Љ™[[ЭK™Щ]
+Ш][ЩИ‹ЧJJK™\њ›Ь€Ћњ™[[ЭK™Щ]
+™\њ›Ь€‹€ЉKњЭ]\ИЋ€][ќ[Ы€€Y€™[[ЭK™Щ]
+™\њ›Ь€ЉH[ЩHњ™XYHџJB€›Ь€[ќћH[€™[[ЭK™Щ]
+Ш][ЩИ‹ЧJN‚€Y€[ќћVИљY—H[€Ы›ЭЫ€[™Ы›ЭЫ–Щ[ќћVИљY—WK™Щ]
+њ™\ЬЪ]ЬћHЉH[™›Э[ќћK™Щ]
+›Щ™љXЪX[ЉNЫЫќ[ќYB€Э\њ™[ќZ[њЭ[YЫX\™Щ]
+[ќћVИљY—JNЫY\™ЩYYXЭ
+[ќћJNЫY\™ЩYИљ[њЭ[Y—OX›ЫЫ
+Э\њ™[ќ
+NЫY\™ЩYИљ[њЭ[Y™\њЪ[Ы€—OXЭ\њ™[ќ™Щ]
+ќ™\њЪ[Ы€ЉHY€Э\њ™[ќ[ЩH€ЋЫY\™ЩYИќ\]P]Z[X›H—OX›ЫЫ
+Э\њ™[ќ[™Э\њ™[ќ™Щ]
+ќ™\њЪ[Ы€ЉHOY[ќћK™Щ]
+ќ™\њЪ[Ы€ЉJNЫY\™ЩYИќ[™Y—OY[ќћVИљY—H[€ќ[™YЪYОЪЫ›ЭЫ–Щ[ќћVИљY—WO[Y\™ЩY€Y€ќ[ќ[YWЩ\Ћ‚€™XЫЬ™П^Ъ][VИљY—Nљ][H›Ь€][H[€[Щ[WЬ]›Ь›WЬЭ]\К^[њЪ[Ы—Щ\‹ќ[™YЩ\‹ќ[ќ[YWЩ\ЉK™Щ]
+њ™XЫЬ™И‹ЧJ_B€›Ь€Y[ќ][H[€Ы›ЭЫ‹љ][\К
+N‚€Y€Y[ќ[€™XЫЬ™Ољ][Kќ\]JИ›[Щ[RX[Ћњ™XЫЬ™ЦЪY[ќKњ›ЫXЪР]Z[X›HЋњ™XЫЬ™ЦЪY[ќVИњ›ЫXЪР]Z[X›H—K™Ь[ќYШ\Xљ[]Y\ИЋњ™XЫЬ™ЦЪY[ќVИ™Ь[ќYШ\Xљ[]Y\И—KњЪYЫ]\™TЭ]\ИЋљ][K™Щ]
+њЪYЫ]\™TЭ]\ИЉHЬ€™XЫЬ™ЦЪY[ќVИњЪYЫ™Y—KњЪYЫ™\’Щ^RYЋљ][K™Щ]
+њЪYЫ™\’Щ^RYЉHЬ€™XЫЬ™ЦЪY[ќVИњЪYЫ™\’Щ^RY—_JB€\њ›ЬњПVЩ‰ЮЪ][VИ›[YH—_N€Ъ][VИ™\њ›Ь€—_IИ›Ь€][H[€ЫЭ\ЩWЬЭ]\ИY€][K™Щ]
+™\њ›Ь€ЉWB€™]\›€ИШ][ЩИЋ›\Э
+Ы›ЭЫ‹ќ[Y\К
+JK\U™\њЪ[Ы€ЋђTWХ‘T”ТSУ‹њЭ\ЬќY\U™\њЪ[ЫњИЋњЫЬќY
+ХTФ•QРTWХ‘T”ТSУ”КKЫЫќXЭЋ€њЭX›H‹њ™\ЬЪ]ЬћHЋ€“[Щ[\И‹њ™\ЬЪ]ЬћU\›Ћ”‘SSХWРРUSСЧХT“њ™\ЬЪ]ЬћQ\њ›Ь€Ћ€€0­И‹љ›Ъ[Љ\њ›ЬњКKњЫЭ\Щ\ИЋњЫЭ\ЩWЬЭ]\ЛШ\Xљ[]Y\ИЋђРTP’SUWУP‘SЯB‚‚™Y€^[њЪ[Ы—ЫЬ\][ЫЉ^[њЪ[Ы—Щ\Ћ”]ќ[™YЩ\Ћ”]›Ы™KY[ќњЭ‹Ь\][ЫЋњЭ‹ЫЭ\ЩWЩљ[N”]›Ы™OS›Ы™KЫЭ\ЩWЪYH€‹ќ[ќ[YWЩ\Ћ”]›Ы™OS›Ы™K\›Э™YШШ\Xљ[]Y\ПS›Ы™JN‚€Y€›Э™K™ќ[X]Ъ
+€–ШK^ЊNWVШK^ЊNKW^М‹ЯH‹Y[ќ
+NњZ\ЩH[YQ\њ›ЬЉљ[ќ[Y^[њЪ[Ы€YЉB€Ш][ЩПY^[њЪ[Ы—ШШ][ЩК^[њЪ[Ы—Щ\‹ќ[™YЩ\‹ЫЭ\ЩWЩљ[JK™Щ]
+Ш][ЩИ‹ЧJB€ќ[™YЪYП^Ъ][VИљY—H›Ь€][H[€Ш][ЩИY€][K™Щ]
+ќ[™YЉ_B€Y€Y[ќ[€ќ[™YЪYОњZ\ЩH[YQ\њ›ЬЉќ[™Y^[њЪ[ЫњИШ[€™H\ШX›Yќ]›Э™[[Э™YЉB€\™Щ]J^[њЪ[Ы—Щ\‹ЪY[ќ
+Kњ™\ЫЫ™J
+NЬ›ЫЭY^[њЪ[Ы—Щ\‹њ™\ЫЫ™J
+B€Y€›ЫЭ›Э[€\™Щ]њ\™[ќОњZ\ЩH[YQ\њ›ЬЉљ[ќ[Y^[њЪ[Ы€]ЉB€Y€Ь\][ЫЏOHњ™[[Э™HЋ‚€Y€›Э\™Щ]љ\ЧЩ\Љ
+NњZ\ЩH[YQ\њ›ЬЉ™^[њЪ[Ы€\И›Э[њЭ[Y[€HШШ[[Щ[H›Ы\€ЉB€Ъ][њ›]™YJ\™Щ]
+B€Y€ќ[ќ[YWЩ\Ћ‚€\›Z\ЬЪ[ЫњПWЬ™XYЪњЫЫЉќ[ќ[YWЩ\‹Ињ\›Z\ЬЪ[ЫњЛљњЫЫ€‹ЯJNЬ\›Z\ЬЪ[ЫњЛњЬ
+Y[ќ›Ы™JNЧШ]ЫZXЧЪњЫЫЉќ[ќ[YWЩ\‹Ињ\›Z\ЬЪ[ЫњЛљњЫЫ€‹\›Z\ЬЪ[ЫњКB€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™€‘^[њЪ[Ы€ЪY[ќH™[[Э™YџB€Y€Ь\][Ы€›Э[€Иљ[њЭ[‹ќ\]HџNњZ\ЩH[YQ\њ›ЬЉќ[њЭ\ЬќY^[њЪ[Ы€Ь\][Ы€ЉB€[ќћO[™^
+
+][H›Ь€][H[€Ш][ЩИY€][K™Щ]
+љYЉOOZY[ќ[™][K™Щ]
+њ™\ЬЪ]ЬћHЉH[™
+›ЭЫЭ\ЩWЪYЬ€][K™Щ]
+њЫЭ\ЩRYЉOO\ЫЭ\ЩWЪY
+JK›Ы™JB€Y€›Э[ќћNњZ\ЩH[YQ\њ›ЬЉ›[Щ[H\И›Э™\Щ[ќ[€[€[X›Y[Y]Y™\ЬЪ]ЬћHЉB€ЫЭ\ЩO[™^
+
+][H›Ь€][H[€™\ЬЪ]ЬћWЬЫЭ\Щ\КЫЭ\ЩWЩљ[JHY€][VИљY—OOY[ќћK™Щ]
+њЫЭ\ЩRYЉJK›Ы™JB€Y€›ЭЫЭ\ЩNњZ\ЩH[YQ\њ›ЬЉ›[Щ[HЫЭ\ЩH\И›ИЫ™Щ\€ЫЫ™љYЭ\™YЉB€^[ШYWЩЭЫ›ШY
+[ќћK™Щ]
+›X[љY™\Э\›‹€ЉKLМLМ‹ЫЭ\ЩJB€XЭX[Z\ЪX‹њЪLЌMЉ^[ШY
+Kљ^YЩ\Э
+
+B€Y€XЭX[OY[ќћK™Щ]
+њЪLЌM€ЉNњZ\ЩH[YQ\њ›ЬЉ›[Щ[HЪXЪЬЭ[H™\љYљXШ][Ы€Z[YЉB€X[љY™\Э][Y]WЫX[љY™\Э
+њЫЫ‹›ШYК^[ШY™XЫЩJќ]‹NЉJJB€Y€X[љY™\ЭИљY—HOZY[ќњZ\ЩH[YQ\њ›ЬЉ™ЭЫ›ШYY[Щ[HYЩ\И›ЭX]ЪШ][ЩИ[ќћHЉB€Y€X[љY™\ЭИќ™\њЪ[Ы€—HOY[ќћK™Щ]
+ќ™\њЪ[Ы€ЉNњZ\ЩH[YQ\њ›ЬЉ™ЭЫ›ШYY[Щ[H™\њЪ[Ы€Щ\И›ЭX]ЪШ][ЩИ[ќћHЉB€ЪYЫ]\™OWЬЪYЫ]\™WЬЭ]J[ќћK^[ШY
+B€Y€ЪYЫ]\™VИњЭ]\И—OOHљ[ќ[YЋњZ\ЩH[YQ\њ›ЬЉ›[Щ[HXЪШYЩHЪYЫ]\™H™\љYљXШ][Ы€Z[YЉB€Y€X[љY™\Э™Щ]
+\U™\њЪ[Ы€ЉOOPTWХ‘T”ТSУ€[™›ЭЪYЫ]\™VИќ™\љYљYY—NњZ\ЩH[YQ\њ›ЬЉ‘^[њЪ[Ы€THЊИ™\ЬЪ]ЬћHXЪШYЩ\И]\Э™HЪYЫ™YЉB€™]љ[Э\ЧЪ[њЭ[][ЫЏWЬ™XYЪњЫЫЉ\™Щ]И‹›Ш\њЛZ[њЭ[][Ы‹љњЫЫ€‹ЯJB€Y€Ь\][ЫЏOHќ\]H€[™™]љ[Э\ЧЪ[њЭ[][Ы‹™Щ]
+њЪYЫ™\’Щ^RYЉH[™ЪYЫ]\™K™Щ]
+љЩ^RYЉH[™™]љ[Э\ЧЪ[њЭ[][Ы–ИњЪYЫ™\’Щ^RY—HO\ЪYЫ]\™VИљЩ^RY—NњZ\ЩH[YQ\њ›ЬЉ›[Щ[HX›\Ъ\€Y[ќ]HЪ[™ЩYИ™[[Э™H[™™Z[њЭ[Ы›HYќ\€™\љYћZ[™ИH™]ИЪYЫ™\€ЉB€™\]Y\ЭY[X[љY™\Э™Щ]
+Ш\Xљ[]Y\И‹ЧJNШ\›Э™Y[\Э
+XЭ™њ›ЫZЩ^\К\›Э™YШШ\Xљ[]Y\ИЬ€ЧJJB€Y€[ћJ][H›Э[€™\]Y\ЭY›Ь€][H[€\›Э™Y
+NњZ\ЩH[YQ\њ›ЬЉ\›Э™Y\›Z\ЬЪ[Ы€\И›Э™\]Y\ЭYћHH[Щ[HЉB€Y€™\]Y\ЭY[™Щ]
+\›Э™Y
+HO\Щ]
+™\]Y\ЭY
+NњZ\ЩH[YQ\њ›ЬЉ›Ь\]Ь€Ш\Xљ[]H\›Э[\И™\]Z\™Y™Y›Ь™H[њЭ[][Ы€ЉB€^[њЪ[Ы—Щ\‹›ZЩ\Љ\™[ќПUќYK^\ЭЫЪПUќYJNЭ\™Щ]›ZЩ\Љ\™[ќПUќYK^\ЭЫЪПUќYJB€[\Ь\ћO]\™Щ]И›Ш\њЛ[[Щ[KљњЫЫ‹ќ\ЋЩ\Э[][ЫЏ]\™Щ]И›Ш\њЛ[[Щ[KљњЫЫ€‚€Y€Ь\][ЫЏOHќ\]H€[™\Э[][Ы‹љ\ЧЩљ[J
+NњЪ][ЫЬLЉ\Э[][Ы‹\™Щ]И‹њ™]љ[Э\Л[Ш\њЛ[[Щ[KљњЫЫ€ЉB€[\Ь\ћKќЬљ]WШћ]\К^[ШY
+NЭ[\Ь\ћKњ™\XЩJ\Э[][ЫЉB€Ш]ЫZXЧЪњЫЫЉ\™Щ]И‹›Ш\њЛZ[њЭ[][Ы‹љњЫЫ€‹Иљ[њЭ[Y]Ћќ[YKњЭ™ќ[YJ‰VKI[KIY	R‰SN‰TЦ€‹[YK™Ы][YJ
+JKњЫЭ\ЩRYЋ™[ќћK™Щ]
+њЫЭ\ЩRYЉKЪ[›™[Ћ™[ќћK™Щ]
+Ъ[›™[‹њЭX›HЉKњЪLЌM€ЋXЭX[њЪYЫ]\™TЭ]\ИЋњЪYЫ]\™VИњЭ]\И—KњЪYЫ™\’Щ^RYЋњЪYЫ]\™VИљЩ^RY—_JB€Y€ќ[ќ[YWЩ\Ћ‚€\›Z\ЬЪ[ЫњПWЬ™XYЪњЫЫЉќ[ќ[YWЩ\‹Ињ\›Z\ЬЪ[ЫњЛљњЫЫ€‹ЯJNЬ\›Z\ЬЪ[ЫњЦЪY[ќOX\›Э™YЧШ]ЫZXЧЪњЫЫЉќ[ќ[YWЩ\‹Ињ\›Z\ЬЪ[ЫњЛљњЫЫ€‹\›Z\ЬЪ[ЫњКB€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™€ћЫX[љY™\ЭЙЫ[YIЧ_HЫX[љY™\ЭЙЭ™\њЪ[Ы‰Ч_H[њЭ[Yњ›ЫHЩ[ќћK™Щ]
+	ЬЫЭ\ЩS[YIЛ	У[Щ[H™\ЬЪ]ЬћIК_H‹љYЋљY[ќќ™\њЪ[Ы€Ћ›X[љY™\ЭИќ™\њЪ[Ы€—KњЪLЌM€ЋXЭX[њЫЭ\ЩRYЋ™[ќћK™Щ]
+њЫЭ\ЩRYЉKњЪYЫ]\™HЋњЪYЫ]\™K™Ь[ќYШ\Xљ[]Y\ИЋ\›Э™Yњ›ЫXЪР]Z[X›HЋ›Ь\][ЫЏOHќ\]HџB‚‚™Y€™\\™WЫ[Щ[WЬX›XШ][ЫЉ^[њЪ[Ы—Щ\Ћ”]ќ[™YЩ\Ћ”]›Ы™KX›\Ъ\—Щ\Ћ”]Y[ќњЭ‹™\ЬЪ]ЬћWЬЫYПH–SХT‹QТUP‹SђSQKЦSХT‹T‘TФТUФ–HЉN‚€Y€›Э™K™ќ[X]Ъ
+€–ШK^ЊNWVШK^ЊNKW^М‹ЯH‹Y[ќ
+NњZ\ЩH[YQ\њ›ЬЉњЩ[XЭH[Y[њЭ[Y[Щ[HYЉB€Y€™\ЬЪ]ЬћWЬЫYИOH–SХT‹QТUP‹SђSQKЦSХT‹T‘TФТUФ–H€[™›Э™K™ќ[X]Ъ
+€–РKVK^ЊNWЛ‹W^МKLKЦРKVK^ЊNWЛ‹W^МKLH‹™\ЬЪ]ЬћWЬЫYКNњZ\ЩH[YQ\њ›ЬЉ‘Ъ]X€™\ЬЪ]ЬћH]\Э\ЩHХУ‘T‹Ф‘TФТUФ–H›Ь›X]ЉB€]П[\Э
+^[њЪ[Ы—Щ\‹™ЫШЉ€ћЪY[ќKЫШ\њЛ[[Щ[KљњЫЫ€ЉJB€Y€ќ[™YЩ\Ћњ]КП[\Э
+ќ[™YЩ\‹™ЫШЉ€ћЪY[ќKЫШ\њЛ[[Щ[KљњЫЫ€ЉJB€Y€›Э]ОњZ\ЩH[YQ\њ›ЬЉќHЩ[XЭY[Щ[HX[љY™\Э\И›Э[њЭ[YЉB€]П\]ЦМKњ™XYШћ]\К
+B€Y€[Љ]КOЊLМLМЋњZ\ЩH[YQ\њ›ЬЉ›X[љY™\Э^ЩYYИLЋЪP€ЉB€X[љY™\Э][Y]WЫX[љY™\Э
+њЫЫ‹›ШYК]Л™XЫЩJќ]‹NЉJJB€YЩ\ЭZ\ЪX‹њЪLЌMЉ]КKљ^YЩ\Э
+
+NЭ\™Щ]\X›\Ъ\—Щ\‹ЪY[ќЫ[Щ[WЩ\Џ]\™Щ]И›[Щ[\И‹ЪY[ќ€Y€\™Щ]™^\ЭК
+NњЪ][њ›]™YJ\™Щ]
+B€[Щ[WЩ\‹›ZЩ\Љ\™[ќПUќYK^\ЭЫЪПUќYJNК[Щ[WЩ\‹И›Ш\њЛ[[Щ[KљњЫЫ€ЉKќЬљ]WШћ]\К]КB€X[љY™\ЭЭ\›Y€љО‹ЛЬ]Л™Ъ]Xќ\Щ\ЫЫќ[ќЫЫKЮЬ™\ЬЪ]ЬћWЬЫYЯKЫXZ[‹Ы[Щ[\ЛЮЪY[ќKЫШ\њЛ[[Щ[KљњЫЫ€‚€Щ^OWЫШYЫЬ—ШЬ™X]WЬЪYЫљ[™ЧЪЩ^JX›\Ъ\—Щ\‹ИњX›\Ъ\‹\ЪYЫљ[™ЛZЩ^KљњЫЫ€ЉNЬX›XП^И[ЫЬљ]HЋ€њњШK\ЪLЌM€‹›€ЋљЩ^VИ›€—K™HЋљЩ^VИ™H—_B€[ќћO^ИљYЋљY[ќ›[YHЋ›X[љY™\ЭИ›[YH—Kќ™\њЪ[Ы€Ћ›X[љY™\ЭИќ™\њЪ[Ы€—K™\ШЬљ\[Ы€Ћ›X[љY™\ЭИ™\ШЬљ\[Ы€—K]]Ь€Ћ›X[љY™\ЭИ]]Ь€—KШ\Xљ[]Y\ИЋ›X[љY™\Э™Щ]
+Ш\Xљ[]Y\И‹ЧJK›X[љY™\Э\›Ћ›X[љY™\ЭЭ\›њЪLЌM€Ћ™YЩ\Э›Z[љ[][SШ\њХ™\њЪ[Ы€Ћ›X[љY™\Э™Щ]
+›Z[љ[][SШ\њХ™\њЪ[Ы€‹ЊМЊИ€Y€X[љY™\Э™Щ]
+\U™\њЪ[Ы€ЉOOLИ[ЩHЊЌЛЊHЉKШ]YЫЬћHЋ€ђУУSUS’UH‹›\Э\]YЋ—ЧЪ[\ЬќЧК™]][YHЉK™]KќЩ^J
+Kљ\ЫЩ›Ь›X]
+
+KњЪYЫ]\™HЋ—ЬњШWЬЪYЫЉЬЪYЫ]\™WЬ^[ШY
+Y[ќX[љY™\ЭИќ™\њЪ[Ы€—KYЩ\Э
+KЩ^JKњЪYЫ™\’Щ^RYЋљЩ^VИљЩ^RY—KњЪYЫљ[™ТЩ^HЋњX›XЯB€
+\™Щ]ИШ][ЩЛљњЫЫ€ЉKќЬљ]WЭ^
+њЫЫ‹™[\КИњШЪ[XU™\њЪ[Ы€ЋЊ‹›[Щ[P\U™\њЪ[Ы€ЋђTWХ‘T”ТSУ‹Ъ[›™[Ћ€њЭX›H‹›[Щ[\ИЋ–Щ[ќћW_K[™[ќLЉJИ—€‹[ЫЩ[™ПHќ]‹NЉB€
+\™Щ]ИШ][ЩЛY]™[ЬY[ќљњЫЫ€ЉKќЬљ]WЭ^
+њЫЫ‹™[\КИњШЪ[XU™\њЪ[Ы€ЋЊ‹›[Щ[P\U™\њЪ[Ы€ЋђTWХ‘T”ТSУ‹Ъ[›™[Ћ€™]™[ЬY[ќ‹›[Щ[\ИЋ–Щ[ќћW_K[™[ќLЉJИ—€‹[ЫЩ[™ПHќ]‹NЉB€
+\™Щ]И”ТLЌM”ХSTЛќЉKќЬљ]WЭ^
+€ћЩYЩ\ЭH[Щ[\ЛЮЪY[ќKЫШ\њЛ[[Щ[KљњЫЫ—€‹[ЫЩ[™ПHќ]‹NЉB€™XYYOY€€ИЫX[љY™\ЭЙЫ[YIЧ_H8 %РT”И[Щ[H™\ЬЪ]ЬћW—•\ИXЪШYЩHШ\ИЩ[™\]YћHРT”И[Щ[H›Ь™ЩHМЌK€]ЫЫќZ[њИЬЭ\™[™\™YXЫ\]]™H^[њЪ[Ы€THћЫX[љY™\ЭЙШ\U™\њЪ[Ы‰Ч_H”УУ€Ы›K——ЊK€Ь™X]HHX›XИЪ]X€™\ЬЪ]ЬћK—Њ‹€ЫЬHHЫЫќ[ќИЩ€\И›Ы\€И]ИXZ[њ[Ъ—ЊЛ€™\XЩHSХT‹QТUP‹SђSQKЦSХT‹T‘TФТUФ–X[€›ЭШ][ЩЬЛ—Ќ€\ЩHШ][ЩЛљњЫЫ›Ь€ЭX›H[™Ш][ЩЛY]™[ЬY[ќљњЫЫ›Ь€]™[ЬY[ќ—ЌK€[€РT”ЛЬ[€\]\И8Ў¤€[Щ[H]›Ь›H8Ў¤€ЫЭ\Щ\И[™YH™\ЬЪ]ЬћHT“——“РT”И™\љYљY\ИТKLЌM‹H”РKTТLЌM€X›\Ъ\€ЪYЫ]\™K™\]Y\ЭYШ\Xљ[]Y\Л[™HЭX›HX[љY™\ЭЫЫќXЭ™Y›Ь™H[њЭ[][Ы‹€^XЭ]X›HYЛZ[€ЫЩH\И›ЭЭ\ЬќY€ЩY\Hљ]]HЪYЫљ[™ИЩ^H[€H\™[ќ[Щ[H›Ь™ЩH›Ы\€ЩXЭ\™NИ]\И™]™\€[ЫYY[€\ИXЪШYЩK—€‚€
+\™Щ]И”‘PQQK›YЉKќЬљ]WЭ^
+™XYYK[ЫЩ[™ПHќ]‹NЉB€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™€”ЪYЫ™Y™\ЬЪ]ЬћHXЪШYЩH™\\™Y›Ь€ЫX[љY™\ЭЙЫ[YIЧ_H‹њ]ЋњЭЉ\™Щ]
+KљYЋљY[ќњЪLЌM€Ћ™YЩ\ЭњЪYЫ]\™TЭ]\ИЋ€ќ™\љYљYY‹њЪYЫ™\’Щ^RYЋљЩ^VИљЩ^RY—K™љ[\ИЋ–И”‘PQQK›Y‹Ш][ЩЛљњЫЫ€‹Ш][ЩЛY]™[ЬY[ќљњЫЫ€‹”ТLЌM”ХSTЛќ‹€›[Щ[\ЛЮЪY[ќKЫШ\њЛ[[Щ[KљњЫЫ€—_B‚‚™Y€Ь™X]WЫ[Щ[WЩYќ
+^[њЪ[Ы—Щ\Ћ”]]JN‚€Y€›Э\Ъ[њЭ[ЩJ]KXЭ
+NњZ\ЩH[YQ\њ›ЬЉ“[Щ[H›Ь™ЩHYќ]\Э™H[€Шљ™XЭЉB€Y[ќWЭ^
+]K™Щ]
+љYЉK
+NЫ[YOWЭ^
+]K™Щ]
+›[YHЉK
+NЩ\ШЬљ\[ЫЏWЭ^
+]K™Щ]
+™\ШЬљ\[Ы€ЉKN
+NЬXЩ[Y[ќWЭ^
+]K™Щ]
+њXЩ[Y[ќ‹›Э™\ќљY]ИЉKЌ
+B€Y€XЩ[Y[ќ›Э[€PСSQS•ОњZ\ЩH[YQ\њ›ЬЉќ[њЭ\ЬќY[Щ[H›Ь™ЩHXЩ[Y[ќЉB€Ш\Xљ[]Y\ПY]K™Щ]
+Ш\Xљ[]Y\И‹ЧJHY€\Ъ[њЭ[ЩJ]K™Щ]
+Ш\Xљ[]Y\ИЉK\Э
+H[ЩHЧB€X[љY™\Э^И\U™\њЪ[Ы€ЋђTWХ‘T”ТSУ‹љYЋљY[ќ›[YHЋ›[YHЬ€Y[ќќ™\њЪ[Ы€Ћ—Э^
+]K™Щ]
+ќ™\њЪ[Ы€‹ЊЊKЊЉKЊ
+K™\ШЬљ\[Ы€Ћ™\ШЬљ\[Ы€Ь€“[Щ[H›Ь™ЩHXЫ\]]™H[Щ[H‹]]Ь€Ћ—Э^
+]K™Щ]
+]]Ь€‹“РT”ИЬ\]Ь€ЉKЌ
+K›Z[љ[][SШ\њХ™\њЪ[Ы€Ћ€ЊМЊИ‹Ш\Xљ[]Y\ИЋШ\Xљ[]Y\ЛњЩ][™ЬИЋ–ЧKњXЩ[Y[ќИЋ–ЮИљYЋ€њљ[X\ћH‹ќ\HЋњXЩ[Y[ќќ]HЋ›[YHЬ€Y[ќ™Y][Ъ^™HЋ€њЭ[™\™‹ќZHЋ–ЮИќ\HЋ€ќ^‹љYЋ€њЭ]\И‹ќ^Ћ—Э^
+]K™Щ]
+ќ^‹“SСSH‘PQHЉKЌ
+_W_W_B€ЫX[Џ][Y]WЫX[љY™\Э
+X[љY™\Э
+NЭ\™Щ]J^[њЪ[Ы—Щ\‹ШЫX[–ИљY—JKњ™\ЫЫ™J
+NЬ›ЫЭY^[њЪ[Ы—Щ\‹њ™\ЫЫ™J
+B€Y€›ЫЭ›Э[€\™Щ]њ\™[ќОњZ\ЩH[YQ\њ›ЬЉљ[ќ[Y[Щ[H›Ь™ЩH]ЉB€\™Щ]›ZЩ\Љ\™[ќПUќYK^\ЭЫЪПUќYJNЬ]]\™Щ]И›Ш\њЛ[[Щ[KљњЫЫ€‚€Y€]™^\ЭК
+NњЪ][ЫЬLЉ]\™Щ]И‹њ™]љ[Э\Л[Ш\њЛ[[Щ[KљњЫЫ€ЉB€Ш]ЫZXЧЪњЫЫЉ]X[љY™\Э
+B€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™€ћШЫX[–ЙЫ[YIЧ_HYќЬ™X]YЪ]ЭX›H^[њЪ[Ы€THћРTWХ‘T”ТSУџH‹љYЋЫX[–ИљY—Kњ]ЋњЭЉ]
+K›X[љY™\ЭЋЫX[џB‚‚™Y€[Щ[WЬXЪШYЩWЫЬ\][ЫЉ^[њЪ[Ы—Щ\Ћ”]ќ[™YЩ\Ћ”]›Ы™KX›\Ъ\—Щ\Ћ”]ќ[ќ[YWЩ\Ћ”]Ь\][ЫЋњЭ‹Y[ќH€‹]Э[YOH€‹\›Э™YШШ\Xљ[]Y\ПS›Ы™JN‚€Y€Ь\][ЫЏOH™^ЬќЋ‚€Y€›Э™K™ќ[X]Ъ
+€–ШK^ЊNWVШK^ЊNKW^М‹ЯH‹Y[ќ
+NњZ\ЩH[YQ\њ›ЬЉњЩ[XЭH[Y[њЭ[Y[Щ[HYЉB€]П[\Э
+^[њЪ[Ы—Щ\‹™ЫШЉ€ћЪY[ќKЫШ\њЛ[[Щ[KљњЫЫ€ЉJJКЧHY€›Эќ[™YЩ\€[ЩH\Э
+ќ[™YЩ\‹™ЫШЉ€ћЪY[ќKЫШ\њЛ[[Щ[KљњЫЫ€ЉJJB€Y€›Э]ОњZ\ЩH[YQ\њ›ЬЉ›[Щ[H\И›Э[њЭ[YЉB€]П\]ЦМKњ™XYШћ]\К
+NЫX[љY™\Э][Y]WЫX[љY™\Э
+њЫЫ‹›ШYК]Л™XЫЩJќ]‹NЉJJNЩYЩ\ЭZ\ЪX‹њЪLЌMЉ]КKљ^YЩ\Э
+
+NЪЩ^OWЫШYЫЬ—ШЬ™X]WЬЪYЫљ[™ЧЪЩ^JX›\Ъ\—Щ\‹ИњX›\Ъ\‹\ЪYЫљ[™ЛZЩ^KљњЫЫ€ЉNЬX›XП^И[ЫЬљ]HЋ€њњШK\ЪLЌM€‹›€ЋљЩ^VИ›€—K™HЋљЩ^VИ™H—_B€XЪШYЩO^ИњШЪ[XU™\њЪ[Ы€ЋЊK›[Щ[P\U™\њЪ[Ы€Ћ›X[љY™\ЭИ\U™\њЪ[Ы€—KљYЋљY[ќќ™\њЪ[Ы€Ћ›X[љY™\ЭИќ™\њЪ[Ы€—KњЪLЌM€Ћ™YЩ\ЭњЪYЫ]\™HЋ—ЬњШWЬЪYЫЉЬЪYЫ]\™WЬ^[ШY
+Y[ќX[љY™\ЭИќ™\њЪ[Ы€—KYЩ\Э
+KЩ^JKњЪYЫ™\’Щ^RYЋљЩ^VИљЩ^RY—KњЪYЫљ[™ТЩ^HЋњX›XЯB€^ЬќП\X›\Ъ\—Щ\‹И™^ЬќИЋЩ^ЬќЛ›ZЩ\Љ\™[ќПUќYK^\ЭЫЪПUќYJNЩ\Э[][ЫЏY^ЬќЛЩ€ћЪY[ќK^ЫX[љY™\ЭЙЭ™\њЪ[Ы‰Ч_K›Ш\њЛ[[Щ[H‚€Ъ]љ\љ[K–љ\љ[J\Э[][Ы‹ќИ‹ЫЫ\™\ЬЪ[ЫЏ^љ\љ[K–’TСQ“UQ
+H\И\Ъ]™N‚€\Ъ]™KќЬљ]\ЭЉ›Ш\њЛ[[Щ[KљњЫЫ€‹]КNШ\Ъ]™KќЬљ]\ЭЉњXЪШYЩKљњЫЫ€‹њЫЫ‹™[\КXЪШYЩK[™[ќLЉJИ—€ЉB€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™€”ЪYЫ™YЫX[љY™\ЭЙЫ[YIЧ_HXЪШYЩH^ЬќY‹њ]ЋњЭЉ\Э[][ЫЉKњЪLЌM€Ћ™YЩ\ЭњЪYЫ™\’Щ^RYЋљЩ^VИљЩ^RY—_B€Y€Ь\][Ы€[€Иљ[њЬXЭ‹љ[\ЬќџN‚€ЫЭ\ЩOT]
+]Э[YJK™^[™\Щ\Љ
+Kњ™\ЫЫ™J
+B€Y€›ЭЫЭ\ЩKљ\ЧЩљ[J
+HЬ€ЫЭ\ЩKњЭ]
+
+KњЭЬЪ^™OЊЊMМMLЋњZ\ЩH[YQ\њ›ЬЉ›[Щ[HXЪШYЩH\ИZ\ЬЪ[™ИЬ€^ЩYYИ€ZP€ЉB€Ъ]љ\љ[K–љ\љ[JЫЭ\ЩKњ€ЉH\И\Ъ]™N‚€[Y\П\Щ]
+\Ъ]™K›[Y[\Э
+
+JB€Y€[Y\ИO^И›Ш\њЛ[[Щ[KљњЫЫ€‹њXЪШYЩKљњЫЫ€џNњZ\ЩH[YQ\њ›ЬЉ›[Щ[HXЪШYЩHЫЫќZ[њИ[њЭ\ЬќYљ[\ИЉB€Y€[ћJ][K™љ[WЬЪ^™OЊЌЊЊM›Ь€][H[€\Ъ]™Kљ[™›Ы\Э
+
+JNњZ\ЩH[YQ\њ›ЬЉ›[Щ[HXЪШYЩH[ќћH^ЩYYИЪ^™H[Z]ЉB€]ПX\Ъ]™Kњ™XY
+›Ш\њЛ[[Щ[KљњЫЫ€ЉNЬXЪШYЩOZњЫЫ‹›ШYК\Ъ]™Kњ™XY
+њXЪШYЩKљњЫЫ€ЉK™XЫЩJќ]‹NЉJB€X[љY™\Э][Y]WЫX[љY™\Э
+њЫЫ‹›ШYК]Л™XЫЩJќ]‹NЉJJNЩYЩ\ЭZ\ЪX‹њЪLЌMЉ]КKљ^YЩ\Э
+
+B€Y€XЪШYЩK™Щ]
+њШЪ[XU™\њЪ[Ы€ЉHOLHЬ€XЪШYЩK™Щ]
+љYЉHO[X[љY™\ЭИљY—HЬ€XЪШYЩK™Щ]
+ќ™\њЪ[Ы€ЉHO[X[љY™\ЭИќ™\њЪ[Ы€—HЬ€XЪШYЩK™Щ]
+њЪLЌM€ЉHOYYЩ\ЭњZ\ЩH[YQ\њ›ЬЉ›[Щ[HXЪШYЩHY]Y]HЩ\И›ЭX]Ъ]ИX[љY™\ЭЉB€ЪYЫ]\™OWЬЪYЫ]\™WЬЭ]JXЪШYЩK]КB€Y€›ЭЪYЫ]\™VИќ™\љYљYY—NњZ\ЩH[YQ\њ›ЬЉ›[Щ[HXЪШYЩHЪYЫ]\™H™\љYљXШ][Ы€Z[YЉB€™\]Y\ЭY[X[љY™\Э™Щ]
+Ш\Xљ[]Y\И‹ЧJNШ\›Э™Y[\Э
+XЭ™њ›ЫZЩ^\К\›Э™YШШ\Xљ[]Y\ИЬ€ЧJJB€Y€Ь\][ЫЏOHљ[њЬXЭЋњ™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™€”ЪYЫ™YЫX[љY™\ЭЙЫ[YIЧ_HXЪШYЩH™\љYљYY‹љYЋ›X[љY™\ЭИљY—K›[YHЋ›X[љY™\ЭИ›[YH—Kќ™\њЪ[Ы€Ћ›X[љY™\ЭИќ™\њЪ[Ы€—KШ\Xљ[]Y\ИЋњ™\]Y\ЭYњЪYЫ]\™HЋњЪYЫ]\™K\U™\њЪ[Ы€Ћ›X[љY™\ЭИ\U™\њЪ[Ы€—_B€Y€™\]Y\ЭY[™Щ]
+™\]Y\ЭY
+HO\Щ]
+\›Э™Y
+NњZ\ЩH[YQ\њ›ЬЉ›Ь\]Ь€Ш\Xљ[]H\›Э[\И™\]Z\™Y™Y›Ь™H[\ЬќЉB€\™Щ]J^[њЪ[Ы—Щ\‹ЫX[љY™\ЭИљY—JKњ™\ЫЫ™J
+NЬ›ЫЭY^[њЪ[Ы—Щ\‹њ™\ЫЫ™J
+NЬ™]љ[Э\ЧЪ[њЭ[][ЫЏWЬ™XYЪњЫЫЉ\™Щ]И‹›Ш\њЛZ[њЭ[][Ы‹љњЫЫ€‹ЯJB€Y€™]љ[Э\ЧЪ[њЭ[][Ы‹™Щ]
+њЪYЫ™\’Щ^RYЉH[™™]љ[Э\ЧЪ[њЭ[][Ы–ИњЪYЫ™\’Щ^RY—HO\ЪYЫ]\™VИљЩ^RY—NњZ\ЩH[YQ\њ›ЬЉ›[Щ[HX›\Ъ\€Y[ќ]HЪ[™ЩYИ™[[Э™HH[њЭ[Y[Щ[H™Y›Ь™Hќ\Э[™ИHY™™\™[ќЪYЫ™\€ЉB€Y€›ЫЭ›Э[€\™Щ]њ\™[ќОњZ\ЩH[YQ\њ›ЬЉљ[ќ[Y[Щ[HXЪШYЩH]ЉB€\™Щ]›ZЩ\Љ\™[ќПUќYK^\ЭЫЪПUќYJNЩ\Э[][ЫЏ]\™Щ]И›Ш\њЛ[[Щ[KљњЫЫ€ЋЪYЬ™]љ[Э\ПY\Э[][Ы‹™^\ЭК
+B€Y€YЬ™]љ[Э\ОњЪ][ЫЬLЉ\Э[][Ы‹\™Щ]И‹њ™]љ[Э\Л[Ш\њЛ[[Щ[KљњЫЫ€ЉB€[\Ь\ћOY\Э[][Ы‹ќЪ]ЬЭY™љ^
+‹љњЫЫ‹ќ\ЉNЭ[\Ь\ћKќЬљ]WШћ]\К]КNЭ[\Ь\ћKњ™\XЩJ\Э[][ЫЉB€Ш]ЫZXЧЪњЫЫЉ\™Щ]И‹›Ш\њЛZ[њЭ[][Ы‹љњЫЫ€‹Иљ[њЭ[Y]Ћќ[YKњЭ™ќ[YJ‰VKI[KIY	R‰SN‰TЦ€‹[YK™Ы][YJ
+JKњЫЭ\ЩRYЋ€љ[\Ьќ‹Ъ[›™[Ћ€›ШШ[‹њЪLЌM€Ћ™YЩ\ЭњЪYЫ]\™TЭ]\ИЋ€ќ™\љYљYY‹њЪYЫ™\’Щ^RYЋњЪYЫ]\™VИљЩ^RY—_JB€\›Z\ЬЪ[ЫњПWЬ™XYЪњЫЫЉќ[ќ[YWЩ\‹Ињ\›Z\ЬЪ[ЫњЛљњЫЫ€‹ЯJNЬ\›Z\ЬЪ[ЫњЦЫX[љY™\ЭИљY—WOX\›Э™YЧШ]ЫZXЧЪњЫЫЉќ[ќ[YWЩ\‹Ињ\›Z\ЬЪ[ЫњЛљњЫЫ€‹\›Z\ЬЪ[ЫњКB€™]\›€И›ЪИЋ•ќYK›Y\ЬШYЩHЋ™€”ЪYЫ™YЫX[љY™\ЭЙЫ[YIЧ_HXЪШYЩH[\ЬќY‹љYЋ›X[љY™\ЭИљY—Kќ™\њЪ[Ы€Ћ›X[љY™\ЭИќ™\њЪ[Ы€—KњЪYЫ]\™HЋњЪYЫ]\™Kњ›ЫXЪР]Z[X›HЋљYЬ™]љ[Э\ЯB€Z\ЩH[YQ\њ›ЬЉќ[њЭ\ЬќY[Щ[HXЪШYЩHЬ\][Ы€ЉB‚‚™Y€^[њЪ[Ы—ЬЭ]JЭ]WЩ\Ћ”]Y[ќњЭЉN‚€Y€›Э™K™ќ[X]Ъ
+€–ШK^ЊNWVШK^ЊNKW^М‹ЯH‹Y[ќ
+NњZ\ЩH[YQ\њ›ЬЉљ[ќ[Y^[њЪ[Ы€YЉB€]\Э]WЩ\‹Щ€ћЪY[ќKљњЫЫ€‚€ћNњ™]\›€њЫЫ‹›ШYК]њ™XYЭ^
+[ЫЩ[™ПHќ]‹NЉJB€^Щ\^Щ\[ЫЋњ™]\›€ЯB‚‚™Y€Ш]™WЩ^[њЪ[Ы—ЬЭ]JЭ]WЩ\Ћ”]Y[ќњЭ‹Э]JN‚€Y€›Э\Ъ[њЭ[ЩJЭ]KXЭ
+NњZ\ЩH[YQ\њ›ЬЉ™^[њЪ[Ы€Э]H]\Э™H[€Шљ™XЭЉB€[ЫЩYZњЫЫ‹™[\КЭ]KЩ\\]ЬњПJ‹‹Ћ€ЉJB€Y€[Љ[ЫЩY
+OЌЌMLНЋњZ\ЩH[YQ\њ›ЬЉ™^[њЪ[Ы€Э]H^ЩYYИЌЪP€ЉB€Э]WЩ\‹›ZЩ\Љ\™[ќПUќYK^\ЭЫЪПUќYJNЬ]\Э]WЩ\‹Щ€ћЪY[ќKљњЫЫ€ЋЭ[\Ь\ћO\]ќЪ]ЬЭY™љ^
+‹ќ\ЉB€[\Ь\ћKќЬљ]WЭ^
+[ЫЩY[ЫЩ[™ПHќ]‹NЉNЭ[\Ь\ћKњ™\XЩJ]
+NЬ™]\›€Э]B
