@@ -49,7 +49,7 @@ import {
 import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, ComputerPlan, ComputerPlanStep, ComputerUndoSnapshot } from "./v30-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="30.3";
+const LCARS_VERSION="30.4";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type Player = {
@@ -134,6 +134,7 @@ type TrayItem = { id: string; name: string; status: string; icon?: string; hasCo
 type NetworkInterface = { id: string; name: string; kind: string; state: string; address: string; gateway: string; dns: string[]; speed: string; signal?: number; received: number; sent: number };
 type NetworkInfo = { interfaces: NetworkInterface[]; diagnostics: { gateway: boolean; dns: boolean; internet: boolean; latency: number | null }; bluetooth: boolean };
 type PageDensity = "compact" | "standard" | "wide";
+type AlertCondition = "normal" | "yellow" | "red";
 type SettingsArea = "interface" | "workspace" | "connected" | "system";
 type UpdateArea = "releases" | "modules" | "diagnostics";
 type SpeedDialItem = `page:${string}` | `module:${string}` | `action:${string}` | `routine:${string}`;
@@ -152,6 +153,18 @@ type Compatibility = {
   session: string;
   capabilities: Record<string, boolean>;
   restrictions: { feature: string; reason: string; remedy: string }[];
+};
+type LcarsSessionStatus = {
+  ok: boolean;
+  supported: boolean;
+  installed: boolean;
+  active: boolean;
+  mode: string;
+  kioskActive: boolean;
+  message: string;
+  config: { baseDesktop: string; kiosk: boolean; crashRecovery: boolean; safeModeOnFailure: boolean; windowRules: { match: string; deck: number }[] };
+  decks: { id: number; name: string; active: boolean }[];
+  capabilities: Record<string, boolean>;
 };
 type ShellPrefs = {
   taskHover: boolean;
@@ -357,7 +370,7 @@ const speedDialChoices: { id: SpeedDialItem; label: string; description: string 
   { id:"action:tray", label:"TRAY", description:"Open the desktop system tray" },
   { id:"action:routines", label:"ROUTINES", description:"Open Operations Automation" },
   { id:"action:communications", label:"COMMS", description:"Open Communications Center" },
-  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.3 Computer Core" },
+  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.4 Computer Core" },
 ];
 const defaultPrefs: ShellPrefs = {
   taskHover: true,
@@ -603,6 +616,7 @@ export default function Home() {
   const [theme, setTheme] = useState("classic"),
     [section, setSection] = useState("overview"),
     [sound, setSound] = useState(true);
+  const [alertCondition,setAlertCondition]=useState<AlertCondition>("normal");
   const [volume, setVolume] = useState(64),
     [audioMuted, setAudioMuted] = useState(false),
     [allOpen, setAllOpen] = useState(false),
@@ -723,7 +737,7 @@ export default function Home() {
   },[notices]);
   useEffect(() => {
     const launchParams=new URLSearchParams(window.location.search),requested=launchParams.get("section");
-    const safeBoot=sessionStorage.getItem("lcars-safe-mode")==="1";
+    const safeBoot=sessionStorage.getItem("lcars-safe-mode")==="1"||launchParams.get("safe")==="1";
     let restoredQuarantine:string[]=[];
     if(!safeBoot)try{const quarantine=JSON.parse(localStorage.getItem("lcars-extension-quarantine")||"[]");if(Array.isArray(quarantine))restoredQuarantine=quarantine.filter((item):item is string=>typeof item==="string");}catch{}
     const restore = !safeBoot && localStorage.getItem("lcars-session-restore") !== "false";
@@ -752,7 +766,9 @@ export default function Home() {
       mappingData = safeBoot?null:localStorage.getItem("lcars-control-mappings"),
       disabledExtensionData = safeBoot?null:localStorage.getItem("lcars-disabled-extensions"),
       pagePeekData = safeBoot?null:localStorage.getItem(openPeeksStorageKey),
+      alertData = safeBoot?null:localStorage.getItem("lcars-alert-condition"),
       defaultStation = safeBoot?"":localStorage.getItem("lcars-default-workstation") || "";
+    if(alertData==="red"||alertData==="yellow")setAlertCondition(alertData);
     if (t) {
       const restoredTheme=normalizeThemeId(t);
       setTheme(restoredTheme);
@@ -813,7 +829,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-3"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-4"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1190,7 +1206,7 @@ export default function Home() {
         .catch(() => {notify("LOCAL CORE UNAVAILABLE", "error");recordActivity("System command failed",action.toUpperCase(),"attention","SYSTEM");});
     else {notify(action.toUpperCase());recordActivity("Demonstration command",action.toUpperCase(),"attention","SYSTEM");}
   };
-  const powerAction = (action: "exit" | "sleep" | "poweroff" | "reboot") => {
+  const powerAction = (action: "exit" | "sleep" | "poweroff" | "reboot" | "logout") => {
     if (action === "exit") {
       setPowerOpen(false);
       window.close();
@@ -1654,7 +1670,7 @@ export default function Home() {
     setComputerAudit((old)=>{const next=[entry,...old].slice(0,300);localStorage.setItem("lcars-computer-audit",JSON.stringify(next));return next;});
     return entry;
   };
-  const captureComputerUndo=(plan:ComputerPlan):ComputerUndoSnapshot=>({id:createV25Id("computer-undo"),planId:plan.id,createdAt:new Date().toISOString(),label:plan.title,section,theme,doNotDisturb,volume});
+  const captureComputerUndo=(plan:ComputerPlan):ComputerUndoSnapshot=>({id:createV25Id("computer-undo"),planId:plan.id,createdAt:new Date().toISOString(),label:plan.title,section,theme,doNotDisturb,volume,alertCondition});
   const executeComputerStep=async(step:ComputerPlanStep)=>{
     if(step.requiresBridge&&!bridge)throw new Error(`${step.label} requires the installed Local Core`);
     if(step.command==="navigate"){setSection(step.target);return;}
@@ -1673,9 +1689,17 @@ export default function Home() {
       const next=Math.max(0,Math.min(100,Number(step.value)||0));setVolume(next);
       const response=await fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:next})});if(!response.ok)throw new Error("Master audio command was rejected");return;
     }
+    if(step.command==="set-mute"){
+      const muted=Boolean(step.value);const response=await fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({muted})});if(!response.ok)throw new Error("Master mute command was rejected");setAudioMuted(muted);return;
+    }
+    if(step.command==="set-alert"){
+      const condition=(step.target==="red"||step.target==="yellow"?step.target:"normal") as AlertCondition;setAlertCondition(condition);localStorage.setItem("lcars-alert-condition",condition);return;
+    }
     if(step.command==="media-control"){
       const player=players.find((item)=>item.status.toLowerCase()==="playing")||players[0];if(!player)throw new Error("No media session is active");
-      const response=await fetch("http://127.0.0.1:8765/api/media-control",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({player:player.id,command:step.target})});if(!response.ok)throw new Error("Media command was rejected");return;
+      const playing=player.status.toLowerCase()==="playing";if((step.target==="pause"&&!playing)||(step.target==="play"&&playing))return;
+      const command=step.target==="pause"||step.target==="play"?"play-pause":step.target;
+      const response=await fetch("http://127.0.0.1:8765/api/media-control",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({player:player.id,command})}),result=await response.json();if(!response.ok||result.ok===false)throw new Error(result.error||"Media command was rejected");return;
     }
     if(step.command==="open-center"){
       if(step.target==="computer")setComputerOpen(true);
@@ -1687,6 +1711,8 @@ export default function Home() {
       else if(step.target==="applications"){setComputerOpen(false);setAllOpen(true);}
       return;
     }
+    if(step.command==="lock-session"){setLocked(true);return;}
+    if(step.command==="exit-lcars"){window.close();return;}
     if(step.command==="core-action"||step.command==="system-action"){
       const response=await fetch("http://127.0.0.1:8765/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:step.target})});const result=await response.json();if(!response.ok||result.error)throw new Error(result.error||"Local Core action failed");return;
     }
@@ -1694,37 +1720,37 @@ export default function Home() {
       const response=await fetch("http://127.0.0.1:8765/api/routine-command",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({command:step.target,approved:true})});const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Approved command was rejected");
     }
   };
-  const executeComputerPlan=async(plan:ComputerPlan,dryRun:boolean,voiceAuthorizationSatisfied=computerVoiceAuthorized)=>{
-    if(!plan.valid||computerRunning)return;
-    if(dryRun){recordComputerAudit(plan,"dry-run",`${plan.steps.length} actions validated; no system state was changed`);recordActivity("Computer Core dry run",plan.summary,"success","SYSTEM");notify("Computer Core dry run complete · no changes made","info",true,"COMPUTER CORE");return;}
-    if(plan.source==="voice"&&plan.requiresConfirmation&&prefs.voiceAuthorizationEnabled&&!voiceAuthorizationSatisfied){recordComputerAudit(plan,"failed","Optional vocal authorization code was not verified");notify("Protected voice plan requires the configured vocal authorization code","error",true,"COMPUTER CORE","critical");return;}
+  const executeComputerPlan=async(plan:ComputerPlan,dryRun:boolean,voiceAuthorizationSatisfied=computerVoiceAuthorized):Promise<boolean>=>{
+    if(!plan.valid||computerRunning)return false;
+    if(dryRun){recordComputerAudit(plan,"dry-run",`${plan.steps.length} actions validated; no system state was changed`);recordActivity("Computer Core dry run",plan.summary,"success","SYSTEM");notify("Computer Core dry run complete · no changes made","info",true,"COMPUTER CORE");return true;}
+    if(plan.source==="voice"&&plan.requiresConfirmation&&prefs.voiceAuthorizationEnabled&&!voiceAuthorizationSatisfied){recordComputerAudit(plan,"failed","Optional vocal authorization code was not verified");notify("Protected voice plan requires the configured vocal authorization code","error",true,"COMPUTER CORE","critical");return false;}
     setComputerRunning(true);
     const snapshot=plan.reversible?captureComputerUndo(plan):null;
     if(snapshot){setComputerUndo(snapshot);localStorage.setItem("lcars-computer-undo",JSON.stringify(snapshot));}
     try{
       for(const step of plan.steps)await executeComputerStep(step);
-      recordComputerAudit(plan,"completed",`${plan.steps.length} actions completed successfully`);recordActivity("Computer Core plan completed",plan.summary,"success","SYSTEM",plan.reversible);notify(`${plan.title} complete`,"info",true,"COMPUTER CORE","priority");
-    }catch(error){const detail=error instanceof Error?error.message:"Computer Core plan failed";recordComputerAudit(plan,"failed",detail);recordActivity("Computer Core plan failed",detail,"attention","SYSTEM",Boolean(snapshot));notify(detail,"error",true,"COMPUTER CORE","critical");}
+      recordComputerAudit(plan,"completed",`${plan.steps.length} actions completed successfully`);recordActivity("Computer Core plan completed",plan.summary,"success","SYSTEM",plan.reversible);notify(`${plan.title} complete`,"info",true,"COMPUTER CORE","priority");return true;
+    }catch(error){const detail=error instanceof Error?error.message:"Computer Core plan failed";recordComputerAudit(plan,"failed",detail);recordActivity("Computer Core plan failed",detail,"attention","SYSTEM",Boolean(snapshot));notify(detail,"error",true,"COMPUTER CORE","critical");return false;}
     finally{setComputerRunning(false);}
   };
   const undoComputerPlan=()=>{
     if(!computerUndo||computerRunning)return;
-    const snapshot=computerUndo;setSection(snapshot.section);const restoredTheme=normalizeThemeId(snapshot.theme);setTheme(restoredTheme);localStorage.setItem("lcars-theme",restoredTheme);setDoNotDisturb(snapshot.doNotDisturb);setVolume(snapshot.volume);
+    const snapshot=computerUndo;setSection(snapshot.section);const restoredTheme=normalizeThemeId(snapshot.theme);setTheme(restoredTheme);localStorage.setItem("lcars-theme",restoredTheme);setDoNotDisturb(snapshot.doNotDisturb);setVolume(snapshot.volume);const restoredAlert=snapshot.alertCondition||"normal";setAlertCondition(restoredAlert);localStorage.setItem("lcars-alert-condition",restoredAlert);
     if(bridge)fetch("http://127.0.0.1:8765/api/audio",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({volume:snapshot.volume})}).catch(()=>{});
     const plan:ComputerPlan={id:snapshot.planId,input:`Undo ${snapshot.label}`,normalized:"undo",source:"operator",createdAt:new Date().toISOString(),status:"undone",valid:true,title:`UNDO · ${snapshot.label}`,summary:"Restored page, Display Matrix, Do Not Disturb, and master audio snapshot",confidence:1,risk:"safe",reversible:false,requiresConfirmation:false,steps:[],errors:[],suggestions:[]};
     recordComputerAudit(plan,"undone",plan.summary);recordActivity("Computer Core undo",plan.summary,"success","SYSTEM");setComputerUndo(null);localStorage.removeItem("lcars-computer-undo");notify("Previous Computer Core state restored","info",true,"COMPUTER CORE");
   };
   const clearComputerAudit=()=>{setComputerAudit([]);localStorage.removeItem("lcars-computer-audit");};
   const previewVoiceComputer=(command:string,authorized:boolean)=>{setComputerSource("voice");setComputerVoiceAuthorized(authorized);setComputerSeed(command);setComputerOpen(true);};
-  const dispatchVoiceComputer=async(command:string,authorized:boolean)=>{
+  const dispatchVoiceComputer=async(command:string,authorized:boolean):Promise<boolean>=>{
     setComputerSource("voice");setComputerVoiceAuthorized(authorized);
-    if(!prefs.voiceImmediateExecution){previewVoiceComputer(command,authorized);notify("Voice command transferred to Computer Core for preview","info",true,"COMPUTER CORE");return;}
     const plan=resolveComputerCommandFor(command,"voice");
-    if(!plan.valid){previewVoiceComputer(command,authorized);notify("Voice command needs operator review in Computer Core","error",true,"COMPUTER CORE");return;}
+    if(!plan.valid){previewVoiceComputer(command,authorized);notify("Voice command needs operator review in Computer Core","error",true,"COMPUTER CORE");return false;}
+    if(!prefs.voiceImmediateExecution){previewVoiceComputer(command,authorized);notify("Voice command transferred to Computer Core for preview","info",true,"COMPUTER CORE");return true;}
     if(plan.requiresConfirmation&&!(prefs.voiceAuthorizationEnabled&&authorized)){
-      previewVoiceComputer(command,authorized);notify(prefs.voiceAuthorizationEnabled?"Protected voice command requires the configured vocal authorization code":"Protected voice command requires visible operator confirmation","error",true,"COMPUTER CORE","critical");return;
+      previewVoiceComputer(command,authorized);notify(prefs.voiceAuthorizationEnabled?"Protected voice command requires the configured vocal authorization code":"Protected voice command requires visible operator confirmation","error",true,"COMPUTER CORE","critical");return false;
     }
-    setComputerSeed("");setComputerOpen(false);await executeComputerPlan(plan,false,authorized);
+    setComputerSeed("");setComputerOpen(false);return executeComputerPlan(plan,false,authorized);
   };
   const refreshPadd=()=>{setPaddBusy("refresh");fetch("http://127.0.0.1:8765/api/padd-pairing").then(async(response)=>{const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"PADD link unavailable");setPaddStatus(result);}).catch((error)=>notify(error instanceof Error?error.message:"PADD link unavailable","error")).finally(()=>setPaddBusy(""));};
   const operatePadd=(operation:PaddOperation,device?:PaddDevice,payload:Record<string,unknown>={})=>{setPaddBusy(operation);fetch("http://127.0.0.1:8765/api/padd-pairing",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,id:device?.id||"",...payload})}).then(async(response)=>{const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"PADD operation failed");setPaddStatus(result);notify(result.message||"PADD registry updated");recordActivity("PADD connected operations",result.message||operation.toUpperCase(),"success","SYSTEM",true);}).catch((error)=>notify(error instanceof Error?error.message:"PADD operation failed","error")).finally(()=>setPaddBusy(""));};
@@ -1748,7 +1774,7 @@ export default function Home() {
       workstations:profiles.map((profile)=>({id:profile.id,name:profile.name,detail:`${profile.widgets.length} MODULES · ${profile.theme.toUpperCase()}`})),
       quickActions,handoff:{page:section,title:`${section.toUpperCase()} CONSOLE`,updatedAt:Date.now()},
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
-      release:{stable:"29",development:"30.3",channel:prefs.updateChannel},
+      release:{stable:"29",development:"30.4",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2241,13 +2267,13 @@ export default function Home() {
         (overviewEdit && section === "overview" ? " overview-editing" : "") +
         (access.highContrast ? " accessibility-contrast" : "") +
         (access.reducedMotion ? " reduced-motion" : "") +
-        (access.colorSafe ? " color-safe" : "") + (safeMode ? " safe-mode" : "") + " density-" + prefs.interfaceDensity + " page-density-" + activePageDensity
+        (access.colorSafe ? " color-safe" : "") + (safeMode ? " safe-mode" : "") + (alertCondition!=="normal"?` alert-${alertCondition}`:"") + " density-" + prefs.interfaceDensity + " page-density-" + activePageDensity
       }
     >
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>30.3 DEV</small>
+          <small>30.4 DEV</small>
         </button>
         <div className="title">
           <div className="title-copy">
@@ -2287,6 +2313,7 @@ export default function Home() {
               : "MUTED"}
         </button>
       </header>
+      {alertCondition!=="normal"&&<button className="alert-condition-banner" onClick={()=>{setAlertCondition("normal");localStorage.setItem("lcars-alert-condition","normal");}}><b>{alertCondition.toUpperCase()} ALERT</b><span>{alertCondition==="red"?"EMERGENCY CONDITION ACTIVE":"HEIGHTENED READINESS CONDITION"} · PRESS TO STAND DOWN</span></button>}
       {safeMode&&<button className="safe-mode-banner" onClick={()=>setSection("settings")}><b>SAFE STARTUP ACTIVE</b><span>SAVED VISUAL SETTINGS AND EXTENSIONS ARE TEMPORARILY BYPASSED · OPEN RECOVERY</span></button>}
       <div className="shell">
         <aside>
@@ -2664,6 +2691,7 @@ export default function Home() {
                 <ExtensionSettings extensions={extensions}/>
               </>}
               {settingsArea==="system"&&<>
+                <LcarsSessionControl bridge={bridge} platform={platform} notify={notify}/>
                 <ShellSettings
                 platform={platform}
                 prefs={prefs}
@@ -2711,8 +2739,8 @@ export default function Home() {
                   <small>LEARN THE LCARS DESKTOP CONTROLS</small>
                 </button>
                 <button onClick={()=>setWhatsNewOpen(true)}>
-                  <b>WHAT&apos;S NEW IN VERSION 30.3</b>
-                  <small>MODULE PLATFORM DEVELOPMENT ORIENTATION</small>
+                  <b>WHAT&apos;S NEW IN VERSION 30.4</b>
+                  <small>LINUX LCARS SESSION & VOICE OPERATIONS</small>
                 </button>
                 <button onClick={() => coreAction("shell-mode-off")}>
                   <b>RECOVERY CONTROL</b>
@@ -2802,7 +2830,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-3","1");setWhatsNewOpen(false);}} openComputer={()=>{localStorage.setItem("lcars-whats-new-v30-3","1");setWhatsNewOpen(false);setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);}}/>}
+      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-4","1");setWhatsNewOpen(false);}} openComputer={()=>{localStorage.setItem("lcars-whats-new-v30-4","1");setWhatsNewOpen(false);setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {computerOpen&&<ComputerCoreConsole
         bridge={bridge}
@@ -3434,7 +3462,7 @@ function ExtensionHub({installed,catalog,sources,setCatalog,setSources,disabled,
       {packageOpen&&<section className="module-package-bay"><header><span><small>SIGNED PORTABLE PACKAGES</small><b>IMPORT / EXPORT</b></span><strong>.LCARS-MODULE</strong></header><div><label>EXPORT INSTALLED MODULE<select value={packageModule} onChange={(event)=>setPackageModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><button disabled={!packageModule||busy==="export"} onClick={exportPackage}>{busy==="export"?"SIGNING…":"EXPORT SIGNED PACKAGE"}</button><label>IMPORT PACKAGE PATH<input value={importPath} placeholder="/path/to/module.lcars-module" onChange={(event)=>setImportPath(event.target.value)}/></label><button disabled={!importPath||busy==="import"} onClick={importPackage}>{busy==="import"?"VERIFYING…":"VERIFY + IMPORT"}</button></div>{packageResult&&<aside><b>PACKAGE OPERATION COMPLETE</b><span>{packageResult.path}</span>{packageResult.sha256&&<small>SHA-256 {packageResult.sha256.toUpperCase()}</small>}{packageResult.signerKeyId&&<em>SIGNER {packageResult.signerKeyId.toUpperCase()}</em>}</aside>}</section>}
       {publisherOpen&&<section className="module-publisher"><header><span><small>RSA-SHA256 · STABLE + DEVELOPMENT CATALOGS</small><b>SIGNED MODULE PUBLISHER</b></span><a href="https://github.com/new" target="_blank" rel="noreferrer">CREATE GITHUB REPOSITORY ↗</a></header><p>LCARS validates the stable API contract, signs the package metadata with your local publisher identity, and generates both repository channels. The private signing key never leaves the local Module Forge folder.</p><div><label>MODULE<select value={publisherModule} onChange={(event)=>setPublisherModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><label>GITHUB OWNER / REPOSITORY<input value={publisherRepository} onChange={(event)=>setPublisherRepository(event.target.value)} placeholder="OWNER/REPOSITORY"/></label><button disabled={!publisherModule||busy==="publisher"} onClick={preparePublisher}>{busy==="publisher"?"SIGNING…":"GENERATE SIGNED REPOSITORY"}</button></div>{publisherResult&&<aside><b>SIGNED PACKAGE READY</b><span>{publisherResult.path}</span><small>SHA-256 {publisherResult.sha256?.toUpperCase()}</small><em>SIGNER {publisherResult.signerKeyId?.toUpperCase()} · {publisherResult.files?.join(" · ")}</em></aside>}</section>}
       <div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id),remote=entry,health=manifest?.moduleHealth||entry.moduleHealth,requested=manifest?.capabilities||entry.capabilities,granted=manifest?.grantedCapabilities||entry.grantedCapabilities||[],showDetails=details===entry.id;return <article className={`${disabledNow?"disabled":""} ${remote.repository?"repository-module":"local-module"} module-health-${health?.health||"ready"}`} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{remote.repository?`${remote.official?"OFFICIAL":"COMMUNITY"} · ${(remote.channel||"stable").toUpperCase()} · ${remote.sourceName||"MODULE REPOSITORY"}`:entry.bundled?"BUNDLED MODULE":"LOCAL MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · API {manifest?.apiVersion||health?.apiVersion||"?"} {health?.apiStatus?.toUpperCase()||""} · V{entry.version}{installedNow?` / INSTALLED V${manifest?.version||remote.installedVersion||entry.version}`:""} · {health?.health?.toUpperCase()||"READY"}</em>{showDetails&&<><div className="module-detail-strip"><span><b>PACKAGE TRUST</b>{(remote.signatureStatus||health?.signed||"local").toUpperCase()}</span><span><b>SIGNER</b>{remote.signerKeyId||health?.signerKeyId||"LOCAL / BUNDLED"}</span><span><b>MINIMUM LCARS</b>{remote.minimumLcarsVersion||manifest?.minimumLcarsVersion||"COMPATIBLE"}</span><span><b>HEALTH</b>{health?.failureCount?`${health.failureCount} FAILURE(S) · ${health.lastFailure||"RECORDED"}`:"READY · NO RECORDED FAILURES"}</span><span><b>ROLLBACK</b>{health?.rollbackAvailable||remote.rollbackAvailable?"PREVIOUS VERSION AVAILABLE":"NO PREVIOUS VERSION"}</span><span><b>SOURCE</b>{remote.official?"LCARS OFFICIAL":remote.sourceName||health?.sourceId||"LOCAL"}</span></div>{installedNow&&requested.length>0&&<div className="module-permission-matrix"><b>CAPABILITY PERMISSIONS</b>{requested.map((capability)=><button className={granted.includes(capability)?"granted":"revoked"} key={capability} onClick={()=>platformOperation("permissions",entry,granted.includes(capability)?granted.filter((item)=>item!==capability):[...granted,capability])}>{granted.includes(capability)?"✓ GRANTED":"○ REVOKED"}<small>{capabilityLabels[capability]||capability}</small></button>)}</div>}</>}</span><nav><button onClick={()=>setDetails(showDetails?"":entry.id)}>{showDetails?"LESS":"DETAILS"}</button>{installedNow?<><button onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</button>{(health?.rollbackAvailable||remote.rollbackAvailable)&&<button disabled={busy===`rollback:${entry.id}`} onClick={()=>platformOperation("rollback",entry)}>ROLL BACK</button>}{remote.updateAvailable&&<button className="update" disabled={busy===entry.id} onClick={()=>operate(entry,"update")}>{busy===entry.id?"VERIFYING…":"UPDATE"}</button>}{!entry.bundled&&<button className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</button>}</>:remote.repository?<button className="install" disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"VERIFYING…":"INSTALL"}</button>:null}</nav></article>;})}{!inventory.length&&<p className="extension-empty">NO MATCHING MODULES ON THE {catalogChannel.toUpperCase()} CHANNEL</p>}</div>
-      <footer><b>VERSION 30.3 MODULE SAFETY</b> · Signed API v3 packages, explicit capability grants, per-module health records, automatic render isolation, two-version rollback, bounded portable imports, and channel-aware repositories. Repository code is never executed.</footer>
+      <footer><b>VERSION 30.4 MODULE SAFETY</b> · Signed API v3 packages, explicit capability grants, per-module health records, automatic render isolation, two-version rollback, bounded portable imports, and channel-aware repositories. Repository code is never executed.</footer>
     </>}
   </section>;
 }
@@ -3516,10 +3544,10 @@ function PowerDialog({
   action,
 }: {
   close: () => void;
-  action: (value: "exit" | "sleep" | "poweroff" | "reboot") => void;
+  action: (value: "exit" | "sleep" | "poweroff" | "reboot" | "logout") => void;
 }) {
   const [confirmPower, setConfirmPower] = useState<
-    "sleep" | "poweroff" | "reboot" | null
+    "sleep" | "poweroff" | "reboot" | "logout" | null
   >(null);
   if (confirmPower)
     return (
@@ -3533,7 +3561,7 @@ function PowerDialog({
           <header>
             <small>SYSTEM POWER CONFIRMATION</small>
             <h2>
-              CONFIRM {confirmPower === "poweroff" ? "SHUTDOWN" : confirmPower === "reboot" ? "RESTART" : "SLEEP"}
+              CONFIRM {confirmPower === "poweroff" ? "SHUTDOWN" : confirmPower === "reboot" ? "RESTART" : confirmPower === "logout" ? "LOGOUT" : "SLEEP"}
             </h2>
           </header>
           <p>
@@ -3541,6 +3569,8 @@ function PowerDialog({
               ? "The computer will turn off and all running applications will close."
               : confirmPower === "reboot"
                 ? "The computer will restart and all running applications will close."
+                : confirmPower === "logout"
+                  ? "The current desktop session will end and return to the Linux login screen."
                 : "The entire computer will enter sleep mode. LCARS and your applications will remain open for resume."}
           </p>
           <div className="power-confirm-actions">
@@ -3549,6 +3579,8 @@ function PowerDialog({
                 ? "SHUT DOWN COMPUTER"
                 : confirmPower === "reboot"
                   ? "RESTART COMPUTER"
+                  : confirmPower === "logout"
+                    ? "LOG OUT SESSION"
                   : "SLEEP COMPUTER"}
             </button>
             <button onClick={() => setConfirmPower(null)}>GO BACK</button>
@@ -3600,8 +3632,12 @@ function PowerDialog({
               <small>Suspend the whole PC and resume this session later</small>
             </span>
           </button>
-          <button className="power-cancel" onClick={close}>
+          <button onClick={() => setConfirmPower("logout")}>
             <i>05</i>
+            <span><b>LOG OUT SESSION</b><small>End the current Linux desktop session</small></span>
+          </button>
+          <button className="power-cancel" onClick={close}>
+            <i>06</i>
             <span>
               <b>CANCEL</b>
               <small>Return to the LCARS interface</small>
@@ -4130,6 +4166,33 @@ function LockScreen({userName,credential,profiles,activeProfile,defaultWorkstati
   </div>;
 }
 
+function LcarsSessionControl({bridge,platform,notify}:{bridge:boolean;platform:string;notify:(text:string,kind?:"info"|"error")=>void}){
+  const [status,setStatus]=useState<LcarsSessionStatus|null>(null),[busy,setBusy]=useState(""),[ruleMatch,setRuleMatch]=useState(""),[ruleDeck,setRuleDeck]=useState(1);
+  const refresh=()=>fetch("http://127.0.0.1:8765/api/lcars-session").then(async(response)=>{const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"LCARS session status unavailable");setStatus(result);}).catch(()=>setStatus(null));
+  useEffect(()=>{if(bridge&&platform.includes("LINUX"))void refresh();},[bridge,platform]);
+  const operate=async(operation:string,payload:Record<string,unknown>={})=>{setBusy(operation);try{const response=await fetch("http://127.0.0.1:8765/api/lcars-session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,...payload})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"LCARS session operation failed");setStatus(result);notify(result.message||"LCARS session updated");if(operation==="escape")window.setTimeout(()=>window.close(),350);}catch(error){notify(error instanceof Error?error.message:"LCARS session operation failed","error");}finally{setBusy("");}};
+  const configure=(config:LcarsSessionStatus["config"])=>operate("configure",config);
+  const updateConfig=(change:Partial<LcarsSessionStatus["config"]>)=>status&&setStatus({...status,config:{...status.config,...change}});
+  const addRule=()=>{if(!status||!ruleMatch.trim())return;const rules=[...status.config.windowRules,{match:ruleMatch.trim(),deck:ruleDeck}].slice(0,20);setRuleMatch("");updateConfig({windowRules:rules});void configure({...status.config,windowRules:rules});};
+  if(!platform.includes("LINUX"))return <section className="lcars-session-control unavailable"><header><span><small>VERSION 30.4 COMPUTER ENVIRONMENT</small><b>LINUX LCARS SESSION</b></span><em>LINUX ONLY</em></header><p>The selectable LCARS login session is a Linux desktop feature. Normal Windows and Android operation is unchanged.</p></section>;
+  return <section className={`lcars-session-control ${status?.active?"active":""}`}>
+    <header><span><small>VERSION 30.4 COMPUTER ENVIRONMENT · EXPLICIT OPT-IN</small><b>LINUX LCARS LOGIN SESSION</b></span><em>{status?.active?"ACTIVE SESSION":status?.installed?"INSTALLED / OPTIONAL":"APPLICATION MODE"}</em></header>
+    <p>Register LCARS as a selectable Wayland or X11 login session while retaining the current desktop underneath for window management and emergency recovery. Installing this does not make LCARS the default.</p>
+    <div className="lcars-session-readiness">
+      {(["loginSession","windowTasking","multiMonitor","windowRules","crashRecovery","safeMode","normalDesktopFallback","kiosk"] as const).map((name)=><span className={status?.capabilities?.[name]?"ready":"limited"} key={name}><i>{status?.capabilities?.[name]?"✓":"!"}</i>{name.replace(/([A-Z])/g," $1").toUpperCase()}</span>)}
+    </div>
+    {!bridge?<div className="lcars-session-offline"><b>LOCAL CORE REQUIRED</b><small>Install and open the native Linux desktop build to register a login session.</small></div>:!status?<div className="lcars-session-offline"><b>SESSION ADAPTER UNAVAILABLE</b><small>Reinstall Version 30.4 to add the optional session resources.</small></div>:<>
+      <div className="lcars-session-actions"><button disabled={Boolean(busy)} onClick={()=>operate(status.installed?"uninstall":"install")}>{busy==="install"||busy==="uninstall"?"WAITING FOR AUTHORIZATION…":status.installed?"REMOVE LOGIN SESSION":"INSTALL LCARS LOGIN SESSION"}</button><button onClick={refresh}>REFRESH STATUS</button>{status.active&&<button className="escape" disabled={Boolean(busy)} onClick={()=>operate("escape")}>EXIT TO NORMAL DESKTOP</button>}</div>
+      <small className="lcars-session-note">Administrator authorization is requested only when adding or removing display-manager session entries. Settings and the LCARS application remain in your account.</small>
+      <div className="lcars-session-grid">
+        <article><h4>STARTUP & RECOVERY</h4><label>BASE DESKTOP<select value={status.config.baseDesktop} onChange={(event)=>updateConfig({baseDesktop:event.target.value})}><option value="auto">AUTOMATIC</option><option value="plasma">KDE PLASMA</option><option value="gnome">GNOME</option><option value="cinnamon">CINNAMON</option><option value="xfce">XFCE</option><option value="lxqt">LXQT</option></select></label><Toggle label="Recover after an LCARS crash" description="Restarts LCARS after an unexpected early exit, with bounded retries." checked={status.config.crashRecovery} change={(value)=>updateConfig({crashRecovery:value})}/><Toggle label="Use safe mode after repeated failure" description="The second recovery attempt bypasses extensions and saved visual settings." checked={status.config.safeModeOnFailure} change={(value)=>updateConfig({safeModeOnFailure:value})}/><Toggle label="Dedicated command-terminal mode" description="Hides supported desktop panels after login. The recovery route and normal desktop remain available." checked={status.config.kiosk} change={(value)=>updateConfig({kiosk:value})}/><button onClick={()=>configure(status.config)}>SAVE SESSION CONFIGURATION</button></article>
+        <article><h4>LCARS DECKS</h4><p>Virtual desktops become numbered command decks. Saved Workstations continue to restore applications, displays, LCARS windows, audio, and page arrangements.</p><div className="lcars-deck-grid">{status.decks.map((deck)=><button className={deck.active?"active":""} key={deck.id} onClick={()=>operate("switch-deck",{deck:deck.id})}><i>{String(deck.id).padStart(2,"0")}</i><span>{deck.name||`DECK ${String(deck.id).padStart(2,"0")}`}</span></button>)}</div></article>
+        <article><h4>WINDOW PLACEMENT RULES</h4><p>Match a window class or title and route it to a deck through KWin on KDE Wayland or wmctrl on X11. Other Wayland compositors retain their security boundaries.</p><div className="lcars-rule-entry"><input value={ruleMatch} maxLength={80} placeholder="APP CLASS OR WINDOW TITLE" onChange={(event)=>setRuleMatch(event.target.value)}/><input aria-label="Target deck" type="number" min="1" max="20" value={ruleDeck} onChange={(event)=>setRuleDeck(Math.max(1,Math.min(20,+event.target.value||1)))}/><button disabled={!ruleMatch.trim()} onClick={addRule}>ADD RULE</button></div><div className="lcars-rule-list">{status.config.windowRules.map((rule,index)=><span key={`${rule.match}-${index}`}><b>{rule.match}</b><small>DECK {String(rule.deck).padStart(2,"0")}</small><button aria-label={`Remove ${rule.match} rule`} onClick={()=>{const rules=status.config.windowRules.filter((_,item)=>item!==index);updateConfig({windowRules:rules});void configure({...status.config,windowRules:rules});}}>×</button></span>)}{!status.config.windowRules.length&&<small>NO AUTOMATIC PLACEMENT RULES</small>}</div><button disabled={!status.config.windowRules.length||Boolean(busy)} onClick={()=>operate("apply-rules")}>APPLY RULES NOW</button></article>
+      </div><footer>{status.message} · {status.mode.toUpperCase()} · STARTUP SEQUENCE, LOCK, LOGOUT, POWER, TASK RAIL, DISPLAYS, WORKSTATIONS, SAFE MODE, AND RECOVERY SHARE THE EXISTING LCARS CONTROLS.</footer>
+    </>}
+  </section>;
+}
+
 function ShellSettings({
   platform,
   prefs,
@@ -4242,13 +4305,13 @@ function ShellSettings({
           <Toggle label="Enable offline voice commands" description="Audio stays on this station and is processed by the bundled whisper.cpp Computer Core." checked={prefs.voiceEnabled} change={(v) => set("voiceEnabled", v)} />
           <Toggle label="Use push-to-talk" description="When disabled, LCARS keeps a local hands-free microphone watch active. Switching to hands-free automatically enables the Computer wake word." checked={prefs.voicePushToTalk} change={(v) => setPrefs((old)=>({...old,voicePushToTalk:v,voiceWakePhrase:v?old.voiceWakePhrase:true}))} />
           <Toggle label="Require 'Computer' wake word" description={prefs.voicePushToTalk?"Optional in push-to-talk mode. Commands without Computer are ignored when enabled.":"Recommended for hands-free operation. Disable this only if every recognized phrase should be treated as a command."} checked={prefs.voiceWakePhrase} change={(v) => set("voiceWakePhrase", v)} />
-          <Toggle label="Execute recognized voice commands immediately" description="Opt-in Version 30.3 mode. Valid commands within the selected Voice Authority skip the Computer Core preview. Protected actions only run immediately after the configured vocal authorization code is verified; otherwise the confirmation screen opens." checked={prefs.voiceImmediateExecution} change={(v) => set("voiceImmediateExecution", v)} />
-          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30.3 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
+          <Toggle label="Execute recognized voice commands immediately" description="Opt-in Version 30.4 mode. Valid commands within the selected Voice Authority skip the Computer Core preview. Protected actions only run immediately after the configured vocal authorization code is verified; otherwise the confirmation screen opens." checked={prefs.voiceImmediateExecution} change={(v) => set("voiceImmediateExecution", v)} />
+          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30.4 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
           <label>LOCAL MODEL FILE · OPTIONAL OVERRIDE<small>The bundled English command model works out of the box. A custom GGML model remains entirely local.</small><input value={prefs.voiceModel} placeholder="BUNDLED TINY.EN MODEL (AUTOMATIC)" onChange={(e) => set("voiceModel", e.target.value)} /></label>
           <VoiceDeviceSelect value={prefs.voiceDevice} change={(value) => set("voiceDevice", value)} />
           <label>VOICE AUTHORITY<small>Higher levels permit more command categories; power and unmount commands always require confirmation.</small><select value={prefs.voiceSecurity} onChange={(e) => set("voiceSecurity", e.target.value as ShellPrefs["voiceSecurity"])}><option value="navigation">NAVIGATION ONLY</option><option value="applications">NAVIGATION + APPLICATIONS</option><option value="system">SYSTEM CONTROL</option></select></label>
           <VoiceAuthorizationControl enabled={prefs.voiceAuthorizationEnabled} credential={prefs.voiceAuthorizationCredential} change={(voiceAuthorizationEnabled,voiceAuthorizationCredential)=>setPrefs({...prefs,voiceAuthorizationEnabled,voiceAuthorizationCredential})}/>
-          <div className="voice-training"><small>COMMAND TRAINING</small><p>“Computer, open Media then set volume to 40” · “Run Evening Operations” · “Check updates”</p><p>{prefs.voiceAuthorizationEnabled?"For a protected plan, append: authorization [your private code phrase]. The code is removed before the command enters history.":"Protected voice plans require the visible confirmation gate. Optional vocal authorization can be enabled above."}</p></div>
+          <div className="voice-training"><small>COMMAND TRAINING · STARFLEET VOCABULARY</small><p>“Computer, pause the music” · “Resume playback” · “Status report” · “Locate Settings” · “Open hailing frequencies” · “Red alert” · “Condition green” · “What is the stardate?”</p><p>Self Destruct closes only LCARS and is always treated as a protected plan. Lock, logout, restart, sleep, shutdown, approved commands, and protected Procedures retain their authorization gates.</p><p>{prefs.voiceAuthorizationEnabled?"For a protected plan, append: authorization [your private code phrase]. The code is removed before the command enters history.":"Protected voice plans require the visible confirmation gate. Optional vocal authorization can be enabled above."}</p></div>
         </section>
         <section>
           <h4>EMBEDDED TERMINAL</h4>
@@ -4435,7 +4498,7 @@ function ProcedureCenter({routines,apps,profiles,devices,players,running,history
   const triggerPlaceholder=procedure?.trigger.type==="app"?"APPLICATION NAME":procedure?.trigger.type==="device"?"AUDIO DEVICE":procedure?.trigger.type==="battery-below"?"BATTERY PERCENT":procedure?.trigger.type==="network"?"NETWORK NAME OR BLANK":procedure?.trigger.type==="notice"?"NOTICE TEXT OR SOURCE":procedure?.trigger.type==="media"?"PLAYER, ARTIST, OR TITLE":procedure?.trigger.type==="station"?"PADD NAME OR BLANK":procedure?.trigger.type==="interval"?"MINUTES":"TRIGGER VALUE";
   return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
     <section className="routine-center procedure-center" role="dialog" aria-modal="true" aria-label="Computer Core Procedure Builder">
-      <header><div><small>VERSION 30.3 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
+      <header><div><small>VERSION 30.4 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
       <div className="routine-center-layout">
         <aside><button onClick={add}>+ NEW PROCEDURE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO PROCEDURES CONFIGURED</p>}</aside>
         {showHistory?<main className="routine-run-history"><header><small>COMPUTER CORE EXECUTION JOURNAL</small><h3>PROCEDURE HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO PROCEDURE EXECUTIONS RECORDED</p>}</main>:procedure?<main>
@@ -4583,7 +4646,7 @@ function pcmWavBlob(frames:Float32Array[],sampleRate:number){
 }
 function blobDataUrl(blob:Blob){return new Promise<string>((resolve,reject)=>{const reader=new FileReader();reader.onerror=()=>reject(reader.error);reader.onload=()=>resolve(String(reader.result));reader.readAsDataURL(blob);});}
 
-function VoiceControl({ prefs, computer, notify }: { prefs: ShellPrefs; computer: (command:string,authorized:boolean) => void|Promise<void>; notify: (text: string, kind?: "info" | "error") => void }) {
+function VoiceControl({ prefs, computer, notify }: { prefs: ShellPrefs; computer: (command:string,authorized:boolean) => boolean|Promise<boolean>; notify: (text: string, kind?: "info" | "error") => void }) {
   const [listening, setListening] = useState(false), [busy, setBusy] = useState(false), [commanding,setCommanding]=useState(false), [history, setHistory] = useState<string[]>([]), [armed,setArmed]=useState(!prefs.voicePushToTalk);
   const stopRecorder = useRef<null|(()=>void)>(null),capture=useRef<{stream:MediaStream;context:AudioContext;source:MediaStreamAudioSourceNode;processor:ScriptProcessorNode;timer?:number;frames:Float32Array[];speech:number;sampleRate:number}|null>(null),processing=useRef(false),prefsRef=useRef(prefs),computerRef=useRef(computer),notifyRef=useRef(notify);
   useEffect(()=>{prefsRef.current=prefs;computerRef.current=computer;notifyRef.current=notify;},[prefs,computer,notify]);
@@ -4595,9 +4658,9 @@ function VoiceControl({ prefs, computer, notify }: { prefs: ShellPrefs; computer
     const authorization=text.match(/\s+authorization\s+(.+)$/),phrase=authorization?.[1]?.trim()||"";if(authorization)text=text.slice(0,authorization.index).trim();
     if(!text){if(!ambient)notifyRef.current("No command was detected","error");return;}
     let authorized=false;if(voicePrefs.voiceAuthorizationEnabled&&voicePrefs.voiceAuthorizationCredential&&phrase)authorized=await verifyLockCredential(phrase,voicePrefs.voiceAuthorizationCredential).catch(()=>false);
-    setHistory((old) => [text, ...old].slice(0, 8));affirmative();
-    if(voicePrefs.voiceAuthorizationEnabled&&phrase&&!authorized)notifyRef.current("Voice command received, but the authorization code was not verified","error");
-    setCommanding(true);try{await computerRef.current(text,authorized);}finally{setCommanding(false);}
+    setHistory((old) => [text, ...old].slice(0, 8));
+    if(voicePrefs.voiceAuthorizationEnabled&&phrase&&!authorized){notifyRef.current("Voice command received, but the authorization code was not verified","error");return;}
+    setCommanding(true);try{if(await computerRef.current(text,authorized))affirmative();}finally{setCommanding(false);}
   };
   const stopCapture=(finalize=false)=>{
     const active=capture.current;if(!active)return;capture.current=null;if(active.timer)window.clearInterval(active.timer);active.processor.disconnect();active.source.disconnect();active.stream.getTracks().forEach((track)=>track.stop());void active.context.close().catch(()=>{});setListening(false);stopRecorder.current=null;if(finalize)void transcribe(active.frames,active.sampleRate,false);
@@ -4759,14 +4822,14 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
 
 function Version30Welcome({close,openComputer}:{close:()=>void;openComputer:()=>void}){
   const features=[
-    {code:"01",title:"STABLE MODULE API V3",text:"Pages, Status cards, header fields, panels, tray controls, settings, widgets, and declarative actions now share a documented stable host-rendered contract."},
-    {code:"02",title:"SIGNED PACKAGES + CHANNELS",text:"Module Forge signs portable packages and repository metadata. Stable and Development catalogs remain separate and every download is checksum and signature verified."},
-    {code:"03",title:"EXPLICIT CAPABILITY PERMISSIONS",text:"Operators see requested access before installation and can grant or revoke each capability later from the module details matrix."},
-    {code:"04",title:"HEALTH, ISOLATION + ROLLBACK",text:"Module failures are recorded and isolated without taking down LCARS. Updated or replaced modules keep one previous version for immediate rollback."},
-    {code:"05",title:"MODULE FORGE + PORTABLE PACKAGES",text:"Create API v3 drafts, preview their identity and permissions, export signed .lcars-module files, import verified packages, and generate channel-ready GitHub repositories."},
-    {code:"06",title:"VOICE OPERATIONS REFINEMENT",text:"Optional immediate voice execution, Voice Authority, vocal protected-action gates, the contained Computer Armed masthead, and accurate wake-word status are included."},
+    {code:"01",title:"OPTIONAL LINUX LCARS SESSION",text:"Explicitly register selectable Wayland and X11 login choices from Settings. Application mode remains the default and registration can be removed without deleting LCARS."},
+    {code:"02",title:"DECKS, WINDOWS + COMMAND STATIONS",text:"Use virtual desktops as numbered decks, save Workstation arrangements, route displays, manage windows, and apply KWin or X11 placement rules."},
+    {code:"03",title:"RECOVERY, SAFE MODE + ESCAPE",text:"Bounded crash recovery can escalate into safe mode. Dedicated terminal mode remains optional, and the normal desktop is always available as an escape route."},
+    {code:"04",title:"EXPANDED COMPUTER VOCABULARY",text:"Pause, resume, stop, skip, mute, locate, display, status, calendar, hailing, lock, logout, and protected system phrases now resolve locally."},
+    {code:"05",title:"ALERT CONDITIONS + SELF DESTRUCT",text:"Red Alert and Yellow Alert transform the active Display Matrix until Condition Green. Protected Self Destruct closes only LCARS—never files or the computer."},
+    {code:"06",title:"ACCURATE AUDIO + READABLE NOTICES",text:"Affirmative audio plays only after accepted commands, failed commands keep the error cue, and Communications item actions remain readable rounded controls."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.3 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.3 · MODULE PLATFORM</h2><p>Build, trust, permission, isolate, and recover LCARS modules as a real platform.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openComputer}>OPEN COMPUTER CORE</button><button autoFocus onClick={close}>BEGIN 30.3 DEVELOPMENT</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.4 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.4 · LCARS SESSION</h2><p>Make LCARS a real, optional Linux desktop environment and broaden Computer operations.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openComputer}>OPEN COMPUTER CORE</button><button autoFocus onClick={close}>BEGIN 30.4 DEVELOPMENT</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

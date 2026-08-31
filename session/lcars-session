@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+session_kind="${1:---wayland}"
+config_dir="${XDG_CONFIG_HOME:-$HOME/.config}/lcars-command-interface"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/lcars-command-interface"
+config_file="$config_dir/session.json"
+escape_file="$state_dir/session-escape"
+mkdir -p "$config_dir" "$state_dir"
+rm -f "$escape_file"
+
+read_setting() {
+  python3 - "$config_file" "$1" "$2" <<'PY'
+import json,sys
+try:data=json.load(open(sys.argv[1],encoding="utf-8"))
+except Exception:data={}
+value=data.get(sys.argv[2],sys.argv[3])
+if isinstance(value,bool): print("1" if value else "0")
+else: print(value)
+PY
+}
+
+base_desktop="$(read_setting baseDesktop auto)"
+kiosk="$(read_setting kiosk false)"
+crash_recovery="$(read_setting crashRecovery true)"
+safe_after_failure="$(read_setting safeModeOnFailure true)"
+appimage="${LCARS_EXECUTABLE:-$HOME/.local/opt/lcars-command-interface/LCARS-Command-Interface.AppImage}"
+
+choose_desktop() {
+  local wanted="$base_desktop"
+  [[ "$wanted" == auto ]] && wanted="plasma"
+  if [[ "$session_kind" == --wayland ]]; then
+    case "$wanted" in
+      plasma) command -v startplasma-wayland || true ;;
+      gnome) command -v gnome-session || true ;;
+      *) command -v startplasma-wayland || command -v gnome-session || true ;;
+    esac
+  else
+    case "$wanted" in
+      plasma) command -v startplasma-x11 || true ;;
+      gnome) command -v gnome-session || true ;;
+      cinnamon) command -v cinnamon-session || true ;;
+      xfce) command -v startxfce4 || true ;;
+      lxqt) command -v startlxqt || true ;;
+      *) command -v startplasma-x11 || command -v gnome-session || command -v startxfce4 || true ;;
+    esac
+  fi
+}
+
+desktop_command="$(choose_desktop)"
+if [[ -z "$desktop_command" ]]; then
+  command -v notify-send >/dev/null 2>&1 && notify-send "LCARS Session" "No supported base desktop was found. Returning to the login screen."
+  exit 1
+fi
+if [[ ! -x "$appimage" ]]; then
+  command -v notify-send >/dev/null 2>&1 && notify-send "LCARS Session" "LCARS is not installed. Starting the normal desktop instead."
+  exec "$desktop_command"
+fi
+
+export LCARS_SESSION=1
+export LCARS_SESSION_KIND="${session_kind#--}"
+export LCARS_SESSION_KIOSK="$kiosk"
+"$desktop_command" &
+desktop_pid=$!
+
+# The ordinary desktop is intentionally started underneath LCARS. It provides
+# Wayland/X11, window management, panels for the escape route, and a usable
+# fallback if LCARS cannot start. Kiosk mode asks LCARS to hide those panels.
+for _ in $(seq 1 80); do
+  kill -0 "$desktop_pid" 2>/dev/null || exit 1
+  [[ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]] && break
+  sleep 0.1
+done
+
+attempt=0
+safe=0
+while kill -0 "$desktop_pid" 2>/dev/null; do
+  args=(--lcars-session)
+  [[ "$kiosk" == 1 ]] && args+=(--lcars-kiosk)
+  [[ "$safe" == 1 ]] && args+=(--lcars-safe)
+  started=$(date +%s)
+  "$appimage" "${args[@]}" || true
+  ended=$(date +%s)
+  [[ -f "$escape_file" ]] && break
+  [[ "$kiosk" == 1 ]] && break
+  (( attempt += 1 ))
+  if (( ended - started > 45 )); then attempt=0; fi
+  if [[ "$crash_recovery" != 1 || "$attempt" -ge 3 ]]; then break; fi
+  [[ "$safe_after_failure" == 1 && "$attempt" -ge 2 ]] && safe=1
+  sleep 1
+done
+
+# Never strand the operator. Leaving or repeatedly crashing LCARS reveals the
+# already-running normal desktop; ending that desktop ends the login session.
+wait "$desktop_pid"

@@ -27,7 +27,7 @@ test("task rail owns scrolling and exposes the tray drawer",()=>{
 
 test("remote terminal launches a native second Electron window",()=>{
   assert.match(main,/--lcars-terminal/);
-  assert.match(main,/\?section=terminal/);
+  assert.match(main,/query\.set\("section","terminal"\)/);
   assert.doesNotMatch(linux,/chromium.*section=terminal/);
 });
 

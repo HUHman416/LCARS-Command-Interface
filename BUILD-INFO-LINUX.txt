@@ -1,7 +1,7 @@
-LCARS Universal Linux Desktop v30.3 Development
-Application version: 30.3.0-dev.1
+LCARS Universal Linux Desktop v30.4 Development
+Application version: 30.4.0-dev.1
 AppImage SHA-256: GENERATED-DURING-PACKAGING
 
 The installer verifies this checksum before replacing the installed application.
-Shell Mode uses safe fullscreen immersion and never terminates Plasma.
+The optional LCARS login session is installed only from Settings with explicit authorization. It retains a normal-desktop escape route.
 Run install-autostart.sh to register a portable AppImage in application search and optionally enable login startup without sudo.

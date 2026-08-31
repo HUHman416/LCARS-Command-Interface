@@ -30,7 +30,7 @@ test("Module Platform UI provides Forge, permission, health, signing, and lifecy
   for(const token of ["module-forge","module-permission-matrix","module-health-isolated","module-package-bay"])assert.ok(css.includes(token),token);
 });
 
-test("30.3 release workflow identifies the complete Module Platform milestone",()=>{
-  assert.match(workflow,/Version 30\.3 Module Platform Development/);
-  assert.match(workflow,/documented stable host-rendered contract/);
+test("30.4 release workflow retains the complete Module Platform milestone",()=>{
+  assert.match(workflow,/Version 30\.4 LCARS Session Development/);
+  assert.match(workflow,/Version 30\.3 Module Platform/);
 });

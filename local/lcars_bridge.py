@@ -13,10 +13,13 @@ from lcars_documents import read_document, write_document
 from lcars_padd import PaddController
 
 PORT=8765
-LCARS_VERSION="30.3"
+LCARS_VERSION="30.4"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
+SESSION_CONFIG_FILE=CONFIG_DIR/"session.json"
+SESSION_STATE_DIR=Path(os.environ.get("XDG_STATE_HOME",Path.home()/".local/state"))/"lcars-command-interface"
+SESSION_ASSET_DIR=Path(__file__).resolve().parent.parent/"session"
 UPDATE_DIR=CONFIG_DIR/"updates"
 EXTENSION_DIR=Path(os.environ.get("LCARS_EXTENSION_DIR",Path.home()/".local/share/lcars-command-interface/extensions"))
 BUILTIN_EXTENSION_DIR=Path(__file__).resolve().parent.parent/"extensions"
@@ -160,6 +163,115 @@ def save_config(data):
     if "shell_prefs" in data and isinstance(data["shell_prefs"],dict): current["shell_prefs"]=data["shell_prefs"]
     CONFIG_FILE.write_text(json.dumps(current,indent=2))
     return current
+
+def load_session_config():
+    base={"baseDesktop":"auto","kiosk":False,"crashRecovery":True,"safeModeOnFailure":True,"windowRules":[]}
+    try:
+        value=json.loads(SESSION_CONFIG_FILE.read_text(encoding="utf-8"))
+        if isinstance(value,dict):base.update(value)
+    except Exception:pass
+    base["baseDesktop"]=base["baseDesktop"] if base["baseDesktop"] in {"auto","plasma","gnome","cinnamon","xfce","lxqt"} else "auto"
+    for key in ("kiosk","crashRecovery","safeModeOnFailure"):base[key]=bool(base.get(key))
+    rules=base.get("windowRules",[])
+    base["windowRules"]=[{"match":str(item.get("match","")).strip()[:80],"deck":max(1,min(20,int(item.get("deck",1))))} for item in rules[:20] if isinstance(item,dict) and str(item.get("match","")).strip()]
+    return base
+
+def save_session_config(data):
+    current=load_session_config()
+    if "baseDesktop" in data:current["baseDesktop"]=str(data.get("baseDesktop","auto"))
+    for key in ("kiosk","crashRecovery","safeModeOnFailure"):
+        if key in data:current[key]=bool(data.get(key))
+    if "windowRules" in data:current["windowRules"]=data.get("windowRules",[])
+    SESSION_CONFIG_FILE.parent.mkdir(parents=True,exist_ok=True)
+    SESSION_CONFIG_FILE.write_text(json.dumps(load_session_config_from(current),indent=2),encoding="utf-8")
+    return load_session_config()
+
+def load_session_config_from(value):
+    base={"baseDesktop":"auto","kiosk":False,"crashRecovery":True,"safeModeOnFailure":True,"windowRules":[]};base.update(value if isinstance(value,dict) else {})
+    base["baseDesktop"]=base["baseDesktop"] if base["baseDesktop"] in {"auto","plasma","gnome","cinnamon","xfce","lxqt"} else "auto"
+    for key in ("kiosk","crashRecovery","safeModeOnFailure"):base[key]=bool(base.get(key))
+    base["windowRules"]=[{"match":str(item.get("match","")).strip()[:80],"deck":max(1,min(20,int(item.get("deck",1))))} for item in base.get("windowRules",[])[:20] if isinstance(item,dict) and str(item.get("match","")).strip()]
+    return base
+
+def virtual_decks():
+    if shutil.which("wmctrl"):
+        try:
+            decks=[]
+            for line in subprocess.run(["wmctrl","-d"],capture_output=True,text=True,timeout=3).stdout.splitlines():
+                match=re.match(r"\s*(\d+)\s+([*-])\s+.*?\s+([^\s].*)$",line)
+                if match:decks.append({"id":int(match.group(1))+1,"name":match.group(3).strip()[:48],"active":match.group(2)=="*"})
+            if decks:return decks
+        except Exception:pass
+    if command_path("kdotool"):
+        script='var a=workspace.desktops.map((d,i)=>({id:i+1,name:d.name||("DECK "+String(i+1).padStart(2,"0")),active:d===workspace.currentDesktop}));output_result(JSON.stringify(a));'
+        result=kdotool("kwinscript","--inline",script)
+        for line in reversed(result.stdout.splitlines()):
+            try:
+                start=line.find("[");end=line.rfind("]");value=json.loads(line[start:end+1] if start>=0 and end>=start else line.strip())
+                if isinstance(value,list) and value:return value[:20]
+            except Exception:pass
+    qdbus=shutil.which("qdbus6") or shutil.which("qdbus")
+    if qdbus:
+        try:
+            count=int(subprocess.run([qdbus,"org.kde.KWin","/KWin","org.kde.KWin.numberOfDesktops"],capture_output=True,text=True,timeout=3).stdout.strip() or "1")
+            active=int(subprocess.run([qdbus,"org.kde.KWin","/KWin","org.kde.KWin.currentDesktop"],capture_output=True,text=True,timeout=3).stdout.strip() or "1")
+            return [{"id":index,"name":f"DECK {index:02d}","active":index==active} for index in range(1,max(1,min(20,count))+1)]
+        except Exception:pass
+    return [{"id":1,"name":"DECK 01","active":True}]
+
+def session_status():
+    helper=Path("/usr/local/libexec/lcars-command-interface/lcars-session")
+    wayland=Path("/usr/share/wayland-sessions/lcars-command-interface.desktop")
+    x11=Path("/usr/share/xsessions/lcars-command-interface.desktop")
+    config=load_session_config()
+    return {"ok":True,"supported":sys.platform.startswith("linux"),"installed":helper.is_file() and (wayland.is_file() or x11.is_file()),"active":os.environ.get("LCARS_SESSION")=="1","mode":os.environ.get("LCARS_SESSION_KIND",os.environ.get("XDG_SESSION_TYPE","unknown")),"kioskActive":os.environ.get("LCARS_SESSION_KIOSK")=="1","config":config,"decks":virtual_decks(),"capabilities":{"loginSession":True,"normalDesktopFallback":True,"crashRecovery":True,"safeMode":True,"kiosk":linux_environment()["capabilities"]["shellControl"],"windowTasking":linux_environment()["capabilities"]["windowControl"],"multiMonitor":linux_environment()["capabilities"]["displayControl"],"windowRules":bool(shutil.which("wmctrl") or command_path("kdotool"))},"message":"LCARS is the active login session" if os.environ.get("LCARS_SESSION")=="1" else "Application mode · LCARS login remains opt-in"}
+
+def session_operation(data):
+    operation=str(data.get("operation","status"))
+    if operation=="configure":
+        return {**session_status(),"config":save_session_config(data),"message":"LCARS session preferences saved"}
+    if operation in {"install","uninstall"}:
+        installer=SESSION_ASSET_DIR/"install-session.sh"
+        if not installer.is_file():raise FileNotFoundError("LCARS session installer is not included in this build")
+        command=["bash",str(installer),"--"+operation] if os.geteuid()==0 else ["pkexec","bash",str(installer),"--"+operation]
+        if not shutil.which(command[0]):raise RuntimeError("PolicyKit authorization is unavailable on this Linux installation")
+        result=subprocess.run(command,capture_output=True,text=True,timeout=180)
+        if result.returncode!=0:raise RuntimeError((result.stderr or result.stdout or "Session registration was cancelled").strip()[:300])
+        return {**session_status(),"message":result.stdout.strip() or f"LCARS login session {operation} complete"}
+    if operation=="switch-deck":
+        deck=max(1,min(20,int(data.get("deck",1))))
+        if shutil.which("wmctrl"):
+            result=subprocess.run(["wmctrl","-s",str(deck-1)],capture_output=True,text=True,timeout=3)
+        elif command_path("kdotool"):
+            result=kdotool("kwinscript","--inline",f'var i={deck-1};if(workspace.desktops[i]){{workspace.currentDesktop=workspace.desktops[i];output_result("selected");}}')
+        else:
+            qdbus=shutil.which("qdbus6") or shutil.which("qdbus")
+            if not qdbus:raise RuntimeError("Virtual desktop switching is unavailable in this desktop session")
+            result=subprocess.run([qdbus,"org.kde.KWin","/KWin","org.kde.KWin.currentDesktop",str(deck)],capture_output=True,text=True,timeout=3)
+        if result.returncode!=0:raise RuntimeError("The desktop rejected the deck switch")
+        return {**session_status(),"message":f"DECK {deck:02d} selected"}
+    if operation=="apply-rules":
+        rules=load_session_config()["windowRules"];applied=0
+        if shutil.which("wmctrl"):
+            windows=subprocess.run(["wmctrl","-lx"],capture_output=True,text=True,timeout=3).stdout.splitlines()
+            for rule in rules:
+                for line in windows:
+                    parts=line.split(None,4)
+                    if len(parts)>=5 and rule["match"].casefold() in (parts[2]+" "+parts[4]).casefold():
+                        result=subprocess.run(["wmctrl","-ir",parts[0],"-t",str(rule["deck"]-1)],capture_output=True,text=True,timeout=3);applied+=result.returncode==0
+        elif command_path("kdotool"):
+            script=f'var rules={json.dumps(rules)};var n=0;for(var r of rules){{var d=workspace.desktops[r.deck-1];if(!d)continue;for(var w of workspace.windowList()){{var s=String(w.caption||"")+" "+String(w.resourceClass||w.resourceName||"");if(s.toLowerCase().includes(r.match.toLowerCase())){{w.desktops=[d];n++;}}}}}}output_result(String(n));'
+            result=kdotool("kwinscript","--inline",script)
+            if result.returncode!=0:raise RuntimeError("KWin rejected the automatic placement rules")
+            for line in reversed(result.stdout.splitlines()):
+                if line.strip().isdigit():applied=int(line.strip());break
+        else:raise RuntimeError("Automatic window placement is unavailable in this desktop session")
+        return {**session_status(),"message":f"{applied} window placement rule(s) applied"}
+    if operation=="escape":
+        SESSION_STATE_DIR.mkdir(parents=True,exist_ok=True);(SESSION_STATE_DIR/"session-escape").touch();protected_action("shell-mode-off")
+        return {**session_status(),"message":"Normal desktop escape route armed · close LCARS to continue"}
+    if operation!="status":raise ValueError("Unknown LCARS session operation")
+    return session_status()
 
 def safe_home_path(value="~"):
     home=Path.home().resolve()
@@ -551,7 +663,7 @@ def tray_action(ident,action="activate",x=0,y=0):
 
 def voice_transcribe(data):
     status=voice_status();prefs=load_config().get("shell_prefs",{});engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or status.get("model") or "")).expanduser()
-    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.3 or select custom files in Settings"}
+    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.4 or select custom files in Settings"}
     encoded=str(data.get("audio","")).split(",")[-1]
     if len(encoded)>28_000_000:return {"ok":False,"message":"Voice sample is too large"}
     try:
@@ -559,7 +671,7 @@ def voice_transcribe(data):
             raw=base64.b64decode(encoded,validate=True);source=Path(folder)/"sample.input";wav=Path(folder)/"sample.wav"
             if raw[:4]==b"RIFF" and raw[8:12]==b"WAVE":wav.write_bytes(raw)
             else:
-                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.3 PCM recorder does not"}
+                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.4 PCM recorder does not"}
                 source.write_bytes(raw);convert=subprocess.run([status["ffmpeg"],"-loglevel","error","-y","-i",str(source),"-ar","16000","-ac","1",str(wav)],capture_output=True,text=True,timeout=30)
                 if convert.returncode:return {"ok":False,"message":"FFmpeg could not decode the microphone sample"}
             environment={**os.environ,"PATH":str(Path(engine).parent)+os.pathsep+os.environ.get("PATH","")};environment["LD_LIBRARY_PATH"]=str(Path(engine).parent)+os.pathsep+os.environ.get("LD_LIBRARY_PATH","")
@@ -691,7 +803,7 @@ def integration_health():
         "media":{"available":bool(shutil.which("playerctl")),"detail":"MPRIS controls ready" if shutil.which("playerctl") else "playerctl missing","remedy":"Install playerctl to control MPRIS-compatible players."},
         "terminal":{"available":Path(os.environ.get("SHELL","/bin/bash")).is_file(),"detail":os.environ.get("SHELL","/bin/bash"),"remedy":"Choose an installed shell in Settings → Embedded Terminal."},
         "storage":{"available":bool(shutil.which("udisksctl")),"detail":f'{len(storage_data())} block device(s); UDisks2 '+("ready" if shutil.which("udisksctl") else "missing"),"remedy":"Install UDisks2 for safe removable-drive mount controls."},
-        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.3 voice resources or select custom whisper.cpp files in Settings."},
+        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.4 voice resources or select custom whisper.cpp files in Settings."},
         "tray":{"available":tray_data()["supported"],"detail":tray_data()["reason"] or f'{len(tray_data()["items"])} StatusNotifier service(s)',"remedy":"Use a KDE StatusNotifier-compatible desktop session for re-hosted tray items."},
         "extensions":{"available":not bool(extension_result.get("errors")),"detail":f'{len(extension_result.get("extensions",[]))} module(s), {len(extension_result.get("errors",[]))} rejected',"remedy":"Remove or update rejected manifests shown in the extension bay."},
         "configuration":{"available":config_ready,"detail":"Local settings storage ready" if config_ready else "Settings directory is not writable","remedy":"Restore write access to the LCARS configuration directory."},
@@ -794,6 +906,12 @@ def protected_action(action):
         if not shutil.which(command[0]): return "System power control is not available on this Linux distribution"
         subprocess.Popen(command,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
         return {"poweroff":"Computer shutdown requested","reboot":"Computer restart requested","sleep":"Computer sleep requested"}[action]
+    if action=="logout":
+        session_id=os.environ.get("XDG_SESSION_ID","")
+        if session_id and shutil.which("loginctl"):
+            subprocess.Popen(["loginctl","terminate-session",session_id],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True);return "Desktop session logout requested"
+        if start_first([["qdbus6","org.kde.Shutdown","/Shutdown","logout"],["qdbus","org.kde.Shutdown","/Shutdown","logout"],["gnome-session-quit","--logout","--no-prompt"]]):return "Desktop session logout requested"
+        return "Desktop logout control is unavailable; use the normal desktop session menu"
     if action=="shell-mode-off":
         running=shutil.which("pgrep") and subprocess.run(["pgrep","-x","plasmashell"],capture_output=True).stdout
         if not running:
@@ -801,6 +919,13 @@ def protected_action(action):
             if (not service or service.returncode!=0) and shutil.which("plasmashell"):
                 subprocess.Popen(["plasmashell"],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
         return "Plasma desktop restored"
+    if action=="shell-mode-on":
+        if not linux_environment()["capabilities"]["shellControl"]:return "Kiosk shell control is unavailable; LCARS remains full-screen above the normal desktop"
+        if shutil.which("systemctl"):
+            subprocess.run(["systemctl","--user","stop","plasma-plasmashell.service"],capture_output=True,text=True,timeout=8)
+        elif shutil.which("pkill"):
+            subprocess.run(["pkill","-x","plasmashell"],capture_output=True,text=True,timeout=3)
+        return "LCARS kiosk command terminal active · normal desktop recovery remains available"
     if action=="identify-displays":
         if start_first([["systemsettings","kcm_kscreen"],["gnome-control-center","display"],["cinnamon-settings","display"],["xfce4-display-settings"],["lxqt-config-monitor"]]): return "Display identification opened"
         return "Display settings are not installed"
@@ -865,6 +990,7 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/padd-events": self.send_json({"events":PADD.pop_events()})
         elif route=="/api/voice-status": self.send_json(voice_status())
         elif route=="/api/compat": self.send_json(linux_environment())
+        elif route=="/api/lcars-session": self.send_json(session_status())
         elif route=="/api/audio": self.send_json(audio_data())
         elif route=="/api/audio-devices": self.send_json({"devices":audio_devices_data()})
         elif route=="/api/files":
@@ -929,6 +1055,9 @@ class Handler(BaseHTTPRequestHandler):
                     if operation=="status":return self.send_json({"ok":True,"rollback":rollback_status("linux",executable,archive)})
                     return self.send_json({"ok":False,"error":"Unknown update operation"},400)
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},503)
+            if route=="/api/lcars-session":
+                try:return self.send_json(session_operation(data))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
             if route=="/api/diagnostics-export":
                 try:return self.send_json(export_diagnostics())
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},500)
@@ -1043,6 +1172,11 @@ class Handler(BaseHTTPRequestHandler):
             desktop=next((p/app_id for p in APP_DIRS if (p/app_id).exists()),None)
             if not desktop: return self.send_json({"error":"application missing"},404)
             subprocess.Popen(["gio","launch",str(desktop)],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+            if load_session_config()["windowRules"]:
+                def apply_after_launch():
+                    try:session_operation({"operation":"apply-rules"})
+                    except Exception:pass
+                threading.Timer(1.2,apply_after_launch).start()
             self.send_json({"launched":app_id})
         except Exception as exc: self.send_json({"error":str(exc)},400)
     def log_message(self,fmt,*args): pass

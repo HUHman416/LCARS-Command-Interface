@@ -24,6 +24,17 @@ fi
 for port in 8764 8765; do command -v fuser >/dev/null 2>&1 && fuser -k "$port/tcp" >/dev/null 2>&1 || true; done
 "$project_dir/local/lcars-recovery.sh" >/dev/null 2>&1 || true
 
+if [[ -f /usr/share/wayland-sessions/lcars-command-interface.desktop || -f /usr/share/xsessions/lcars-command-interface.desktop ]]; then
+  read -r -p "Also remove the optional LCARS login session entries? [Y/n] " session_entries
+  if [[ -z "$session_entries" || "${session_entries,,}" == y || "${session_entries,,}" == yes ]]; then
+    if [[ -x "$project_dir/session/install-session.sh" ]] && command -v pkexec >/dev/null 2>&1; then
+      pkexec bash "$project_dir/session/install-session.sh" --uninstall || echo "Session entries remain installed; remove them later from LCARS Settings."
+    else
+      echo "Session entries remain installed because the authorization helper is unavailable."
+    fi
+  fi
+fi
+
 rm -f "$HOME/.config/autostart/lcars-command-interface.desktop"
 rm -f "$HOME/.local/share/applications/lcars-command-interface.desktop"
 rm -f "$HOME/.local/share/applications/lcars-recovery.desktop"

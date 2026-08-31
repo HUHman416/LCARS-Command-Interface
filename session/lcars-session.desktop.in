@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=@LABEL@
+Comment=Optional LCARS command environment with a normal desktop recovery route
+Exec=@EXEC@
+TryExec=/usr/local/libexec/lcars-command-interface/lcars-session
+Type=Application
+DesktopNames=LCARS
+X-GDM-SessionRegisters=true

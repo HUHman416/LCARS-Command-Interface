@@ -89,5 +89,5 @@ test("desktop voice package remains pinned and verified for 30.3 hands-free capt
   assert.match(page, /voiceAuthorizationCredential/);
   assert.match(builder, /voice-runtime\/linux/);
   assert.match(builder, /voice-runtime\/windows/);
-  assert.match(workflow, /gh release (?:view|create) v30\.3/);
+  assert.match(workflow, /gh release (?:view|create) v30\.4/);
 });

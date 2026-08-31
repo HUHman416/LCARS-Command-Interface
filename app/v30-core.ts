@@ -9,10 +9,14 @@ export type ComputerCommandId =
   | "set-theme"
   | "set-dnd"
   | "set-volume"
+  | "set-mute"
+  | "set-alert"
   | "media-control"
   | "open-center"
   | "core-action"
   | "local-command"
+  | "lock-session"
+  | "exit-lcars"
   | "system-action";
 
 export type ComputerEntity = { id: string; name: string; aliases?: string[] };
@@ -78,6 +82,7 @@ export type ComputerUndoSnapshot = {
   theme: string;
   doNotDisturb: boolean;
   volume: number;
+  alertCondition?: "normal" | "yellow" | "red";
 };
 
 export type ComputerProcedureShape = {
@@ -139,12 +144,6 @@ const centers: Record<string, { target: string; label: string }> = {
   apps: { target: "applications", label: "Application Library" },
 };
 
-const mediaAliases: Record<string, string> = {
-  play: "play-pause", resume: "play-pause", pause: "play-pause",
-  "play pause": "play-pause", toggle: "play-pause", next: "next",
-  skip: "next", previous: "previous", back: "previous", stop: "stop",
-};
-
 const riskRank: Record<ComputerRisk, number> = { safe: 0, attention: 1, protected: 2 };
 export const highestComputerRisk = (risks: ComputerRisk[]): ComputerRisk =>
   risks.reduce((current, candidate) => riskRank[candidate] > riskRank[current] ? candidate : current, "safe");
@@ -184,10 +183,28 @@ const interpretClause = (rawClause: string, context: ComputerContext) => {
     return { value: step("set-dnd", `${value === "toggle" ? "Toggle" : value ? "Enable" : "Disable"} Do Not Disturb`, "Change notification interruption policy", "dnd", "safe", true, value), confidence: 1 };
   }
 
-  match = clause.match(/^(?:media\s+)?(play pause|play|resume|pause|next|skip|previous|back|stop)(?:\s+(?:media|playback))?$/);
-  if (match) return { value: step("media-control", `Media ${mediaAliases[match[1]].toUpperCase()}`, "Control the active media session", mediaAliases[match[1]], "safe", false, undefined, true), confidence: 1 };
+  if (/^(?:set\s+)?red alert$|^battle stations$/.test(clause)) return { value: step("set-alert", "Activate Red Alert", "Shift the LCARS interface to the red emergency condition", "red", "attention", true), confidence: 1 };
+  if (/^(?:set\s+)?yellow alert$/.test(clause)) return { value: step("set-alert", "Activate Yellow Alert", "Shift the LCARS interface to the yellow readiness condition", "yellow", "attention", true), confidence: 1 };
+  if (/^(?:cancel|end|stand down from)\s+(?:red |yellow )?alert$|^condition green$|^stand down$/.test(clause)) return { value: step("set-alert", "Return to Condition Green", "Restore the selected Display Matrix palette", "normal", "safe", true), confidence: 1 };
 
-  match = clause.match(/^(?:open|show|go to|navigate to)\s+(.+)$/);
+  if (/^(?:initiate\s+)?(?:auto[- ]?destruct|self[- ]?destruct)(?:\s+sequence)?$/.test(clause)) return { value: step("exit-lcars", "Self Destruct · Close LCARS", "Close only the LCARS interface; no files, applications, or operating-system data are destroyed", "exit", "protected", false), confidence: 1 };
+  if (/^(?:lock|secure)(?:\s+(?:the\s+)?(?:computer|workstation|lcars))?$/.test(clause)) return { value: step("lock-session", "Secure workstation", "Open the local LCARS authorization screen", "lock", "safe", true), confidence: 1 };
+  if (/^(?:mute|silence)(?:\s+(?:the\s+)?(?:audio|sound|music|computer))?$/.test(clause)) return { value: step("set-mute", "Mute master audio", "Mute the default system output", "mute", "safe", true, true, true), confidence: 1 };
+  if (/^(?:unmute|restore)(?:\s+(?:the\s+)?(?:audio|sound|music|computer))?$/.test(clause)) return { value: step("set-mute", "Restore master audio", "Unmute the default system output", "unmute", "safe", true, false, true), confidence: 1 };
+
+  if (/^(?:media\s+)?(?:pause|hold)(?:\s+(?:the\s+)?(?:music|audio|song|track|media|playback))?$/.test(clause)) return { value: step("media-control", "Pause media", "Pause the active media session without resuming an already-paused player", "pause", "safe", false, undefined, true), confidence: 1 };
+  if (/^(?:media\s+)?(?:play|resume|continue|unpause)(?:\s+(?:the\s+)?(?:music|audio|song|track|media|playback))?$/.test(clause)) return { value: step("media-control", "Resume media", "Resume the active media session without pausing an already-playing player", "play", "safe", false, undefined, true), confidence: 1 };
+  if (/^(?:media\s+)?(?:next|skip)(?:\s+(?:the\s+)?(?:song|track|media))?$/.test(clause)) return { value: step("media-control", "Next media item", "Advance the active MPRIS media session", "next", "safe", false, undefined, true), confidence: 1 };
+  if (/^(?:media\s+)?(?:previous|back|go back)(?:\s+(?:to\s+)?(?:the\s+)?(?:song|track|media))?$/.test(clause)) return { value: step("media-control", "Previous media item", "Return in the active MPRIS media session", "previous", "safe", false, undefined, true), confidence: 1 };
+  if (/^(?:media\s+)?(?:stop|stop playback)(?:\s+(?:the\s+)?(?:music|audio|song|track|media))?$/.test(clause)) return { value: step("media-control", "Stop media", "Stop the active MPRIS media session", "stop", "safe", false, undefined, true), confidence: 1 };
+
+  if (/^(?:computer\s+)?(?:status|status report|report|run diagnostics?|diagnostic report)$/.test(clause)) return { value: step("navigate", "Display Systems Status", "Open LCARS engineering and system diagnostics", "system", "safe", true), confidence: 1 };
+  if (/^(?:open\s+)?hailing frequencies$/.test(clause)) return { value: step("open-center", "Open hailing frequencies", "Present the Communications Action Center", "communications", "safe", true), confidence: 1 };
+  if (/^(?:what(?:'s| is)\s+)?(?:the\s+)?(?:time|date|stardate)$|^(?:display|show)\s+(?:the\s+)?(?:time|date|stardate)$/.test(clause)) return { value: step("open-center", "Display time and calendar", "Open the LCARS calendar and local date display", "calendar", "safe", true), confidence: 1 };
+  if (/^(?:main\s+)?viewer(?:\s+on)?$|^(?:display|show)\s+(?:the\s+)?main viewer$/.test(clause)) return { value: step("navigate", "Activate main viewer", "Return to the LCARS Status overview", "overview", "safe", true), confidence: 1 };
+  if (/^(?:identify|display)\s+(?:the\s+)?(?:music|song|track|musical composition)(?:\s+playing)?$/.test(clause)) return { value: step("navigate", "Identify active media", "Open Now Playing and connected MPRIS sessions", "media", "safe", true), confidence: 1 };
+
+  match = clause.match(/^(?:open|show|display|locate|find|go to|navigate to)\s+(.+)$/);
   if (match) {
     const requested = match[1].replace(/^the\s+/, "");
     const center = centers[requested];
@@ -209,11 +226,11 @@ const interpretClause = (rawClause: string, context: ComputerContext) => {
   if (/^(?:identify|show)\s+(?:the\s+)?displays?$/.test(clause)) return { value: step("core-action", "Identify displays", "Show the operating-system display identifiers", "identify-displays", "safe", false, undefined, true), confidence: 1 };
   if (/^(?:recheck|check)\s+(?:local\s+)?integrations?$/.test(clause)) return { value: step("core-action", "Recheck integrations", "Refresh local operating-system capability probes", "integration-recheck", "safe", false, undefined, true), confidence: 1 };
 
-  match = clause.match(/^(?:sudo\s+)?(?:sleep|suspend|restart|reboot|shut down|shutdown|power off)(?:\s+(?:the\s+)?computer)?$/);
+  match = clause.match(/^(?:sudo\s+)?(?:sleep|suspend|restart|reboot|shut down|shutdown|power off|log out|logout|end session)(?:\s+(?:the\s+)?(?:computer|session))?$/);
   if (match) {
     const request = match[0];
-    const action = /restart|reboot/.test(request) ? "reboot" : /sleep|suspend/.test(request) ? "sleep" : "poweroff";
-    return { value: step("system-action", `${action === "reboot" ? "Restart" : action === "sleep" ? "Sleep" : "Shut down"} computer`, "Protected whole-system power operation", action, "protected", false, undefined, true), confidence: 1 };
+    const action = /log out|logout|end session/.test(request) ? "logout" : /restart|reboot/.test(request) ? "reboot" : /sleep|suspend/.test(request) ? "sleep" : "poweroff";
+    return { value: step("system-action", action === "logout" ? "Log out session" : `${action === "reboot" ? "Restart" : action === "sleep" ? "Sleep" : "Shut down"} computer`, action === "logout" ? "Protected desktop-session logout" : "Protected whole-system power operation", action, "protected", false, undefined, true), confidence: 1 };
   }
 
   match = clause.match(/^(?:approved\s+)?(?:local\s+)?command\s+(.+)$/);
@@ -240,6 +257,9 @@ export const interpretComputerCommand = (
     "Enable Do Not Disturb",
     "Check for updates",
     "Computer, identify displays",
+    "Computer, pause the music",
+    "Computer, red alert",
+    "Computer, status report",
   ];
   return {
     id: createId("computer-plan"), input, normalized, source,
@@ -287,6 +307,7 @@ export const normalizeComputerUndo = (value: unknown): ComputerUndoSnapshot | nu
     theme: String(item.theme || "classic").slice(0, 80),
     doNotDisturb: Boolean(item.doNotDisturb),
     volume: Math.max(0, Math.min(100, Number(item.volume) || 0)),
+    alertCondition: item.alertCondition === "red" || item.alertCondition === "yellow" ? item.alertCondition : "normal",
   };
 };
 
