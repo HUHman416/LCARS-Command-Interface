@@ -1,237 +1,320 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿov÷M¹ë~5ómõöZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µé™^Ü\HÛÛ\]\ÛÛ[X[™ÛÝ\˜ÙHH›Ü\˜]Üˆˆ›ÚXÙHˆœ›ØÙY\™HˆšYÙÙ\ˆˆœYŽÂ™^Ü\HÛÛ\]\”š\ÚÈHœØY™Hˆ˜][[Ûˆˆœ›ÝXÝYŽÂ™^Ü\HÛÛ\]\”[”Ý]\ÈHœ™XYHˆš[˜[Yˆœ[›š[™Èˆ˜ÛÛ\]Yˆ™˜Z[Yˆ™žK\[ˆˆ[™Û™HŽÂ™^Ü\HÛÛ\]\ÛÛ[X[™YBˆ›˜]šYØ]H‚ˆ›][˜ÚX\‚ˆœ[‹\›ØÙY\™H‚ˆœ™\ÝÜ™K]ÛÜšÜÝ][Ûˆ‚ˆœÙ]][YH‚ˆœÙ]Y™‚ˆœÙ]]›Û[YH‚ˆœÙ][]]H‚ˆœÙ]X[\‚ˆ›YYXKXÛÛ›Û‚ˆ›Ü[‹XÙ[\ˆ‚ˆ˜ÛÜ™KXXÝ[Ûˆ‚ˆ›ØØ[XÛÛ[X[™‚ˆ›ØÚË\Ù\ÜÚ[Ûˆ‚ˆ™^][Ø\œÈ‚ˆœÞ\Ý[KXXÝ[ÛˆŽÂ‚™^Ü\HÛÛ\]\‘[]HHÈYˆÝš[™ÎÈ˜[YNˆÝš[™ÎÈ[X\Ù\ÏÎˆÝš[™Ö×HNÂ™^Ü\HÛÛ\]\ÛÛ^HÂˆYÙ\ÎˆÛÛ\]\‘[]V×NÂˆ\ÎˆÛÛ\]\‘[]V×NÂˆ›ØÙY\™\ÎˆÛÛ\]\‘[]V×NÂˆÛÜšÜÝ][ÛœÎˆÛÛ\]\‘[]V×NÂˆ[Y\ÎˆÛÛ\]\‘[]V×NÂŸNÂ‚™^Ü\HÛÛ\]\”[”Ý\HÂˆYˆÝš[™ÎÂˆÛÛ[X[™ˆÛÛ\]\ÛÛ[X[™YÂˆX™[ˆÝš[™ÎÂˆ]Z[ˆÝš[™ÎÂˆ\™Ù]ˆÝš[™ÎÂˆ˜[YOÎˆÝš[™È[X™\ˆ›ÛÛX[ŽÂˆš\ÚÎˆÛÛ\]\”š\ÚÎÂˆ™]™\œÚX›Nˆ›ÛÛX[ŽÂˆ™\]Z\™\ÐœšYÙOÎˆ›ÛÛX[ŽÂŸNÂ‚™^Ü\HÛÛ\]\”[ˆHÂˆYˆÝš[™ÎÂˆ[œ]ˆÝš[™ÎÂˆ›Ü›X[^™YˆÝš[™ÎÂˆÛÝ\˜ÙNˆÛÛ\]\ÛÛ[X[™ÛÝ\˜ÙNÂˆÜ™X]Y]ˆÝš[™ÎÂˆÝ]\ÎˆÛÛ\]\”[”Ý]\ÎÂˆ˜[Yˆ›ÛÛX[ŽÂˆ]NˆÝš[™ÎÂˆÝ[[X\žNˆÝš[™ÎÂˆÛÛ™šY[˜ÙNˆ[X™\ŽÂˆš\ÚÎˆÛÛ\]\”š\ÚÎÂˆ™]™\œÚX›Nˆ›ÛÛX[ŽÂˆ™\]Z\™\ÐÛÛ™š\›X][ÛŽˆ›ÛÛX[ŽÂˆÝ\ÎˆÛÛ\]\”[”Ý\×NÂˆ\œ›ÜœÎˆÝš[™Ö×NÂˆÝYÙÙ\Ý[ÛœÎˆÝš[™Ö×NÂŸNÂ‚™^Ü\HÛÛ\]\]Y][žHHÂˆYˆÝš[™ÎÂˆ[’YˆÝš[™ÎÂˆ[YNˆÝš[™ÎÂˆÛÝ\˜ÙNˆÛÛ\]\ÛÛ[X[™ÛÝ\˜ÙNÂˆ[œ]ˆÝš[™ÎÂˆ]NˆÝš[™ÎÂˆ]Z[ˆÝš[™ÎÂˆÝ]\ÎˆÛÛ\]\”[”Ý]\ÎÂˆš\ÚÎˆÛÛ\]\”š\ÚÎÂˆÝ\ÛÝ[ˆ[X™\ŽÂˆ™]™\œÚX›Nˆ›ÛÛX[ŽÂŸNÂ‚™^Ü\HÛÛ\]\•[™ÔÛ˜\ÚÝHÂˆYˆÝš[™ÎÂˆ[’YˆÝš[™ÎÂˆÜ™X]Y]ˆÝš[™ÎÂˆX™[ˆÝš[™ÎÂˆÙXÝ[ÛŽˆÝš[™ÎÂˆ[YNˆÝš[™ÎÂˆÓ›Ý\Ý\˜Žˆ›ÛÛX[ŽÂˆ›Û[YNˆ[X™\ŽÂˆ[\ÛÛ™][ÛÎˆ››Ü›X[ˆžY[ÝÈˆœ™YŽÂŸNÂ‚™^Ü\HÛÛ\]\”›ØÙY\™TÚ\HHÂˆÝ\ÎˆÈÚ[™ˆÝš[™ÈV×NÂŸNÂ‚˜ÛÛœÝÜ™X]RYH
-™Yš^ˆÝš[™ÊHO‚ˆ	Ü™Yš^KIÑ]K››ÝÊ
-KÔÝš[™ÊÍŠ_KIÓX]œ˜[™ÛJ
-KÔÝš[™ÊÍŠKœÛXÙJ‹Ê_XÂ‚˜ÛÛœÝ›Ü›X[^™Y^H
-˜[YNˆ[šÛ›ÝÛŠHO‚ˆÝš[™Ê˜[YHˆŠBˆš[J
-BˆÓÝÙ\Ø\ÙJ
-Bˆœ™\XÙJÖø '8 'WKÙË	È‰ÊBˆœ™\XÙJÖø &WKÙË‰ÈŠBˆœ™\XÙJ×ÊËÙËˆŠNÂ‚˜ÛÛœÝ[]U^H
-[]NˆÛÛ\]\‘[]JHO‚ˆÙ[]K›˜[YK[]KšY‹‹Š[]K˜[X\Ù\È×JWK›X\
-›Ü›X[^™Y^
-NÂ‚˜ÛÛœÝ[]SX]ÚH
-[]Y\ÎˆÛÛ\]\‘[]V×K™\]Y\ÝYˆÝš[™ÊHOˆÂˆÛÛœÝ]Y\žHH›Ü›X[^™Y^
-™\]Y\ÝY
-Kœ™\XÙJ×ŠÎ_^JWÊËËˆŠNÂˆYˆ
-\]Y\žJH™]\›ˆ[ÂˆÛÛœÝ^XÝH[]Y\Ë™š[™
+export type ComputerCommandSource = "operator" | "voice" | "procedure" | "trigger" | "padd";
+export type ComputerRisk = "safe" | "attention" | "protected";
+export type ComputerPlanStatus = "ready" | "invalid" | "running" | "completed" | "failed" | "dry-run" | "undone";
+export type ComputerCommandId =
+  | "navigate"
+  | "launch-app"
+  | "run-procedure"
+  | "restore-workstation"
+  | "set-theme"
+  | "set-dnd"
+  | "set-volume"
+  | "set-mute"
+  | "set-alert"
+  | "media-control"
+  | "open-center"
+  | "core-action"
+  | "local-command"
+  | "lock-session"
+  | "exit-lcars"
+  | "system-action";
 
-[]JHOˆ[]U^
-[]JKš[˜ÛY\Ê]Y\žJJNÂˆYˆ
-^XÝ
-H™]\›ˆÈ[]Nˆ^XÝÛÛ™šY[˜ÙNˆHNÂˆÛÛœÝÛÛZ[™YH[]Y\Ë™š[™
+export type ComputerEntity = { id: string; name: string; aliases?: string[] };
+export type ComputerContext = {
+  pages: ComputerEntity[];
+  apps: ComputerEntity[];
+  procedures: ComputerEntity[];
+  workstations: ComputerEntity[];
+  themes: ComputerEntity[];
+};
 
-[]JHO‚ˆ[]U^
-[]JKœÛÛYJ
-˜[YJHOˆ˜[YKš[˜ÛY\Ê]Y\žJH]Y\žKš[˜ÛY\Ê˜[YJJKˆ
-NÂˆ™]\›ˆÛÛZ[™YÈÈ[]NˆÛÛZ[™YÛÛ™šY[˜ÙNˆŽˆHˆ[ÂŸNÂ‚˜ÛÛœÝÝ\H
-ˆÛÛ[X[™ˆÛÛ\]\ÛÛ[X[™YˆX™[ˆÝš[™Ëˆ]Z[ˆÝš[™Ëˆ\™Ù]ˆÝš[™Ëˆš\ÚÎˆÛÛ\]\”š\ÚËˆ™]™\œÚX›Nˆ›ÛÛX[‹ˆ˜[YOÎˆÛÛ\]\”[”Ý\È˜[YH—Kˆ™\]Z\™\ÐœšYÙHH˜[ÙKŠNˆÛÛ\]\”[”Ý\Oˆ
-ÂˆYˆÜ™X]RY
-˜ÛÛ\]\‹\Ý\ŠKÛÛ[X[™X™[]Z[\™Ù]š\ÚËˆ™]™\œÚX›K˜[YK™\]Z\™\ÐœšYÙKŸJNÂ‚˜ÛÛœÝÙ[\œÎˆ™XÛÜ™Ýš[™ËÈ\™Ù]ˆÝš[™ÎÈX™[ˆÝš[™ÈOˆHÂˆ˜ÛÛ\]\ˆÛÜ™HŽˆÈ\™Ù]ˆ˜ÛÛ\]\ˆ‹X™[ˆÛÛ\]\ˆÛÜ™HˆKˆœ›ØÙY\™HZ[\ˆŽˆÈ\™Ù]ˆœ›ØÙY\™\È‹X™[ˆ”›ØÙY\™HZ[\ˆˆKˆ›ØÙY\™\ÎˆÈ\™Ù]ˆœ›ØÙY\™\È‹X™[ˆ”›ØÙY\™HZ[\ˆˆKˆ›Ý][™\ÎˆÈ\™Ù]ˆœ›ØÙY\™\È‹X™[ˆ”›ØÙY\™HZ[\ˆˆKˆÛÛ[][šXØ][ÛœÎˆÈ\™Ù]ˆ˜ÛÛ[][šXØ][ÛœÈ‹X™[ˆÛÛ[][šXØ][ÛœÈÙ[\ˆˆKˆ›ÝYšXØ][ÛœÎˆÈ\™Ù]ˆ˜ÛÛ[][šXØ][ÛœÈ‹X™[ˆÛÛ[][šXØ][ÛœÈÙ[\ˆˆKˆ›ÝXÙ\ÎˆÈ\™Ù]ˆ˜ÛÛ[][šXØ][ÛœÈ‹X™[ˆÛÛ[][šXØ][ÛœÈÙ[\ˆˆKˆØ[[™\ŽˆÈ\™Ù]ˆ˜Ø[[™\ˆ‹X™[ˆ“ÐT”ÈØ[[™\ˆˆKˆ\Ü^\ÎˆÈ\™Ù]ˆ™\Ü^\È‹X™[ˆ‘\Ü^H›Ý][™ÈˆKˆ™\Ü^H›Ý][™ÈŽˆÈ\™Ù]ˆ™\Ü^\È‹X™[ˆ‘\Ü^H›Ý][™ÈˆKˆ˜^NˆÈ\™Ù]ˆ˜^H‹X™[ˆ•˜^HÛÛ[X[™XÚÈˆKˆ\XØ][ÛœÎˆÈ\™Ù]ˆ˜\XØ][ÛœÈ‹X™[ˆ\XØ][ÛˆXœ˜\žHˆKˆ\ÎˆÈ\™Ù]ˆ˜\XØ][ÛœÈ‹X™[ˆ\XØ][ÛˆXœ˜\žHˆKŸNÂ‚˜ÛÛœÝš\ÚÔ˜[šÎˆ™XÛÜ™ÛÛ\]\”š\ÚË[X™\ˆHÈØY™Nˆ][[ÛŽˆK›ÝXÝYˆˆNÂ™^ÜÛÛœÝYÚ\ÝÛÛ\]\”š\ÚÈH
-š\ÚÜÎˆÛÛ\]\”š\ÚÖ×JNˆÛÛ\]\”š\ÚÈO‚ˆš\ÚÜËœ™YXÙJ
-Ý\œ™[Ø[™Y]JHOˆš\ÚÔ˜[šÖØØ[™Y]WHˆš\ÚÔ˜[šÖØÝ\œ™[HÈØ[™Y]HˆÝ\œ™[œØY™HŠNÂ‚˜ÛÛœÝ[\œ™]Û]\ÙHH
-˜]ÐÛ]\ÙNˆÝš[™ËÛÛ^ˆÛÛ\]\ÛÛ^
-HOˆÂˆÛÛœÝÛ]\ÙHH›Ü›X[^™Y^
-˜]ÐÛ]\ÙJKœ™\XÙJ×˜ÛÛ\]\–Ë—O×Ê‹ËˆŠNÂˆ]X]Úˆ™YÑ^X]Ú\œ˜^H[Â‚ˆX]ÚHÛ]\ÙK›X]Ú
-×ŠÎœ[ŸÝ\^XÝ]JWÊÊÎŠÎWÊÊOÊÎœ›ØÙY\™_›Ý][™JWÊÊOÊŠÊIÊNÂˆYˆ
-X]Ú
-HÂˆÛÛœÝ›Ý[™H[]SX]Ú
-ÛÛ^œ›ØÙY\™\ËX]ÚÌWJNÂˆYˆ
-›Ý[™
-H™]\›ˆÈ˜[YNˆÝ\
-œ[‹\›ØÙY\™H‹[ˆ	Ù›Ý[™™[]K›˜[Y_X‘^XÝ]HHØ]™Y][K\Ý\›ØÙY\™H‹›Ý[™™[]KšY˜][[Ûˆ‹˜[ÙJKÛÛ™šY[˜ÙNˆ›Ý[™˜ÛÛ™šY[˜ÙHNÂˆB‚ˆX]ÚHÛ]\ÙK›X]Ú
-×ŠÎœ™\ÝÜ™_XÝ]˜]_ØYÝÚ]ÚÊWÊÊÎŠÎWÊÊOÊÎÛÜšÜÝ][ÛŸÛÜšÜÜXÙJWÊÊOÊŠÊIÊNÂˆYˆ
-X]Ú
-HÂˆÛÛœÝ›Ý[™H[]SX]Ú
-ÛÛ^ÛÜšÜÝ][ÛœËX]ÚÌWJNÂˆYˆ
-›Ý[™
-H™]\›ˆÈ˜[YNˆÝ\
-œ™\ÝÜ™K]ÛÜšÜÝ][Ûˆ‹™\ÝÜ™H	Ù›Ý[™™[]K›˜[Y_X\HHØ]™YÛÜšÜÝ][Ûˆ^[Ý][™\XØ][ÛœÈ‹›Ý[™™[]KšY˜][[Ûˆ‹˜[ÙJKÛÛ™šY[˜ÙNˆ›Ý[™˜ÛÛ™šY[˜ÙHNÂˆB‚ˆX]ÚHÛ]\ÙK›X]Ú
-×ŠÎœÙ]Ú[™Ù_ÝÚ]Ú
-JÎ—ÊÊÎWÊÊOÊÎ™\Ü^_[\™˜XÙJJO×ÊÊÎ[YWÊÊOÊÎ×ÊÊOÊŠÊIÊNÂˆYˆ
-X]Ú
-HÂˆÛÛœÝ›Ý[™H[]SX]Ú
-ÛÛ^[Y\ËX]ÚÌWKœ™\XÙJ×ÊÝ[YIËˆŠJNÂˆYˆ
-›Ý[™
-H™]\›ˆÈ˜[YNˆÝ\
-œÙ]][YH‹XÝ]˜]H	Ù›Ý[™™[]K›˜[Y_XÚ[™ÙHHXÝ]™H\Ü^HX]š^˜[Z[H‹›Ý[™™[]KšYœØY™H‹YJKÛÛ™šY[˜ÙNˆ›Ý[™˜ÛÛ™šY[˜ÙHNÂˆB‚ˆX]ÚHÛ]\ÙK›X]Ú
-×ŠÎœÙ]ÊÊOÊÎ›X\Ý\—ÊÊOÊÎ˜]Y[ß›Û[YJJÎ—ÊÝÊO×ÊÊÌKßJJÎ—Ê‰JOÉÊNÂˆYˆ
-X]Ú
-HÂˆÛÛœÝ›Û[YHHX]›X^
-X]›Z[ŠL[X™\ŠX]ÚÌWJJJNÂˆ™]\›ˆÈ˜[YNˆÝ\
-œÙ]]›Û[YH‹Ù]X\Ý\ˆ]Y[ÈÈ	Ý›Û[Y_IXY\ÝHY˜][Þ\Ý[HÝ]]›Û[YH‹›X\Ý\ˆ‹œØY™H‹YK›Û[YKYJKÛÛ™šY[˜ÙNˆHNÂˆB‚ˆX]ÚHÛ]\ÙK›X]Ú
-×Š[˜X›_\ØX›_\›ˆÛŸ\›ˆÙ™ŸÙÙÛJWÊÊÎ™È›Ý\Ý\˜Ÿ™
-IÊNÂˆYˆ
-X]Ú
-HÂˆÛÛœÝ™\]Y\ÝYHX]ÚÌWNÂˆÛÛœÝ˜[YHH™\]Y\ÝYOOHÙÙÛHˆÈÙÙÛHˆˆ™\]Y\ÝYOOH™[˜X›Hˆ™\]Y\ÝYOOH\›ˆÛˆŽÂˆ™]\›ˆÈ˜[YNˆÝ\
-œÙ]Y™‹	Ý˜[YHOOHÙÙÛHˆÈ•ÙÙÛHˆˆ˜[YHÈ‘[˜X›Hˆˆ‘\ØX›HŸHÈ›Ý\Ý\˜˜Ú[™ÙH›ÝYšXØ][Ûˆ[\œ\[ÛˆÛXÞH‹™™‹œØY™H‹YK˜[YJKÛÛ™šY[˜ÙNˆHNÂˆB‚ˆYˆ
-×ŠÎœÙ]ÊÊOÜ™Y[\	˜˜]HÝ][ÛœÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-œÙ]X[\‹XÝ]˜]H™Y[\‹”ÚYHÐT”È[\™˜XÙHÈH™Y[Y\™Ù[˜ÞHÛÛ™][Ûˆ‹œ™Y‹˜][[Ûˆ‹YJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎœÙ]ÊÊOÞY[ÝÈ[\	Ë\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-œÙ]X[\‹XÝ]˜]HY[ÝÈ[\‹”ÚYHÐT”È[\™˜XÙHÈHY[ÝÈ™XY[™\ÜÈÛÛ™][Ûˆ‹žY[ÝÈ‹˜][[Ûˆ‹YJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎŠÎ˜Ø[˜Ù[[™Ý[™ÝÛˆœ›ÛJWÊÊÎœ™YY[ÝÈ
-OØ[\ÛÛ™][ÛˆÜ™Y[ŸÜ™Y[ˆ[\›È[\Ý[™ÝÛŠIË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-œÙ]X[\‹”™]\›ˆÈÛÛ™][ÛˆÜ™Y[ˆ‹”™\ÝÜ™HHÙ[XÝY\Ü^HX]š^[]H‹››Ü›X[‹œØY™H‹YJKÛÛ™šY[˜ÙNˆHNÂ‚ˆYˆ
-×ŠÎš[š]X]WÊÊOÊÎ˜]]ÖËHOÙ\ÝXÝÙ[–ËHOÙ\ÝXÝ
-JÎ—ÊÜÙ\]Y[˜ÙJOÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-™^][Ø\œÈ‹”Ù[ˆ\ÝXÝ0­ÈÛÜÙHÐT”È‹ÛÜÙHÛ›HHÐT”È[\™˜XÙNÈ›Èš[\Ë\XØ][ÛœËÜˆÜ\˜][™Ë\Þ\Ý[H]H\™H\Ý›ÞYY‹™^]‹œ›ÝXÝY‹˜[ÙJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎ›ØÚßÙXÝ\™JJÎ—ÊÊÎWÊÊOÊÎ˜ÛÛ\]\ŸÛÜšÜÝ][ÛŸØ\œÊJOÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-›ØÚË\Ù\ÜÚ[Ûˆ‹”ÙXÝ\™HÛÜšÜÝ][Ûˆ‹“Ü[ˆHØØ[ÐT”È]]Üš^˜][ÛˆØÜ™Y[ˆ‹›ØÚÈ‹œØY™H‹YJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎ›]]_Ú[[˜ÙJJÎ—ÊÊÎWÊÊOÊÎ˜]Y[ßÛÝ[™]\ÚXßÛÛ\]\ŠJOÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-œÙ][]]H‹“]]HX\Ý\ˆ]Y[È‹“]]HHY˜][Þ\Ý[HÝ]]‹›]]H‹œØY™H‹YKYKYJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎ[›]]_™\ÝÜ™JJÎ—ÊÊÎWÊÊOÊÎ˜]Y[ßÛÝ[™]\ÚXßÛÛ\]\ŠJOÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-œÙ][]]H‹”™\ÝÜ™HX\Ý\ˆ]Y[È‹•[›]]HHY˜][Þ\Ý[HÝ]]‹[›]]H‹œØY™H‹YK˜[ÙKYJKÛÛ™šY[˜ÙNˆHNÂ‚ˆYˆ
-×ŠÎ›YYXWÊÊOÊÎœ]\Ù_Û
-JÎ—ÊÊÎWÊÊOÊÎ›]\ÚXß]Y[ßÛÛ™ß˜XÚßYYX_^X˜XÚÊJOÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-›YYXKXÛÛ›Û‹”]\ÙHYYXH‹”]\ÙHHXÝ]™HYYXHÙ\ÜÚ[ÛˆÚ]Ý]™\Ý[Z[™È[ˆ[™XYK\]\ÙY^Y\ˆ‹œ]\ÙH‹œØY™H‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎ›YYXWÊÊOÊÎœ^_™\Ý[Y_ÛÛ[Y_[œ]\ÙJJÎ—ÊÊÎWÊÊOÊÎ›]\ÚXß]Y[ßÛÛ™ß˜XÚßYYX_^X˜XÚÊJOÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-›YYXKXÛÛ›Û‹”™\Ý[YHYYXH‹”™\Ý[YHHXÝ]™HYYXHÙ\ÜÚ[ÛˆÚ]Ý]]\Ú[™È[ˆ[™XYK\^Z[™È^Y\ˆ‹œ^H‹œØY™H‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎ›YYXWÊÊOÊÎ›™^ÚÚ\
-JÎ—ÊÊÎWÊÊOÊÎœÛÛ™ß˜XÚßYYXJJOÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-›YYXKXÛÛ›Û‹“™^YYXH][H‹Y˜[˜ÙHHXÝ]™HT’TÈYYXHÙ\ÜÚ[Ûˆ‹›™^‹œØY™H‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎ›YYXWÊÊOÊÎœ™]š[Ý\ß˜XÚßÛÈ˜XÚÊJÎ—ÊÊÎ×ÊÊOÊÎWÊÊOÊÎœÛÛ™ß˜XÚßYYXJJOÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-›YYXKXÛÛ›Û‹”™]š[Ý\ÈYYXH][H‹”™]\›ˆ[ˆHXÝ]™HT’TÈYYXHÙ\ÜÚ[Ûˆ‹œ™]š[Ý\È‹œØY™H‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎ›YYXWÊÊOÊÎœÝÜÝÜ^X˜XÚÊJÎ—ÊÊÎWÊÊOÊÎ›]\ÚXß]Y[ßÛÛ™ß˜XÚßYYXJJOÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-›YYXKXÛÛ›Û‹”ÝÜYYXH‹”ÝÜHXÝ]™HT’TÈYYXHÙ\ÜÚ[Ûˆ‹œÝÜ‹œØY™H‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆHNÂ‚ˆYˆ
-×ŠÎ˜ÛÛ\]\—ÊÊOÊÎœÝ]\ßÝ]\È™\Ü™\Ü[ˆXYÛ›ÜÝXÜÏßXYÛ›ÜÝXÈ™\Ü
-IË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-›˜]šYØ]H‹‘\Ü^HÞ\Ý[\ÈÝ]\È‹“Ü[ˆÐT”È[™Ú[™Y\š[™È[™Þ\Ý[HXYÛ›ÜÝXÜÈ‹œÞ\Ý[H‹œØY™H‹YJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎ›Ü[—ÊÊOÚZ[[™Èœ™\]Y[˜ÚY\ÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-›Ü[‹XÙ[\ˆ‹“Ü[ˆZ[[™Èœ™\]Y[˜ÚY\È‹”™\Ù[HÛÛ[][šXØ][ÛœÈXÝ[ÛˆÙ[\ˆ‹˜ÛÛ[][šXØ][ÛœÈ‹œØY™H‹YJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎÚ]
-Î‰Üß\ÊWÊÊOÊÎWÊÊOÊÎ[Y_]_Ý\™]JIŠÎ™\Ü^_ÚÝÊWÊÊÎWÊÊOÊÎ[Y_]_Ý\™]JIË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-›Ü[‹XÙ[\ˆ‹‘\Ü^H[YH[™Ø[[™\ˆ‹“Ü[ˆHÐT”ÈØ[[™\ˆ[™ØØ[]H\Ü^H‹˜Ø[[™\ˆ‹œØY™H‹YJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎ›XZ[—ÊÊOÝšY]Ù\ŠÎ—ÊÛÛŠOÉŠÎ™\Ü^_ÚÝÊWÊÊÎWÊÊOÛXZ[ˆšY]Ù\‰Ë\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-›˜]šYØ]H‹XÝ]˜]HXZ[ˆšY]Ù\ˆ‹”™]\›ˆÈHÐT”ÈÝ]\ÈÝ™\šY]È‹›Ý™\šY]È‹œØY™H‹YJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎšY[Yž_\Ü^JWÊÊÎWÊÊOÊÎ›]\ÚXßÛÛ™ß˜XÚß]\ÚXØ[ÛÛ\ÜÚ][ÛŠJÎ—ÊÜ^Z[™ÊOÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-›˜]šYØ]H‹’Y[YžHXÝ]™HYYXH‹“Ü[ˆ›ÝÈ^Z[™È[™ÛÛ›™XÝYT’TÈÙ\ÜÚ[ÛœÈ‹›YYXH‹œØY™H‹YJKÛÛ™šY[˜ÙNˆHNÂ‚ˆX]ÚHÛ]\ÙK›X]Ú
-×ŠÎ›Ü[ŸÚÝß\Ü^_ØØ]_š[™ÛÈß˜]šYØ]HÊWÊÊŠÊIÊNÂˆYˆ
-X]Ú
-HÂˆÛÛœÝ™\]Y\ÝYHX]ÚÌWKœ™\XÙJ×WÊËËˆŠNÂˆÛÛœÝÙ[\ˆHÙ[\œÖÜ™\]Y\ÝYNÂˆYˆ
-Ù[\ŠH™]\›ˆÈ˜[YNˆÝ\
-›Ü[‹XÙ[\ˆ‹Ü[ˆ	ØÙ[\‹›X™[X”™\Ù[H™\]Y\ÝYÐT”ÈÛÛ[X[™Ý\™˜XÙH‹Ù[\‹\™Ù]œØY™H‹YJKÛÛ™šY[˜ÙNˆHNÂˆÛÛœÝYÙHH[]SX]Ú
-ÛÛ^œYÙ\Ë™\]Y\ÝYœ™\XÙJ×ÊÊÎœYÙ_ÛÛœÛÛJIËˆŠJNÂˆYˆ
-YÙJH™]\›ˆÈ˜[YNˆÝ\
-›˜]šYØ]H‹Ü[ˆ	ÜYÙK™[]K›˜[Y_X“˜]šYØ]HHXÝ]™HÐT”ÈÛÜšÜÜXÙH‹YÙK™[]KšYœØY™H‹YJKÛÛ™šY[˜ÙNˆYÙK˜ÛÛ™šY[˜ÙHNÂˆÛÛœÝ\H[]SX]Ú
-ÛÛ^˜\Ë™\]Y\ÝY
-NÂˆYˆ
-\
-H™]\›ˆÈ˜[YNˆÝ\
-›][˜ÚX\‹][˜Ú	Ø\™[]K›˜[Y_X”™\]Y\ÝH˜]]™HÜˆ[X™YY\XØ][Ûˆ][˜Ú‹\™[]KšY˜][[Ûˆ‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆ\˜ÛÛ™šY[˜ÙHNÂˆB‚ˆX]ÚHÛ]\ÙK›X]Ú
-×ŠÎ›][˜ÚÝ\\Ü[ˆ\
-WÊÊŠÊIÊNÂˆYˆ
-X]Ú
-HÂˆÛÛœÝ\H[]SX]Ú
-ÛÛ^˜\ËX]ÚÌWJNÂˆYˆ
-\
-H™]\›ˆÈ˜[YNˆÝ\
-›][˜ÚX\‹][˜Ú	Ø\™[]K›˜[Y_X”™\]Y\ÝH˜]]™HÜˆ[X™YY\XØ][Ûˆ][˜Ú‹\™[]KšY˜][[Ûˆ‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆ\˜ÛÛ™šY[˜ÙHNÂˆB‚ˆX]ÚHÛ]\ÙK›X]Ú
-×ŠÎ˜ÚXÚÈ›ÜŸÚXÚßØØ[ˆ›ÜŠWÊÊÎœÛÙØ\™WÊÊOÝ\]\ÏÉÊNÂˆYˆ
-X]Ú
-H™]\›ˆÈ˜[YNˆÝ\
-˜ÛÜ™KXXÝ[Ûˆ‹ÚXÚÈ›Üˆ\]\È‹”]Y\žHHÙ[XÝY™\šYšYY™[X\ÙHÚ[›™[‹˜ÚXÚË]\]\È‹œØY™H‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎšY[Yž_ÚÝÊWÊÊÎWÊÊOÙ\Ü^\ÏÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-˜ÛÜ™KXXÝ[Ûˆ‹’Y[YžH\Ü^\È‹”ÚÝÈHÜ\˜][™Ë\Þ\Ý[H\Ü^HY[YšY\œÈ‹šY[YžKY\Ü^\È‹œØY™H‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆHNÂˆYˆ
-×ŠÎœ™XÚXÚßÚXÚÊWÊÊÎ›ØØ[ÊÊOÚ[YÜ˜][ÛœÏÉË\Ý
-Û]\ÙJJH™]\›ˆÈ˜[YNˆÝ\
-˜ÛÜ™KXXÝ[Ûˆ‹”™XÚXÚÈ[YÜ˜][ÛœÈ‹”™Yœ™\ÚØØ[Ü\˜][™Ë\Þ\Ý[HØ\Xš[]H›Ø™\È‹š[YÜ˜][Û‹\™XÚXÚÈ‹œØY™H‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆHNÂ‚ˆX]ÚHÛ]\ÙK›X]Ú
-×ŠÎœÝY×ÊÊOÊÎœÛY\Ý\Ü[™™\Ý\™X›ÛÝÚ]ÝÛŸÚ]ÝÛŸÝÙ\ˆÙ™ŸÙÈÝ]ÙÛÝ][™Ù\ÜÚ[ÛŠJÎ—ÊÊÎWÊÊOÊÎ˜ÛÛ\]\ŸÙ\ÜÚ[ÛŠJOÉÊNÂˆYˆ
-X]Ú
-HÂˆÛÛœÝ™\]Y\ÝHX]ÚÌNÂˆÛÛœÝXÝ[ÛˆHÛÙÈÝ]ÙÛÝ][™Ù\ÜÚ[Û‹Ë\Ý
-™\]Y\Ý
-HÈ›ÙÛÝ]ˆˆÜ™\Ý\™X›ÛÝË\Ý
-™\]Y\Ý
-HÈœ™X›ÛÝˆˆÜÛY\Ý\Ü[™Ë\Ý
-™\]Y\Ý
-HÈœÛY\ˆˆœÝÙ\›Ù™ˆŽÂˆ™]\›ˆÈ˜[YNˆÝ\
-œÞ\Ý[KXXÝ[Ûˆ‹XÝ[ÛˆOOH›ÙÛÝ]ˆÈ“ÙÈÝ]Ù\ÜÚ[Ûˆˆˆ	ØXÝ[ÛˆOOHœ™X›ÛÝˆÈ”™\Ý\ˆˆXÝ[ÛˆOOHœÛY\ˆÈ”ÛY\ˆˆ”Ú]ÝÛˆŸHÛÛ\]\˜XÝ[ÛˆOOH›ÙÛÝ]ˆÈ”›ÝXÝY\ÚÝÜ\Ù\ÜÚ[ÛˆÙÛÝ]ˆˆ”›ÝXÝYÚÛK\Þ\Ý[HÝÙ\ˆÜ\˜][Ûˆ‹XÝ[Û‹œ›ÝXÝY‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆHNÂˆB‚ˆX]ÚHÛ]\ÙK›X]Ú
-×ŠÎ˜\›Ý™YÊÊOÊÎ›ØØ[ÊÊOØÛÛ[X[™ÊÊŠÊIÊNÂˆYˆ
-X]Ú	‰ˆX]ÚÌWKš[J
-JH™]\›ˆÈ˜[YNˆÝ\
-›ØØ[XÛÛ[X[™‹”[ˆ\›Ý™YØØ[ÛÛ[X[™‹X]ÚÌWKš[J
-KX]ÚÌWKš[J
-Kœ›ÝXÝY‹˜[ÙK[™Yš[™YYJKÛÛ™šY[˜ÙNˆHNÂ‚ˆ™]\›ˆ[ÂŸNÂ‚™^ÜÛÛœÝ[\œ™]ÛÛ\]\ÛÛ[X[™H
-ˆ[œ]ˆÝš[™ËˆÛÛ^ˆÛÛ\]\ÛÛ^ˆÛÝ\˜ÙNˆÛÛ\]\ÛÛ[X[™ÛÝ\˜ÙHH›Ü\˜]Üˆ‹ŠNˆÛÛ\]\”[ˆOˆÂˆÛÛœÝ›Ü›X[^™YH›Ü›X[^™Y^
-[œ]
-Kœ™\XÙJ×˜ÛÛ\]\–Ë—O×Ê‹ËˆŠNÂˆÛÛœÝÛ]\Ù\ÈH›Ü›X[^™YœÜ]
-×ÊÊÎ˜[™ÊÊOÝ[—ÊßÊŽ×ÊŸÊ‰‰—Ê‹ÚJK™š[\Š›ÛÛX[ŠKœÛXÙJLŠNÂˆÛÛœÝ[\œ™]YHÛ]\Ù\Ë›X\
+export type ComputerPlanStep = {
+  id: string;
+  command: ComputerCommandId;
+  label: string;
+  detail: string;
+  target: string;
+  value?: string | number | boolean;
+  risk: ComputerRisk;
+  reversible: boolean;
+  requiresBridge?: boolean;
+};
 
-Û]\ÙJHOˆ
-ÈÛ]\ÙK™\Ý[ˆ[\œ™]Û]\ÙJÛ]\ÙKÛÛ^
-HJJNÂˆÛÛœÝ\œ›ÜœÈH[\œ™]Y™š[\Š
-][JHOˆZ][Kœ™\Ý[
-K›X\
+export type ComputerPlan = {
+  id: string;
+  input: string;
+  normalized: string;
+  source: ComputerCommandSource;
+  createdAt: string;
+  status: ComputerPlanStatus;
+  valid: boolean;
+  title: string;
+  summary: string;
+  confidence: number;
+  risk: ComputerRisk;
+  reversible: boolean;
+  requiresConfirmation: boolean;
+  steps: ComputerPlanStep[];
+  errors: string[];
+  suggestions: string[];
+};
 
-][JHOˆHÛÝ[›Ý™\ÛÛ™H8 '	Ú][K˜Û]\Ù_x 'K˜
-NÂˆÛÛœÝÝ\ÈH[\œ™]Y™›]X\
+export type ComputerAuditEntry = {
+  id: string;
+  planId: string;
+  time: string;
+  source: ComputerCommandSource;
+  input: string;
+  title: string;
+  detail: string;
+  status: ComputerPlanStatus;
+  risk: ComputerRisk;
+  stepCount: number;
+  reversible: boolean;
+};
 
-][JHOˆ][Kœ™\Ý[ÈÚ][Kœ™\Ý[˜[YWHˆ×JNÂˆÛÛœÝ˜[YH›ÛÛX[ŠÛ]\Ù\Ë›[™Ý	‰ˆÝ\Ë›[™Ý	‰ˆY\œ›ÜœË›[™Ý
-NÂˆÛÛœÝš\ÚÈHYÚ\ÝÛÛ\]\”š\ÚÊÝ\Ë›X\
+export type ComputerUndoSnapshot = {
+  id: string;
+  planId: string;
+  createdAt: string;
+  label: string;
+  section: string;
+  theme: string;
+  doNotDisturb: boolean;
+  volume: number;
+  alertCondition?: "normal" | "yellow" | "red";
+};
 
-][JHOˆ][Kœš\ÚÊJNÂˆÛÛœÝÝYÙÙ\Ý[ÛœÈHÂˆ“Ü[ˆYYXH[ˆÙ]›Û[YHÈ‹ˆ”[ˆ]™[š[™ÈÜ\˜][ÛœÈ‹ˆ‘[˜X›HÈ›Ý\Ý\˜ˆ‹ˆÚXÚÈ›Üˆ\]\È‹ˆÛÛ\]\‹Y[YžH\Ü^\È‹ˆÛÛ\]\‹]\ÙHH]\ÚXÈ‹ˆÛÛ\]\‹™Y[\‹ˆÛÛ\]\‹Ü™Y[ˆ[\‹ˆÛÛ\]\‹›È[\‹ˆÛÛ\]\‹Ý]\È™\Ü‹ˆNÂˆ™]\›ˆÂˆYˆÜ™X]RY
-˜ÛÛ\]\‹\[ˆŠK[œ]›Ü›X[^™YÛÝ\˜ÙKˆÜ™X]Y]ˆ™]È]J
-KÒTÓÔÝš[™Ê
-KÝ]\Îˆ˜[YÈœ™XYHˆˆš[˜[Y‹˜[Yˆ]Nˆ˜[YÈ
-Ý\Ë›[™ÝˆHÈUSKTÕTSˆ0­È	ÜÝ\Ë›[™ÝHPÕSÓ”ØˆÝ\ÖÌK›X™[
-HˆÓÓSPS‘‘QQÈÓT’Q’PÐUSÓˆ‹ˆÝ[[X\žNˆ˜[YÈÝ\Ë›X\
+export type ComputerProcedureShape = {
+  steps: { kind: string }[];
+};
 
-][JHOˆ][K›X™[
-Kš›Ú[Šˆ8¡¤ˆŠHˆ\œ›ÜœËš›Ú[ŠˆŠH‘[\ˆ[ˆÐT”ÈÛÛ[X[™ˆ‹ˆÛÛ™šY[˜ÙNˆÝ\Ë›[™ÝÈX]›Z[Š‹‹š[\œ™]Y™›]X\
+const createId = (prefix: string) =>
+  `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
-][JHOˆ][Kœ™\Ý[ÈÚ][Kœ™\Ý[˜ÛÛ™šY[˜ÙWHˆÌJJHˆˆš\ÚË™]™\œÚX›Nˆ˜[Y	‰ˆÝ\Ë™]™\žJ
-][JHOˆ][Kœ™]™\œÚX›JKˆ™\]Z\™\ÐÛÛ™š\›X][ÛŽˆÝ\ËœÛÛYJ
-][JHOˆ][Kœš\ÚÈOOHœ›ÝXÝYŠKÝ\Ë\œ›ÜœËÝYÙÙ\Ý[ÛœËˆNÂŸNÂ‚™^ÜÛÛœÝ›Ü›X[^™PÛÛ\]\]Y]H
-˜[YNˆ[šÛ›ÝÛŠNˆÛÛ\]\]Y][žV×HOˆÂˆYˆ
-P\œ˜^Kš\Ð\œ˜^J˜[YJJH™]\›ˆ×NÂˆÛÛœÝÝ]\Ù\ÈH™]ÈÙ]ÛÛ\]\”[”Ý]\ÏŠÈœ™XYH‹š[˜[Y‹œ[›š[™È‹˜ÛÛ\]Y‹™˜Z[Y‹™žK\[ˆ‹[™Û™H—JNÂˆÛÛœÝÛÝ\˜Ù\ÈH™]ÈÙ]ÛÛ\]\ÛÛ[X[™ÛÝ\˜ÙOŠÈ›Ü\˜]Üˆ‹›ÚXÙH‹œ›ØÙY\™H‹šYÙÙ\ˆ‹œY—JNÂˆÛÛœÝš\ÚÜÈH™]ÈÙ]ÛÛ\]\”š\ÚÏŠÈœØY™H‹˜][[Ûˆ‹œ›ÝXÝY—JNÂˆ™]\›ˆ˜[YKœÛXÙJÌ
-K™›]X\
+const normalizedText = (value: unknown) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[â€œâ€]/g, '"')
+    .replace(/[â€™]/g, "'")
+    .replace(/\s+/g, " ");
 
-Ø[™Y]JNˆÛÛ\]\]Y][žV×HOˆÂˆYˆ
-XØ[™Y]H\[ÙˆØ[™Y]HOOH›Øš™XÝŠH™]\›ˆ×NÂˆÛÛœÝ][HHØ[™Y]H\È\X[ÛÛ\]\]Y][žOŽÂˆYˆ
-TÝš[™Ê][K]HˆŠKš[J
-JH™]\›ˆ×NÂˆ™]\›ˆÞÂˆYˆÝš[™Ê][KšYÜ™X]RY
-˜ÛÛ\]\‹X]Y]ŠJKœÛXÙJMŠKˆ[’YˆÝš[™Ê][Kœ[’Y›YØXÞHŠKœÛXÙJMŠKˆ[YNˆÝš[™Ê][K[YH™]È]J
-KÒTÓÔÝš[™Ê
-JKœÛXÙJ
-KˆÛÝ\˜ÙNˆÛÝ\˜Ù\Ëš\Ê][KœÛÝ\˜ÙH\ÈÛÛ\]\ÛÛ[X[™ÛÝ\˜ÙJHÈ][KœÛÝ\˜ÙH\ÈÛÛ\]\ÛÛ[X[™ÛÝ\˜ÙHˆ›Ü\˜]Üˆ‹ˆ[œ]ˆÝš[™Ê][Kš[œ]ˆŠKœÛXÙJL
-K]NˆÝš[™Ê][K]JKœÛXÙJL
-Kˆ]Z[ˆÝš[™Ê][K™]Z[ˆŠKœÛXÙJÌ
-KˆÝ]\ÎˆÝ]\Ù\Ëš\Ê][KœÝ]\È\ÈÛÛ\]\”[”Ý]\ÊHÈ][KœÝ]\È\ÈÛÛ\]\”[”Ý]\Èˆ˜ÛÛ\]Y‹ˆš\ÚÎˆš\ÚÜËš\Ê][Kœš\ÚÈ\ÈÛÛ\]\”š\ÚÊHÈ][Kœš\ÚÈ\ÈÛÛ\]\”š\ÚÈˆœØY™H‹ˆÝ\ÛÝ[ˆX]›X^
-X]›Z[Š[X™\Š][KœÝ\ÛÝ[
-H
-JK™]™\œÚX›Nˆ›ÛÛX[Š][Kœ™]™\œÚX›JKˆWNÂˆJNÂŸNÂ‚™^ÜÛÛœÝ›Ü›X[^™PÛÛ\]\•[™ÈH
-˜[YNˆ[šÛ›ÝÛŠNˆÛÛ\]\•[™ÔÛ˜\ÚÝ[OˆÂˆYˆ
-]˜[YH\[Ùˆ˜[YHOOH›Øš™XÝŠH™]\›ˆ[ÂˆÛÛœÝ][HH˜[YH\È\X[ÛÛ\]\•[™ÔÛ˜\ÚÝŽÂˆYˆ
-TÝš[™Ê][KšYˆŠKš[J
-HTÝš[™Ê][Kœ[’YˆŠKš[J
-JH™]\›ˆ[Âˆ™]\›ˆÂˆYˆÝš[™Ê][KšY
-KœÛXÙJMŠK[’YˆÝš[™Ê][Kœ[’Y
-KœÛXÙJMŠKˆÜ™X]Y]ˆÝš[™Ê][K˜Ü™X]Y]™]È]J
-KÒTÓÔÝš[™Ê
-JKœÛXÙJ
-KˆX™[ˆÝš[™Ê][K›X™[ÛÛ\]\ˆÛÜ™H[ˆŠKœÛXÙJL
-KˆÙXÝ[ÛŽˆÝš[™Ê][KœÙXÝ[Ûˆ›Ý™\šY]ÈŠKœÛXÙJ
-Kˆ[YNˆÝš[™Ê][K[YH˜Û\ÜÚXÈŠKœÛXÙJ
-KˆÓ›Ý\Ý\˜Žˆ›ÛÛX[Š][K™Ó›Ý\Ý\˜ŠKˆ›Û[YNˆX]›X^
-X]›Z[ŠL[X™\Š][K›Û[YJH
-JKˆ[\ÛÛ™][ÛŽˆ][K˜[\ÛÛ™][ÛˆOOHœ™Yˆ][K˜[\ÛÛ™][ÛˆOOHžY[ÝÈˆÈ][K˜[\ÛÛ™][Ûˆˆ››Ü›X[‹ˆNÂŸNÂ‚™^ÜÛÛœÝÛÛ\]\”›ØÙY\™Tš\ÚÈH
-›ØÙY\™NˆÛÛ\]\”›ØÙY\™TÚ\JNˆÛÛ\]\”š\ÚÈO‚ˆYÚ\ÝÛÛ\]\”š\ÚÊ›ØÙY\™KœÝ\Ë›X\
+const entityText = (entity: ComputerEntity) =>
+  [entity.name, entity.id, ...(entity.aliases || [])].map(normalizedText);
 
-][JHOˆ][KšÚ[™OOHœÞ\Ý[Hˆ][KšÚ[™OOH˜ÛÛ[X[™ˆÈœ›ÝXÝYˆˆ][KšÚ[™OOH˜\ˆ][KšÚ[™OOHÛÜšÜÝ][Ûˆˆ][KšÚ[™OOH›YYXHˆ][KšÚ[™OOH˜]Y[ËY]šXÙHˆÈ˜][[ÛˆˆˆœØY™HŠJNÂ‚™^ÜÛÛœÝÛÛ\]\”›ØÙY\™T™]™\œÚX›HH
-›ØÙY\™NˆÛÛ\]\”›ØÙY\™TÚ\JHO‚ˆ›ØÙY\™KœÝ\Ë›[™Ýˆ	‰ˆ›ØÙY\™KœÝ\Ë™]™\žJ
-][JHOˆÈœYÙH‹[YH‹™™‹›Û[YH—Kš[˜ÛY\Ê][KšÚ[™
-JNÂ
+const entityMatch = (entities: ComputerEntity[], requested: string) => {
+  const query = normalizedText(requested).replace(/^(?:the|my)\s+/, "");
+  if (!query) return null;
+  const exact = entities.find((entity) => entityText(entity).includes(query));
+  if (exact) return { entity: exact, confidence: 1 };
+  const contained = entities.find((entity) =>
+    entityText(entity).some((value) => value.includes(query) || query.includes(value)),
+  );
+  return contained ? { entity: contained, confidence: 0.86 } : null;
+};
+
+const step = (
+  command: ComputerCommandId,
+  label: string,
+  detail: string,
+  target: string,
+  risk: ComputerRisk,
+  reversible: boolean,
+  value?: ComputerPlanStep["value"],
+  requiresBridge = false,
+): ComputerPlanStep => ({
+  id: createId("computer-step"), command, label, detail, target, risk,
+  reversible, value, requiresBridge,
+});
+
+const centers: Record<string, { target: string; label: string }> = {
+  "computer core": { target: "computer", label: "Computer Core" },
+  "procedure builder": { target: "procedures", label: "Procedure Builder" },
+  procedures: { target: "procedures", label: "Procedure Builder" },
+  routines: { target: "procedures", label: "Procedure Builder" },
+  communications: { target: "communications", label: "Communications Center" },
+  notifications: { target: "communications", label: "Communications Center" },
+  notices: { target: "communications", label: "Communications Center" },
+  calendar: { target: "calendar", label: "LCARS Calendar" },
+  displays: { target: "displays", label: "Display Routing" },
+  "display routing": { target: "displays", label: "Display Routing" },
+  tray: { target: "tray", label: "Tray Command Deck" },
+  applications: { target: "applications", label: "Application Library" },
+  apps: { target: "applications", label: "Application Library" },
+};
+
+const riskRank: Record<ComputerRisk, number> = { safe: 0, attention: 1, protected: 2 };
+export const highestComputerRisk = (risks: ComputerRisk[]): ComputerRisk =>
+  risks.reduce((current, candidate) => riskRank[candidate] > riskRank[current] ? candidate : current, "safe");
+
+const interpretClause = (rawClause: string, context: ComputerContext) => {
+  const clause = normalizedText(rawClause).replace(/^computer[,:]?\s*/, "");
+  let match: RegExpMatchArray | null;
+
+  match = clause.match(/^(?:run|start|execute)\s+(?:(?:the\s+)?(?:procedure|routine)\s+)?(.+)$/);
+  if (match) {
+    const found = entityMatch(context.procedures, match[1]);
+    if (found) return { value: step("run-procedure", `Run ${found.entity.name}`, "Execute the saved multi-step procedure", found.entity.id, "attention", false), confidence: found.confidence };
+  }
+
+  match = clause.match(/^(?:restore|activate|load|switch to)\s+(?:(?:the\s+)?(?:workstation|workspace)\s+)?(.+)$/);
+  if (match) {
+    const found = entityMatch(context.workstations, match[1]);
+    if (found) return { value: step("restore-workstation", `Restore ${found.entity.name}`, "Apply the saved workstation layout and applications", found.entity.id, "attention", false), confidence: found.confidence };
+  }
+
+  match = clause.match(/^(?:set|change|switch)(?:\s+(?:the\s+)?(?:display|interface))?\s+(?:theme\s+)?(?:to\s+)?(.+)$/);
+  if (match) {
+    const found = entityMatch(context.themes, match[1].replace(/\s+theme$/, ""));
+    if (found) return { value: step("set-theme", `Activate ${found.entity.name}`, "Change the active Display Matrix family", found.entity.id, "safe", true), confidence: found.confidence };
+  }
+
+  match = clause.match(/^(?:set\s+)?(?:master\s+)?(?:audio|volume)(?:\s+to)?\s+(\d{1,3})(?:\s*%)?$/);
+  if (match) {
+    const volume = Math.max(0, Math.min(100, Number(match[1])));
+    return { value: step("set-volume", `Set master audio to ${volume}%`, "Adjust the default system output volume", "master", "safe", true, volume, true), confidence: 1 };
+  }
+
+  match = clause.match(/^(enable|disable|turn on|turn off|toggle)\s+(?:do not disturb|dnd)$/);
+  if (match) {
+    const requested = match[1];
+    const value = requested === "toggle" ? "toggle" : requested === "enable" || requested === "turn on";
+    return { value: step("set-dnd", `${value === "toggle" ? "Toggle" : value ? "Enable" : "Disable"} Do Not Disturb`, "Change notification interruption policy", "dnd", "safe", true, value), confidence: 1 };
+  }
+
+  if (/^(?:set\s+)?red alert$|^battle stations$/.test(clause)) return { value: step("set-alert", "Activate Red Alert", "Shift the LCARS interface to the red emergency condition", "red", "attention", true), confidence: 1 };
+  if (/^(?:set\s+)?yellow alert$/.test(clause)) return { value: step("set-alert", "Activate Yellow Alert", "Shift the LCARS interface to the yellow readiness condition", "yellow", "attention", true), confidence: 1 };
+  if (/^(?:(?:cancel|end|stand down from)\s+(?:red |yellow )?alert|condition green|green alert|no alert|stand down)$/.test(clause)) return { value: step("set-alert", "Return to Condition Green", "Restore the selected Display Matrix palette", "normal", "safe", true), confidence: 1 };
+
+  if (/^(?:initiate\s+)?(?:auto[- ]?destruct|self[- ]?destruct)(?:\s+sequence)?$/.test(clause)) return { value: step("exit-lcars", "Self Destruct Â· Close LCARS", "Close only the LCARS interface; no files, applications, or operating-system data are destroyed", "exit", "protected", false), confidence: 1 };
+  if (/^(?:lock|secure)(?:\s+(?:the\s+)?(?:computer|workstation|lcars))?$/.test(clause)) return { value: step("lock-session", "Secure workstation", "Open the local LCARS authorization screen", "lock", "safe", true), confidence: 1 };
+  if (/^(?:mute|silence)(?:\s+(?:the\s+)?(?:audio|sound|music|computer))?$/.test(clause)) return { value: step("set-mute", "Mute master audio", "Mute the default system output", "mute", "safe", true, true, true), confidence: 1 };
+  if (/^(?:unmute|restore)(?:\s+(?:the\s+)?(?:audio|sound|music|computer))?$/.test(clause)) return { value: step("set-mute", "Restore master audio", "Unmute the default system output", "unmute", "safe", true, false, true), confidence: 1 };
+
+  if (/^(?:media\s+)?(?:pause|hold)(?:\s+(?:the\s+)?(?:music|audio|song|track|media|playback))?$/.test(clause)) return { value: step("media-control", "Pause media", "Pause the active media session without resuming an already-paused player", "pause", "safe", false, undefined, true), confidence: 1 };
+  if (/^(?:media\s+)?(?:play|resume|continue|unpause)(?:\s+(?:the\s+)?(?:music|audio|song|track|media|playback))?$/.test(clause)) return { value: step("media-control", "Resume media", "Resume the active media session without pausing an already-playing player", "play", "safe", false, undefined, true), confidence: 1 };
+  if (/^(?:media\s+)?(?:next|skip)(?:\s+(?:the\s+)?(?:song|track|media))?$/.test(clause)) return { value: step("media-control", "Next media item", "Advance the active MPRIS media session", "next", "safe", false, undefined, true), confidence: 1 };
+  if (/^(?:media\s+)?(?:previous|back|go back)(?:\s+(?:to\s+)?(?:the\s+)?(?:song|track|media))?$/.test(clause)) return { value: step("media-control", "Previous media item", "Return in the active MPRIS media session", "previous", "safe", false, undefined, true), confidence: 1 };
+  if (/^(?:media\s+)?(?:stop|stop playback)(?:\s+(?:the\s+)?(?:music|audio|song|track|media))?$/.test(clause)) return { value: step("media-control", "Stop media", "Stop the active MPRIS media session", "stop", "safe", false, undefined, true), confidence: 1 };
+
+  if (/^(?:computer\s+)?(?:status|status report|report|run diagnostics?|diagnostic report)$/.test(clause)) return { value: step("navigate", "Display Systems Status", "Open LCARS engineering and system diagnostics", "system", "safe", true), confidence: 1 };
+  if (/^(?:open\s+)?hailing frequencies$/.test(clause)) return { value: step("open-center", "Open hailing frequencies", "Present the Communications Action Center", "communications", "safe", true), confidence: 1 };
+  if (/^(?:what(?:'s| is)\s+)?(?:the\s+)?(?:time|date|stardate)$|^(?:display|show)\s+(?:the\s+)?(?:time|date|stardate)$/.test(clause)) return { value: step("open-center", "Display time and calendar", "Open the LCARS calendar and local date display", "calendar", "safe", true), confidence: 1 };
+  if (/^(?:main\s+)?viewer(?:\s+on)?$|^(?:display|show)\s+(?:the\s+)?main viewer$/.test(clause)) return { value: step("navigate", "Activate main viewer", "Return to the LCARS Status overview", "overview", "safe", true), confidence: 1 };
+  if (/^(?:identify|display)\s+(?:the\s+)?(?:music|song|track|musical composition)(?:\s+playing)?$/.test(clause)) return { value: step("navigate", "Identify active media", "Open Now Playing and connected MPRIS sessions", "media", "safe", true), confidence: 1 };
+
+  match = clause.match(/^(?:open|show|display|locate|find|go to|navigate to)\s+(.+)$/);
+  if (match) {
+    const requested = match[1].replace(/^the\s+/, "");
+    const center = centers[requested];
+    if (center) return { value: step("open-center", `Open ${center.label}`, "Present the requested LCARS command surface", center.target, "safe", true), confidence: 1 };
+    const page = entityMatch(context.pages, requested.replace(/\s+(?:page|console)$/, ""));
+    if (page) return { value: step("navigate", `Open ${page.entity.name}`, "Navigate the active LCARS workspace", page.entity.id, "safe", true), confidence: page.confidence };
+    const app = entityMatch(context.apps, requested);
+    if (app) return { value: step("launch-app", `Launch ${app.entity.name}`, "Request a native or embedded application launch", app.entity.id, "attention", false, undefined, true), confidence: app.confidence };
+  }
+
+  match = clause.match(/^(?:launch|start app|open app)\s+(.+)$/);
+  if (match) {
+    const app = entityMatch(context.apps, match[1]);
+    if (app) return { value: step("launch-app", `Launch ${app.entity.name}`, "Request a native or embedded application launch", app.entity.id, "attention", false, undefined, true), confidence: app.confidence };
+  }
+
+  match = clause.match(/^(?:check for|check|scan for)\s+(?:software\s+)?updates?$/);
+  if (match) return { value: step("core-action", "Check for updates", "Query the selected verified release channel", "check-updates", "safe", false, undefined, true), confidence: 1 };
+  if (/^(?:identify|show)\s+(?:the\s+)?displays?$/.test(clause)) return { value: step("core-action", "Identify displays", "Show the operating-system display identifiers", "identify-displays", "safe", false, undefined, true), confidence: 1 };
+  if (/^(?:recheck|check)\s+(?:local\s+)?integrations?$/.test(clause)) return { value: step("core-action", "Recheck integrations", "Refresh local operating-system capability probes", "integration-recheck", "safe", false, undefined, true), confidence: 1 };
+
+  match = clause.match(/^(?:sudo\s+)?(?:sleep|suspend|restart|reboot|shut down|shutdown|power off|log out|logout|end session)(?:\s+(?:the\s+)?(?:computer|session))?$/);
+  if (match) {
+    const request = match[0];
+    const action = /log out|logout|end session/.test(request) ? "logout" : /restart|reboot/.test(request) ? "reboot" : /sleep|suspend/.test(request) ? "sleep" : "poweroff";
+    return { value: step("system-action", action === "logout" ? "Log out session" : `${action === "reboot" ? "Restart" : action === "sleep" ? "Sleep" : "Shut down"} computer`, action === "logout" ? "Protected desktop-session logout" : "Protected whole-system power operation", action, "protected", false, undefined, true), confidence: 1 };
+  }
+
+  match = clause.match(/^(?:approved\s+)?(?:local\s+)?command\s+(.+)$/);
+  if (match && match[1].trim()) return { value: step("local-command", "Run approved local command", match[1].trim(), match[1].trim(), "protected", false, undefined, true), confidence: 1 };
+
+  return null;
+};
+
+export const interpretComputerCommand = (
+  input: string,
+  context: ComputerContext,
+  source: ComputerCommandSource = "operator",
+): ComputerPlan => {
+  const normalized = normalizedText(input).replace(/^computer[,:]?\s*/, "");
+  const clauses = normalized.split(/\s+(?:and\s+)?then\s+|\s*;\s*|\s*&&\s*/i).filter(Boolean).slice(0, 12);
+  const interpreted = clauses.map((clause) => ({ clause, result: interpretClause(clause, context) }));
+  const errors = interpreted.filter((item) => !item.result).map((item) => `I could not resolve â€œ${item.clause}â€.`);
+  const steps = interpreted.flatMap((item) => item.result ? [item.result.value] : []);
+  const valid = Boolean(clauses.length && steps.length && !errors.length);
+  const risk = highestComputerRisk(steps.map((item) => item.risk));
+  const suggestions = [
+    "Open Media then set volume to 40",
+    "Run Evening Operations",
+    "Enable Do Not Disturb",
+    "Check for updates",
+    "Computer, identify displays",
+    "Computer, pause the music",
+    "Computer, red alert",
+    "Computer, green alert",
+    "Computer, no alert",
+    "Computer, status report",
+  ];
+  return {
+    id: createId("computer-plan"), input, normalized, source,
+    createdAt: new Date().toISOString(), status: valid ? "ready" : "invalid", valid,
+    title: valid ? (steps.length > 1 ? `MULTI-STEP PLAN Â· ${steps.length} ACTIONS` : steps[0].label) : "COMMAND NEEDS CLARIFICATION",
+    summary: valid ? steps.map((item) => item.label).join(" â†’ ") : errors.join(" ") || "Enter an LCARS command.",
+    confidence: steps.length ? Math.min(...interpreted.flatMap((item) => item.result ? [item.result.confidence] : [0])) : 0,
+    risk, reversible: valid && steps.every((item) => item.reversible),
+    requiresConfirmation: steps.some((item) => item.risk === "protected"), steps, errors, suggestions,
+  };
+};
+
+export const normalizeComputerAudit = (value: unknown): ComputerAuditEntry[] => {
+  if (!Array.isArray(value)) return [];
+  const statuses = new Set<ComputerPlanStatus>(["ready", "invalid", "running", "completed", "failed", "dry-run", "undone"]);
+  const sources = new Set<ComputerCommandSource>(["operator", "voice", "procedure", "trigger", "padd"]);
+  const risks = new Set<ComputerRisk>(["safe", "attention", "protected"]);
+  return value.slice(0, 300).flatMap((candidate): ComputerAuditEntry[] => {
+    if (!candidate || typeof candidate !== "object") return [];
+    const item = candidate as Partial<ComputerAuditEntry>;
+    if (!String(item.title || "").trim()) return [];
+    return [{
+      id: String(item.id || createId("computer-audit")).slice(0, 96),
+      planId: String(item.planId || "legacy").slice(0, 96),
+      time: String(item.time || new Date().toISOString()).slice(0, 48),
+      source: sources.has(item.source as ComputerCommandSource) ? item.source as ComputerCommandSource : "operator",
+      input: String(item.input || "").slice(0, 500), title: String(item.title).slice(0, 100),
+      detail: String(item.detail || "").slice(0, 300),
+      status: statuses.has(item.status as ComputerPlanStatus) ? item.status as ComputerPlanStatus : "completed",
+      risk: risks.has(item.risk as ComputerRisk) ? item.risk as ComputerRisk : "safe",
+      stepCount: Math.max(0, Math.min(48, Number(item.stepCount) || 0)), reversible: Boolean(item.reversible),
+    }];
+  });
+};
+
+export const normalizeComputerUndo = (value: unknown): ComputerUndoSnapshot | null => {
+  if (!value || typeof value !== "object") return null;
+  const item = value as Partial<ComputerUndoSnapshot>;
+  if (!String(item.id || "").trim() || !String(item.planId || "").trim()) return null;
+  return {
+    id: String(item.id).slice(0, 96), planId: String(item.planId).slice(0, 96),
+    createdAt: String(item.createdAt || new Date().toISOString()).slice(0, 48),
+    label: String(item.label || "Computer Core plan").slice(0, 100),
+    section: String(item.section || "overview").slice(0, 80),
+    theme: String(item.theme || "classic").slice(0, 80),
+    doNotDisturb: Boolean(item.doNotDisturb),
+    volume: Math.max(0, Math.min(100, Number(item.volume) || 0)),
+    alertCondition: item.alertCondition === "red" || item.alertCondition === "yellow" ? item.alertCondition : "normal",
+  };
+};
+
+export const computerProcedureRisk = (procedure: ComputerProcedureShape): ComputerRisk =>
+  highestComputerRisk(procedure.steps.map((item) => item.kind === "system" || item.kind === "command" ? "protected" : item.kind === "app" || item.kind === "workstation" || item.kind === "media" || item.kind === "audio-device" ? "attention" : "safe"));
+
+export const computerProcedureReversible = (procedure: ComputerProcedureShape) =>
+  procedure.steps.length > 0 && procedure.steps.every((item) => ["page", "theme", "dnd", "volume"].includes(item.kind));

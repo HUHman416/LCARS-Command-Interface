@@ -1,96 +1,93 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿ}7ó}´ï­õë­ºÚZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜÝšXÝŽÂš[\ÜÈ™XYš[HHœ›ÛH››ÙN™œËÜ›ÛZ\Ù\ÈŽÂš[\Ü\Ýœ›ÛH››ÙN\ÝŽÂš[\ÜÂˆÛÛ\]\”›ØÙY\™T™]™\œÚX›KˆÛÛ\]\”›ØÙY\™Tš\ÚËˆ[\œ™]ÛÛ\]\ÛÛ[X[™ˆ›Ü›X[^™PÛÛ\]\]Y]ˆ›Ü›X[^™PÛÛ\]\•[™ËŸHœ›ÛH‹‹‹Ø\ÝŒÌXÛÜ™KÈŽÂš[\ÜÈ›Ü›X[^™T›Ý][™\ÈHœ›ÛH‹‹‹Ø\ÝŒKXÛÜ™KÈŽÂ‚˜ÛÛœÝÛÛ^HÂˆYÙ\ÎˆÞÈYˆ›Ý™\šY]È‹˜[YNˆ”Ý]\È‹[X\Ù\ÎˆÈ›Ý™\šY]È—HKÈYˆ›YYXH‹˜[YNˆ“YYXHˆWKˆ\ÎˆÞÈYˆœÜÝYžK™\ÚÝÜ‹˜[YNˆ”ÜÝYžHˆWKˆ›ØÙY\™\ÎˆÞÈYˆ™]™[š[™È‹˜[YNˆ‘]™[š[™ÈÜ\˜][ÛœÈˆWKˆÛÜšÜÝ][ÛœÎˆÞÈYˆ˜ÛÛ[X[™‹˜[YNˆÛÛ[X[™XÚÈˆWKˆ[Y\ÎˆÞÈYˆ›ÞXYÙ\ˆ‹˜[YNˆ•›ÞXYÙ\ˆˆWKŸNÂ‚\Ý
-ÛÛ\]\ˆÛÜ™HÜ™X]\ÈÜ™\™Y™]™\œÚX›H[œÈØØ[H‹
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import {
+  computerProcedureReversible,
+  computerProcedureRisk,
+  interpretComputerCommand,
+  normalizeComputerAudit,
+  normalizeComputerUndo,
+} from "../app/v30-core.ts";
+import { normalizeRoutines } from "../app/v25-core.ts";
 
-HOˆÂˆÛÛœÝ[ˆH[\œ™]ÛÛ\]\ÛÛ[X[™
-ÛÛ\]\‹Ü[ˆYYXH[ˆÙ]›Û[YHÈ‹ÛÛ^
-NÂˆ\ÜÙ\™\]X[
-[‹˜[YYJNÂˆ\ÜÙ\™Y\\]X[
-[‹œÝ\Ë›X\
+const context = {
+  pages: [{ id: "overview", name: "Status", aliases: ["overview"] }, { id: "media", name: "Media" }],
+  apps: [{ id: "spotify.desktop", name: "Spotify" }],
+  procedures: [{ id: "evening", name: "Evening Operations" }],
+  workstations: [{ id: "command", name: "Command Deck" }],
+  themes: [{ id: "voyager", name: "Voyager" }],
+};
 
-Ý\
-HOˆÝ\˜ÛÛ[X[™
-KÈ›˜]šYØ]H‹œÙ]]›Û[YH—JNÂˆ\ÜÙ\™\]X[
-[‹œÝ\ÖÌWK˜[YK
-NÂˆ\ÜÙ\™\]X[
-[‹œ™]™\œÚX›KYJNÂˆ\ÜÙ\™\]X[
-[‹œš\ÚËœØY™HŠNÂŸJNÂ‚\Ý
-œ›ÝXÝY[™[œ™\ÛÛ™YÛÛ[X[™ÈØ[››Ýž\\ÜÈH™]šY]È[Ù[‹
+test("Computer Core creates ordered, reversible plans locally", () => {
+  const plan = interpretComputerCommand("Computer, open Media then set volume to 40", context);
+  assert.equal(plan.valid, true);
+  assert.deepEqual(plan.steps.map((step) => step.command), ["navigate", "set-volume"]);
+  assert.equal(plan.steps[1].value, 40);
+  assert.equal(plan.reversible, true);
+  assert.equal(plan.risk, "safe");
+});
 
-HOˆÂˆÛÛœÝ›ÝXÝY[ˆH[\œ™]ÛÛ\]\ÛÛ[X[™
-œÝYÈ™X›ÛÝÛÛ\]\ˆ‹ÛÛ^›ÚXÙHŠNÂˆ\ÜÙ\™\]X[
-›ÝXÝY[‹˜[YYJNÂˆ\ÜÙ\™\]X[
-›ÝXÝY[‹œÛÝ\˜ÙK›ÚXÙHŠNÂˆ\ÜÙ\™\]X[
-›ÝXÝY[‹œš\ÚËœ›ÝXÝYŠNÂˆ\ÜÙ\™\]X[
-›ÝXÝY[‹œ™\]Z\™\ÐÛÛ™š\›X][Û‹YJNÂˆ\ÜÙ\™\]X[
-›ÝXÝY[‹œÝ\ÖÌK\™Ù]œ™X›ÛÝŠNÂˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-œ™\XØ]HÛÙ™™YH‹ÛÛ^
-K˜[Y˜[ÙJNÂŸJNÂ‚\Ý
-™[˜[ZXÈ›ØÙY\™\ËÛÜšÜÝ][ÛœË\XØ][ÛœË[™[Y\È™\ÛÛ™HžHš\ÚX›H˜[YH‹
+test("protected and unresolved commands cannot bypass the preview model", () => {
+  const protectedPlan = interpretComputerCommand("sudo reboot computer", context, "voice");
+  assert.equal(protectedPlan.valid, true);
+  assert.equal(protectedPlan.source, "voice");
+  assert.equal(protectedPlan.risk, "protected");
+  assert.equal(protectedPlan.requiresConfirmation, true);
+  assert.equal(protectedPlan.steps[0].target, "reboot");
+  assert.equal(interpretComputerCommand("replicate coffee", context).valid, false);
+});
 
-HOˆÂˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-œ[ˆ]™[š[™ÈÜ\˜][ÛœÈ‹ÛÛ^
-KœÝ\ÖÌK\™Ù]™]™[š[™ÈŠNÂˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-œ™\ÝÜ™HÛÛ[X[™XÚÈ‹ÛÛ^
-KœÝ\ÖÌK\™Ù]˜ÛÛ[X[™ŠNÂˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-›][˜ÚÜÝYžH‹ÛÛ^
-KœÝ\ÖÌK\™Ù]œÜÝYžK™\ÚÝÜŠNÂˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-œÙ][YHÈ›ÞXYÙ\ˆ‹ÛÛ^
-KœÝ\ÖÌK\™Ù]›ÞXYÙ\ˆŠNÂŸJNÂ‚\Ý
-œ›ØÙY\™HÛXÞHY[YšY\È›ÝXÝY[™[H™]™\œÚX›HÙ\]Y[˜Ù\È‹
+test("dynamic procedures, workstations, applications, and themes resolve by visible name", () => {
+  assert.equal(interpretComputerCommand("run Evening Operations", context).steps[0].target, "evening");
+  assert.equal(interpretComputerCommand("restore Command Deck", context).steps[0].target, "command");
+  assert.equal(interpretComputerCommand("launch Spotify", context).steps[0].target, "spotify.desktop");
+  assert.equal(interpretComputerCommand("set theme to Voyager", context).steps[0].target, "voyager");
+});
 
-HOˆÂˆ\ÜÙ\™\]X[
-ÛÛ\]\”›ØÙY\™Tš\ÚÊÈÝ\ÎˆÞÈÚ[™ˆœYÙHˆKÈÚ[™ˆœÞ\Ý[HˆWHJKœ›ÝXÝYŠNÂˆ\ÜÙ\™\]X[
-ÛÛ\]\”›ØÙY\™T™]™\œÚX›JÈÝ\ÎˆÞÈÚ[™ˆœYÙHˆKÈÚ[™ˆ›Û[YHˆKÈÚ[™ˆ[YHˆWHJKYJNÂˆ\ÜÙ\™\]X[
-ÛÛ\]\”›ØÙY\™T™]™\œÚX›JÈÝ\ÎˆÞÈÚ[™ˆ˜\ˆWHJK˜[ÙJNÂŸJNÂ‚\Ý
-•™\œÚ[ÛˆÌ›ØÙY\™H›Ü›X[^˜][ÛˆXØÙ\È^[™YšYÙÙ\œÈ[™ØY™]H[Z]È‹
+test("procedure policy identifies protected and fully reversible sequences", () => {
+  assert.equal(computerProcedureRisk({ steps: [{ kind: "page" }, { kind: "system" }] }), "protected");
+  assert.equal(computerProcedureReversible({ steps: [{ kind: "page" }, { kind: "volume" }, { kind: "theme" }] }), true);
+  assert.equal(computerProcedureReversible({ steps: [{ kind: "app" }] }), false);
+});
 
-HOˆÂˆÛÛœÝÜ›ØÙY\™WHH›Ü›X[^™T›Ý][™\ÊÞÂˆYˆ˜˜]\žK]Ø]Ú‹˜[YNˆ˜]\žHØ]Ú‹\ØÜš\[ÛŽˆˆ‹ÛÛÜŽˆ˜›YH‹[˜X›YˆYKˆšYÙÙ\ŽˆÈ\Nˆ˜˜]\žKX™[ÝÈ‹˜[YNˆŒŒˆKÛÛÛÝÛ”ÙXÛÛ™ÎˆLX^[[YTÙXÛÛ™ÎˆKˆžT[žQY˜][ˆYKÝ\ÎˆÞÈYˆœÝ\LH‹Ú[™ˆ™™‹\™Ù]ˆYHˆWKˆWJNÂˆ\ÜÙ\™\]X[
-›ØÙY\™KšYÙÙ\‹\K˜˜]\žKX™[ÝÈŠNÂˆ\ÜÙ\™\]X[
-›ØÙY\™K˜ÛÛÛÝÛ”ÙXÛÛ™ËL
-NÂˆ\ÜÙ\™\]X[
-›ØÙY\™K›X^[[YTÙXÛÛ™ËJNÂˆ\ÜÙ\™\]X[
-›ØÙY\™K™žT[žQY˜][YJNÂŸJNÂ‚\Ý
-˜]Y][™[™ÈÝÜ˜YÙH™Z™XÝX[›Ü›YY™XÛÜ™È‹
+test("Version 30 procedure normalization accepts expanded triggers and safety limits", () => {
+  const [procedure] = normalizeRoutines([{
+    id: "battery-watch", name: "Battery Watch", description: "", color: "blue", enabled: true,
+    trigger: { type: "battery-below", value: "20" }, cooldownSeconds: 900, maxRuntimeSeconds: 45,
+    dryRunByDefault: true, steps: [{ id: "step-1", kind: "dnd", target: "true" }],
+  }]);
+  assert.equal(procedure.trigger.type, "battery-below");
+  assert.equal(procedure.cooldownSeconds, 900);
+  assert.equal(procedure.maxRuntimeSeconds, 45);
+  assert.equal(procedure.dryRunByDefault, true);
+});
 
-HOˆÂˆ\ÜÙ\™\]X[
-›Ü›X[^™PÛÛ\]\]Y]
-ÞßKÈ]Nˆ•˜[Y‹Ý]\Îˆ™žK\[ˆ‹š\ÚÎˆœØY™HˆWJK›[™ÝJNÂˆ\ÜÙ\™\]X[
-›Ü›X[^™PÛÛ\]\•[™ÊßJK[
-NÂˆ\ÜÙ\™\]X[
-›Ü›X[^™PÛÛ\]\•[™ÊÈYˆ[™È‹[’Yˆœ[ˆ‹›Û[YNˆLJOË›Û[YKL
-NÂŸJNÂ‚\Ý
-™\ÚÝÜ›ÚXÙHXÚØYÙH™[XZ[œÈ[›™Y[™™\šYšYY›ÜˆÌŒÈ[™ËYœ™YHØ\\™H‹\Þ[˜È
+test("audit and undo storage reject malformed records", () => {
+  assert.equal(normalizeComputerAudit([{}, { title: "Valid", status: "dry-run", risk: "safe" }]).length, 1);
+  assert.equal(normalizeComputerUndo({}), null);
+  assert.equal(normalizeComputerUndo({ id: "undo", planId: "plan", volume: 500 })?.volume, 100);
+});
 
-HOˆÂˆÛÛœÝÜØÜš\[^œšYÙKÚ[™ÝÜÐœšYÙKYÙKZ[\‹ÛÜšÙ›Ý×HH]ØZ]›ÛZ\ÙK˜[
-Âˆ™XYš[J™]ÈT“
-‹‹‹ÜØÜš\ËÜ™\\™K]›ÚXÙK\[[YKœÚ‹[\Ü›Y]K\›
-K]ŽŠKˆ™XYš[J™]ÈT“
-‹‹‹ÛØØ[ÛØ\œ×ØœšYÙKœH‹[\Ü›Y]K\›
-K]ŽŠKˆ™XYš[J™]ÈT“
-‹‹‹ÝÚ[™ÝÜËÛØ\œ×ØœšYÙWÝÚ[™ÝÜËœH‹[\Ü›Y]K\›
-K]ŽŠKˆ™XYš[J™]ÈT“
-‹‹‹Ø\ÜYÙKÞ‹[\Ü›Y]K\›
-K]ŽŠKˆ™XYš[J™]ÈT“
-‹‹‹Ù[XÝ›Û‹XZ[\‹ž[[‹[\Ü›Y]K\›
-K]ŽŠKˆ™XYš[J™]ÈT“
-‹‹‹Ë™Ú]X‹ÝÛÜšÙ›ÝÜËÝŒÌY]™[ÜY[ž[[‹[\Ü›Y]K\›
-K]ŽŠKˆJNÂˆ\ÜÙ\›X]Ú
-ØÜš\Ü™[X\ÙOH˜LÎ‹ÊNÂˆ\ÜÙ\›X]Ú
-ØÜš\ÜÚLMœÝ[HKXÚXÚËÊNÂˆ\ÜÙ\›X]Ú
-ØÜš\Û[Ù[ÜÚLOHŒÙ˜ŽL™XÎXØ˜˜ÍÍŽYŒLÍÙŒŒÌ˜™LÌXˆ‹ÊNÂˆ\ÜÙ\›X]Ú
-[^œšYÙKÜ˜]×ÎOOXˆ”’Q‘ˆ‹ÊNÂˆ\ÜÙ\›X]Ú
-Ú[™ÝÜÐœšYÙKÜ˜]×ÎOOXˆ”’Q‘ˆ‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜÛUØ]›Ø‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜ™\Ø[\U›ÚXÙTÛKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÝ\™Ù]˜]OLMŒÊNÂˆ\ÜÙ\›X]Ú
-YÙKØ\WÝ›ÚXÙK\Ý]\ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÝ›ÚXÙP]]Üš^˜][ÛÜ™Y[X[ÊNÂˆ\ÜÙ\›X]Ú
-Z[\‹Ý›ÚXÙK\[[YWÛ[^ÊNÂˆ\ÜÙ\›X]Ú
-Z[\‹Ý›ÚXÙK\[[YWÝÚ[™ÝÜËÊNÂˆ\ÜÙ\›X]Ú
-ÛÜšÙ›ÝËÙÚ™[X\ÙH
-ÎšY]ßÜ™X]JHŒÌKÊNÂŸJNÂ
+test("desktop voice package remains pinned and verified for 30.3 hands-free capture", async () => {
+  const [script, linuxBridge, windowsBridge, page, builder, workflow] = await Promise.all([
+    readFile(new URL("../scripts/prepare-voice-runtime.sh", import.meta.url), "utf8"),
+    readFile(new URL("../local/lcars_bridge.py", import.meta.url), "utf8"),
+    readFile(new URL("../windows/lcars_bridge_windows.py", import.meta.url), "utf8"),
+    readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../electron-builder.yml", import.meta.url), "utf8"),
+    readFile(new URL("../.github/workflows/v30-development.yml", import.meta.url), "utf8"),
+  ]);
+  assert.match(script, /release="b4938"/);
+  assert.match(script, /sha256sum --check/);
+  assert.match(script, /model_sha1="3fb92ec865cbbc769f08137f22470d6b66e071b6"/);
+  assert.match(linuxBridge, /raw\[:4\]==b"RIFF"/);
+  assert.match(windowsBridge, /raw\[:4\]==b"RIFF"/);
+  assert.match(page, /pcmWavBlob/);
+  assert.match(page, /resampleVoicePcm/);
+  assert.match(page, /targetRate=16000/);
+  assert.match(page, /api\/voice-status/);
+  assert.match(page, /voiceAuthorizationCredential/);
+  assert.match(builder, /voice-runtime\/linux/);
+  assert.match(builder, /voice-runtime\/windows/);
+  assert.match(workflow, /gh release (?:view|create) v30\.5/);
+});

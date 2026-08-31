@@ -1,130 +1,103 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿm·Óm}×¯5ó}xÖZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\Ýœ›ÛH››ÙN\ÝŽÂš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜÝšXÝŽÂš[\ÜÈ™XYš[TÞ[˜ÈHœ›ÛH››ÙN™œÈŽÂ‚˜ÛÛœÝXZ[\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ù\ÚÝÜÛXZ[‹˜ÚœÈ‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝYÙO\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ø\ÜYÙKÞ‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝÛÛ\]\ÛÜ™O\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ø\ÝŒÌXÛÜ™KÈ‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝÜÜÏ\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ø\ÝŒ˜ÜÜÈ‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝ[^\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹ÛØØ[ÛØ\œ×ØœšYÙKœH‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝÚ[™ÝÜÏ\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹ÝÚ[™ÝÜËÛØ\œ×ØœšYÙWÝÚ[™ÝÜËœH‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝ[^™YÚ\Ý˜][Û\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ú[œÝ[X]]ÜÝ\œÚ‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝZ[\\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ù[XÝ›Û‹XZ[\‹ž[[‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝœÚ\ÓÜ[ÛœÏ\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹ÝÚ[™ÝÜËÚ[œÝ[\‹ÛØ\œË[Ü[ÛœË›œÚ‹[\Ü›Y]K\›
-K]ŽŠNÂ‚\Ý
-›Ø\œÈ›ÝØÛÛÙ\™\È]Y[ÈÚ]H^XX›HRSQH\H[™›ÈS˜[˜XÚÈ‹
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
-OOžÂˆ\ÜÙ\›X]Ú
-XZ[‹È—›\ÈŽˆ˜]Y[×Û\YÈ‹ÊNÂˆ\ÜÙ\›X]Ú
-XZ[‹ÓÐT”È\ÜÙ]›Ý›Ý[™ÊNÂˆ\ÜÙ\›X]Ú
-XZ[‹Û™]È™\ÜÛœÙW
-œ×œ™XYš[TÞ[˜×
-\™Ù]
-KÊNÂˆ\ÜÙ\›X]Ú
-XZ[‹Ü™\ÜÛœÙW˜›Ø—
-
-KÊNÂˆ\ÜÙ\›X]Ú
-XZ[‹Ø›Ø—\WœÝ\ÕÚ]
-	Ø]Y[×É×
-KÊNÂŸJNÂ‚\Ý
-œ˜Z[˜^HXÝX]Üˆ\ÈÛÛZ[™Y[œ›Ý]Y[™X™[YXØÙ\ÜÚX›H‹
+const main=readFileSync(new URL("../desktop/main.cjs",import.meta.url),"utf8");
+const page=readFileSync(new URL("../app/page.tsx",import.meta.url),"utf8");
+const computerCore=readFileSync(new URL("../app/v30-core.ts",import.meta.url),"utf8");
+const css=readFileSync(new URL("../app/v24.css",import.meta.url),"utf8");
+const linux=readFileSync(new URL("../local/lcars_bridge.py",import.meta.url),"utf8");
+const windows=readFileSync(new URL("../windows/lcars_bridge_windows.py",import.meta.url),"utf8");
+const linuxRegistration=readFileSync(new URL("../install-autostart.sh",import.meta.url),"utf8");
+const builder=readFileSync(new URL("../electron-builder.yml",import.meta.url),"utf8");
+const nsisOptions=readFileSync(new URL("../windows/installer/lcars-options.nsh",import.meta.url),"utf8");
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKØ\šXK[X™[H“Ü[ˆÞ\Ý[H˜^Hˆ]OH•˜^HÛÛ[X[™XÚÈ‹ÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÜšYÚŒZ[\Ü[ÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÝÜš][™Ë[[ÙNšÜš^›Û[]ˆZ[\Ü[ÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-ÜÜËÜšYÚ‹L–ÌW\ÊNÂŸJNÂ‚\Ý
-“[^˜^H[šY\È™Y™\ˆ\XØ][Û‹\›ÝšYYX™[ÈÝ™\ˆ\È[X™\œÈ‹
+test("lcars protocol serves audio with a playable MIME type and no HTML fallback",()=>{
+  assert.match(main,/"\.mp3":"audio\/mpeg"/);
+  assert.match(main,/LCARS asset not found/);
+  assert.match(main,/new Response\(fs\.readFileSync\(target\)/);
+  assert.match(main,/response\.blob\(\)/);
+  assert.match(main,/blob\.type\.startsWith\('audio\/'\)/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-[^Ü›Ü\WÝ˜[YW
-Ù\šXÙK]•]H—
-KÊNÂˆ\ÜÙ\›X]Ú
-[^Ü›Ü\WÝ˜[YW
-Ù\šXÙK]’Y—
-KÊNÂˆ\ÜÙ\›X]Ú
-[^Ü›Ü\WÝ˜[YW
-Ù\šXÙK]‘\ÚÝÜ[žH—
-KÊNÂˆ\ÜÙ\›X]Ú
-[^Ü›ØÙ\Ü×ÚY[]W
-Ù\šXÙW
-KÊNÂˆ\ÜÙ\›X]Ú
-[^Ù\ÚÝÜÛ˜[YHÜˆ
-ˆˆYˆÙ[™\šXÈ[ÙH]W
-KÊNÂŸJNÂ‚\Ý
-œYÙH[œÚ]H\È›Ü›X[^™Y[™ØÛÜYÚ]Ý][Ýš[™ÈH›ÛÝÚ[‹
+test("rail tray actuator is contained, unrotated, and labelled accessibly",()=>{
+  assert.match(page,/aria-label="Open system tray" title="Tray Command Deck"/);
+  assert.match(css,/right:0!important/);
+  assert.match(css,/writing-mode:horizontal-tb!important/);
+  assert.doesNotMatch(css,/right:-2[01]px/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKÜYÙQ[œÚ]TØÛÜNˆ™ÛØ˜[ˆœ\‹\YÙH‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKØXÝ]™TYÙQ[œÚ]KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÔQÑHÒV‘HÓÓ•“ÓÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÔYÙK\Ú^™H™\Ù]ÈY™™XÝÛ›H[\›˜[ÜXÚ[™ËÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-ÜÜËÜYÙKY[œÚ]KJÎ˜ÛÛ\XÝÚYJV×ŸWJ˜[œÙ›Ü›N‹ÊNÂŸJNÂ‚\Ý
-“[^[™Ú[™ÝÜÈ^ÜÙH›Ü›X[^™YÜ˜\XÜÈ[™Y[[ÜžH]Z[È‹
+test("Linux tray entries prefer application-provided labels over DBus numbers",()=>{
+  assert.match(linux,/property_value\(service,path,"Title"\)/);
+  assert.match(linux,/property_value\(service,path,"Id"\)/);
+  assert.match(linux,/property_value\(service,path,"DesktopEntry"\)/);
+  assert.match(linux,/process_identity\(service\)/);
+  assert.match(linux,/desktop_name or \("" if generic else title\)/);
+});
 
-OOžÂˆ›ÜŠÛÛœÝœšYÙHÙˆÛ[^Ú[™ÝÜ×J^Âˆ\ÜÙ\›X]Ú
-œšYÙKÈ›Y[[ÜžH‹ÊNÂˆ\ÜÙ\›X]Ú
-œšYÙKÈ™Ü˜\XÜÈ‹ÊNÂˆ\ÜÙ\›X]Ú
-œšYÙKÈ›Y[[ÜžUÝ[‹ÊNÂˆ\ÜÙ\›X]Ú
-œšYÙKÈ›Y[[ÜžU\ÙY‹ÊNÂˆBˆ\ÜÙ\›X]Ú
-YÙKÒ\™Ø\™U[[Y]žKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÛY[[ÜžKY]Z[ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÙÜ˜\XÜËY]Z[ÊNÂŸJNÂ‚\Ý
-œÝÙ\ˆÛÛ›ÛÝ\Ü[™ÈHÚÛHÛÛ\]\ˆÛˆ[^[™Ú[™ÝÜÈ‹
+test("page density is normalized and scoped without moving the root shell",()=>{
+  assert.match(page,/pageDensityScope: "global" \| "per-page"/);
+  assert.match(page,/activePageDensity/);
+  assert.match(page,/PAGE SIZE CONTROL/);
+  assert.match(css,/Page-size presets affect only internal spacing/);
+  assert.doesNotMatch(css,/page-density-(?:compact|wide)[^}]*transform:/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKÔÓQTÓÓTUT‹ÊNÂˆ\ÜÙ\›X]Ú
-[^ÈœÛY\ŽˆœÝ\Ü[™‹ÊNÂˆ\ÜÙ\›X]Ú
-Ú[™ÝÜËÔÙ]Ý\Ü[™Ý]KÊNÂŸJNÂ‚\Ý
-”ÜYYX[\È[Ù[\‹Ü™\™Y[™[˜ÛY\ÈÈ›Ý\Ý\˜ˆ‹
+test("Linux and Windows expose normalized graphics and memory details",()=>{
+  for(const bridge of [linux,windows]){
+    assert.match(bridge,/"memory"/);
+    assert.match(bridge,/"graphics"/);
+    assert.match(bridge,/"memoryTotal"/);
+    assert.match(bridge,/"memoryUsed"/);
+  }
+  assert.match(page,/HardwareTelemetry/);
+  assert.match(page,/memory-detail/);
+  assert.match(page,/graphics-detail/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKÜÜYYX[ˆÜYYX[][W×KÊNÂˆ\ÜÙ\›X]Ú
-YÙKØXÝ[ÛŽ™™ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÙ[˜Ý[ÛˆÜYYX[Y]Ü‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKØ\šXK[X™[H“ÐT”ÈÜYYX[‹ÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÜÞ\Ý[K]˜^WœÜYYYX[ÊNÂŸJNÂ‚\Ý
-˜Ý\ÝÛHÚYX˜\ˆYÙ\ÈXØÙ\\XØ][ÛœË[Ù[\Ë[™[^[œÚ[ÛœÈ‹
+test("power control suspends the whole computer on Linux and Windows",()=>{
+  assert.match(page,/SLEEP COMPUTER/);
+  assert.match(linux,/"sleep":"suspend"/);
+  assert.match(windows,/SetSuspendState/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKÝ\HÝ\ÝÛTYÙHKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÙ[˜Ý[ÛˆÝ\ÝÛTYÙSX[˜YÙ\‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÚÚ[™ˆ˜\ˆ›[Ù[Wˆ™^[œÚ[Û—‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜÙXÝ[Û—œÝ\ÕÚ]
-˜Ý\ÝÛNˆ—
-KÊNÂˆ\ÜÙ\›X]Ú
-ÜÜË×˜Ý\ÝÛK\YÙK[X[˜YÙ\‹ÊNÂŸJNÂ‚\Ý
-˜\XØ][Ûˆ[\È^ÜÙH[X™YY™\œÝ\È˜]]™H\Ý[˜][ÛœÈ[™ÚY]XÚ‹
+test("Speed Dial is modular, ordered, and includes Do Not Disturb",()=>{
+  assert.match(page,/speedDial: SpeedDialItem\[\]/);
+  assert.match(page,/action:dnd/);
+  assert.match(page,/function SpeedDialEditor/);
+  assert.match(page,/aria-label="LCARS Speed Dial"/);
+  assert.match(css,/system-tray\.speed-dial/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKÝ\H\XØ][Û‘\Ý[˜][ÛˆH™[X™YYˆ›˜]]™H‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÙ[X™YYYÙQ›Ü\ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÙ]™[œÚYÙ^WÈ›˜]]™HŽ[™Yš[™YÊNÂˆ\ÜÙ\›X]Ú
-YÙKÓ“Ô“PSÓPÒÈTÑTÈHÒÕÓˆTÕSUSÓ‹ÊNÂˆ\ÜÙ\›X]Ú
-ÜÜË×™˜]Ù\‹Y\Ý[˜][Û‹ÊNÂŸJNÂ‚\Ý
-œÜX›H[^™YÚ\Ý˜][Ûˆ[™Ú[™ÝÜÈ[œÝ[\ˆ]]ÜÝ\\™HÜZ[ˆ‹
+test("custom sidebar pages accept applications, modules, and full extensions",()=>{
+  assert.match(page,/type CustomPage =/);
+  assert.match(page,/function CustomPageManager/);
+  assert.match(page,/kind: \"app\" \| \"module\" \| \"extension\"/);
+  assert.match(page,/section\.startsWith\("custom:"\)/);
+  assert.match(css,/\.custom-page-manager/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-[^™YÚ\Ý˜][Û‹ËKY[˜X›KX]]ÜÝ\ÊNÂˆ\ÜÙ\›X]Ú
-[^™YÚ\Ý˜][Û‹×›ØØ[ÜÚ\™WØ\XØ][ÛœËÊNÂˆ\ÜÙ\›X]Ú
-Z[\‹Ú[˜ÛYNˆÚ[™ÝÜ×Ú[œÝ[\—ÛØ\œË[Ü[Ûœ×›œÚÊNÂˆ\ÜÙ\›X]Ú
-œÚ\ÓÜ[ÛœËÔÝ\ÐT”ÈÛÛ[X[™[\™˜XÙHÚ[ˆHÚYÛˆ[‹ÊNÂˆ\ÜÙ\›X]Ú
-œÚ\ÓÜ[ÛœËÔ™\Ù]^\Ý[™ÈÐT”ÈÙ][™ÜËÊNÂˆ\ÜÙ\›X]Ú
-œÚ\ÓÜ[ÛœËÚ[œÝ[\[[YWœÌKÊNÂˆ\ÜÙ\›X]Ú
-œÚ\ÓÜ[ÛœË×	ÓTÕT•TÊNÂŸJNÂ‚\Ý
-Ý\œ™[Y]Y]H[™›ÝXÝYÛY\›ÚXÙH[[Ý^H[YÛ™Y‹
+test("application tiles expose embedded versus native destinations and Shift detach",()=>{
+  assert.match(page,/type ApplicationDestination = "embedded" \| "native"/);
+  assert.match(page,/embeddedPageForApp/);
+  assert.match(page,/event\.shiftKey\?"native":undefined/);
+  assert.match(page,/NORMAL CLICK USES THE SHOWN DESTINATION/);
+  assert.match(css,/\.drawer-destination/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKÕ—	Ý\]W×˜Ý\œ™[ÐT”×Õ‘T”ÒSÓ—H0­È	Ü™Yœ×\]PÚ[›™[Õ\\Ø\ÙW
-
-WKÊNÂˆ\ÜÙ\›X]Ú
-YÙJØÛÛ\]\ÛÜ™KÜÛY\Ý\Ü[™ÊNÂˆ\ÜÙ\›X]Ú
-[^ÓÐT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_ŽWŒŒŽWŒ×Œ\˜×Œ_ŽWŒ—ŒY]—Œ_ŽŒŒŽŒË\˜×Œ_ŽŒ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
-JH‹ÊNÂˆ\ÜÙ\›X]Ú
-Ú[™ÝÜËÓÐT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_ŽWŒŒŽWŒ×Œ\˜×Œ_ŽWŒ—ŒY]—Œ_ŽŒŒŽŒË\˜×Œ_ŽŒ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
-JH‹ÊNÂŸJNÂ
+test("portable Linux registration and Windows installer autostart are opt-in",()=>{
+  assert.match(linuxRegistration,/--enable-autostart/);
+  assert.match(linuxRegistration,/\.local\/share\/applications/);
+  assert.match(builder,/include: windows\/installer\/lcars-options\.nsh/);
+  assert.match(nsisOptions,/Start LCARS Command Interface when I sign in/);
+  assert.match(nsisOptions,/Reset existing LCARS settings/);
+  assert.match(nsisOptions,/install-runtime\.ps1/);
+  assert.match(nsisOptions,/\$SMSTARTUP/);
+});
+
+test("Current metadata and protected sleep voice intent stay aligned",()=>{
+  assert.match(page,/V\$\{update\?\.current\|\|LCARS_VERSION\} Â· \$\{prefs\.updateChannel\.toUpperCase\(\)\}/);
+  assert.match(page+computerCore,/sleep\|suspend/);
+  assert.match(linux,/LCARS_VERSION="(?:30\.[2345]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(windows,/LCARS_VERSION="(?:30\.[2345]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+});

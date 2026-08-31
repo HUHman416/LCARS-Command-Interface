@@ -1,60 +1,51 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿ^v÷¶÷^5÷®üòZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\Ýœ›ÛH››ÙN\ÝŽÂš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜÝšXÝŽÂš[\ÜœÈœ›ÛH››ÙN™œÈŽÂ‚˜ÛÛœÝYÙOYœËœ™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ø\ÜYÙKÞ‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝÛÜ™OYœËœ™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ø\ÝŒKXÛÜ™KÈ‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝ^[œÚ[ÛœÏYœËœ™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹ÜÚ\™YÛØ\œ×Ù^[œÚ[ÛœËœH‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝ\]\YœËœ™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹ÜÚ\™YÛØ\œ×Ý\]\‹œH‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝ™[™\™\YœËœ™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ù\ÚÝÜÜ™[™\™\‹Þ‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝXÚØYÙRœÛÛR”ÓÓ‹œ\œÙJœËœ™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹ÜXÚØYÙKšœÛÛˆ‹[\Ü›Y]K\›
-K]ŽŠJNÂ‚\Ý
-•™\œÚ[Ûˆ‹ŒˆØ\œšY\ÈHÚ[™ÝÜË\ØY™H™\Ú^™H[˜ÚÜš[™È[ÈH˜]]™HÛÜšÜÜXÙH[™Ú[™H‹
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKÙ]\Ù]›Ø\œÔ™\Ú^š[™ÏHŒH‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜÝ\Ü
-ÜÝ\šZYÚ\™[™\™YšZYÚÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜÝ\Y
-ÜÝ\ÚY\™[™\™YÚYÊNÂˆ\ÜÙ\›X]Ú
-YÙKÔ™\Ú^™SØœÙ\™\—
-
-
-OO—ÚY—
-[[Y[™]\Ù]›Ø\œÔ™\Ú^š[™ÈOOHŒH—
-\\œÚ\Ý
-
-N×W
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÛØ\œÔÛ˜\™]šY]ËÊNÂŸJNÂ‚\Ý
-•ÛÜšÜÝ][ÛœÈËŒ™\Ù\™HÜYYX[[™›ÝšYHY\]™H™\Ù]È[™Y™XÞXÛHÛÛ›ÛÈ‹
+const page=fs.readFileSync(new URL("../app/page.tsx",import.meta.url),"utf8");
+const core=fs.readFileSync(new URL("../app/v25-core.ts",import.meta.url),"utf8");
+const extensions=fs.readFileSync(new URL("../shared/lcars_extensions.py",import.meta.url),"utf8");
+const updater=fs.readFileSync(new URL("../shared/lcars_updater.py",import.meta.url),"utf8");
+const renderer=fs.readFileSync(new URL("../desktop/renderer.tsx",import.meta.url),"utf8");
+const packageJson=JSON.parse(fs.readFileSync(new URL("../package.json",import.meta.url),"utf8"));
 
-OOžÂˆ›ÜŠÛÛœÝÚÙ[ˆÙˆÈœÜYYX[ÎˆÜYYX[][V×H‹›^[Ý]™\Ù]Îˆ‹”Ô•RUQ‹“S‘ÐÐTHQ‹“USKSSÓ’UÔˆ‹”‘U’QUÈ‹”‘SSQH‹‘TPÐUH‹‘VÔ•—JX\ÜÙ\›ÚÊYÙKš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂˆ\ÜÙ\›X]Ú
-YÙKÜ›Ùš[WœÜYYX[ÊNÂŸJNÂ‚\Ý
-“Ü\˜][ÛœÈ]]ÛX][Ûˆ‹ŒÝ\ÜÈÛÛ™][ÛœË›Û\Ë[^\Ë™]šY\Ë˜Z[\™H]Ë\ÝÜžK[™Ý\\ÝÈ‹
+test("Version 26.2 carries the Windows-safe resize anchoring into the native workspace engine",()=>{
+  assert.match(page,/dataset\.lcarsResizing="1"/);
+  assert.match(page,/startTop\+start\.height-rendered\.height/);
+  assert.match(page,/startLeft\+start\.width-rendered\.width/);
+  assert.match(page,/ResizeObserver\(\(\)=>\{if\(element\.dataset\.lcarsResizing!=="1"\)persist\(\);\}\)/);
+  assert.match(page,/lcarsSnapPreview/);
+});
 
-OOžÂˆ›ÜŠÛÛœÝÚÙ[ˆÙˆÉßœ›Û\‰Ë	ØÛÛ™][ÛÎˆ›Ý][™PÛÛ™][Û‰Ë	Ù[^S\ÏÎˆ[X™\‰Ë	Ü™]šY\ÏÎˆ[X™\‰Ë	ÛÛ‘˜Z[\™OÎˆœÝÜˆ˜ÛÛ[YH‰×JX\ÜÙ\›ÚÊÛÜ™Kš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂˆ›ÜŠÛÛœÝÚÙ[ˆÙˆÈ”•SˆTÕÔ–H‹”SÒÈSRS‘ÈÈRST‘H‹•TÕ‹“Ü\˜]ÜˆXÛ[™YH›Ý][™H›Û\‹œÝ\›Û‘˜Z[\™HOOW˜ÛÛ[YWˆ—JX\ÜÙ\›ÚÊYÙKš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂŸJNÂ‚\Ý
-ÛÛ[][šXØ][ÛœÈXÝ[ÛˆÙ[\ˆÜ›Ý\È™\X]YY\ÜØYÙ\È[™^ÜÙ\ÈØY™HÝ]Y[XÝ[ÛœÈ‹
+test("Workstations 3.0 preserve Speed Dial and provide adaptive presets and lifecycle controls",()=>{
+  for(const token of ["speedDial?: SpeedDialItem[]","layoutPreset?:","PORTRAIT PADD","LANDSCAPE PADD","MULTI-MONITOR","PREVIEW","RENAME","DUPLICATE","EXPORT"])assert.ok(page.includes(token),token);
+  assert.match(page,/profile\.speedDial/);
+});
 
-OOžÂˆ›ÜŠÛÛœÝÚÙ[ˆÙˆÈÓÓSUS’PÐUSÓ”ÈPÕSÓˆÑS•Tˆ‹”ÒÕÈTÒU‘Q‹“PT’ÈS”‘PQ‹•’QUÈ“ÐÑTÔÈ‹“ÔSˆTUTÈ‹œ™\X]ÎŠX]Úœ™\X]ßJJÌH—JX\ÜÙ\›ÚÊYÙKš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂŸJNÂ‚\Ý
-“[Ù[H]›Ü›H™]Z[œÈÛÛœÝ˜Z[™YX›XÈÚ]XˆÛÝ\˜Ù\È[™X›\Ú\ˆXÚØYÙ\È‹
+test("Operations Automation 2.0 supports conditions, prompts, delays, retries, failure paths, history, and step tests",()=>{
+  for(const token of ['| "prompt"','condition?: RoutineCondition','delayMs?: number','retries?: number','onFailure?: "stop" | "continue"'])assert.ok(core.includes(token),token);
+  for(const token of ["RUN HISTORY","BRANCH / TIMING / FAILURE","TEST","Operator declined the routine prompt","step.onFailure!==\"continue\""])assert.ok(page.includes(token),token);
+});
 
-OOžÂˆ›ÜŠÛÛœÝÚÙ[ˆÙˆÈœ™\ÜÚ]ÜžWÜÛÝ\˜ÙWÛÜ\˜][Ûˆ‹œ™\\™WÛ[Ù[WÜX›XØ][Ûˆ‹œX›XÈÎ‹ËÙÚ]X‹˜ÛÛKÓÕÓ‘T‹Ô‘TÔÒUÔ–H‹œÛÝ\˜ÙRY‹”ÒLM”ÕSTË‹”™\ÜÚ]ÜžHÛÙH\È™]™\ˆ^XÝ]Y—JX\ÜÙ\›ÚÊ
-^[œÚ[ÛœÊÜYÙJKš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-^[œÚ[ÛœËÙÚ]X—˜ÛÛKŠÚÙ[‹ÚJNÂŸJNÂ‚\Ý
-•™\œÚ[Ûˆˆ™[X\ÙHØ[™Y]\ÈØ[ˆ^XÚ]H˜[œÚ][ÛˆÈHÝX›HXZ›Üˆ™[X\ÙH‹
+test("Communications Action Center groups repeated messages and exposes safe stateful actions",()=>{
+  for(const token of ["COMMUNICATIONS ACTION CENTER","SHOW ARCHIVED","MARK UNREAD","VIEW PROCESS","OPEN UPDATES","repeats:(match.repeats||1)+1"])assert.ok(page.includes(token),token);
+});
 
-OOžÂˆ\ÜÙ\›ÚÊÈŒÌKŒY]‹ŒH‹ŒÌŒY]‹ŒH‹ŒÌŒËŒY]‹ŒH‹ŒÌŒ‹ŒY]‹ŒH‹ŒÌŒKŒY]‹Œˆ‹ŒŽKŒŒ‹ŒŽKŒËŒ\˜ËŒH‹ŒŽKŒ‹ŒY]‹ŒH‹ŒŽŒŒ‹ŒŽŒËŒ\˜ËŒH‹ŒŽŒ‹ŒY]‹ŒH‹ŒËŒ‹ŒKY]‹ŒH‹ŒËŒ‹ŒY]‹ŒH‹ŒËŒKŒKY]‹ŒH‹Œ‹ŒËŒY]‹ŒH‹Œ‹ŒŒ—Kš[˜ÛY\ÊXÚØYÙRœÛÛ‹™\œÚ[ÛŠJNÂˆ\ÜÙ\›X]Ú
-YÙKÐÒPÒÈUTÕÕP“H‘SPTÑ_ÒPÒÈ“Ôˆ‘T”ÒSÓˆ
-ÎŒßŠHÕP“KÊNÂˆ\ÜÙ\›X]Ú
-\]\‹ÜÝX›U˜[œÚ][Û‹ÊNÂˆ\ÜÙ\›X]Ú
-\]\‹ØÚ[›™[OHœÝX›K\™[X\ÙH‹ÊNÂˆ\ÜÙ\›X]Ú
-™[™\™\‹ÝŒ‹L×˜ÜÜËÊNÂŸJNÂ‚\Ý
-œÝ\ÜYYÙHYZÜÈ]XÚ›ÝYÚHÝX\™Y˜]]™H[XÝ›Ûˆ›Ý]H‹
+test("Module Platform retains constrained public GitHub sources and publisher packages",()=>{
+  for(const token of ["repository_source_operation","prepare_module_publication","public https://github.com/OWNER/REPOSITORY","sourceId","SHA256SUMS.txt","Repository code is never executed"])assert.ok((extensions+page).includes(token),token);
+  assert.doesNotMatch(extensions,/github\.com.*token/i);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKÝÛÛ\YÙK\YZËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÓUU‘HUPÒQQÑHQRËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÑUPÒ8¡¥ËÊNÂŸJNÂ
+test("Version 26 release candidates can explicitly transition to the stable major release",()=>{
+  assert.ok(["30.5.0-dev.1","30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(packageJson.version));
+  assert.match(page,/CHECK LATEST STABLE RELEASE|CHECK FOR VERSION (?:27|26) STABLE/);
+  assert.match(updater,/stableTransition/);
+  assert.match(updater,/channel=="stable-release"/);
+  assert.match(renderer,/v26-3\.css/);
+});
+
+test("supported Page Peeks detach through the guarded native Electron route",()=>{
+  assert.match(page,/tool=page-peek/);
+  assert.match(page,/NATIVE DETACHED PAGE PEEK/);
+  assert.match(page,/DETACH â†—/);
+});

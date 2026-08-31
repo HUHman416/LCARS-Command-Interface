@@ -1,112 +1,61 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ]:ßuãİt÷n6æZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéˆ\ÙHÛY[Â‚š[\ÜÈ\ÙQY™™Xİ\ÙSY[[Ë\ÙTİ]HHœ›ÛHœ™XXİÂš[\Ü\HÈ[š]™\œØ[ÙX\˜ÚØ]YÛÜK[š]™\œØ[ÙX\˜Ú[HHœ›ÛH‹‹İŒÌ\ÙX\˜ÚXÛÜ™HÂ‚™^Ü\H˜XœšXÑ]šXÙO^ÚYœİš[™ÎÛ˜[YNœİš[™ÎÛÛ›[™OÎ˜›ÛÛX[İ˜[œÜÜÎœİš[™ÎÜ]Y]YY[]™\šY\ÏÎ›[X™\ŸNÂ™^Ü\H˜XœšXÔ›ØÙY\™O^ÚYœİš[™ÎÛ˜[YNœİš[™ßNÂ™^Ü\H˜XœšXÔİ]\Ï^ÂˆÚÎ˜›ÛÛX[İ˜[œÜÜœİš[™ÎÜİÜ˜YÙNœİš[™ÎØØ]YÛÜšY\Î”™XÛÜ™İš[™Ë›ÛÛX[ØÛÛ™›XİÛXŞNˆ˜\ÚÈŸ›™]Ù\İŸ›ØØ[Âˆ™XÙ[ÚYœİš[™ÎØØ]YÛÜNœİš[™ÎÛ˜[YNœİš[™ÎÙ]Z[œİš[™ÎÜİ][Ûœİš[™Îİ\]Y]›[X™\ŸV×NÂˆ\İÜNÚYœİš[™ÎØXİ[Ûœİš[™ÎØØ]YÛÜNœİš[™ÎÙ]Z[œİš[™ÎÜİ]\Îœİš[™ÎÜİ][Ûœİš[™ÎØÜ™X]Y]›[X™\ŸV×NÂˆÛÛ™›XİÎÚYœİš[™ÎØØ]YÛÜNœİš[™ÎÛ˜[YNœİš[™ÎÛØØ[İ][Ûœİš[™ÎÚ[˜ÛÛZ[™Ôİ][Ûœİš[™ÎØÜ™X]Y]›[X™\ŸV×NÂˆš]˜]R][\ÎÚYœİš[™ÎÛ˜[YNœİš[™Îİ\]Y]›[X™\İ™\œÚ[ÛÛİ[›[X™\ŸV×NÂˆXYÛ›ÜİXÜÎÜ™XÙ[][\Î›[X™\Ú\İÜQ[šY\Î›[X™\ÛÜ[ÛÛ™›XİÎ›[X™\Üš]˜]R][\Î›[X™\İ™\œÚ[Û™Y™XÛÜ™Î›[X™\ŸNÂŸNÂ‚˜ÛÛœİØ]YÛÜšY\ÎÚY•[š]™\œØ[ÙX\˜ÚØ]YÛÜNÛX™[œİš[™ßV×OVÂˆÚYˆ˜\XØ][ÛœÈ‹X™[ˆTÈŸKÚYˆ™š[\È‹X™[ˆ‘’STÈŸKÚYˆœÙ][™ÜÈ‹X™[ˆ”ÑUS‘ÔÈŸKÚYˆ˜ÛÛ[X[™È‹X™[ˆÓÓSPS‘ÈŸKˆÚYˆœİ][ÛœÈ‹X™[ˆ”ÕUSÓ”ÈŸKÚYˆ››İYšXØ][ÛœÈ‹X™[ˆ““ÕPÑTÈŸKÚYˆ›YYXH‹X™[ˆ“QQPHŸKÚYˆ˜ÛÛXİÈ‹X™[ˆÓÓ•PÕÈŸKˆÚYˆ›[Ù[\È‹X™[ˆ“SÑSTÈŸKÚYˆœ›ØÙY\™\È‹X™[ˆ”“ĞÑQT‘TÈŸKÚYˆ˜Xİ]š]H‹X™[ˆ’TÕÔ–HŸK—NÂ˜ÛÛœİÛXŞSX™[Î”™XÛÜ™İš[™Ëİš[™Ï^Ø\XØ][ÛœÎˆTPĞUSÓ”È‹š[\Îˆ‘’STÈ‹™XÙ[][\Îˆ”‘PÑS•USTÈ‹Ù][™ÜÎˆ”ÑUS‘ÔÈ‹ÛÛ[X[™ÎˆÓÓSPS‘È‹İ][ÛœÎˆ”ÕUSÓ”È‹›İYšXØ][ÛœÎˆ““ÕQ’PĞUSÓ”È‹YYXNˆ“QQPH‹ÛÛXİÎˆÓÓ•PÕÈ‹[Ù[\Îˆ“SÑSTÈ‹›ØÙY\™\Îˆ”“ĞÑQT‘TÈ‹Xİ]š]NˆPÕU’UHTÕÔ–H‹Û\›Ø\™ˆÓT“ĞT‘S‘Ñ‘ˆ‹ÛX[š[\Îˆ”ÓPS’STÈ‹š]˜]TİÜ˜YÙNˆ”’UUHÕÔQÑHŸNÂ˜ÛÛœİ[YOJİ[\›[X™\ŠOOœİ[\Û™]È]Jİ[\
-Šİ[\LÌLŒJJKÓØØ[Tİš[™Ê
-Nˆ•S’Ó“ÕÓˆÂ‚™^Ü[˜İ[Ûˆ[š]™\œØ[ÙX\˜Ú
-Ü]Y\KÙ]]Y\K™\İ[Ëš[\ÓØY[™Ë]šXÙ\Ë›ØÙY\™\Ë˜XœšXËÛÜÙK[‹™Yœ™\Ú˜XœšXË\]TÛXŞKÙ[™Û\›Ø\™Ø]™Tš]˜]K[]Tš]˜]K™\ÛÛ™PÛÛ™›XİNÂˆ]Y\Nœİš[™ÎÜÙ]]Y\NŠ˜[YNœİš[™ÊOO›ÚYÜ™\İ[Î•[š]™\œØ[ÙX\˜Ú[V×NÙš[\ÓØY[™Î˜›ÛÛX[Ù]šXÙ\Î‘˜XœšXÑ]šXÙV×NÜ›ØÙY\™\Î‘˜XœšXÔ›ØÙY\™V×NÙ˜XœšXÎ‘˜XœšXÔİ]\ß[ØÛÜÙNŠ
-OO›ÚYÂˆ[Š™\İ[•[š]™\œØ[ÙX\˜Ú[KXİ[Ûœİš[™Ë\™Ù]Îœİš[™ÊOO›ÚYÜ™Yœ™\Ú˜XœšXÎŠ
-OO›ÚYİ\]TÛXŞNŠØ]YÛÜšY\Î”™XÛÜ™İš[™Ë›ÛÛX[‹ÛÛ™›XİÛXŞN‘˜XœšXÔİ]\ÖÈ˜ÛÛ™›XİÛXŞH—JOO›ÚYÂˆÙ[™Û\›Ø\™Š]šXÙRYœİš[™Ë^œİš[™ÊOO›ÚYÜØ]™Tš]˜]NŠ˜[YNœİš[™ËÛÛ[œİš[™ÊOO›ÚYÙ[]Tš]˜]NŠYœİš[™ÊOO›ÚYÜ™\ÛÛ™PÛÛ™›XİŠYœİš[™Ë™\ÛÛ][Ûˆ›ØØ[Ÿš[˜ÛÛZ[™ÈŸ˜›İŠOO›ÚYÂŸJ^ÂˆÛÛœİØ\™XKÙ]\™XWO]\ÙTİ]OœÙX\˜ÚŸ™˜XœšXÈŸœš]˜]HŠœÙX\˜ÚŠKØØ]YÛÜKÙ]Ø]YÛÜWO]\ÙTİ]O[š]™\œØ[ÙX\˜ÚØ]YÛÜ_[Š[
-KÜ›İ]KÙ]›İ]WO]\ÙTİ]O[š]™\œØ[ÙX\˜Ú[_[Š[
-KØ]XÚÙ]]XÚO]\ÙTİ]O[š]™\œØ[ÙX\˜Ú[_[Š[
-KØÛ\›Ø\™Ù]Û\›Ø\™O]\ÙTİ]JˆŠKÜš]˜]S˜[YKÙ]š]˜]S˜[YWO]\ÙTİ]JˆŠKÜš]˜]PÛÛ[Ù]š]˜]PÛÛ[O]\ÙTİ]JˆŠNÂˆÛÛœİš\ÚX›O]\ÙSY[[Ê
+"use client";
 
-OO˜Ø]YÛÜOÜ™\İ[Ë™š[\Š
-][JOOš][K˜Ø]YÛÜOOOXØ]YÛÜJNœ™\İ[ËØØ]YÛÜK™\İ[×JNÂˆ\ÙQY™™Xİ
+import { useEffect, useMemo, useState } from "react";
+import type { UniversalSearchCategory, UniversalSearchEntry } from "./v30-search-core";
 
+export type FabricDevice={id:string;name:string;online?:boolean;transport?:string;queuedDeliveries?:number};
+export type FabricProcedure={id:string;name:string};
+export type FabricStatus={
+  ok:boolean;transport:string;storage:string;categories:Record<string,boolean>;conflictPolicy:"ask"|"newest"|"local";
+  recent:{id:string;category:string;name:string;detail:string;station:string;updatedAt:number}[];
+  history:{id:string;action:string;category:string;detail:string;status:string;station:string;createdAt:number}[];
+  conflicts:{id:string;category:string;name:string;localStation:string;incomingStation:string;createdAt:number}[];
+  privateItems:{id:string;name:string;updatedAt:number;versionCount:number}[];
+  diagnostics:{recentItems:number;historyEntries:number;openConflicts:number;privateItems:number;versionedRecords:number};
+};
 
-OOÚYŠ\™XHOOHœÙX\˜ÚŠ\™Yœ™\Ú˜XœšXÊ
-NßKØ\™XWJNÂˆÛÛœİXİ[Û”Ù]J][N•[š]™\œØ[ÙX\˜Ú[JOOš][K˜Ø]YÛÜOOOH™š[\ÈÖÈ›Ü[‹Z\™H‹›Ü[‹[Û‹\Y‹œÙ[™\İ][Ûˆ‹˜]XÚ\›ØÙY\™H—Nš][K˜Ø]YÛÜOOOH˜\XØ][ÛœÈÖÈ›Ü[ˆ—Nš][K˜Ø]YÛÜOOOHœ›ØÙY\™\ÈÖÈœ™]šY]È‹˜]XÚXZ[\ˆ—Nš][K˜Ø]YÛÜOOOH››İYšXØ][ÛœÈÖÈ›Ü[ˆ‹›X\šË\™XY—Nš][K˜Ø]YÛÜOOOH›YYXHÖÈ›Ü[ˆ‹œ^K\]\ÙH—Nš][K˜Ø]YÛÜOOOHœİ][ÛœÈŸ][K˜Ø]YÛÜOOOH˜ÛÛXİÈÖÈ›Ü[ˆ‹œÙ[™XÛ\›Ø\™—Nš][K˜Ø]YÛÜOOOH˜ÛÛ[X[™ÈÖÈœ™\\™H—Nš][K˜Ø]YÛÜOOOH›[Ù[\ÈÖÈ›Ü[ˆ‹œÙ][™ÜÈ—N–È›Ü[ˆ—NÂˆÛÛœİX™[JXİ[Ûœİš[™ÊOOŠÈ›Ü[‹Z\™Hˆ“ÔSˆT‘H‹›Ü[‹[Û‹\Yˆ“ÔSˆÓˆQ‹œÙ[™\İ][Ûˆˆ”ÑS‘ÈÕUSÓˆ‹˜]XÚ\›ØÙY\™HˆUPÒÈ“ĞÑQT‘H‹œ^K\]\ÙHˆ”VHÈUTÑH‹›X\šË\™XYˆ“PT’È‘PQ‹˜]XÚXZ[\ˆˆ“ÔSˆ•RSTˆ‹™\\™Nˆ”‘TT‘HÓÓSPS‘‹Ü[ˆ“ÔSˆ‹™]šY]Îˆ”‘U’QUÈ‹Ù][™ÜÎˆ”ÑUS‘ÔÈ‹œÙ[™XÛ\›Ø\™ˆ”ÑS‘ÓT“ĞT‘ŸVØXİ[Û—_Xİ[Û‹Õ\\Ø\ÙJ
-JNÂˆÛÛœİšYÙÙ\J][N•[š]™\œØ[ÙX\˜Ú[KXİ[Ûœİš[™ÊOOÂˆYŠÈ›Ü[‹[Û‹\Y‹œÙ[™\İ][Ûˆ‹œÙ[™XÛ\›Ø\™—Kš[˜ÛY\ÊXİ[ÛŠI‰™]šXÙ\Ë›[™İ
-^ÜÙ]›İ]J][JNÜ™]\›ßBˆYŠXİ[ÛOOH˜]XÚ\›ØÙY\™H‰‰œ›ØÙY\™\Ë›[™İ
-^ÜÙ]]XÚ
-][JNÜ™]\›ßBˆ[Š][KXİ[ÛŠNÂˆNÂˆ™]\›ˆ]ˆÛ\ÜÓ˜[YOH˜˜XÚÙ›Ü[š]™\œØ[\ÙX\˜ÚX˜XÚÙ›ÜˆÛ“[İ\ÙQİÛ^Ê]™[
-OO™]™[\™Ù]OOY]™[˜İ\œ™[\™Ù]	‰˜ÛÜÙJ
-_O‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH[š]™\œØ[\ÙX\˜Úˆ›ÛOH™X[ÙÈˆ\šXK[[Ù[HYHˆ\šXK[X™[H•[š]™\œØ[ĞT”ÈÙX\˜Ú[™]H˜XœšXÈ‚ˆXY\]ÛX[•‘T”ÒSÓˆÌH0­ÈS’U‘T”ĞSĞT”ÈS‘VÜÛX[”ÑPTÒ
-ÈUHP”’PÏÚ‘š[™Xİ›İ]KŞ[˜Ú›Ûš^™K[™™XÛİ™\ˆ[™›Ü›X][ÛˆXÜ›ÜÜÈ\ÈÛÛ[X[™[š\›Û›Y[ÜÙ]]ÛˆÛÛXÚÏ^ØÛÜÙ_OÓÔÑH0åÏØ]ÛÚXY\‚ˆ˜]ˆÛ\ÜÓ˜[YOH[š]™\œØ[\ÙX\˜Ú]XœÈÊÖÉÜÙX\˜Ú	Ë	ÔÑPTÒ	×KÉÙ˜XœšXÉË	ÑUHP”’PÉ×KÉÜš]˜]IË	Ô’UUHÕÔQÑI×WH\ÈÛÛœİ
-K›X\
+const categories:{id:UniversalSearchCategory;label:string}[]=[
+  {id:"applications",label:"APPS"},{id:"files",label:"FILES"},{id:"settings",label:"SETTINGS"},{id:"commands",label:"COMMANDS"},
+  {id:"stations",label:"STATIONS"},{id:"notifications",label:"NOTICES"},{id:"media",label:"MEDIA"},{id:"contacts",label:"CONTACTS"},
+  {id:"modules",label:"MODULES"},{id:"procedures",label:"PROCEDURES"},{id:"activity",label:"HISTORY"},
+];
+const policyLabels:Record<string,string>={applications:"APPLICATIONS",files:"FILES",recentItems:"RECENT ITEMS",settings:"SETTINGS",commands:"COMMANDS",stations:"STATIONS",notifications:"NOTIFICATIONS",media:"MEDIA",contacts:"CONTACTS",modules:"MODULES",procedures:"PROCEDURES",activity:"ACTIVITY HISTORY",clipboard:"CLIPBOARD HANDOFF",smallFiles:"SMALL FILES",privateStorage:"PRIVATE STORAGE"};
+const time=(stamp:number)=>stamp?new Date(stamp*(stamp<100000000000?1000:1)).toLocaleString():"UNKNOWN";
 
-ÚY˜[YWJOO]ÛˆÛ\ÜÓ˜[YO^Ø\™XOOOZYÈ˜Xİ]™HˆˆŸHÛÛXÚÏ^Ê
-OOœÙ]\™XJY
-_HÙ^O^ÚYOÛ˜[Y_OØ]ÛŠ_OÛ˜]‚ˆØ\™XOOOHœÙX\˜Ú‰‰XZ[ˆÛ\ÜÓ˜[YOH[š]™\œØ[\ÙX\˜Ú[XZ[ˆ‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH[š]™\œØ[\ÙX\˜Ú\]Y\H[œ]]]Ñ›Øİ\È˜[YO^Ü]Y\_HÛÚ[™ÙO^Ê]™[
-OOœÙ]]Y\J]™[\™Ù]˜[YJ_HXÙZÛ\H”ÑPTÒTPĞUSÓ”Ë’STËÑUS‘ÔËÓÓSPS‘ËÕUSÓ”Ë“ÕPÑTø )ˆ‹ÏÙš[\ÓØY[™ÏÈ’S‘VS‘ÈĞĞS’STø )ˆ˜	İš\ÚX›K›[™İHPÕSÓP“H‘TÕS	İš\ÚX›K›[™İOOLOÈˆˆ”ÈŸXOØÜÙXİ[Û‚ˆ˜]ˆÛ\ÜÓ˜[YOH[š]™\œØ[\ÙX\˜ÚXØ]YÛÜšY\È]ÛˆÛ\ÜÓ˜[YO^ÈXØ]YÛÜOÈ˜Xİ]™HˆˆŸHÛÛXÚÏ^Ê
-OOœÙ]Ø]YÛÜJ[
-_OSØ]ÛØØ]YÛÜšY\Ë›X\
-
-][JOO]ÛˆÛ\ÜÓ˜[YO^ØØ]YÛÜOOOZ][KšYÈ˜Xİ]™HˆˆŸHÛÛXÚÏ^Ê
-OOœÙ]Ø]YÛÜJØ]YÛÜOOOZ][KšYÛ[š][KšY
-_HÙ^O^Ú][KšYOÚ][K›X™[OOÜ™\İ[Ë™š[\Š
-™\İ[
-OOœ™\İ[˜Ø]YÛÜOOOZ][KšY
-K›[™İOÚOØ]ÛŠ_OÛ˜]‚ˆ]ˆÛ\ÜÓ˜[YOH[š]™\œØ[\ÙX\˜Ú\™\İ[Èİš\ÚX›K›X\
-
-][K[™^
-OO\XÛHÙ^O^Ø	Ú][K˜Ø]YÛÜ_N‰Ú][KšYXOOÔİš[™Ê[™^
-ÌJKœYİ\
-‹ŒŠ_OÚOÜ[ÛX[Ú][K˜Ø]YÛÜKÕ\\Ø\ÙJ
-_OÜÛX[Ú][K]_OØÚ][K™]Z[OÜÜÜ[˜]ØXİ[Û”Ù]
-][JK›X\
-
-Xİ[ÛŠOOØÛÛœİ[˜]˜Z[X›OVÈ›Ü[‹[Û‹\Y‹œÙ[™\İ][Ûˆ‹œÙ[™XÛ\›Ø\™—Kš[˜ÛY\ÊXİ[ÛŠI‰ˆY]šXÙ\Ë›[™İXİ[ÛOOH˜]XÚ\›ØÙY\™H‰‰ˆ\›ØÙY\™\Ë›[™İÜ™]\›ˆ]Ûˆ\ØX›Y^İ[˜]˜Z[X›_H]O^İ[˜]˜Z[X›OØXİ[ÛOOH˜]XÚ\›ØÙY\™HÈÜ™X]HH›ØÙY\™Hš\œİˆ”Z\ˆH\İYİ][Ûˆš\œİ[™Yš[™YHÛÛXÚÏ^Ê
-OOšYÙÙ\Š][KXİ[ÛŠ_HÙ^O^ØXİ[ÛŸOÛX™[
-Xİ[ÛŠ_OØ]ÛßJ_OÛ˜]Ø\XÛOŠ_^È]š\ÚX›K›[™İ	‰Û\ÜÓ˜[YOH[š]™\œØ[Y[\H““ÈPUÒS‘È‘PÓÔ‘È0­È–HHSQK’SHTKÑUS‘ËÕUSÓ‹ÔˆÓÓSPS‘ÜŸOÙ]‚ˆÛXZ[ŸBˆØ\™XOOOH™˜XœšXÈ‰‰XZ[ˆÛ\ÜÓ˜[YOH™]KY˜XœšXË[XZ[ˆ‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH™˜XœšXË\İ[[X\H\XÛOÛX[•S”ÔÔ•ÜÛX[Ù˜XœšXÏË˜[œÜÜ“ĞĞSÓÔ‘HŸOØ”ÚYÛ™Y]][XØ]Yİ][Ûˆ[™[Ü\ËÜØ\XÛO\XÛOÛX[”‘PÑS•USTÏÜÛX[Ù˜XœšXÏË™XYÛ›ÜİXÜËœ™XÙ[][\ßOØ›İ[™YÜ›ÜÜËXØ]YÛÜH™XØ[ÜØ\XÛO\XÛOÛX[“ÔSˆÓÓ‘“PÕÏÜÛX[Ù˜XœšXÏË™XYÛ›ÜİXÜË›Ü[ÛÛ™›XİßOØ“›İ[™È\Èİ™\Üš][ˆÚ[[KÜØ\XÛO\XÛOÛX[•‘T”ÒSÓ‘Q‘PÓÔ‘ÏÜÛX[Ù˜XœšXÏË™XYÛ›ÜİXÜË™\œÚ[Û™Y™XÛÜ™ßOØ•\ÈÙ[H™\œÚ[ÛœÈ\ˆ™XÛÜ™ÜØ\XÛOÜÙXİ[Û‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH™˜XœšXË\ÛXŞHXY\Ü[ÛX[”T‹PĞUQÓÔ–HÖSÒ“Ó’VUSÓÜÛX[”“ÕUS‘ÈÓPÖOØÜÜ[X™[ÓÓ‘“PÕS‘S‘ÏÙ[Xİ˜[YO^Ù˜XœšXÏË˜ÛÛ™›XİÛXŞ_˜\ÚÈŸHÛÚ[™ÙO^Ê]™[
-OO™˜XœšXÉ‰\]TÛXŞJ˜XœšXË˜Ø]YÛÜšY\Ë]™[\™Ù]˜[YH\È˜XœšXÔİ]\ÖÈ˜ÛÛ™›XİÛXŞH—J_OÜ[Ûˆ˜[YOH˜\ÚÈTÒÈU‘T–HSQOÛÜ[ÛÜ[Ûˆ˜[YOH›™]Ù\İ’ÑQT‘UÑTÕÛÜ[ÛÜ[Ûˆ˜[YOH›ØØ[”‘Q‘TˆTÈÕUSÓÛÜ[ÛÜÙ[XİÛX™[ÚXY\]ÓØš™Xİ™[šY\Ê˜XœšXÏË˜Ø]YÛÜšY\ßßJK›X\
-
-ÚY[˜X›YJOOX™[Ù^O^ÚYO[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^Ù[˜X›YHÛÚ[™ÙO^Ê]™[
-OO™˜XœšXÉ‰\]TÛXŞJË‹‹™˜XœšXË˜Ø]YÛÜšY\ËÚYN™]™[\™Ù]˜ÚXÚÙYK˜XœšXË˜ÛÛ™›XİÛXŞJ_KÏÜ[ÜÛXŞSX™[ÖÚY_YÕ\\Ø\ÙJ
-_OÜÜ[ÛX™[Š_OÙ]ÜÙXİ[Û‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH™˜XœšXË]˜[œÙ™\ˆXY\Ü[ÛX[‘SÔ–TQÕUSÓˆS‘Ñ‘ÜÛX[ÓT“ĞT‘
-ÈÓPS’SH“ÕUS‘ÏØÜÜ[[OÙ]šXÙ\Ë›[™İH•TÕQÕUSÓÙ]šXÙ\Ë›[™İOOLOÈˆˆ”ÈŸOÙ[OÚXY\^\™XH˜[YO^ØÛ\›Ø\™HÛÚ[™ÙO^Ê]™[
-OOœÙ]Û\›Ø\™
-]™[\™Ù]˜[YJ_HX^[™İ^ÍHXÙZÛ\H•VÈS‘Ñ‘¸ )ˆ‹Ï]Ù]šXÙ\Ë›X\
-
-]šXÙJOO]Ûˆ\ØX›Y^ÈXÛ\›Ø\™š[J
-_]šXÙK˜[œÜÜOOH˜Y\ËLM‹YØÛHŸY˜XœšXÏË˜Ø]YÛÜšY\Ë˜Û\›Ø\™HÛÛXÚÏ^Ê
-OOÜÙ[™Û\›Ø\™
-]šXÙKšYÛ\›Ø\™
-NÜÙ]Û\›Ø\™
-ˆŠNß_HÙ^O^Ù]šXÙKšYOÙ]šXÙK›˜[Y_OØÛX[Ù]šXÙK›Û›[™OÈ“Ó“S‘Hˆ“Ñ‘“S‘HUQUQHŸH0­ÈÙ]šXÙK˜[œÜÜËÕ\\Ø\ÙJ
-_•S”ÔÔ•S’Ó“ÕÓˆŸOÜÛX[Ø]ÛŠ_^ÈY]šXÙ\Ë›[™İ	‰”RTˆH•TÕQQÔˆÕUSÓˆÈ“ÕUHUOÜŸOÙ]ÜÙXİ[Û‚ˆ]ˆÛ\ÜÓ˜[YOH™˜XœšXË[\İÈÙXİ[ÛXY\”‘PÑS•USHÖSÒ“Ó’VUSÓØÚXY\Ù˜XœšXÏËœ™XÙ[›X\
-
-][JOO\XÛHÙ^O^Ø	Ú][K˜Ø]YÛÜ_N‰Ú][KšYXOÜ[ÛX[Ú][K˜Ø]YÛÜKÕ\\Ø\ÙJ
-_H0­ÈÚ][Kœİ][ÛŸOÜÛX[Ú][K›˜[Y_OØÚ][K™]Z[OÜÜÜ[[Oİ[YJ][K\]Y]
-_OÙ[OØ\XÛOŠ_^ÈY˜XœšXÏËœ™XÙ[›[™İ	‰““È‘PÑS•USTÈ‘PÓÔ‘QÜŸOÜÙXİ[ÛÙXİ[ÛXY\ÓÓ‘“PÕ‘TÓÓUSÓØÚXY\Ù˜XœšXÏË˜ÛÛ™›XİË›X\
-
-][JOO\XÛHÙ^O^Ú][KšYOÜ[ÛX[Ú][K˜Ø]YÛÜKÕ\\Ø\ÙJ
-_OÜÛX[Ú][K›˜[Y_OØÚ][K›ØØ[İ][ÛŸH8¡¥Ú][Kš[˜ÛÛZ[™Ôİ][ÛŸOÜÜÜ[˜]]ÛˆÛÛXÚÏ^Ê
-OOœ™\ÛÛ™PÛÛ™›Xİ
-][KšY›ØØ[Š_O’ÑQTĞĞSØ]Û]ÛˆÛÛXÚÏ^Ê
-OOœ™\ÛÛ™PÛÛ™›Xİ
-][KšYš[˜ÛÛZ[™ÈŠ_O•TÑHSÓÓRS‘ÏØ]Û]ÛˆÛÛXÚÏ^Ê
-OOœ™\ÛÛ™PÛÛ™›Xİ
-][KšY˜›İŠ_O’ÑQT“ÕØ]ÛÛ˜]Ø\XÛOŠ_^ÈY˜XœšXÏË˜ÛÛ™›XİË›[™İ	‰““ÈS”‘TÓÓ‘QÓÓ‘“PÕÏÜŸOÜÙXİ[ÛÙ]‚ˆÛXZ[ŸBˆØ\™XOOOHœš]˜]H‰‰XZ[ˆÛ\ÜÓ˜[YOHœš]˜]K\İÜ˜YÙK[XZ[ˆXY\Ü[ÛX[“ĞĞSQTËLM‹QĞÓHUSÜÛX[‘SÔ–TQ’UUHÕÔQÑOØÛÛ[\È[˜Ü\Y]™\İÚ]Hİ][Û‹[ØØ[Ù^Kˆš]˜]HİÜ˜YÙH™[XZ[œÈÜZ[ˆ[™›ÛİÜÈ]ÈİÛˆŞ[˜Ú›Ûš^˜][ÛˆÛÛ›ÛÜÜÜ[[OÙ˜XœšXÏËœİÜ˜YÙ_’S’UPSV’S‘ÈŸOÙ[OÚXY\Ù˜XœšXÏË˜Ø]YÛÜšY\Ëœš]˜]TİÜ˜YÙOÏÙXİ[Û[œ]˜[YO^Üš]˜]S˜[Y_HÛÚ[™ÙO^Ê]™[
-OOœÙ]š]˜]S˜[YJ]™[\™Ù]˜[YJ_HX^[™İ^ÌLHXÙZÛ\H”’UUH‘PÓÔ‘SQH‹Ï^\™XH˜[YO^Üš]˜]PÛÛ[HÛÚ[™ÙO^Ê]™[
-OOœÙ]š]˜]PÛÛ[
-]™[\™Ù]˜[YJ_HX^[™İ^ÌÌÍHXÙZÛ\H‘SÔ–TQÓÓ•S•8 )ˆ‹Ï]Ûˆ\ØX›Y^È\š]˜]S˜[YKš[J
-_\š]˜]PÛÛ[š[J
-_HÛÛXÚÏ^Ê
-OOÜØ]™Tš]˜]Jš]˜]S˜[YKš]˜]PÛÛ[
-NÜÙ]š]˜]S˜[YJˆŠNÜÙ]š]˜]PÛÛ[
-ˆŠNß_O”ĞU‘HSÔ–TQ‘PÓÔ‘Ø]ÛÜÙXİ[Û]Ù˜XœšXËœš]˜]R][\Ë›X\
-
-][K[™^
-OO\XÛHÙ^O^Ú][KšYOOÔİš[™Ê[™^
-ÌJKœYİ\
-‹ŒŠ_OÚOÜ[Ú][K›˜[Y_OØÛX[Ú][K™\œÚ[ÛÛİ[H‘T”ÒSÓÚ][K™\œÚ[ÛÛİ[OOLOÈˆˆ”ÈŸH0­ÈTUQİ[YJ][K\]Y]
-_OÜÛX[ÜÜ[]ÛˆÛÛXÚÏ^Ê
-OO™[]Tš]˜]J][KšY
-_O‘SUOØ]ÛØ\XÛOŠ_^ÈY˜XœšXËœš]˜]R][\Ë›[™İ	‰”’UUHÕÔQÑHTÈSTOÜŸOÙ]ÏÙXİ[ÛˆÛ\ÜÓ˜[YOHœš]˜]K\İÜ˜YÙKY\ØX›Y”’UUHÕÔQÑHTĞP“QØ‘[˜X›H’UUHÕÔQÑH[ˆ]H˜XœšXÈ›İ][™ÈÛXŞKˆ›Èš]˜]H™XÛÜ™\ÈÜ™X]YÜˆŞ[˜Ú›Ûš^™Y[[[İHÜ[‹Ü]ÛˆÛÛXÚÏ^Ê
-OO™˜XœšXÉ‰\]TÛXŞJË‹‹™˜XœšXË˜Ø]YÛÜšY\Ëš]˜]TİÜ˜YÙNY_K˜XœšXË˜ÛÛ™›XİÛXŞJ_O‘SP“H’UUHÕÔQÑOØ]ÛÜÙXİ[ÛŸOÛXZ[ŸBˆÜ›İ]I‰\ÚYHÛ\ÜÓ˜[YOHœÙX\˜Ú\›İ]K\XÚÙ\ˆXY\Ü[ÛX[”ÑSPÕ•TÕQTÕSUSÓÜÛX[Ü›İ]K]_OØÜÜ[]ÛˆÛÛXÚÏ^Ê
-OOœÙ]›İ]J[
-_OĞSÑS0åÏØ]ÛÚXY\Ù]šXÙ\Ë›X\
-
-]šXÙJOOØÛÛœİ\ØX›Y\›İ]K˜Ø]YÛÜOOOH™š[\ÈÊ]šXÙK˜[œÜÜOOH˜Y\ËLM‹YØÛHŸY˜XœšXÏË˜Ø]YÛÜšY\ËœÛX[š[\ÊNˆY˜XœšXÏË˜Ø]YÛÜšY\Ë˜Û\›Ø\™Ü™]\›ˆ]Ûˆ\ØX›Y^Ù\ØX›YH]O^Ù\ØX›YÜ›İ]K˜Ø]YÛÜOOOH™š[\ÈÈ‘[˜X›HÛX[š[\È[™\ÙH[ˆ[˜Ü\Y™Y\˜][Ûˆ[šÈˆ‘[˜X›HÛ\›Ø\™[™Ù™ˆ[ˆ]H˜XœšXÈ[™Yš[™YHÙ^O^Ù]šXÙKšYHÛÛXÚÏ^Ê
-OOÜ[Š›İ]K›İ]K˜Ø]YÛÜOOOH™š[\ÈÈœÙ[™\İ][ÛˆˆœÙ[™XÛ\›Ø\™‹]šXÙKšY
-NÜÙ]›İ]J[
-Nß_OÙ]šXÙK›˜[Y_OØÛX[Ù]šXÙK›Û›[™OÈ“Ó“S‘Hˆ“Ñ‘“S‘H0­ÈUQUQHSU‘T–HŸH0­ÈÙ]šXÙK˜[œÜÜËÕ\\Ø\ÙJ
-_•S’Ó“ÕÓˆŸOÜÛX[Ø]ÛßJ_OØ\ÚYOŸBˆØ]XÚ	‰\ÚYHÛ\ÜÓ˜[YOHœÙX\˜Ú\›İ]K\XÚÙ\ˆXY\Ü[ÛX[UPÒ’SHÈ“ĞÑQT‘OÜÛX[Ø]XÚ]_OØÜÜ[]ÛˆÛÛXÚÏ^Ê
-OOœÙ]]XÚ
-[
-_OĞSÑS0åÏØ]ÛÚXY\Ü›ØÙY\™\Ë›X\
-
-›ØÙY\™JOO]ÛˆÙ^O^Ü›ØÙY\™KšYHÛÛXÚÏ^Ê
-OOÜ[Š]XÚ˜]XÚ\›ØÙY\™H‹›ØÙY\™KšY
-NÜÙ]]XÚ
-[
-Nß_OÜ›ØÙY\™K›˜[Y_OØÛX[QTÈH‘T”ÒSÓ‘Q“ĞÑQT‘H‘TÓÕTÑOÜÛX[Ø]ÛŠ_OØ\ÚYOŸBˆ›Ûİ\Ü[Õ“ø£&ˆ0­ÈÔSˆÑPTÒÜÜ[Ü[QTËLM‹QĞÓH0­ÈÔRSˆ“ÕUTÈ0­ÈĞĞSQ’T”ÕS‘VÜÜ[Ù›Ûİ\‚ˆÜÙXİ[Û‚ˆÙ]ÂŸB
+export function UniversalSearch({query,setQuery,results,filesLoading,devices,procedures,fabric,close,run,refreshFabric,updatePolicy,sendClipboard,savePrivate,deletePrivate,resolveConflict}:{
+  query:string;setQuery:(value:string)=>void;results:UniversalSearchEntry[];filesLoading:boolean;devices:FabricDevice[];procedures:FabricProcedure[];fabric:FabricStatus|null;close:()=>void;
+  run:(result:UniversalSearchEntry,action:string,target?:string)=>void;refreshFabric:()=>void;updatePolicy:(categories:Record<string,boolean>,conflictPolicy:FabricStatus["conflictPolicy"])=>void;
+  sendClipboard:(deviceId:string,text:string)=>void;savePrivate:(name:string,content:string)=>void;deletePrivate:(id:string)=>void;resolveConflict:(id:string,resolution:"local"|"incoming"|"both")=>void;
+}){
+  const [area,setArea]=useState<"search"|"fabric"|"private">("search"),[category,setCategory]=useState<UniversalSearchCategory|null>(null),[route,setRoute]=useState<UniversalSearchEntry|null>(null),[attach,setAttach]=useState<UniversalSearchEntry|null>(null),[clipboard,setClipboard]=useState(""),[privateName,setPrivateName]=useState(""),[privateContent,setPrivateContent]=useState("");
+  const visible=useMemo(()=>category?results.filter((item)=>item.category===category):results,[category,results]);
+  useEffect(()=>{if(area!=="search")refreshFabric();},[area]);
+  const actionSet=(item:UniversalSearchEntry)=>item.category==="files"?["open-here","open-on-padd","send-station","attach-procedure"]:item.category==="applications"?["open"]:item.category==="procedures"?["preview","attach-builder"]:item.category==="notifications"?["open","mark-read"]:item.category==="media"?["open","play-pause"]:item.category==="stations"||item.category==="contacts"?["open","send-clipboard"]:item.category==="commands"?["prepare"]:item.category==="modules"?["open","settings"]:["open"];
+  const label=(action:string)=>({"open-here":"OPEN HERE","open-on-padd":"OPEN ON PADD","send-station":"SEND TO STATION","attach-procedure":"ATTACH TO PROCEDURE","play-pause":"PLAY / PAUSE","mark-read":"MARK READ","attach-builder":"OPEN BUILDER",prepare:"PREPARE COMMAND",open:"OPEN",preview:"PREVIEW",settings:"SETTINGS","send-clipboard":"SEND CLIPBOARD"}[action]||action.toUpperCase());
+  const trigger=(item:UniversalSearchEntry,action:string)=>{
+    if(["open-on-padd","send-station","send-clipboard"].includes(action)&&devices.length){setRoute(item);return;}
+    if(action==="attach-procedure"&&procedures.length){setAttach(item);return;}
+    run(item,action);
+  };
+  return <div className="backdrop universal-search-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
+    <section className="universal-search" role="dialog" aria-modal="true" aria-label="Universal LCARS Search and Data Fabric">
+      <header><div><small>VERSION 30.5 Â· UNIVERSAL LCARS INDEX</small><h2>SEARCH + DATA FABRIC</h2><p>Find, act, route, synchronize, and recover information across this command environment.</p></div><button onClick={close}>CLOSE Ã—</button></header>
+      <nav className="universal-search-tabs">{([['search','SEARCH'],['fabric','DATA FABRIC'],['private','PRIVATE STORAGE']] as const).map(([id,name])=><button className={area===id?"active":""} onClick={()=>setArea(id)} key={id}>{name}</button>)}</nav>
+      {area==="search"&&<main className="universal-search-main">
+        <section className="universal-search-query"><input autoFocus value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="SEARCH APPLICATIONS, FILES, SETTINGS, COMMANDS, STATIONS, NOTICESâ€¦"/><b>{filesLoading?"INDEXING LOCAL FILESâ€¦":`${visible.length} ACTIONABLE RESULT${visible.length===1?"":"S"}`}</b></section>
+        <nav className="universal-search-categories"><button className={!category?"active":""} onClick={()=>setCategory(null)}>ALL</button>{categories.map((item)=><button className={category===item.id?"active":""} onClick={()=>setCategory(category===item.id?null:item.id)} key={item.id}>{item.label}<i>{results.filter((result)=>result.category===item.id).length}</i></button>)}</nav>
+        <div className="universal-search-results">{visible.map((item,index)=><article key={`${item.category}:${item.id}`}><i>{String(index+1).padStart(2,"0")}</i><span><small>{item.category.toUpperCase()}</small><b>{item.title}</b><p>{item.detail}</p></span><nav>{actionSet(item).map((action)=>{const unavailable=["open-on-padd","send-station","send-clipboard"].includes(action)&&!devices.length||action==="attach-procedure"&&!procedures.length;return <button disabled={unavailable} title={unavailable?action==="attach-procedure"?"Create a Procedure first":"Pair a trusted station first":undefined} onClick={()=>trigger(item,action)} key={action}>{label(action)}</button>;})}</nav></article>)}{!visible.length&&<p className="universal-empty">NO MATCHING RECORDS Â· TRY A NAME, FILE TYPE, SETTING, STATION, OR COMMAND</p>}</div>
+      </main>}
+      {area==="fabric"&&<main className="data-fabric-main">
+        <section className="fabric-summary"><article><small>TRANSPORT</small><b>{fabric?.transport||"LOCAL CORE"}</b><p>Signed, authenticated station envelopes.</p></article><article><small>RECENT ITEMS</small><b>{fabric?.diagnostics.recentItems||0}</b><p>Bounded cross-category recall.</p></article><article><small>OPEN CONFLICTS</small><b>{fabric?.diagnostics.openConflicts||0}</b><p>Nothing is overwritten silently.</p></article><article><small>VERSIONED RECORDS</small><b>{fabric?.diagnostics.versionedRecords||0}</b><p>Up to twenty versions per record.</p></article></section>
+        <section className="fabric-policy"><header><span><small>PER-CATEGORY SYNCHRONIZATION</small><b>ROUTING POLICY</b></span><label>CONFLICT HANDLING<select value={fabric?.conflictPolicy||"ask"} onChange={(event)=>fabric&&updatePolicy(fabric.categories,event.target.value as FabricStatus["conflictPolicy"])}><option value="ask">ASK EVERY TIME</option><option value="newest">KEEP NEWEST</option><option value="local">PREFER THIS STATION</option></select></label></header><div>{Object.entries(fabric?.categories||{}).map(([id,enabled])=><label key={id}><input type="checkbox" checked={enabled} onChange={(event)=>fabric&&updatePolicy({...fabric.categories,[id]:event.target.checked},fabric.conflictPolicy)}/><span>{policyLabels[id]||id.toUpperCase()}</span></label>)}</div></section>
+        <section className="fabric-transfer"><header><span><small>ENCRYPTED STATION HANDOFF</small><b>CLIPBOARD + SMALL FILE ROUTING</b></span><em>{devices.length} TRUSTED STATION{devices.length===1?"":"S"}</em></header><textarea value={clipboard} onChange={(event)=>setClipboard(event.target.value)} maxLength={4000} placeholder="TEXT TO HAND OFFâ€¦"/><div>{devices.map((device)=><button disabled={!clipboard.trim()||device.transport!=="aes-256-gcm"||!fabric?.categories.clipboard} onClick={()=>{sendClipboard(device.id,clipboard);setClipboard("");}} key={device.id}><b>{device.name}</b><small>{device.online?"ONLINE":"OFFLINE QUEUE"} Â· {device.transport?.toUpperCase()||"TRANSPORT UNKNOWN"}</small></button>)}{!devices.length&&<p>PAIR A TRUSTED PADD OR STATION TO ROUTE DATA</p>}</div></section>
+        <div className="fabric-lists"><section><header><b>RECENT ITEM SYNCHRONIZATION</b></header>{fabric?.recent.map((item)=><article key={`${item.category}:${item.id}`}><span><small>{item.category.toUpperCase()} Â· {item.station}</small><b>{item.name}</b><p>{item.detail}</p></span><em>{time(item.updatedAt)}</em></article>)}{!fabric?.recent.length&&<p>NO RECENT ITEMS RECORDED</p>}</section><section><header><b>CONFLICT RESOLUTION</b></header>{fabric?.conflicts.map((item)=><article key={item.id}><span><small>{item.category.toUpperCase()}</small><b>{item.name}</b><p>{item.localStation} â†” {item.incomingStation}</p></span><nav><button onClick={()=>resolveConflict(item.id,"local")}>KEEP LOCAL</button><button onClick={()=>resolveConflict(item.id,"incoming")}>USE INCOMING</button><button onClick={()=>resolveConflict(item.id,"both")}>KEEP BOTH</button></nav></article>)}{!fabric?.conflicts.length&&<p>NO UNRESOLVED CONFLICTS</p>}</section></div>
+      </main>}
+      {area==="private"&&<main className="private-storage-main"><header><span><small>LOCAL AES-256-GCM VAULT</small><b>ENCRYPTED PRIVATE STORAGE</b><p>Content is encrypted at rest with a station-local key. Private storage remains opt-in and follows its own synchronization control.</p></span><em>{fabric?.storage||"INITIALIZING"}</em></header>{fabric?.categories.privateStorage?<><section><input value={privateName} onChange={(event)=>setPrivateName(event.target.value)} maxLength={100} placeholder="PRIVATE RECORD NAME"/><textarea value={privateContent} onChange={(event)=>setPrivateContent(event.target.value)} maxLength={32768} placeholder="ENCRYPTED CONTENTâ€¦"/><button disabled={!privateName.trim()||!privateContent.trim()} onClick={()=>{savePrivate(privateName,privateContent);setPrivateName("");setPrivateContent("");}}>SAVE ENCRYPTED RECORD</button></section><div>{fabric.privateItems.map((item,index)=><article key={item.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{item.versionCount} VERSION{item.versionCount===1?"":"S"} Â· UPDATED {time(item.updatedAt)}</small></span><button onClick={()=>deletePrivate(item.id)}>DELETE</button></article>)}{!fabric.privateItems.length&&<p>PRIVATE STORAGE IS EMPTY</p>}</div></>:<section className="private-storage-disabled"><b>PRIVATE STORAGE DISABLED</b><p>Enable PRIVATE STORAGE in Data Fabric routing policy. No private record is created or synchronized until you opt in.</p><button onClick={()=>fabric&&updatePolicy({...fabric.categories,privateStorage:true},fabric.conflictPolicy)}>ENABLE PRIVATE STORAGE</button></section>}</main>}
+      {route&&<aside className="search-route-picker"><header><span><small>SELECT TRUSTED DESTINATION</small><b>{route.title}</b></span><button onClick={()=>setRoute(null)}>CANCEL Ã—</button></header>{devices.map((device)=>{const disabled=route.category==="files"?(device.transport!=="aes-256-gcm"||!fabric?.categories.smallFiles):!fabric?.categories.clipboard;return <button disabled={disabled} title={disabled?route.category==="files"?"Enable Small Files and use an encrypted Federation link":"Enable Clipboard Handoff in Data Fabric":undefined} key={device.id} onClick={()=>{run(route,route.category==="files"?"send-station":"send-clipboard",device.id);setRoute(null);}}><b>{device.name}</b><small>{device.online?"ONLINE":"OFFLINE Â· QUEUE DELIVERY"} Â· {device.transport?.toUpperCase()||"UNKNOWN"}</small></button>;})}</aside>}
+      {attach&&<aside className="search-route-picker"><header><span><small>ATTACH FILE TO PROCEDURE</small><b>{attach.title}</b></span><button onClick={()=>setAttach(null)}>CANCEL Ã—</button></header>{procedures.map((procedure)=><button key={procedure.id} onClick={()=>{run(attach,"attach-procedure",procedure.id);setAttach(null);}}><b>{procedure.name}</b><small>ADD AS A VERSIONED PROCEDURE RESOURCE</small></button>)}</aside>}
+      <footer><span>CTRL/âŒ˜ F Â· OPEN SEARCH</span><span>AES-256-GCM Â· OPT-IN ROUTES Â· LOCAL-FIRST INDEX</span></footer>
+    </section>
+  </div>;
+}

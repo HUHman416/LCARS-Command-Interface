@@ -1,66 +1,55 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿm6ç]ô÷5ãwÖZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\Ýœ›ÛH››ÙN\ÝŽÂš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜÝšXÝŽÂš[\ÜœÈœ›ÛH››ÙN™œÈŽÂ‚˜ÛÛœÝ™XYH
-]
-HOˆœËœ™XYš[TÞ[˜Ê™]ÈT“
-‹‹ÉÜ]X[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝYÙHH™XY
-˜\ÜYÙKÞŠNÂ˜ÛÛœÝ^[Ý]H™XY
-˜\Û^[Ý]ÞŠNÂ˜ÛÛœÝ™[™\™\ˆH™XY
-™\ÚÝÜÜ™[™\™\‹ÞŠNÂ˜ÛÛœÝXÚØYÙRœÛÛˆH”ÓÓ‹œ\œÙJ™XY
-œXÚØYÙKšœÛÛˆŠJNÂ˜ÛÛœÝ[^H™XY
-›ØØ[ÛØ\œ×ØœšYÙKœHŠNÂ˜ÛÛœÝÚ[™ÝÜÈH™XY
-Ú[™ÝÜËÛØ\œ×ØœšYÙWÝÚ[™ÝÜËœHŠNÂ˜ÛÛœÝ]™[ÜY[ÛÜšÙ›ÝÈH™XY
-‹™Ú]X‹ÝÛÜšÙ›ÝÜËÝŒ‹LË]\Ýž[[ŠNÂ˜ÛÛœÝÝX›UÛÜšÙ›ÝÈH™XY
-‹™Ú]X‹ÝÛÜšÙ›ÝÜËÝŒ‹\ÝX›Kž[[ŠNÂ‚\Ý
-Œ‹ŒÈÈ[™™\œÚ[ÛˆˆÝX›HY[]Y\È™[XZ[ˆ^XÚ]‹
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
 
-HOˆÂˆ\ÜÙ\›ÚÊÈŒÌKŒY]‹ŒH‹ŒÌŒY]‹ŒH‹ŒÌŒËŒY]‹ŒH‹ŒÌŒ‹ŒY]‹ŒH‹ŒÌŒKŒY]‹Œˆ‹ŒŽKŒŒ‹ŒŽKŒËŒ\˜ËŒH‹ŒŽKŒ‹ŒY]‹ŒH‹ŒŽŒŒ‹ŒŽŒËŒ\˜ËŒH‹ŒŽŒ‹ŒY]‹ŒH‹ŒËŒ‹ŒKY]‹ŒH‹ŒËŒ‹ŒY]‹ŒH‹ŒËŒKŒKY]‹ŒH‹Œ‹ŒËŒY]‹ŒH‹Œ‹ŒŒ—Kš[˜ÛY\ÊXÚØYÙRœÛÛ‹™\œÚ[ÛŠJNÂˆ\ÜÙ\›X]Ú
-YÙKØÛÛœÝÐT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_ŽWŒŒŽWŒ×Œ\˜×Œ_ŽWŒ—ŒY]—Œ_ŽŒŒŽŒË\˜×Œ_ŽŒ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
-JH‹ÊNÂˆ\ÜÙ\›X]Ú
-[^ÓÐT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_ŽWŒŒŽWŒ×Œ\˜×Œ_ŽWŒ—ŒY]—Œ_ŽŒŒŽŒË\˜×Œ_ŽŒ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
-JH‹ÊNÂˆ\ÜÙ\›X]Ú
-Ú[™ÝÜËÓÐT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_ŽWŒŒŽWŒ×Œ\˜×Œ_ŽWŒ—ŒY]—Œ_ŽŒŒŽŒË\˜×Œ_ŽŒ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
-JH‹ÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-YÙKÕ‘T”ÒSÓˆHS‘ÒS‘QT’S‘ÈÔTUSÓ”ßUUËL_S‘ËL_ÓÓKL_ÑËLKÊNÂŸJNÂ‚\Ý
-˜ÛÛ™šYÝ\˜][Ûˆ˜XÚÝ\ÛÝ™\œÈÛÜšÜÜXÙH[™ÛÛ[][š]H™\ÜÚ]ÜžHÝ]H‹
+const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+const page = read("app/page.tsx");
+const layout = read("app/layout.tsx");
+const renderer = read("desktop/renderer.tsx");
+const packageJson = JSON.parse(read("package.json"));
+const linux = read("local/lcars_bridge.py");
+const windows = read("windows/lcars_bridge_windows.py");
+const developmentWorkflow = read(".github/workflows/v26-3-test.yml");
+const stableWorkflow = read(".github/workflows/v26-stable.yml");
 
-HOˆÂˆ\ÜÙ\›X]Ú
-YÙKÜØÚ[XN—ÊŠÎŒŽßŠKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÝ™\œÚ[ÛŽ—Ê“ÐT”×Õ‘T”ÒSÓ‹ÊNÂˆ›Üˆ
-ÛÛœÝšY[ÙˆÈ™Y˜][ÛÜšÜÝ][Ûˆ‹œÙ[XÝY^Y\ˆ‹œÜ\^[Ý]‹œYÙTYZÜÈ‹›[Ù[TÛÝ\˜Ù\È—JH\ÜÙ\›X]Ú
-YÙK™]È™YÑ^
-	ÙšY[N˜
-JNÂˆ\ÜÙ\›X]Ú
-YÙKÜ™\ÝÜ™S[Ù[TÛÝ\˜Ù\ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÛÜ\˜][ÛŽ—˜Y‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKØÛÛ[X[™—œ™\ÝÜ™W‹^[Ý]Îš[\ÜY^[Ý]ËÊNÂŸJNÂ‚\Ý
-\Ü˜YYÜ\˜]ÜœÈ™XÙZ]™HHÛ™K][YHÝ\œ™[]™\œÚ[ÛˆÜšY[][Ûˆ‹
+test("26.3 RC and Version 26 stable identities remain explicit", () => {
+  assert.ok(["30.5.0-dev.1","30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1", "27.2.1-dev.1", "27.2.0-dev.1", "27.1.1-dev.1", "26.3.0-dev.1", "26.0.0"].includes(packageJson.version));
+  assert.match(page, /const LCARS_VERSION="(?:30\.[2345]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(linux, /LCARS_VERSION="(?:30\.[2345]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(windows, /LCARS_VERSION="(?:30\.[2345]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.doesNotMatch(page, /VERSION 25 ENGINEERING OPERATIONS|AUTO-25|ENG-25|COM-25|LOG-25/);
+});
 
-HOˆÂˆ\ÜÙ\›X]Ú
-YÙKÛØ\œË]Ú]Ë[™]Ë]ŠÎŒÌVÌLŒÍW_ŽKVÌLŒ×_Ž
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÊÎ•‘T”ÒSÓˆÌH0­ÈUHP”’Pß‘T”ÒSÓˆÌ0­ÈÐT”ÈÑTÔÒSÓŸ‘T”ÒSÓˆÌŒÈ0­È“ÒPÑHÔTUSÓ”ß‘T”ÒSÓˆÌŒˆ0­È‘QTUSÓŸ‘T”ÒSÓˆÌŒH0­ÈÓÓTUTˆÓÔ‘_ÑSÓÓQHÈ‘T”ÒSÓˆŽ_ÑSÓÓQHÈ‘T”ÒSÓˆŽWŒÈÈ_ÑSÓÓQHÈ‘T”ÒSÓˆŽWŒŸÑSÓÓQHÈ‘T”ÒSÓˆŽ
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÊÎ•ÒU
-Î‰ß	˜\ÜÎÊTÈ‘UÈSˆ‘T”ÒSÓˆÌ_ÒU
-Î‰ß	˜\ÜÎÊTÈ‘UÈSˆ‘T”ÒSÓˆÌÒU
-Î‰ß	˜\ÜÎÊTÈ‘UÈSˆ‘T”ÒSÓˆÌŒŸÒU	ÔÈ‘UÈSˆ‘T”ÒSÓˆÌŒ_ÒU	ÔÈ‘UÈSˆ‘T”ÒSÓˆŽ_ÒU	ÔÈ‘UÈSˆ‘T”ÒSÓˆŽWŒÈÈ_ÒU	ÔÈ‘UÈSˆ‘T”ÒSÓˆŽWŒŸÒU	ÔÈ‘UÈSˆ‘T”ÒSÓˆŽ
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÐÓÓ“‘PÕQÕUSÓˆÐÒËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÕ‘T’Q’QQSÐ’SHTUTËÊNÂŸJNÂ‚\Ý
-•™\œÚ[Ûˆ‹ŒÈÝ[[™È\ÈHš[˜[™[™\™\ˆ^Y\ˆ‹
+test("configuration backup covers workspace and community repository state", () => {
+  assert.match(page, /schema:\s*(?:28|27|26)/);
+  assert.match(page, /version:\s*LCARS_VERSION/);
+  for (const field of ["defaultWorkstation", "selectedPlayer", "popupLayout", "pagePeeks", "moduleSources"]) assert.match(page, new RegExp(`${field}:`));
+  assert.match(page, /restoreModuleSources/);
+  assert.match(page, /operation:\"add\"/);
+  assert.match(page, /command:\"restore\",layouts:importedLayouts/);
+});
 
-HOˆÂˆ\ÜÙ\›X]Ú
-^[Ý]ÝŒ‹L—˜ÜÜÖ×××JŒ‹L×˜ÜÜËÊNÂˆ\ÜÙ\›X]Ú
-™[™\™\‹ÝŒ‹L—˜ÜÜÖ×××JŒ‹L×˜ÜÜËÊNÂŸJNÂ‚\Ý
-™]™[ÜY[[™ÝX›HÛÜšÙ›ÝÜÈXÚØYÙH›ÝÜ\˜][™ÈÞ\Ý[\ÈÚ]ÚXÚÜÝ[\È‹
+test("upgraded operators receive a one-time current-version orientation", () => {
+  assert.match(page, /lcars-whats-new-v(?:30-[12345]|29-[123]|28)/);
+  assert.match(page, /(?:VERSION 30\.5 Â· DATA FABRIC|VERSION 30\.4 Â· LCARS SESSION|VERSION 30\.3 Â· VOICE OPERATIONS|VERSION 30\.2 Â· FEDERATION|VERSION 30\.1 Â· COMPUTER CORE|WELCOME TO VERSION 29|WELCOME TO VERSION 29\.3 RC 1|WELCOME TO VERSION 29\.2|WELCOME TO VERSION 28)/);
+  assert.match(page, /(?:WHAT(?:'|&apos;)S NEW IN VERSION 30\.5|WHAT(?:'|&apos;)S NEW IN VERSION 30\.4|WHAT(?:'|&apos;)S NEW IN VERSION 30\.2|WHAT'S NEW IN VERSION 30\.1|WHAT'S NEW IN VERSION 29|WHAT'S NEW IN VERSION 29\.3 RC 1|WHAT'S NEW IN VERSION 29\.2|WHAT'S NEW IN VERSION 28)/);
+  assert.match(page, /CONNECTED STATION DOCK/);
+  assert.match(page, /VERIFIED MOBILE UPDATES/);
+});
 
-HOˆÂˆ\ÜÙ\›X]Ú
-]™[ÜY[ÛÜšÙ›ÝËØœ˜[˜Ú\Î—Ê—Ì—Œ×KÊNÂˆ\ÜÙ\›X]Ú
-]™[ÜY[ÛÜšÙ›ÝËÙÚ™[X\ÙHÜ™X]HŒ—ŒËÊNÂˆ\ÜÙ\›X]Ú
-]™[ÜY[ÛÜšÙ›ÝËËK\™\™[X\ÙKÊNÂˆ\ÜÙ\›X]Ú
-ÝX›UÛÜšÙ›ÝËØœ˜[˜Ú\Î—Ê—Ì‹\ÝX›WKÊNÂˆ\ÜÙ\›X]Ú
-ÝX›UÛÜšÙ›ÝËÓÐT”ËUÚ[™ÝÜËTÙ]\]Œ—™^KÊNÂˆ\ÜÙ\›X]Ú
-ÝX›UÛÜšÙ›ÝËÓÐT”ËPÛÛ[X[™R[\™˜XÙK]Œ‹^—Í\[XYÙKÊNÂˆ\ÜÙ\›X]Ú
-ÝX›UÛÜšÙ›ÝËÜÚLMœÝ[HKXÚXÚÈÒLM”ÕST×ÊNÂˆ\ÜÙ\›X]Ú
-ÝX›UÛÜšÙ›ÝËÙÚ™[X\ÙHÜ™X]HŒ‹ÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-ÝX›UÛÜšÙ›ÝËËK\™\™[X\ÙKÊNÂŸJNÂ
+test("Version 26.3 styling is the final renderer layer", () => {
+  assert.match(layout, /v26-2\.css[\s\S]*v26-3\.css/);
+  assert.match(renderer, /v26-2\.css[\s\S]*v26-3\.css/);
+});
+
+test("development and stable workflows package both operating systems with checksums", () => {
+  assert.match(developmentWorkflow, /branches:\s*\[26\.3\]/);
+  assert.match(developmentWorkflow, /gh release create v26\.3/);
+  assert.match(developmentWorkflow, /--prerelease/);
+  assert.match(stableWorkflow, /branches:\s*\[26-stable\]/);
+  assert.match(stableWorkflow, /LCARS-Windows-Setup-v26\.exe/);
+  assert.match(stableWorkflow, /LCARS-Command-Interface-v26-x86_64\.AppImage/);
+  assert.match(stableWorkflow, /sha256sum --check SHA256SUMS\.txt/);
+  assert.match(stableWorkflow, /gh release create v26/);
+  assert.doesNotMatch(stableWorkflow, /--prerelease/);
+});

@@ -1,37 +1,32 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ®vßm8óm¹ã¸ÚZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µé™^Ü\H[š]™\œØ[ÙX\˜ÚØ]YÛÜHH˜\XØ][ÛœÈŸ™š[\ÈŸœÙ][™ÜÈŸ˜ÛÛ[X[™ÈŸœİ][ÛœÈŸ››İYšXØ][ÛœÈŸ›YYXHŸ˜ÛÛXİÈŸ›[Ù[\ÈŸœ›ØÙY\™\ÈŸ˜Xİ]š]HÂ‚™^Ü\H[š]™\œØ[ÙX\˜Ú[HHÂˆYœİš[™ÎÂˆØ]YÛÜN•[š]™\œØ[ÙX\˜ÚØ]YÛÜNÂˆ]Nœİš[™ÎÂˆ]Z[œİš[™ÎÂˆÙ^]ÛÜ™ÏÎœİš[™ÎÂˆ\]Y]Î›[X™\Âˆ^[ØYÎ”™XÛÜ™İš[™Ë[šÛ›İÛÂŸNÂ‚˜ÛÛœİ›Ü›X[^™YJ˜[YN[šÛ›İÛŠOO”İš[™Ê˜[Y_ˆŠKÓİÙ\Ø\ÙJ
-Kœ™\XÙJÖ×˜K^ŒNK‹Î—ÈWJËÙËˆŠKœ™\XÙJ×ÊËÙËˆŠKš[J
-NÂ‚™^Ü[˜İ[Ûˆ˜[šÕ[š]™\œØ[™\İ[Ê]Y\Nœİš[™Ë[šY\Î•[š]™\œØ[ÙX\˜Ú[V×K[Z]N
-^ÂˆÛÛœİ™\]Y\İY[›Ü›X[^™Y
-]Y\JKÚÙ[œÏ\™\]Y\İYœÜ]
-ˆŠK™š[\Š›ÛÛX[ŠNÂˆÛÛœİ[š\]YO[™]ÈX\İš[™Ë[š]™\œØ[ÙX\˜Ú[OŠ
-NÂˆ›ÜŠÛÛœİ[HÙˆ[šY\ÊZYŠ][š\]YKš\Ê	Ù[K˜Ø]YÛÜ_N‰Ù[KšYX
-J][š\]YKœÙ]
-	Ù[K˜Ø]YÛÜ_N‰Ù[KšYX[JNÂˆ™]\›ˆË‹‹[š\]YK˜[Y\Ê
-WK›X\
+export type UniversalSearchCategory = "applications"|"files"|"settings"|"commands"|"stations"|"notifications"|"media"|"contacts"|"modules"|"procedures"|"activity";
 
-[JOOÂˆÛÛœİ]O[›Ü›X[^™Y
-[K]JK^\İXÚÏ[›Ü›X[^™Y
-	Ù[K]_H	Ù[K™]Z[H	Ù[KšÙ^]ÛÜ™ßˆŸH	Ù[K˜Ø]YÛÜ_X
-NÂˆ]ØÛÜ™O\™\]Y\İYÌ“X]›Z[ŠÌX]™›ÛÜŠ
-[K\]Y]
-KÌL
-JNÂˆYŠ™\]Y\İY
-^ÂˆYŠ]OOO\™\]Y\İY
-\ØÛÜ™JÏLLŒÂˆ[ÙHYŠ]Kœİ\ÕÚ]
-™\]Y\İY
-J\ØÛÜ™JÏNLÂˆ[ÙHYŠ]Kš[˜ÛY\Ê™\]Y\İY
-J\ØÛÜ™JÏMNÂˆYŠ^\İXÚËš[˜ÛY\Ê™\]Y\İY
-J\ØÛÜ™JÏMNÂˆ›ÜŠÛÛœİÚÙ[ˆÙˆÚÙ[œÊZYŠ^\İXÚËš[˜ÛY\ÊÚÙ[ŠJ\ØÛÜ™JÏLLÂˆYŠÚÙ[œËœÛÛYJ
-ÚÙ[ŠOOˆZ^\İXÚËš[˜ÛY\ÊÚÙ[ŠJJ\ØÛÜ™KONÂˆBˆ™]\›Ù[KØÛÜ™_NÂˆJK™š[\Š
-][JOOˆ\™\]Y\İY][KœØÛÜ™OŒ
-KœÛÜ
+export type UniversalSearchEntry = {
+  id:string;
+  category:UniversalSearchCategory;
+  title:string;
+  detail:string;
+  keywords?:string;
+  updatedAt?:number;
+  payload?:Record<string,unknown>;
+};
 
-YšYÚ
-OOœšYÚœØÛÜ™K[YœØÛÜ™_
-šYÚ™[K\]Y]
-KJY™[K\]Y]
-_Y™[K]K›ØØ[PÛÛ\\™JšYÚ™[K]JJKœÛXÙJX]›X^
-KX]›Z[ŠŒ[Z]
-JJK›X\
+const normalized=(value:unknown)=>String(value||"").toLowerCase().replace(/[^a-z0-9./:_ -]+/g," ").replace(/\s+/g," ").trim();
 
-][JOOš][K™[JNÂŸB
+export function rankUniversalResults(query:string,entries:UniversalSearchEntry[],limit=80){
+  const requested=normalized(query),tokens=requested.split(" ").filter(Boolean);
+  const unique=new Map<string,UniversalSearchEntry>();
+  for(const entry of entries)if(!unique.has(`${entry.category}:${entry.id}`))unique.set(`${entry.category}:${entry.id}`,entry);
+  return [...unique.values()].map((entry)=>{
+    const title=normalized(entry.title),haystack=normalized(`${entry.title} ${entry.detail} ${entry.keywords||""} ${entry.category}`);
+    let score=requested?0:Math.min(30,Math.floor((entry.updatedAt||0)/100000000));
+    if(requested){
+      if(title===requested)score+=120;
+      else if(title.startsWith(requested))score+=90;
+      else if(title.includes(requested))score+=65;
+      if(haystack.includes(requested))score+=45;
+      for(const token of tokens)if(haystack.includes(token))score+=12;
+      if(tokens.some((token)=>!haystack.includes(token)))score-=80;
+    }
+    return{entry,score};
+  }).filter((item)=>!requested||item.score>0).sort((left,right)=>right.score-left.score||(right.entry.updatedAt||0)-(left.entry.updatedAt||0)||left.entry.title.localeCompare(right.entry.title)).slice(0,Math.max(1,Math.min(200,limit))).map((item)=>item.entry);
+}

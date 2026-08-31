@@ -1,5 +1,66 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿü÷^µç]´÷_uêZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéˆÈĞT”È[Øš[HÛÛ[X[™[š\›Û›Y[›Üˆ[™›ÚY‚•\È[œİ[X›H[™›ÚY\XØ][ÛˆÛÛZ[œÈH˜]]™KİXÚYš\œİQÛÛ\[š[Ûˆ[™HÜ[Û˜[™\œÚ[ÛˆHİ[™[Û™HĞT”ÈÛYH[š\›Û›Y[ˆHÛÛ\[š[Ûˆ[ÜÈ\™XİHÈHİX\™YQ”ÓÓˆTHÛˆš]˜]HT™]ÛÜšÜÈ[™ÜÍ˜È]Ù\È›İÛÛZ[ˆHš]š[YÙYĞT”È\ÚİÜœšYÙK‚‚‘š\œİ][˜Ú\ÈHİZYYÙ]\ˆÜ[ˆ
-Š”Ù][™ÜÈ8¡¤ˆÛÛ›™XİY
-ŠˆÛˆH\ÚİÜ\›HHÛ™K]\ÙHÛÙK[ˆØØ[ˆHØØ[™]ÛÜšÈÜˆ[\ˆH\Ü^YYš]˜]Hİ][ÛˆY™\ÜÈ[™ÛÙKˆH\İÜ™\ÈHİ][Ûˆ[™™]›ØØX›HQÚÙ[ˆØØ[H[™™XÛÛ›™XİÈ]]ÛX]XØ[KˆšY]Ù\‹Ü\˜]Ü‹Ü˜[[\ˆ\‹Y]šXÙH\›Z\ÜÚ[ÛœË[™ÛÛ[X[™\›İ˜[È\™H[™›Ü˜ÙYHH\ÚİÜ‚‚•™\œÚ[Ûˆ[˜ÛY\ÈÛ™KX›][™[™ØØ\H^[İ]ÎÈÛÛ[][šXØ][ÛœÎÈ]ZXÚÈXİ[ÛœÎÈİ\œ™[XÛÛœÛÛH[™Ù™ÈÛÛ›™XİYÛÜšÜİ][ÛœÎÈ]™H˜]\KÛ™]ÛÜšËÛ][˜ŞHX\™X]ÈÛXŞKX]Ø\™H›İYšXØ][ÛœÎÈ\XÈY[YNÈXØÙ\ÜÚXš[]HŞ[˜Ú›Ûš^˜][ÛÈİ\İÛZ^˜X›H[™[ÎÈ^[Û›H\›İ˜[™\]Y\İÎÈ™[X\ÙHİ]\ÎÈ[™HÛYK\ØÜ™Y[ˆİ]\ÈÚYÙ]‚‚•™\œÚ[Ûˆ[ÛÈÙY\ÈHÛÛ›™Xİ[Ûˆ˜YÙH[™Xˆ^[İ]İX›HÚ[HİÚ]Ú[™ÈšY]ÜËš]ÈÛ™Èİ]\ÈX™[ÈÈZ\ˆØ\™Ë]ÈHÜ\˜]ÜˆÙ[XİHYYXHÛİ\˜ÙKYÈHÛ™K]\
-Š‘\ÛZ\ÜÈ[
-ŠˆÛÛ›ÛÈÛÛ[][šXØ][ÛœËØ\›œÈX›İ]ÛY[Üİ][Ûˆ™\œÚ[ÛˆZ\ÛX]Ú\Ë[™›İšY\ÈHİZYY™XÛİ™\H[™[‚‚ˆÈÈ™\œÚ[ÛˆKŒH]™[ÜY[‚•™\œÚ[ÛˆKŒHYÈHš\œİÜ[Û˜[İ[™[Û™H[™›ÚYÛYHİ\™˜XÙKˆ]Ø[ˆ™HÜ[™Y\È[ˆÜ™[˜\H™]šY]È™Y›Ü™H[™›ÚY\È\ÚÙYÈXZÙH]Hİ\œ™[ÛYH\XØ][Û‹ˆ]›İšY\Î‚‚‹HH›Ùš[KX]Ø\™H\XØ][ÛˆXœ˜\H›İYÚ[™›ÚY	ÜÈ][˜Ú\ˆÙ\šXÙK‚‹HÙX\˜Ú˜]›Üš]\ËØØ[˜]\KÛ™]ÛÜšËÜİÜ˜YÙHİ]\Ë[™\™Xİ\XØ][Ûˆ][˜Ú[™Ë‚‹H^XÚ]ÛÛ›ÛÈÈÜ[ˆHQÛÛ\[š[Û‹™\]Y\İH[™›ÚYÛYH›ÛKÜˆ™[Ü[ˆŞ\İ[HÛYHÙ][™ÜË‚‹H[™\[™[Ü\˜][ÛˆÚ[ˆ›È\ÚİÜ\ÈZ\™YÜˆ™XXÚX›K‚‹HHÙ\\˜]H]™[ÜY[XÚØYÙHY[]HÛÈ™\œÚ[ÛˆİX›HØ[ˆ™[XZ[ˆ[œİ[Y‚‚ˆÈÈ™\œÚ[ÛˆKŒˆ]™[ÜY[‚•™\œÚ[ÛˆKŒˆ^[™ÈHÛYH›İ[™][Ûˆ[ÈHİ\İÛZ^˜X›HĞT”È[Øš[H[š\›Û›Y[‚‚‹HH\ÚİÜ\İ[HX\İXY[X™\™YYÚYX˜\‹[™›Øİ\ÙYİ]\Ë\Ë˜]›Üš]\ËXÚÜË›Û\œËÚYÙ]Ë\Ü^\ËÙ][™ÜË[™ÛÛ\[š[ÛˆYÙ\Ë‚‹H\Ù\‹XÜ™X]Y][˜ÚXÚÜÈ[™\XØ][Ûˆ›Û\œÈ]™[XZ[ˆ[™\[™[Ùˆ˜]›Üš]\Ë‚‹H˜]]™H[™›ÚYÚYÙ]Ù[Xİ[Û‹ÛÛ™šYİ\˜][Û‹Üİ[™Ë[™™[[İ˜[›İYÚ\ÚYÙ]Üİ‚‹HÚ^[Øš[H\Ü^HX]š^˜[Z[Y\ÈÚ]Y™™\™[[]KÛÜ›™\ˆÙ[ÛY]K›Ü™\œË˜]šYØ][Û‹[™[œÚ]x %›İ[]HİØ\È[Û™K‚‹Hİ[™\™ÜˆÛÛ\XİÚYX˜\ˆ[™[œÚ]H[Ù\È\È]]ÛX]XÈÜˆš^Y\XØ][Û‹YÜšYÛÛ[[œË‚‹H”ÓÓˆ˜XÚİ\[™™\İÜ™H›ÜˆÜX›HÛYHÙ][™ÜËÚ]]šXÙKX›İ[™ÚYÙ]QÈ[[[Û˜[H^ÛYY‚‹Hš^Y\Ú^™K]]ËYš][™ÈX\İXY^[ˆ›İ˜]]™H[™›ÚYİ\™˜XÙ\ÈÛÈ˜]šYØ][Ûˆ[™XØÙ\ÜÚXš[]HØØ[[™ÈØ[››İ\Ú]\Èİ]ÚYHZ\ˆ[™[Ë‚‚•\ÙH™\œÚ[ÛˆKŒˆØ\Xš[]Y\È™[XZ[ˆ[˜ÛYY[ˆ™\œÚ[ÛˆHİX›K‚‚ˆÈÈ™\œÚ[ÛˆHİX›B‚•™\œÚ[ÛˆHÛÛ\]\ÈH[›™Y[Øš[HÛÛ[X[™[š\›Û›Y[‚‚‹H[X™YÈÛÛ\[š[Ûˆ\ÈHš\œİXÛ\ÜÈÛYHYÙH[™YÈHÛÛ›™XİYİ][ÛˆØÚÈÚ]\ÈZYÚØ]™Yİ][ÛœË‚‹HZYÜ˜]\ÈYØXŞHZ\š[™È]H[™[˜Ü\È™]›ØØX›HÜ™Y[X[È\Ú[™È[™›ÚYÙ^\İÜ™HQTËQĞÓK‚‹HYÈš[Üš]Hİ][Ûˆ›İYšXØ][ÛœËÚ\™Ú[™ËX]Ø\™H˜]\HX\™X]Ë™]›ØØ][Ûˆ™XÛİ™\K[™˜]\H›İ[™\H\İË‚‹HÙY\ÈÛ™È[™ÛÛ\XİXY\œÈ[œÚYHZ\ˆ[™[Ë™]Z[œÈÛYHXÜ›ÜÜÈ[›ØÚË\ØÛİ™\œÈ\È[ˆH˜XÚÙÜ›İ[™[™\Ù\ÈH\™Xİİ\œ™[\›Ùš[H][˜Ú]‚‹HÜ[œÈ[ˆĞT”ÈØ[[™\ˆœ›ÛHHÛØÚÈ[™XÙ\È\ÈÙ[H[™\[™[˜]›Üš]\ÈX›İ™H\XØ][Ûˆ›Û\œË‚‹HYÈH[Øš[H\]HÛÛœÛÛH]İÛ›ØYÈH™]Ù\İX›\ÚYTË™\šYšY\È]YØZ[œİÒLM”ÕSTË[™[™È]È[™›ÚY	ÜÈ[œİ[\ˆÚ]Û™H\ˆ[™›ÚYİ[™\]Z\™\ÈHÜ\˜]Ü‰ÜÈ[œİ[][ÛˆÛÛ™š\›X][Û‹‚‚•H™\œÚ[ÛˆHİX›HÛÜšÙ›İÈZ[È[^[™Ú[™İÜÈXÚØYÙ\È\ÈH\œÚ\İ[HÚYÛ™Y[™›ÚY™[X\ÙHTË[œÈ™YÜ™\ÜÚ[Ûˆ[™˜]\HÚXÚÜË™\šYšY\ÈHTÈÚYÛ˜]\™KX›\Ú\ÈÛÛXš[™YÚXÚÜİ[\Ë[™X\šÜÈ™\œÚ[ÛˆH\ÈH]\İİX›HÚ]Xˆ™[X\ÙKˆ™\œÚ[Ûˆ[™™\œÚ[ÛˆH]™[ÜY[XÚØYÙ\È\ÙY\ÜÜØX›HÜˆÙ\\˜]H]™[ÜY[Y[]Y\ËÛÈ[™›ÚYX^H™\]Z\™HZ\ˆÛ™K][YH™[[İ˜[™Y›Ü™HHİX›HXÚØYÙHØ[ˆ™H[œİ[YÈ™\œÚ[ÛˆH[ˆ\İX›\Ú\ÈHÚYÛš[™ÈY[]H\ÙYH]\™H[‹\XÙH[Øš[H\]\Ë‚‚ˆÈÈ™\œÚ[ÛˆÌŒˆ]™[ÜY[‚•™\œÚ[ÛˆÌŒˆYÈH˜]]™H™Y\˜][Ûˆ˜[œÜÜÚ[H™]Z[š[™ÈHÛÛ\]H™\œÚ[ÛˆHÛYH[š\›Û›Y[‚‚‹H\ØÛİ™\œÈ^XÚ]H[˜X›YĞT”Èİ][ÛœÈİ™\ˆH\İYØØ[™]ÛÜšË‚‹HİÜ™\ÈHİ][ÛˆY[]H[™™XYX›Hš[™Ù\œš[™\ÚYHH^\İ[™ÈÙ^\İÜ™K\›İXİYÜ™Y[X[‚‹HÚYÛœÈ™\]Y\İÈ[™[˜Ü\È˜]]™H™\]Y\İ[™™\ÜÛœÙH›ÙY\ÈÚ]QTËLM‹QĞÓHY\ˆZ\š[™Ë[˜ÛY[™È[Y\İ[\[™™\^H›İXİ[Û‹‚‹H™XÙZ]™\ÈYÙH[™Ù™‹š[Üš]H›İXÙ\ËÛ\›Ø\™^[™ÜZ[ˆš[\È\ÈLLˆÚP‹[™XÚÛ›İÛYÙ\È]Y]YY[]™\šY\ÈY\ˆ[™[™È[K‚‹H™\Ù\™\È][K\İ][ÛˆİÚ]Ú[™È[™ZYÜ˜]\È^\İ[™È™\œÚ[ÛˆHZ\š[™ÜÈÈHÙXİ\™H™Y\˜][Ûˆ›İØÛÛÛˆZ\ˆš\œİİXØÙ\ÜÙ[™Yœ™\Ú‚‚ˆÈÈ™\œÚ[ÛˆÌH]™[ÜY[‚•™\œÚ[ÛˆÌH™]Z[œÈHÚYÛ™Y™\œÚ[ÛˆH[™›ÚYY[]H[™HÛÛ\]H™Y\˜][ÛˆÛYH[š\›Û›Y[ˆH[Ù[H]›Ü›H]Ù[ˆ[œÈÛˆH\İY\ÚİÜÜİˆ[™›ÚY™XÙZ]™\ÈÛ›HHÜİ\™[™\™Yİ][Ûˆİ\™˜XÙ\È[™™]™\ˆİÛ›ØYÈÜˆ^Xİ]\È[Ù[HÛÙKˆ\È™\Ù\™\ÈHØ[YH^XÚ]İ][Ûˆ\›Z\ÜÚ[ÛœË[˜Ü\Y˜[œÜÜÛ™K]\[Øš[H\]H][™ØY™HÙ™›[™HÛYH™Z]š[ÜˆÚ[H\ÚİÜ[Ù[\È™[XZ[ˆ\ÛÛ]Y[œÚYHĞT”ĞÒK‚‚Z[ØØ[HÚ][™›ÚYÑÈÍK˜]˜HMË[™Ü˜YHN‚‚˜˜\Ú™Ü˜YH\[Øš[KØ[™›ÚY˜\˜\ÜÙ[X›T™[X\ÙB˜
+# LCARS Mobile Command Environment for Android
+
+This installable Android application contains the native, touch-first PADD Companion and the optional Version 29 standalone LCARS Home environment. The companion talks directly to the guarded PADD JSON API on private IPv4 networks and port `8766`; it does not contain the privileged LCARS desktop bridge.
+
+First launch is a guided setup: open **Settings â†’ Connected** on the desktop, arm a one-use code, then scan the local network or enter the displayed private station address and code. The app stores the station and revocable PADD token locally and reconnects automatically. Viewer, Operator, granular per-device permissions, and Command approvals are enforced by the desktop.
+
+Version 28 includes phone, tablet, and landscape layouts; Communications; quick actions; current-console handoff; Connected Workstations; live battery/network/latency heartbeat; policy-aware notifications; haptic identify; accessibility synchronization; customizable panels; text-only approval requests; release status; and a home-screen status widget.
+
+Version 28 also keeps the connection badge and tab layout stable while switching views, fits long status labels to their cards, lets the operator select a media source, adds a one-tap **Dismiss All** control to Communications, warns about client/station version mismatches, and provides a guided recovery panel.
+
+## Version 29.1 Development
+
+Version 29.1 adds the first optional standalone Android Home surface. It can be opened as an ordinary preview before Android is asked to make it the current Home application. It provides:
+
+- A profile-aware application library through Android's launcher service.
+- Search, favorites, local battery/network/storage status, and direct application launching.
+- Explicit controls to open the PADD Companion, request the Android Home role, or reopen system Home settings.
+- Independent operation when no desktop is paired or reachable.
+- A separate Development package identity so Version 28 Stable can remain installed.
+
+## Version 29.2 Development
+
+Version 29.2 expands the Home foundation into a customizable LCARS mobile environment:
+
+- A desktop-style masthead, numbered left sidebar, and focused Status, Apps, Favorites, Decks, Folders, Widgets, Displays, Settings, and Companion pages.
+- User-created launch decks and application folders that remain independent of Favorites.
+- Native Android widget selection, configuration, hosting, and removal through `AppWidgetHost`.
+- Six mobile Display Matrix families with different palette, corner geometry, borders, navigation, and densityâ€”not palette swaps alone.
+- Standard or compact sidebar and density modes plus automatic or fixed application-grid columns.
+- JSON backup and restore for portable Home settings, with device-bound widget IDs intentionally excluded.
+- Fixed-size, auto-fitting masthead text in both native Android surfaces so navigation and accessibility scaling cannot push titles outside their panels.
+
+These Version 29.2 capabilities remain included in Version 29 Stable.
+
+## Version 29 Stable
+
+Version 29 completes the planned Mobile Command Environment:
+
+- Embeds Companion as a first-class Home page and adds a Connected Station Dock with up to eight saved stations.
+- Migrates legacy pairing data and encrypts revocable credentials using Android Keystore AES-GCM.
+- Adds priority station notifications, charging-aware battery heartbeats, revocation recovery, and battery boundary tests.
+- Keeps long and compact headers inside their panels, retains Home across unlock, discovers apps in the background, and uses a direct current-profile launch path.
+- Opens an LCARS calendar from the clock and places up to twenty independent Favorites above application folders.
+- Adds a Mobile Update Console that downloads the newest published APK, verifies it against `SHA256SUMS.txt`, and hands it to Android's installer with one tap. Android still requires the operator's installation confirmation.
+
+The Version 29 Stable workflow builds Linux and Windows packages plus a persistently signed Android release APK, runs regression and battery checks, verifies the APK signature, publishes combined checksums, and marks Version 29 as the latest Stable GitHub release. Version 28 and Version 29 development packages used disposable or separate development identities, so Android may require their one-time removal before the Stable package can be installed; Version 29 then establishes the signing identity used by future in-place mobile updates.
+
+## Version 30.2 Development
+
+Version 30.2 adds the native Federation transport while retaining the complete Version 29 Home environment:
+
+- Discovers explicitly enabled LCARS stations over the trusted local network.
+- Stores the station identity and readable fingerprint beside the existing Keystore-protected credential.
+- Signs requests and encrypts native request and response bodies with AES-256-GCM after pairing, including timestamp and replay protection.
+- Receives page handoff, priority notices, clipboard text, and opt-in files up to 512 KiB, and acknowledges queued deliveries after handling them.
+- Preserves multi-station switching and migrates existing Version 29 pairings to the secure Federation protocol on their first successful refresh.
+
+## Version 30.5 Development
+
+Version 30.5 retains the signed Version 29 Android identity and the complete Federation Home environment. The Module Platform itself runs on the trusted desktop host: Android receives only the host-rendered station surfaces and never downloads or executes module code. This preserves the same explicit station permissions, encrypted transport, one-tap mobile update path, and safe offline Home behavior while desktop modules remain isolated inside LCARSCI.
+
+Build locally with Android SDK 35, Java 17, and Gradle 8.9:
+
+```bash
+gradle -p mobile/android :app:assembleRelease
+```

@@ -1,231 +1,320 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ}8ï}v÷Nw×]ºÚZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéˆÈKİ\Ü‹Øš[‹Ù[ˆ]ÛŒÂˆˆˆ“ØØ[[˜Ü\Yİ]H[™›İ[™Yš[H\ØÛİ™\H›ÜˆĞT”È]H˜XœšXËˆˆˆ‚™œ›ÛH×Ù]\™W×È[\Ü[››İ][ÛœÂ‚š[\Ü\ÚX‚š[\ÜœÛÛ‚š[\ÜZ[Y]\\Âš[\ÜÜÂš[\Ü[YBš[\Ü]ZY™œ›ÛH]Xˆ[\Ü]‚™œ›ÛHØ\œ×Ù™Y\˜][Û—ØÜ\È[\ÜÜ[—ÚœÛÛ‹ÙX[ÚœÛÛ‚‚“PVÔ‘PÑS•HLŒ“PVÒTÕÔ–HH“PVĞÓÓ‘“PÕÈHŒ“PVÕUSÒUSTÈH“PVÕUSĞ–UTÈH—ÌM×ÌML‚“PVÕ‘T”ÒSÓ”ÈHŒ‚‘QUSĞĞUQÓÔ’QTÈHÂˆ˜\XØ][ÛœÈˆYKˆ™š[\ÈˆYKˆœ™XÙ[][\ÈˆYKˆœÙ][™ÜÈˆYKˆ˜ÛÛ[X[™ÈˆYKˆœİ][ÛœÈˆYKˆ››İYšXØ][ÛœÈˆYKˆ›YYXHˆYKˆ˜ÛÛXİÈˆYKˆ›[Ù[\ÈˆYKˆœ›ØÙY\™\ÈˆYKˆ˜Xİ]š]Hˆ˜[ÙKˆ˜Û\›Ø\™ˆ˜[ÙKˆœÛX[š[\Èˆ˜[ÙKˆœš]˜]TİÜ˜YÙHˆ˜[ÙKŸB‚‚™YˆØÛX[Š˜[YK[Z]LLŒ
-N‚ˆ™]\›ˆˆ‹š›Ú[ŠİŠ˜[YHÜˆˆŠKœ™\XÙJ—‹ˆŠKœÜ]
+#!/usr/bin/env python3
+"""Local, encrypted state and bounded file discovery for LCARS Data Fabric."""
+from __future__ import annotations
 
-JVÎ›[Z]B‚‚˜Û\ÜÈ]Q˜XœšXÎ‚ˆˆˆ”\œÚ\İ›Û‹\ÙXÜ™]ÛXŞHÙ\\˜][Hœ›ÛHQTËQĞÓH›İXİYš]˜]H]Kˆˆˆ‚‚ˆYˆ×Ú[š]×ÊÙ[‹ÛÛ™šY×Ù\ˆ]]›Ü›NˆİŠN‚ˆÙ[‹˜ÛÛ™šY×Ù\ˆH]
-ÛÛ™šY×Ù\ŠBˆÙ[‹œ]›Ü›HH]›Ü›BˆÙ[‹˜ÛÛ™šY×Ùš[HHÙ[‹˜ÛÛ™šY×Ù\ˆÈ™]KY˜XœšXËšœÛÛˆ‚ˆÙ[‹šÙ^WÙš[HHÙ[‹˜ÛÛ™šY×Ù\ˆÈ™]KY˜XœšXËšÙ^H‚ˆÙ[‹˜][Ùš[HHÙ[‹˜ÛÛ™šY×Ù\ˆÈ™]KY˜XœšXË\š]˜]KšœÛÛˆ‚‚ˆYˆÙY˜][ÊÙ[ŠN‚ˆ™]\›ˆÂˆœØÚ[XHˆKˆ˜Ø]YÛÜšY\ÈˆXİ
-QUSĞĞUQÓÔ’QTÊKˆ˜ÛÛ™›XİÛXŞHˆ˜\ÚÈ‹ˆœ™XÙ[ˆ×Kˆš\İÜHˆ×Kˆ˜ÛÛ™›XİÈˆ×Kˆ™\œÚ[ÛœÈˆßKˆB‚ˆYˆÛØY
-Ù[ŠN‚ˆ˜[YHHÙ[‹—ÙY˜][Ê
-BˆN‚ˆİÜ™YHœÛÛ‹›ØYÊÙ[‹˜ÛÛ™šY×Ùš[Kœ™XYİ^
-[˜ÛÙ[™ÏH]‹NŠJBˆYˆ\Ú[œİ[˜ÙJİÜ™YXİ
-N‚ˆØ]YÛÜšY\ÈHİÜ™Y™Ù]
-˜Ø]YÛÜšY\È‹ßJHYˆ\Ú[œİ[˜ÙJİÜ™Y™Ù]
-˜Ø]YÛÜšY\ÈŠKXİ
-H[ÙHßBˆ˜[YVÈ˜Ø]YÛÜšY\È—HHÛ˜[YNˆ›ÛÛ
-Ø]YÛÜšY\Ë™Ù]
-˜[YKY˜][
-JH›Üˆ˜[YKY˜][[ˆQUSĞĞUQÓÔ’QTËš][\Ê
-_BˆYˆİÜ™Y™Ù]
-˜ÛÛ™›XİÛXŞHŠH[ˆÈ˜\ÚÈ‹›™]Ù\İ‹›ØØ[ŸN‚ˆ˜[YVÈ˜ÛÛ™›XİÛXŞH—HHİÜ™YÈ˜ÛÛ™›XİÛXŞH—Bˆ›Üˆ˜[YK[Z][ˆ
+import hashlib
+import json
+import mimetypes
+import os
+import time
+import uuid
+from pathlib import Path
 
-œ™XÙ[‹PVÔ‘PÑS•
-K
-š\İÜH‹PVÒTÕÔ–JK
-˜ÛÛ™›XİÈ‹PVĞÓÓ‘“PÕÊJN‚ˆ][\ÈHİÜ™Y™Ù]
-˜[YK×JHYˆ\Ú[œİ[˜ÙJİÜ™Y™Ù]
-˜[YJK\İ
-H[ÙH×Bˆ˜[YVÛ˜[YWHHÚ][H›Üˆ][H[ˆ][\ÖË[[Z]—HYˆ\Ú[œİ[˜ÙJ][KXİ
-WBˆ™\œÚ[ÛœÈHİÜ™Y™Ù]
-™\œÚ[ÛœÈ‹ßJHYˆ\Ú[œİ[˜ÙJİÜ™Y™Ù]
-™\œÚ[ÛœÈŠKXİ
-H[ÙHßBˆ˜[YVÈ™\œÚ[ÛœÈ—HHÜİŠÙ^JVÎŒNNˆÚ][H›Üˆ][H[ˆ›İÜÖËSPVÕ‘T”ÒSÓ”Î—HYˆ\Ú[œİ[˜ÙJ][KXİ
-WH›ÜˆÙ^K›İÜÈ[ˆ\İ
-™\œÚ[ÛœËš][\Ê
-JVÎŒHYˆ\Ú[œİ[˜ÙJ›İÜË\İ
-_Bˆ^Ù\^Ù\[Û‚ˆ\ÜÂˆ™]\›ˆ˜[YB‚ˆYˆÜØ]™JÙ[‹˜[YJN‚ˆÙ[‹˜ÛÛ™šY×Ù\‹›ZÙ\Š\™[ÏUYK^\İÛÚÏUYJBˆ[\Ü˜\HHÙ[‹˜ÛÛ™šY×Ùš[KÚ]ÜİY™š^
-‹\ŠBˆ[\Ü˜\KÜš]Wİ^
-œÛÛ‹™[\Ê˜[YK[™[LŠK[˜ÛÙ[™ÏH]‹NŠBˆ[\Ü˜\Kœ™\XÙJÙ[‹˜ÛÛ™šY×Ùš[JB‚ˆYˆÚÙ^JÙ[ŠN‚ˆÙ[‹˜ÛÛ™šY×Ù\‹›ZÙ\Š\™[ÏUYK^\İÛÚÏUYJBˆN‚ˆÙ^HHÙ[‹šÙ^WÙš[Kœ™XYØ]\Ê
-BˆYˆ[ŠÙ^JHOHÌ‚ˆ™]\›ˆÙ^Bˆ^Ù\^Ù\[Û‚ˆ\ÜÂˆÙ^HHÜË\˜[™ÛJÌŠBˆ[\Ü˜\HHÙ[‹šÙ^WÙš[KÚ]ÜİY™š^
-‹\ŠBˆ[\Ü˜\KÜš]WØ]\ÊÙ^JBˆN‚ˆÜË˜Ú[Ù
-[\Ü˜\KÍŒ
-Bˆ^Ù\ÔÑ\œ›Ü‚ˆ\ÜÂˆ[\Ü˜\Kœ™\XÙJÙ[‹šÙ^WÙš[JBˆ™]\›ˆÙ^B‚ˆYˆÛØYİ˜][
-Ù[ŠN‚ˆN‚ˆ[™[ÜHHœÛÛ‹›ØYÊÙ[‹˜][Ùš[Kœ™XYİ^
-[˜ÛÙ[™ÏH]‹NŠJBˆ˜[YHHÜ[—ÚœÛÛŠÙ[‹—ÚÙ^J
-K[™[ÜK›Ø\œËY]KY˜XœšXË\š]˜]K]ŒHŠBˆYˆ\Ú[œİ[˜ÙJ˜[YKXİ
-H[™\Ú[œİ[˜ÙJ˜[YK™Ù]
-š][\ÈŠK\İ
-N‚ˆ™]\›ˆÈœØÚ[XHˆKš][\ÈˆÚ][H›Üˆ][H[ˆ˜[YVÈš][\È—VËSPVÕUSÒUSTÎ—HYˆ\Ú[œİ[˜ÙJ][KXİ
-W_Bˆ^Ù\^Ù\[Û‚ˆ\ÜÂˆ™]\›ˆÈœØÚ[XHˆKš][\Èˆ×_B‚ˆYˆÜØ]™Wİ˜][
-Ù[‹˜[YJN‚ˆ^[ØYHœÛÛ‹™[\Ê˜[YKÙ\\˜]ÜœÏJ‹‹ˆŠJK™[˜ÛÙJ]‹NŠBˆYˆ[Š^[ØY
-HˆPVÕUSĞ–UTÎ‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠ”š]˜]HİÜ˜YÙH\È[Z]YÈˆZPˆÛˆ\Èİ][ÛˆŠBˆÙ[‹˜ÛÛ™šY×Ù\‹›ZÙ\Š\™[ÏUYK^\İÛÚÏUYJBˆ[\Ü˜\HHÙ[‹˜][Ùš[KÚ]ÜİY™š^
-‹\ŠBˆ[\Ü˜\KÜš]Wİ^
-œÛÛ‹™[\ÊÙX[ÚœÛÛŠÙ[‹—ÚÙ^J
-K˜[YK›Ø\œËY]KY˜XœšXË\š]˜]K]ŒHŠJK[˜ÛÙ[™ÏH]‹NŠBˆN‚ˆÜË˜Ú[Ù
-[\Ü˜\KÍŒ
-Bˆ^Ù\ÔÑ\œ›Ü‚ˆ\ÜÂˆ[\Ü˜\Kœ™\XÙJÙ[‹˜][Ùš[JB‚ˆİ]XÛY]ÙˆYˆÚ\İÜJ˜[YKXİ[Û‹Ø]YÛÜK]Z[İ]\ÏH˜ÛÛ\]H‹İ][ÛH“ĞĞSÓÔ‘HŠN‚ˆ˜[YVÈš\İÜH—HHÊ˜[YK™Ù]
-š\İÜH‹×JVËJPVÒTÕÔ–HHJN—KÂˆšYˆ]ZY]ZY
+from lcars_federation_crypto import open_json, seal_json
 
-Kš^ˆ˜Xİ[ÛˆˆØÛX[ŠXİ[Û‹
-Kˆ˜Ø]YÛÜHˆØÛX[ŠØ]YÛÜKÌŠKˆ™]Z[ˆØÛX[Š]Z[N
-Kˆœİ]\ÈˆØÛX[Šİ]\Ë
-Kˆœİ][ÛˆˆØÛX[Šİ][Û‹
-Kˆ˜Ü™X]Y]ˆ[
-[YK[YJ
-JKˆWB‚ˆYˆİ]\ÊÙ[ŠN‚ˆ˜[YHHÙ[‹—ÛØY
+MAX_RECENT = 120
+MAX_HISTORY = 240
+MAX_CONFLICTS = 60
+MAX_VAULT_ITEMS = 80
+MAX_VAULT_BYTES = 2_097_152
+MAX_VERSIONS = 20
 
-Bˆ˜][HÙ[‹—ÛØYİ˜][
+DEFAULT_CATEGORIES = {
+    "applications": True,
+    "files": True,
+    "recentItems": True,
+    "settings": True,
+    "commands": True,
+    "stations": True,
+    "notifications": True,
+    "media": True,
+    "contacts": True,
+    "modules": True,
+    "procedures": True,
+    "activity": False,
+    "clipboard": False,
+    "smallFiles": False,
+    "privateStorage": False,
+}
 
-Bˆ™]\›ˆÂˆ›ÚÈˆYKˆœ]›Ü›HˆÙ[‹œ]›Ü›Kˆ˜[œÜÜˆQTËLM‹QĞÓH‹ˆœİÜ˜YÙHˆQTËLM‹QĞÓH0­ÈĞĞSÑVH‹ˆ˜Ø]YÛÜšY\Èˆ˜[YVÈ˜Ø]YÛÜšY\È—Kˆ˜ÛÛ™›XİÛXŞHˆ˜[YVÈ˜ÛÛ™›XİÛXŞH—Kˆœ™XÙ[ˆ\İ
-™]™\œÙY
-˜[YVÈœ™XÙ[—VËM—JJKˆš\İÜHˆ\İ
-™]™\œÙY
-˜[YVÈš\İÜH—VËN—JJKˆ˜ÛÛ™›XİÈˆ\İ
-™]™\œÙY
-Ú][H›Üˆ][H[ˆ˜[YVÈ˜ÛÛ™›XİÈ—VËSPVĞÓÓ‘“PÕÎ—HYˆ›İ][K™Ù]
-œ™\ÛÛ™Y]ŠWJJKˆœš]˜]R][\ÈˆŞÚÙ^Nˆ][K™Ù]
-Ù^JH›ÜˆÙ^H[ˆ
-šY‹›˜[YH‹\]Y]‹™\œÚ[ÛÛİ[Š_H›Üˆ][H[ˆ™]™\œÙY
-˜][Èš][\È—JWKˆ™XYÛ›ÜİXÜÈˆÂˆœ™XÙ[][\Èˆ[Š˜[YVÈœ™XÙ[—JKˆš\İÜQ[šY\Èˆ[Š˜[YVÈš\İÜH—JKˆ›Ü[ÛÛ™›XİÈˆİ[JH›Üˆ][H[ˆ˜[YVÈ˜ÛÛ™›XİÈ—HYˆ›İ][K™Ù]
-œ™\ÛÛ™Y]ŠJKˆœš]˜]R][\Èˆ[Š˜][Èš][\È—JKˆ™\œÚ[Û™Y™XÛÜ™Èˆ[Š˜[YVÈ™\œÚ[ÛœÈ—JKˆKˆB‚ˆYˆ™XÛÜ™Ü™XÙ[
-Ù[‹Ø]YÛÜKY[˜[YK]Z[Hˆ‹İ][ÛH“ĞĞSÓÔ‘HŠN‚ˆ˜[YHHÙ[‹—ÛØY
 
-BˆYˆ›İ˜[YVÈ˜Ø]YÛÜšY\È—K™Ù]
-œ™XÙ[][\È‹YJN‚ˆ™]\›ˆÙ[‹œİ]\Ê
-BˆØ]YÛÜKY[˜[YHHØÛX[ŠØ]YÛÜKÌŠKØÛX[ŠY[
-KØÛX[Š˜[YKLŒ
-BˆYˆ›İY[Üˆ›İ˜[YN‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠ”™XÙ[][HY[]H[™˜[YH\™H™\]Z\™YŠBˆ][HHÈšYˆY[˜Ø]YÛÜHˆØ]YÛÜK›˜[YHˆ˜[YK™]Z[ˆØÛX[Š]Z[N
-Kœİ][ÛˆˆØÛX[Šİ][Û‹
-K\]Y]ˆ[
-[YK[YJ
-J_Bˆ˜[YVÈœ™XÙ[—HHØØ[™Y]H›ÜˆØ[™Y]H[ˆ˜[YVÈœ™XÙ[—HYˆ›İ
-Ø[™Y]K™Ù]
-˜Ø]YÛÜHŠHOHØ]YÛÜH[™Ø[™Y]K™Ù]
-šYŠHOHY[
-WVËJPVÔ‘PÑS•HJN—H
-ÈÚ][WBˆÙ[‹—Ú\İÜJ˜[YKœ™XÙ[Z][H‹Ø]YÛÜK˜[YKİ][Û\İ][ÛŠBˆÙ[‹—ÜØ]™J˜[YJBˆ™]\›ˆÙ[‹œİ]\Ê
-B‚ˆYˆY\™ÙWİ™\œÚ[ÛŠÙ[‹Ø]YÛÜKY[˜[YK^[ØY[ÙYšYYİ][ÛŠN‚ˆ˜[YHHÙ[‹—ÛØY
+def _clean(value, limit=120):
+    return " ".join(str(value or "").replace("\x00", "").split())[:limit]
 
-BˆØ]YÛÜKY[HØÛX[ŠØ]YÛÜKÌŠKØÛX[ŠY[N
-BˆÙ^HHˆØØ]YÛÜ_NÚY[H‚ˆÙ\šX[^™YHœÛÛ‹™[\Ê^[ØYÛÜÚÙ^\ÏUYKÙ\\˜]ÜœÏJ‹‹ˆŠJBˆYÙ\İH\ÚX‹œÚLMŠÙ\šX[^™Y™[˜ÛÙJ]‹NŠJKš^YÙ\İ
 
-Bˆ™\œÚ[ÛœÈH˜[YVÈ™\œÚ[ÛœÈ—K™Ù]
-Ù^K×JBˆİ\œ™[H™\œÚ[ÛœÖËLWHYˆ™\œÚ[ÛœÈ[ÙH›Û™Bˆ[˜ÛÛZ[™ÈHÈšYˆ]ZY]ZY
+class DataFabric:
+    """Persist non-secret policy separately from AES-GCM protected private data."""
 
-Kš^š\ÚˆYÙ\İ›˜[YHˆØÛX[Š˜[YKLŒ
-Kœİ][ÛˆˆØÛX[Šİ][Û‹
-K›[ÙYšYYˆ[
-[ÙYšYYÜˆ[YK[YJ
-JK˜Ü™X]Y]ˆ[
-[YK[YJ
-JKœ^[ØYˆ^[ØYBˆYˆİ\œ™[[™İ\œ™[™Ù]
-š\ÚŠHOHYÙ\İ[™İ\œ™[™Ù]
-œİ][ÛˆŠHOH[˜ÛÛZ[™ÖÈœİ][Ûˆ—N‚ˆÛÛ™›XİHÈšYˆ]ZY]ZY
+    def __init__(self, config_dir: Path, platform: str):
+        self.config_dir = Path(config_dir)
+        self.platform = platform
+        self.config_file = self.config_dir / "data-fabric.json"
+        self.key_file = self.config_dir / "data-fabric.key"
+        self.vault_file = self.config_dir / "data-fabric-private.json"
 
-Kš^šÙ^HˆÙ^K˜Ø]YÛÜHˆØ]YÛÜK›˜[YHˆ[˜ÛÛZ[™ÖÈ›˜[YH—K›ØØ[™\œÚ[Ûˆˆİ\œ™[™Ù]
-šYŠKš[˜ÛÛZ[™Õ™\œÚ[Ûˆˆ[˜ÛÛZ[™ÖÈšY—K›ØØ[İ][Ûˆˆİ\œ™[™Ù]
-œİ][ÛˆŠKš[˜ÛÛZ[™Ôİ][Ûˆˆ[˜ÛÛZ[™ÖÈœİ][Ûˆ—K˜Ü™X]Y]ˆ[
-[YK[YJ
-J_BˆÛXŞHH˜[YVÈ˜ÛÛ™›XİÛXŞH—BˆYˆÛXŞHOH˜\ÚÈ‚ˆ˜[YVÈ˜ÛÛ™›XİÈ—HHÊ˜[YVÈ˜ÛÛ™›XİÈ—VËJPVĞÓÓ‘“PÕÈHJN—KÛÛ™›XİBˆÙ[‹—Ú\İÜJ˜[YKœŞ[˜ËXÛÛ™›Xİ‹Ø]YÛÜK[˜ÛÛZ[™ÖÈ›˜[YH—K˜][[Ûˆ‹İ][ÛŠBˆ[YˆÛXŞHOH›ØØ[‚ˆÙ[‹—Ú\İÜJ˜[YKš[˜ÛÛZ[™Ë]™\œÚ[Û‹\ÚÚ\Y‹Ø]YÛÜK[˜ÛÛZ[™ÖÈ›˜[YH—Kœ™\ÛÛ™Y‹İ][ÛŠBˆÙ[‹—ÜØ]™J˜[YJBˆ™]\›ˆÙ[‹œİ]\Ê
-Bˆ[Yˆ[˜ÛÛZ[™ÖÈ›[ÙYšYY—H[
-İ\œ™[™Ù]
-›[ÙYšYY‹
-JN‚ˆÙ[‹—Ú\İÜJ˜[YK›Û\‹]™\œÚ[Û‹\ÚÚ\Y‹Ø]YÛÜK[˜ÛÛZ[™ÖÈ›˜[YH—Kœ™\ÛÛ™Y‹İ][ÛŠBˆÙ[‹—ÜØ]™J˜[YJBˆ™]\›ˆÙ[‹œİ]\Ê
-BˆYˆ›İİ\œ™[Üˆİ\œ™[™Ù]
-š\ÚŠHOHYÙ\İ‚ˆ˜[YVÈ™\œÚ[ÛœÈ—VÚÙ^WHHÊ™\œÚ[ÛœÖËJPVÕ‘T”ÒSÓ”ÈHJN—K[˜ÛÛZ[™×BˆÙ[‹—Ú\İÜJ˜[YK™\œÚ[Û‹[Y\™ÙY‹Ø]YÛÜK[˜ÛÛZ[™ÖÈ›˜[YH—Kİ][Û\İ][ÛŠBˆÙ[‹—ÜØ]™J˜[YJBˆ™]\›ˆÙ[‹œİ]\Ê
-B‚ˆYˆÜ\˜]JÙ[‹]JN‚ˆÜ\˜][ÛˆHİŠ]K™Ù]
-›Ü\˜][Ûˆ‹œİ]\ÈŠJBˆYˆÜ\˜][ÛˆOHœİ]\È‚ˆ™]\›ˆÙ[‹œİ]\Ê
-BˆYˆÜ\˜][ÛˆOHœ™XÙ[‚ˆ™]\›ˆÙ[‹œ™XÛÜ™Ü™XÙ[
-]K™Ù]
-˜Ø]YÛÜHŠK]K™Ù]
-šYŠK]K™Ù]
-›˜[YHŠK]K™Ù]
-™]Z[ŠK]K™Ù]
-œİ][ÛˆŠJBˆYˆÜ\˜][ÛˆOH›Y\™ÙK]™\œÚ[Ûˆ‚ˆ™]\›ˆÙ[‹›Y\™ÙWİ™\œÚ[ÛŠ]K™Ù]
-˜Ø]YÛÜHŠK]K™Ù]
-šYŠK]K™Ù]
-›˜[YHŠK]K™Ù]
-œ^[ØYŠK]K™Ù]
-›[ÙYšYYŠK]K™Ù]
-œİ][ÛˆŠJBˆ˜[YHHÙ[‹—ÛØY
+    def _defaults(self):
+        return {
+            "schema": 1,
+            "categories": dict(DEFAULT_CATEGORIES),
+            "conflictPolicy": "ask",
+            "recent": [],
+            "history": [],
+            "conflicts": [],
+            "versions": {},
+        }
 
-BˆYˆÜ\˜][ÛˆOHœÛXŞH‚ˆØ]YÛÜšY\ÈH]K™Ù]
-˜Ø]YÛÜšY\È‹ßJHYˆ\Ú[œİ[˜ÙJ]K™Ù]
-˜Ø]YÛÜšY\ÈŠKXİ
-H[ÙHßBˆ˜[YVÈ˜Ø]YÛÜšY\È—HHÛ˜[YNˆ›ÛÛ
-Ø]YÛÜšY\Ë™Ù]
-˜[YKİ\œ™[
-JH›Üˆ˜[YKİ\œ™[[ˆ˜[YVÈ˜Ø]YÛÜšY\È—Kš][\Ê
-_Bˆ™\]Y\İYHİŠ]K™Ù]
-˜ÛÛ™›XİÛXŞH‹˜[YVÈ˜ÛÛ™›XİÛXŞH—JJBˆ˜[YVÈ˜ÛÛ™›XİÛXŞH—HH™\]Y\İYYˆ™\]Y\İY[ˆÈ˜\ÚÈ‹›™]Ù\İ‹›ØØ[ŸH[ÙH˜[YVÈ˜ÛÛ™›XİÛXŞH—BˆÙ[‹—Ú\İÜJ˜[YKœÛXŞK]\]Y‹™˜XœšXÈ‹”Ù[Xİ]™HŞ[˜Ú›Ûš^˜][ÛˆÛÛ›ÛÈÚ[™ÙYŠBˆÙ[‹—ÜØ]™J˜[YJBˆ™]\›ˆÙ[‹œİ]\Ê
-BˆYˆÜ\˜][ÛˆOHœ™\ÛÛ™KXÛÛ™›Xİ‚ˆY[™\ÛÛ][ÛˆHØÛX[Š]K™Ù]
-šYŠK
-KİŠ]K™Ù]
-œ™\ÛÛ][Ûˆ‹›ØØ[ŠJBˆ\™Ù]H™^
+    def _load(self):
+        value = self._defaults()
+        try:
+            stored = json.loads(self.config_file.read_text(encoding="utf-8"))
+            if isinstance(stored, dict):
+                categories = stored.get("categories", {}) if isinstance(stored.get("categories"), dict) else {}
+                value["categories"] = {name: bool(categories.get(name, default)) for name, default in DEFAULT_CATEGORIES.items()}
+                if stored.get("conflictPolicy") in {"ask", "newest", "local"}:
+                    value["conflictPolicy"] = stored["conflictPolicy"]
+                for name, limit in (("recent", MAX_RECENT), ("history", MAX_HISTORY), ("conflicts", MAX_CONFLICTS)):
+                    items = stored.get(name, []) if isinstance(stored.get(name), list) else []
+                    value[name] = [item for item in items[-limit:] if isinstance(item, dict)]
+                versions = stored.get("versions", {}) if isinstance(stored.get("versions"), dict) else {}
+                value["versions"] = {str(key)[:180]: [item for item in rows[-MAX_VERSIONS:] if isinstance(item, dict)] for key, rows in list(versions.items())[:240] if isinstance(rows, list)}
+        except Exception:
+            pass
+        return value
 
-][H›Üˆ][H[ˆ˜[YVÈ˜ÛÛ™›XİÈ—HYˆ][K™Ù]
-šYŠHOHY[[™›İ][K™Ù]
-œ™\ÛÛ™Y]ŠJK›Û™JBˆYˆ›İ\™Ù]‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠ‘]H˜XœšXÈÛÛ™›XİØ\È›İ›İ[™ŠBˆ\™Ù]Èœ™\ÛÛ][Ûˆ—HH™\ÛÛ][ÛˆYˆ™\ÛÛ][Ûˆ[ˆÈ›ØØ[‹š[˜ÛÛZ[™È‹˜›İŸH[ÙH›ØØ[‚ˆ\™Ù]Èœ™\ÛÛ™Y]—HH[
-[YK[YJ
-JBˆÙ[‹—Ú\İÜJ˜[YK˜ÛÛ™›Xİ\™\ÛÛ™Y‹\™Ù]™Ù]
-˜Ø]YÛÜH‹™˜XœšXÈŠKˆİ\™Ù]™Ù]
-	Û˜[YIË	Ô™XÛÜ™	Ê_H0­Èİ\™Ù]ÉÜ™\ÛÛ][Û‰×_H‹œ™\ÛÛ™YŠBˆÙ[‹—ÜØ]™J˜[YJBˆ™]\›ˆÙ[‹œİ]\Ê
-BˆYˆÜ\˜][ÛˆOH˜ÛX\‹Z\İÜH‚ˆ˜[YVÈš\İÜH—HH×BˆÙ[‹—ÜØ]™J˜[YJBˆ™]\›ˆÙ[‹œİ]\Ê
-BˆYˆÜ\˜][Ûˆ[ˆÈ˜][\]‹˜][Y[]H‹˜][YÙ]ŸN‚ˆYˆ›İ˜[YVÈ˜Ø]YÛÜšY\È—K™Ù]
-œš]˜]TİÜ˜YÙH‹˜[ÙJN‚ˆ˜Z\ÙH\›Z\ÜÚ[Û‘\œ›ÜŠ‘[˜Ü\Yš]˜]HİÜ˜YÙH\È\ØX›YŠBˆ˜][HÙ[‹—ÛØYİ˜][
+    def _save(self, value):
+        self.config_dir.mkdir(parents=True, exist_ok=True)
+        temporary = self.config_file.with_suffix(".tmp")
+        temporary.write_text(json.dumps(value, indent=2), encoding="utf-8")
+        temporary.replace(self.config_file)
 
-BˆY[HØÛX[Š]K™Ù]
-šYŠK
-BˆYˆÜ\˜][ÛˆOH˜][YÙ]‚ˆ\™Ù]H™^
+    def _key(self):
+        self.config_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            key = self.key_file.read_bytes()
+            if len(key) == 32:
+                return key
+        except Exception:
+            pass
+        key = os.urandom(32)
+        temporary = self.key_file.with_suffix(".tmp")
+        temporary.write_bytes(key)
+        try:
+            os.chmod(temporary, 0o600)
+        except OSError:
+            pass
+        temporary.replace(self.key_file)
+        return key
 
-][H›Üˆ][H[ˆ˜][Èš][\È—HYˆ][K™Ù]
-šYŠHOHY[
-K›Û™JBˆYˆ›İ\™Ù]‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠ”š]˜]H™XÛÜ™Ø\È›İ›İ[™ŠBˆ™]\›ˆÈ›ÚÈˆYKš][Hˆ\™Ù]BˆYˆÜ\˜][ÛˆOH˜][Y[]H‚ˆ˜][Èš][\È—HHÚ][H›Üˆ][H[ˆ˜][Èš][\È—HYˆ][K™Ù]
-šYŠHOHY[BˆÙ[‹—ÜØ]™Wİ˜][
-˜][
-BˆÙ[‹—Ú\İÜJ˜[YKœš]˜]K\™XÛÜ™Y[]Y‹œš]˜]TİÜ˜YÙH‹Y[Üˆœ™XÛÜ™ŠBˆÙ[‹—ÜØ]™J˜[YJBˆ™]\›ˆÙ[‹œİ]\Ê
-Bˆ˜[YKÛÛ[HØÛX[Š]K™Ù]
-›˜[YHŠKL
-KİŠ]K™Ù]
-˜ÛÛ[ŠHÜˆˆŠKœ™\XÙJ—‹ˆŠVÎŒÌ—ÍÍBˆYˆ›İ˜[YHÜˆ›İÛÛ[‚ˆ˜Z\ÙH˜[YQ\œ›ÜŠ”š]˜]H™XÛÜ™˜[YH[™ÛÛ[\™H™\]Z\™YŠBˆ\™Ù]H™^
+    def _load_vault(self):
+        try:
+            envelope = json.loads(self.vault_file.read_text(encoding="utf-8"))
+            value = open_json(self._key(), envelope, "lcars-data-fabric-private-v1")
+            if isinstance(value, dict) and isinstance(value.get("items"), list):
+                return {"schema": 1, "items": [item for item in value["items"][-MAX_VAULT_ITEMS:] if isinstance(item, dict)]}
+        except Exception:
+            pass
+        return {"schema": 1, "items": []}
 
-][H›Üˆ][H[ˆ˜][Èš][\È—HYˆ][K™Ù]
-šYŠHOHY[
-K›Û™JBˆ›İÈH[
-[YK[YJ
-JBˆ™\œÚ[ÛˆHÈšYˆ]ZY]ZY
+    def _save_vault(self, value):
+        payload = json.dumps(value, separators=(",", ":")).encode("utf-8")
+        if len(payload) > MAX_VAULT_BYTES:
+            raise ValueError("Private storage is limited to 2 MiB on this station")
+        self.config_dir.mkdir(parents=True, exist_ok=True)
+        temporary = self.vault_file.with_suffix(".tmp")
+        temporary.write_text(json.dumps(seal_json(self._key(), value, "lcars-data-fabric-private-v1")), encoding="utf-8")
+        try:
+            os.chmod(temporary, 0o600)
+        except OSError:
+            pass
+        temporary.replace(self.vault_file)
 
-Kš^˜Ü™X]Y]ˆ›İË˜ÛÛ[ˆÛÛ[BˆYˆ\™Ù]‚ˆ\™Ù]\]JÈ›˜[YHˆ˜[YK˜ÛÛ[ˆÛÛ[\]Y]ˆ›İË™\œÚ[ÛœÈˆÊ\™Ù]™Ù]
-™\œÚ[ÛœÈ‹×JVËJPVÕ‘T”ÒSÓ”ÈHJN—K™\œÚ[Û—_JBˆ\™Ù]È™\œÚ[ÛÛİ[—HH[Š\™Ù]È™\œÚ[ÛœÈ—JBˆ[ÙN‚ˆ\™Ù]HÈšYˆY[Üˆ]ZY]ZY
+    @staticmethod
+    def _history(value, action, category, detail, status="complete", station="LOCAL CORE"):
+        value["history"] = [*value.get("history", [])[-(MAX_HISTORY - 1):], {
+            "id": uuid.uuid4().hex,
+            "action": _clean(action, 64),
+            "category": _clean(category, 32),
+            "detail": _clean(detail, 180),
+            "status": _clean(status, 24),
+            "station": _clean(station, 64),
+            "createdAt": int(time.time()),
+        }]
 
-Kš^›˜[YHˆ˜[YK˜ÛÛ[ˆÛÛ[\]Y]ˆ›İË™\œÚ[ÛœÈˆİ™\œÚ[Û—K™\œÚ[ÛÛİ[ˆ_Bˆ˜][Èš][\È—HHÊ˜][Èš][\È—VËJPVÕUSÒUSTÈHJN—K\™Ù]BˆÙ[‹—ÜØ]™Wİ˜][
-˜][
-BˆÙ[‹—Ú\İÜJ˜[YKœš]˜]K\™XÛÜ™\Ø]™Y‹œš]˜]TİÜ˜YÙH‹˜[YJBˆÙ[‹—ÜØ]™J˜[YJBˆ™]\›ˆÙ[‹œİ]\Ê
-Bˆ˜Z\ÙH˜[YQ\œ›ÜŠ•[šÛ›İÛˆ]H˜XœšXÈÜ\˜][ÛˆŠB‚ˆYˆÙX\˜ÚÙš[\ÊÙ[‹]Y\K[Z]L
-N‚ˆ˜[YHHÙ[‹—ÛØY
+    def status(self):
+        value = self._load()
+        vault = self._load_vault()
+        return {
+            "ok": True,
+            "platform": self.platform,
+            "transport": "AES-256-GCM",
+            "storage": "AES-256-GCM Â· LOCAL KEY",
+            "categories": value["categories"],
+            "conflictPolicy": value["conflictPolicy"],
+            "recent": list(reversed(value["recent"][-40:])),
+            "history": list(reversed(value["history"][-80:])),
+            "conflicts": list(reversed([item for item in value["conflicts"][-MAX_CONFLICTS:] if not item.get("resolvedAt")])),
+            "privateItems": [{key: item.get(key) for key in ("id", "name", "updatedAt", "versionCount")} for item in reversed(vault["items"])],
+            "diagnostics": {
+                "recentItems": len(value["recent"]),
+                "historyEntries": len(value["history"]),
+                "openConflicts": sum(1 for item in value["conflicts"] if not item.get("resolvedAt")),
+                "privateItems": len(vault["items"]),
+                "versionedRecords": len(value["versions"]),
+            },
+        }
 
-BˆYˆ›İ˜[YVÈ˜Ø]YÛÜšY\È—K™Ù]
-™š[\È‹YJN‚ˆ™]\›ˆÈ›ÚÈˆYKœ™\İ[Èˆ×K™\ØX›YˆY_Bˆ™YYHHØÛX[Š]Y\K
-K›İÙ\Š
-BˆYˆ[Š™YYJH‚ˆ™]\›ˆÈ›ÚÈˆYKœ™\İ[Èˆ×_BˆÛYHH]šÛYJ
-Kœ™\ÛÛ™J
-Bˆ›ÛİÈHÚÛYHÈ˜[YH›Üˆ˜[YH[ˆ
-‘Øİ[Y[È‹‘İÛ›ØYÈ‹‘\ÚİÜŠWBˆ›ÛİË˜\[™
-ÛYJBˆ™\İ[ËÙY[‹[œÜXİYH×KÙ]
+    def record_recent(self, category, ident, name, detail="", station="LOCAL CORE"):
+        value = self._load()
+        if not value["categories"].get("recentItems", True):
+            return self.status()
+        category, ident, name = _clean(category, 32), _clean(ident, 240), _clean(name, 120)
+        if not ident or not name:
+            raise ValueError("Recent item identity and name are required")
+        item = {"id": ident, "category": category, "name": name, "detail": _clean(detail, 180), "station": _clean(station, 64), "updatedAt": int(time.time())}
+        value["recent"] = [candidate for candidate in value["recent"] if not (candidate.get("category") == category and candidate.get("id") == ident)][-(MAX_RECENT - 1):] + [item]
+        self._history(value, "recent-item", category, name, station=station)
+        self._save(value)
+        return self.status()
 
-Kˆ›Üˆ›Ûİ[ˆ›ÛİÎ‚ˆYˆ›İ›Ûİ™^\İÊ
-HÜˆ›İ›Ûİš\×Ù\Š
-N‚ˆÛÛ[YBˆ›Üˆİ\œ™[\™XİÜšY\Ëš[\È[ˆÜËØ[Ê›Ûİ
-N‚ˆİ\œ™[Ü]H]
-İ\œ™[
-BˆN‚ˆ™[]]™HHİ\œ™[Ü]œ™[]]™WİÊÛYJBˆ^Ù\˜[YQ\œ›Ü‚ˆ\™XİÜšY\ÖÎ—HH×BˆÛÛ[YBˆ\™XİÜšY\ÖÎ—HHÛ˜[YH›Üˆ˜[YH[ˆ\™XİÜšY\ÈYˆ›İ˜[YKœİ\İÚ]
-‹ˆŠH[™˜[YH›İ[ˆÈ››ÙWÛ[Ù[\È‹‹™Ú]‹ØXÚH‹˜ØXÚHŸWBˆYˆ[Š™[]]™Kœ\ÊHˆ‚ˆ\™XİÜšY\ÖÎ—HH×Bˆ›Üˆ˜[YH[ˆš[\Î‚ˆ[œÜXİY
-ÏHBˆYˆ[œÜXİYˆL‚ˆœ™XZÂˆYˆ˜[YKœİ\İÚ]
-‹ˆŠHÜˆ™YYH›İ[ˆ˜[YK›İÙ\Š
-N‚ˆÛÛ[YBˆ]H
-İ\œ™[Ü]È˜[YJBˆN‚ˆ™\ÛÛ™Yİ]H]œ™\ÛÛ™J
-K]œİ]
+    def merge_version(self, category, ident, name, payload, modified, station):
+        value = self._load()
+        category, ident = _clean(category, 32), _clean(ident, 180)
+        key = f"{category}:{ident}"
+        serialized = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        digest = hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+        versions = value["versions"].get(key, [])
+        current = versions[-1] if versions else None
+        incoming = {"id": uuid.uuid4().hex, "hash": digest, "name": _clean(name, 120), "station": _clean(station, 64), "modified": int(modified or time.time()), "createdAt": int(time.time()), "payload": payload}
+        if current and current.get("hash") != digest and current.get("station") != incoming["station"]:
+            conflict = {"id": uuid.uuid4().hex, "key": key, "category": category, "name": incoming["name"], "localVersion": current.get("id"), "incomingVersion": incoming["id"], "localStation": current.get("station"), "incomingStation": incoming["station"], "createdAt": int(time.time())}
+            policy = value["conflictPolicy"]
+            if policy == "ask":
+                value["conflicts"] = [*value["conflicts"][-(MAX_CONFLICTS - 1):], conflict]
+                self._history(value, "sync-conflict", category, incoming["name"], "attention", station)
+            elif policy == "local":
+                self._history(value, "incoming-version-skipped", category, incoming["name"], "resolved", station)
+                self._save(value)
+                return self.status()
+            elif incoming["modified"] < int(current.get("modified", 0)):
+                self._history(value, "older-version-skipped", category, incoming["name"], "resolved", station)
+                self._save(value)
+                return self.status()
+        if not current or current.get("hash") != digest:
+            value["versions"][key] = [*versions[-(MAX_VERSIONS - 1):], incoming]
+        self._history(value, "version-merged", category, incoming["name"], station=station)
+        self._save(value)
+        return self.status()
 
-Bˆ™\ÛÛ™Yœ™[]]™WİÊÛYJBˆ^Ù\
-ÔÑ\œ›Ü‹˜[YQ\œ›ÜŠN‚ˆÛÛ[YBˆÙ^HHİŠ™\ÛÛ™Y
-BˆYˆÙ^H[ˆÙY[‚ˆÛÛ[YBˆÙY[‹˜Y
-Ù^JBˆZ[YHHZ[Y]\\Ë™İY\Ü×İ\J˜[YJVÌHÜˆ˜\XØ][Û‹ÛØİ]\İ™X[H‚ˆ™\İ[Ë˜\[™
-ÈšYˆÙ^K›˜[YHˆ˜[YVÎŒNKœ]ˆÙ^K™]Z[ˆİŠ™\ÛÛ™Yœ\™[œ™[]]™WİÊÛYJJHÜˆ’ÓQH‹›[ÙYšYYˆ[
-İ]œİÛ][YJKœÚ^™Hˆ[
-İ]œİÜÚ^™JK›Z[YHˆZ[Y_JBˆYˆ[œÜXİYˆL‚ˆœ™XZÂˆYˆ[œÜXİYˆL‚ˆœ™XZÂˆ™\İ[ËœÛÜ
-Ù^O[[X™H][Nˆ
-Z[
-™YYHOH][VÈ›˜[YH—K›İÙ\Š
-JKZ][VÈ›[ÙYšYY—K][VÈ›˜[YH—K›İÙ\Š
-JJBˆ™]\›ˆÈ›ÚÈˆYKœ™\İ[Èˆ™\İ[ÖÎ›X^
-KZ[Š[
-[Z]Üˆ
-JJWKš[œÜXİYˆ[œÜXİYB
+    def operate(self, data):
+        operation = str(data.get("operation", "status"))
+        if operation == "status":
+            return self.status()
+        if operation == "recent":
+            return self.record_recent(data.get("category"), data.get("id"), data.get("name"), data.get("detail"), data.get("station"))
+        if operation == "merge-version":
+            return self.merge_version(data.get("category"), data.get("id"), data.get("name"), data.get("payload"), data.get("modified"), data.get("station"))
+        value = self._load()
+        if operation == "policy":
+            categories = data.get("categories", {}) if isinstance(data.get("categories"), dict) else {}
+            value["categories"] = {name: bool(categories.get(name, current)) for name, current in value["categories"].items()}
+            requested = str(data.get("conflictPolicy", value["conflictPolicy"]))
+            value["conflictPolicy"] = requested if requested in {"ask", "newest", "local"} else value["conflictPolicy"]
+            self._history(value, "policy-updated", "fabric", "Selective synchronization controls changed")
+            self._save(value)
+            return self.status()
+        if operation == "resolve-conflict":
+            ident, resolution = _clean(data.get("id"), 64), str(data.get("resolution", "local"))
+            target = next((item for item in value["conflicts"] if item.get("id") == ident and not item.get("resolvedAt")), None)
+            if not target:
+                raise ValueError("Data Fabric conflict was not found")
+            target["resolution"] = resolution if resolution in {"local", "incoming", "both"} else "local"
+            target["resolvedAt"] = int(time.time())
+            self._history(value, "conflict-resolved", target.get("category", "fabric"), f"{target.get('name', 'Record')} Â· {target['resolution']}", "resolved")
+            self._save(value)
+            return self.status()
+        if operation == "clear-history":
+            value["history"] = []
+            self._save(value)
+            return self.status()
+        if operation in {"vault-put", "vault-delete", "vault-get"}:
+            if not value["categories"].get("privateStorage", False):
+                raise PermissionError("Encrypted private storage is disabled")
+            vault = self._load_vault()
+            ident = _clean(data.get("id"), 64)
+            if operation == "vault-get":
+                target = next((item for item in vault["items"] if item.get("id") == ident), None)
+                if not target:
+                    raise ValueError("Private record was not found")
+                return {"ok": True, "item": target}
+            if operation == "vault-delete":
+                vault["items"] = [item for item in vault["items"] if item.get("id") != ident]
+                self._save_vault(vault)
+                self._history(value, "private-record-deleted", "privateStorage", ident or "record")
+                self._save(value)
+                return self.status()
+            name, content = _clean(data.get("name"), 100), str(data.get("content") or "").replace("\x00", "")[:32_768]
+            if not name or not content:
+                raise ValueError("Private record name and content are required")
+            target = next((item for item in vault["items"] if item.get("id") == ident), None)
+            now = int(time.time())
+            version = {"id": uuid.uuid4().hex, "createdAt": now, "content": content}
+            if target:
+                target.update({"name": name, "content": content, "updatedAt": now, "versions": [*target.get("versions", [])[-(MAX_VERSIONS - 1):], version]})
+                target["versionCount"] = len(target["versions"])
+            else:
+                target = {"id": ident or uuid.uuid4().hex, "name": name, "content": content, "updatedAt": now, "versions": [version], "versionCount": 1}
+                vault["items"] = [*vault["items"][-(MAX_VAULT_ITEMS - 1):], target]
+            self._save_vault(vault)
+            self._history(value, "private-record-saved", "privateStorage", name)
+            self._save(value)
+            return self.status()
+        raise ValueError("Unknown Data Fabric operation")
+
+    def search_files(self, query, limit=24):
+        value = self._load()
+        if not value["categories"].get("files", True):
+            return {"ok": True, "results": [], "disabled": True}
+        needle = _clean(query, 80).lower()
+        if len(needle) < 2:
+            return {"ok": True, "results": []}
+        home = Path.home().resolve()
+        roots = [home / name for name in ("Documents", "Downloads", "Desktop")]
+        roots.append(home)
+        results, seen, inspected = [], set(), 0
+        for root in roots:
+            if not root.exists() or not root.is_dir():
+                continue
+            for current, directories, files in os.walk(root):
+                current_path = Path(current)
+                try:
+                    relative = current_path.relative_to(home)
+                except ValueError:
+                    directories[:] = []
+                    continue
+                directories[:] = [name for name in directories if not name.startswith(".") and name not in {"node_modules", ".git", "Cache", "cache"}]
+                if len(relative.parts) > 4:
+                    directories[:] = []
+                for name in files:
+                    inspected += 1
+                    if inspected > 5000:
+                        break
+                    if name.startswith(".") or needle not in name.lower():
+                        continue
+                    path = (current_path / name)
+                    try:
+                        resolved, stat = path.resolve(), path.stat()
+                        resolved.relative_to(home)
+                    except (OSError, ValueError):
+                        continue
+                    key = str(resolved)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    mime = mimetypes.guess_type(name)[0] or "application/octet-stream"
+                    results.append({"id": key, "name": name[:180], "path": key, "detail": str(resolved.parent.relative_to(home)) or "HOME", "modified": int(stat.st_mtime), "size": int(stat.st_size), "mime": mime})
+                if inspected > 5000:
+                    break
+            if inspected > 5000:
+                break
+        results.sort(key=lambda item: (-int(needle == item["name"].lower()), -item["modified"], item["name"].lower()))
+        return {"ok": True, "results": results[:max(1, min(40, int(limit or 24)))], "inspected": inspected}

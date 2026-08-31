@@ -1,102 +1,57 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿ}<Ó­uó¾µß]»îZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜÝšXÝŽÂš[\ÜÈXØÙ\ÜË™XYš[HHœ›ÛH››ÙN™œËÜ›ÛZ\Ù\ÈŽÂš[\Ü\Ýœ›ÛH››ÙN\ÝŽÂš[\ÜÈ[\œ™]ÛÛ\]\ÛÛ[X[™Hœ›ÛH‹‹‹Ø\ÝŒÌXÛÜ™KÈŽÂ‚˜ÛÛœÝÛÛ^^ÂˆYÙ\Î–ÞÚYˆ›Ý™\šY]È‹˜[YNˆ”Ý]\ÈŸKÚYˆœÞ\Ý[H‹˜[YNˆ”Þ\Ý[\ÈŸKÚYˆ›YYXH‹˜[YNˆ“YYXHŸKÚYˆœÙ][™ÜÈ‹˜[YNˆ”Ù][™ÜÈŸWKˆ\Î–ÞÚYˆœÜÝYžK™\ÚÝÜ‹˜[YNˆ”ÜÝYžHŸWK›ØÙY\™\Î–×KÛÜšÜÝ][ÛœÎ–×K[Y\Î–×KŸNÂ‚\Ý
-ŒÌ›ÚXÙH›ØØX[\žHÛÝ™\œÈ]\›Z[š\ÝXÈYYXH[™ÝXYÙH[™Ý\™›Y]Ü\˜][ÛœÈ‹
+import assert from "node:assert/strict";
+import { access, readFile } from "node:fs/promises";
+import test from "node:test";
+import { interpretComputerCommand } from "../app/v30-core.ts";
 
-OOžÂˆÛÛœÝ˜\Ù\Ï[™]ÈX\
-ÂˆÈœ]\ÙH‹œ]\ÙH—KÈœ]\ÙHH]\ÚXÈ‹œ]\ÙH—KÈšÛ^X˜XÚÈ‹œ]\ÙH—KˆÈœ™\Ý[YH‹œ^H—KÈœ^HHÛÛ™È‹œ^H—KÈ˜ÛÛ[YH^X˜XÚÈ‹œ^H—KˆÈœÚÚ\H˜XÚÈ‹›™^—KÈ™ÛÈ˜XÚÈÈH˜XÚÈ‹œ™]š[Ý\È—KÈœÝÜ^X˜XÚÈ‹œÝÜ—KˆJNÂˆ›ÜŠÛÛœÝÜ˜\ÙK\™Ù]HÙˆ˜\Ù\Ê^ØÛÛœÝ[Z[\œ™]ÛÛ\]\ÛÛ[X[™
-˜\ÙKÛÛ^›ÚXÙHŠNØ\ÜÙ\™\]X[
-[‹˜[YYK˜\ÙJNØ\ÜÙ\™\]X[
-[‹œÝ\ÖÌK˜ÛÛ[X[™›YYXKXÛÛ›Û‹˜\ÙJNØ\ÜÙ\™\]X[
-[‹œÝ\ÖÌK\™Ù]\™Ù]˜\ÙJNßBˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-œ™Y[\‹ÛÛ^
-KœÝ\ÖÌK\™Ù]œ™YŠNÂˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-žY[ÝÈ[\‹ÛÛ^
-KœÝ\ÖÌK\™Ù]žY[ÝÈŠNÂˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-˜ÛÛ™][ÛˆÜ™Y[ˆ‹ÛÛ^
-KœÝ\ÖÌK\™Ù]››Ü›X[ŠNÂˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-œÝ]\È™\Ü‹ÛÛ^
-KœÝ\ÖÌK\™Ù]œÞ\Ý[HŠNÂˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-›ØØ]HÙ][™ÜÈ‹ÛÛ^
-KœÝ\ÖÌK\™Ù]œÙ][™ÜÈŠNÂˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-›Ü[ˆZ[[™Èœ™\]Y[˜ÚY\È‹ÛÛ^
-KœÝ\ÖÌK\™Ù]˜ÛÛ[][šXØ][ÛœÈŠNÂˆ\ÜÙ\™\]X[
-[\œ™]ÛÛ\]\ÛÛ[X[™
-Ú]\ÈHÝ\™]H‹ÛÛ^
-KœÝ\ÖÌK\™Ù]˜Ø[[™\ˆŠNÂŸJNÂ‚\Ý
-”Ù[ˆ\ÝXÝ\ÈH›ÝXÝYÛÜÙKSÐT”È[‹™]™\ˆH\ÝXÝ]™HÞ\Ý[HÛÛ[X[™‹
+const context={
+  pages:[{id:"overview",name:"Status"},{id:"system",name:"Systems"},{id:"media",name:"Media"},{id:"settings",name:"Settings"}],
+  apps:[{id:"spotify.desktop",name:"Spotify"}],procedures:[],workstations:[],themes:[],
+};
 
-OOžÂˆÛÛœÝ[Z[\œ™]ÛÛ\]\ÛÛ[X[™
-ÛÛ\]\‹[š]X]HÙ[ˆ\ÝXÝÙ\]Y[˜ÙH‹ÛÛ^›ÚXÙHŠNÂˆ\ÜÙ\™\]X[
-[‹˜[YYJNØ\ÜÙ\™\]X[
-[‹œš\ÚËœ›ÝXÝYŠNØ\ÜÙ\™\]X[
-[‹œ™\]Z\™\ÐÛÛ™š\›X][Û‹YJNÂˆ\ÜÙ\™\]X[
-[‹œÝ\ÖÌK˜ÛÛ[X[™™^][Ø\œÈŠNØ\ÜÙ\›X]Ú
-[‹œÝ\ÖÌK™]Z[ÐÛÜÙHÛ›HHÐT”È[\™˜XÙKÊNÂŸJNÂ‚\Ý
-›ÚXÙHXÚÛ›ÝÛYÙ[Y[›ÛÝÜÈÝXØÙ\ÜÙ[™\ÛÛ][Ûˆ[™›ÝXÙHXÝ[ÛœÈ\™H™XYX›H[È‹\Þ[˜Ê
-OOžÂˆÛÛœÝÜYÙKÜÜ×OX]ØZ]›ÛZ\ÙK˜[
-Ü™XYš[J™]ÈT“
-‹‹‹Ø\ÜYÙKÞ‹[\Ü›Y]K\›
-K]ŽŠK™XYš[J™]ÈT“
-‹‹‹Ø\ÝŒÌ˜ÜÜÈ‹[\Ü›Y]K\›
-K]ŽŠWJNÂˆ\ÜÙ\›X]Ú
-YÙKØÛÛœÝ™\Ý[X]ØZ]ÛÛ\]\”™Y—˜Ý\œ™[
-^]]Üš^™Y
-NÚY—
-™\Ý[˜XØÙ\Y
-XÛÛ™š\›PÛÛ[X[™
-™\Ý[
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÚ[œ][Ú×›\ËÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-YÙKÜÛXÙW
-
-W
-NØY™š\›X]]™W
-
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÔ›ÛZ\ÙO›ÚXÙPÛÛ[X[™™\Ý[‹ÊNÂˆ\ÜÙ\›X]Ú
-ÜÜË×˜ÛÛ[][šXØ][Û‹Y[žHˆ˜]ˆ]Û–×ŸWJ˜›Ü™\‹\˜Y]\ÎŽNN\ÜÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÙÜšY][\]KXÛÛ[[œÎœ™\X]
-ËZ[›X^
-MœYœ—
-W
-KÊNÂŸJNÂ‚\Ý
-“[^Ù\ÜÚ[Ûˆ™YÚ\Ý˜][Ûˆ\ÈÜZ[‹™XÛÝ™\˜X›KXÚØYÙY[™\Ü^K[X[˜YÙ\ˆÙ[XÝX›H‹\Þ[˜Ê
-OOžÂˆÛÛœÝÝÜ˜\\‹[œÝ[\‹[žKœšYÙKZ[\‹\ÚÝÜOX]ØZ]›ÛZ\ÙK˜[
-Âˆ™XYš[J™]ÈT“
-‹‹‹ÜÙ\ÜÚ[Û‹ÛØ\œË\Ù\ÜÚ[Ûˆ‹[\Ü›Y]K\›
-K]ŽŠKˆ™XYš[J™]ÈT“
-‹‹‹ÜÙ\ÜÚ[Û‹Ú[œÝ[\Ù\ÜÚ[Û‹œÚ‹[\Ü›Y]K\›
-K]ŽŠKˆ™XYš[J™]ÈT“
-‹‹‹ÜÙ\ÜÚ[Û‹ÛØ\œË\Ù\ÜÚ[Û‹™\ÚÝÜš[ˆ‹[\Ü›Y]K\›
-K]ŽŠKˆ™XYš[J™]ÈT“
-‹‹‹ÛØØ[ÛØ\œ×ØœšYÙKœH‹[\Ü›Y]K\›
-K]ŽŠKˆ™XYš[J™]ÈT“
-‹‹‹Ù[XÝ›Û‹XZ[\‹ž[[‹[\Ü›Y]K\›
-K]ŽŠKˆ™XYš[J™]ÈT“
-‹‹‹Ù\ÚÝÜÛXZ[‹˜ÚœÈ‹[\Ü›Y]K\›
-K]ŽŠKˆJNÂˆ]ØZ]XØÙ\ÜÊ™]ÈT“
-‹‹‹ÜÙ\ÜÚ[Û‹ÛØ\œË\Ù\ÜÚ[Ûˆ‹[\Ü›Y]K\›
-JNÂˆ\ÜÙ\›X]Ú
-[œÝ[\‹ËKZ[œÝ[K][š[œÝ[K\Ý]\ËÊNØ\ÜÙ\›X]Ú
-[œÝ[\‹Ü™\]Z\™WÜ›ÛÝÊNØ\ÜÙ\›X]Ú
-[œÝ[\‹×Ý\Ü—ÜÚ\™WÝØ^[[™\Ù\ÜÚ[ÛœËÊNØ\ÜÙ\›X]Ú
-[œÝ[\‹×Ý\Ü—ÜÚ\™WÞÙ\ÜÚ[ÛœËÊNÂˆ\ÜÙ\›X]Ú
-[žKÑ\ÚÝÜ˜[Y\ÏSÐT”ËÊNØ\ÜÙ\›X]Ú
-Ü˜\\‹ÓÐT”×ÔÑTÔÒSÓLKÊNØ\ÜÙ\›X]Ú
-Ü˜\\‹ÜØY™WØY\—Ù˜Z[\™KÊNØ\ÜÙ\›X]Ú
-Ü˜\\‹Û›Ü›X[\ÚÝÜÚJNØ\ÜÙ\›X]Ú
-Ü˜\\‹Ø][\ŠŒËÜÊNÂˆ\ÜÙ\›X]Ú
-œšYÙKÙYˆÙ\ÜÚ[Û—ÜÝ]\ËÊNØ\ÜÙ\›X]Ú
-œšYÙKÛ›Ü›X[\ÚÝÜ˜[˜XÚËÊNØ\ÜÙ\›X]Ú
-œšYÙKÜÝÚ]ÚYXÚËÊNØ\ÜÙ\›X]Ú
-œšYÙKØ\K\[\ËÊNØ\ÜÙ\›X]Ú
-œšYÙKÜÙ^XËÊNÂˆ\ÜÙ\›X]Ú
-Z[\‹Ùœ›ÛNˆÙ\ÜÚ[Û—ÊÝÎˆÙ\ÜÚ[Û‹ÊNØ\ÜÙ\›X]Ú
-\ÚÝÜËK[Ø\œË\Ù\ÜÚ[Û‹ÊNØ\ÜÙ\›X]Ú
-\ÚÝÜËK[Ø\œËZÚ[ÜÚËÊNØ\ÜÙ\›X]Ú
-\ÚÝÜËK[Ø\œË\ØY™KÊNÂŸJNÂ
+test("30.4 voice vocabulary covers deterministic media language and Starfleet operations",()=>{
+  const phrases=new Map([
+    ["pause","pause"],["pause the music","pause"],["hold playback","pause"],
+    ["resume","play"],["play the song","play"],["continue playback","play"],
+    ["skip the track","next"],["go back to the track","previous"],["stop playback","stop"],
+  ]);
+  for(const [phrase,target] of phrases){const plan=interpretComputerCommand(phrase,context,"voice");assert.equal(plan.valid,true,phrase);assert.equal(plan.steps[0].command,"media-control",phrase);assert.equal(plan.steps[0].target,target,phrase);}
+  assert.equal(interpretComputerCommand("red alert",context).steps[0].target,"red");
+  assert.equal(interpretComputerCommand("yellow alert",context).steps[0].target,"yellow");
+  assert.equal(interpretComputerCommand("condition green",context).steps[0].target,"normal");
+  assert.equal(interpretComputerCommand("status report",context).steps[0].target,"system");
+  assert.equal(interpretComputerCommand("locate settings",context).steps[0].target,"settings");
+  assert.equal(interpretComputerCommand("open hailing frequencies",context).steps[0].target,"communications");
+  assert.equal(interpretComputerCommand("what is the stardate",context).steps[0].target,"calendar");
+});
+
+test("Self Destruct is a protected close-LCARS plan, never a destructive system command",()=>{
+  const plan=interpretComputerCommand("Computer, initiate self destruct sequence",context,"voice");
+  assert.equal(plan.valid,true);assert.equal(plan.risk,"protected");assert.equal(plan.requiresConfirmation,true);
+  assert.equal(plan.steps[0].command,"exit-lcars");assert.match(plan.steps[0].detail,/Close only the LCARS interface/);
+});
+
+test("voice acknowledgement follows successful resolution and notice actions are readable pills",async()=>{
+  const [page,css]=await Promise.all([readFile(new URL("../app/page.tsx",import.meta.url),"utf8"),readFile(new URL("../app/v30.css",import.meta.url),"utf8")]);
+  assert.match(page,/const result=await computerRef\.current\(text,authorized\);if\(result\.accepted\)confirmCommand\(result\)/);
+  assert.match(page,/input-ok\.mp3/);
+  assert.doesNotMatch(page,/slice\(0, 8\)\);affirmative\(\)/);
+  assert.match(page,/Promise<VoiceCommandResult>/);
+  assert.match(css,/\.communication-entry > nav button[^}]*border-radius:999px/s);
+  assert.match(css,/grid-template-columns:repeat\(3,minmax\(96px,1fr\)\)/);
+});
+
+test("Linux session registration is opt-in, recoverable, packaged, and display-manager selectable",async()=>{
+  const [wrapper,installer,entry,bridge,builder,desktop]=await Promise.all([
+    readFile(new URL("../session/lcars-session",import.meta.url),"utf8"),
+    readFile(new URL("../session/install-session.sh",import.meta.url),"utf8"),
+    readFile(new URL("../session/lcars-session.desktop.in",import.meta.url),"utf8"),
+    readFile(new URL("../local/lcars_bridge.py",import.meta.url),"utf8"),
+    readFile(new URL("../electron-builder.yml",import.meta.url),"utf8"),
+    readFile(new URL("../desktop/main.cjs",import.meta.url),"utf8"),
+  ]);
+  await access(new URL("../session/lcars-session",import.meta.url));
+  assert.match(installer,/--install\|--uninstall\|--status/);assert.match(installer,/require_root/);assert.match(installer,/\/usr\/share\/wayland-sessions/);assert.match(installer,/\/usr\/share\/xsessions/);
+  assert.match(entry,/DesktopNames=LCARS/);assert.match(wrapper,/LCARS_SESSION=1/);assert.match(wrapper,/safe_after_failure/);assert.match(wrapper,/normal desktop/i);assert.match(wrapper,/attempt.*3/s);
+  assert.match(bridge,/def session_status/);assert.match(bridge,/normalDesktopFallback/);assert.match(bridge,/switch-deck/);assert.match(bridge,/apply-rules/);assert.match(bridge,/pkexec/);
+  assert.match(builder,/from: session\s+to: session/);assert.match(desktop,/--lcars-session/);assert.match(desktop,/--lcars-kiosk/);assert.match(desktop,/--lcars-safe/);
+});

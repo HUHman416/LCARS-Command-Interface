@@ -1,87 +1,88 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿotã4ëzën¼îZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜÝšXÝŽÂš[\ÜÈ™XYš[HHœ›ÛH››ÙN™œËÜ›ÛZ\Ù\ÈŽÂš[\Ü\Ýœ›ÛH››ÙN\ÝŽÂ‚˜ÛÛœÝÛÝ\˜ÙHH
-]
-HOˆ™XYš[J™]ÈT“
-][\Ü›Y]K\›
-K]ŽŠNÂ‚\Ý
-•™\œÚ[ÛˆÌHXÚØYÙH[™™[X\ÙHÚ[›™[\™H[YÛ™Y‹\Þ[˜È
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
 
-HOˆÂˆÛÛœÝÜÙËÛÜšÙ›ÝËYÙK[™›ÚYHH]ØZ]›ÛZ\ÙK˜[
-ÂˆÛÝ\˜ÙJ‹‹‹ÜXÚØYÙKšœÛÛˆŠKˆÛÝ\˜ÙJ‹‹‹Ë™Ú]X‹ÝÛÜšÙ›ÝÜËÝŒÌY]™[ÜY[ž[[ŠKˆÛÝ\˜ÙJ‹‹‹Ø\ÜYÙKÞŠKˆÛÝ\˜ÙJ‹‹‹Û[Øš[KØ[™›ÚYØ\ØZ[™Ü˜YHŠKˆJNÂˆ\ÜÙ\™\]X[
-”ÓÓ‹œ\œÙJÙÊK™\œÚ[Û‹ŒÌKŒY]‹ŒHŠNÂˆ\ÜÙ\›X]Ú
-ÛÜšÙ›ÝËÕ™\œÚ[ÛˆÌH[š]™\œØ[ÙX\˜Ú[™]H˜XœšXÈ]™[ÜY[ÊNÂˆ\ÜÙ\›X]Ú
-ÛÜšÙ›ÝËÙÚ™[X\ÙH
-ÎšY]ßÜ™X]JHŒÌKÊNÂˆ\ÜÙ\›X]Ú
-YÙKØÛÛœÝÐT”×Õ‘T”ÒSÓHŒÌH‹ÊNÂˆ\ÜÙ\›X]Ú
-[™›ÚYÝ™\œÚ[ÛÛÙHÌLKÊNÂˆ\ÜÙ\›X]Ú
-[™›ÚYÝ™\œÚ[Û“˜[YHŒÌWŒ‹ÊNÂŸJNÂ‚\Ý
-‘™Y\˜][ÛˆÙ\™\ˆ^ÜÙ\È\ØÛÝ™\žK\˜X›HY[]KÛXÞK[™[˜Üž\Y]Y]Y\È‹\Þ[˜È
+const source = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
-HOˆÂˆÛÛœÝÜÙ\™\‹Üž\ËZ[\—HH]ØZ]›ÛZ\ÙK˜[
-ÂˆÛÝ\˜ÙJ‹‹‹ÜÚ\™YÛØ\œ×ÜYœHŠKˆÛÝ\˜ÙJ‹‹‹ÜÚ\™YÛØ\œ×Ù™Y\˜][Û—ØÜž\ËœHŠKˆÛÝ\˜ÙJ‹‹‹Ù[XÝ›Û‹XZ[\‹ž[[ŠKˆJNÂˆ\ÜÙ\›X]Ú
-Ù\™\‹ÑTÐÓÕ‘T–WÔÔ•HÍËÊNÂˆ\ÜÙ\›X]Ú
-Ù\™\‹ÓÐT”×Ñ‘QTUSÓ—ÑTÐÓÕ‘T—ÕŒKÊNÂˆ\ÜÙ\›X]Ú
-Ù\™\‹ÈœÝ][ÛˆŽˆÈšYŽˆÝ][Û—ÚYÊNÂˆ\ÜÙ\›X]Ú
-Ù\™\‹ÈœÞ[˜Ë\ÛXÞH‹ÊNÂˆ\ÜÙ\›X]Ú
-Ù\™\‹Èœ]Y]YY[]™\šY\È‹ÊNÂˆ\ÜÙ\›X]Ú
-Ù\™\‹Ø\WÜYÜÚYÛ˜[XXÚËÊNÂˆ\ÜÙ\›X]Ú
-Ù\™\‹ÍLÌŽÊNÂˆ\ÜÙ\›X]Ú
-Ù\™\‹ÜÙXÝ\™U˜[œÜÜÊNÂˆ\ÜÙ\›X]Ú
-Üž\ËÙYˆ[˜Üž\
-ÊNÂˆ\ÜÙ\›X]Ú
-Üž\ËÙYˆ™\]Y\ÝÜÚYÛ˜]\™W
-ÊNÂˆ\ÜÙ\›X]Ú
-Z[\‹ÜÚ\™YÛØ\œ×Ù™Y\˜][Û—ØÜž\×œKÊNÂŸJNÂ‚\Ý
-›˜]]™H[™›ÚY™Y\˜][Ûˆ[šÈ\ØÛÝ™\œË]][XØ]\Ë[™[™\È[™Ù™ˆ‹\Þ[˜È
+test("Version 30.5 package and release channel are aligned", async () => {
+  const [pkg, workflow, page, android] = await Promise.all([
+    source("../package.json"),
+    source("../.github/workflows/v30-development.yml"),
+    source("../app/page.tsx"),
+    source("../mobile/android/app/build.gradle"),
+  ]);
+  assert.equal(JSON.parse(pkg).version, "30.5.0-dev.1");
+  assert.match(workflow, /Version 30\.5 Universal Search and Data Fabric Development/);
+  assert.match(workflow, /gh release (?:view|create) v30\.5/);
+  assert.match(page, /const LCARS_VERSION="30\.5"/);
+  assert.match(android, /versionCode 305001/);
+  assert.match(android, /versionName "30\.5\.0"/);
+});
 
-HOˆÂˆÛÛœÝÙØÚËÜž\Ë\ØÛÝ™\žKÝÜ™WHH]ØZ]›ÛZ\ÙK˜[
-ÂˆÛÝ\˜ÙJ‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÐÛÛ\[š[Û‘ØÚËš˜]˜HŠKˆÛÝ\˜ÙJ‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÑ™Y\˜][ÛÜž\Ëš˜]˜HŠKˆÛÝ\˜ÙJ‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÔÝ][Û‘\ØÛÝ™\žKš˜]˜HŠKˆÛÝ\˜ÙJ‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÔÙXÝ\™TÝ][Û”ÝÜ™Kš˜]˜HŠKˆJNÂˆ\ÜÙ\›X]Ú
-\ØÛÝ™\žKÓÐT”×Ñ‘QTUSÓ—ÑTÐÓÕ‘T—ÕŒKÊNÂˆ\ÜÙ\›X]Ú
-ØÚËÐUUÓPUPÈ‘QTUSÓˆTÐÓÕ‘T–KÊNÂˆ\ÜÙ\›X]Ú
-ØÚËÑ™Y\˜][ÛÜž\×œÚYÛ˜]\™KÊNÂˆ\ÜÙ\›X]Ú
-ØÚËÜÚYÛ˜[XXÚËÊNÂˆ\ÜÙ\›X]Ú
-ØÚËÓYYXTÝÜ™W‘ÝÛ›ØYËÊNÂˆ\ÜÙ\›X]Ú
-Üž\ËÐQT×ÑÐÓWÓ›ÔY[™ËÊNÂˆ\ÜÙ\›X]Ú
-Üž\ËÒXXÔÒLM‹ÊNÂˆ\ÜÙ\›X]Ú
-ÝÜ™KÙ]šXÙRYÊNÂˆ\ÜÙ\›X]Ú
-ÝÜ™KÙš[™Ù\œš[ÊNÂŸJNÂ‚\Ý
-š[™ËYœ™YH›ÚXÙH™]Z[œÈ[™XZÙ\ÈHÛÛ\]\ˆØZÙHÛÜ™Ü[Û˜[‹\Þ[˜È
+test("Federation server exposes discovery, durable identity, policy, and encrypted queues", async () => {
+  const [server, crypto, builder] = await Promise.all([
+    source("../shared/lcars_padd.py"),
+    source("../shared/lcars_federation_crypto.py"),
+    source("../electron-builder.yml"),
+  ]);
+  assert.match(server, /DISCOVERY_PORT = 8767/);
+  assert.match(server, /LCARS_FEDERATION_DISCOVER_V1/);
+  assert.match(server, /"station": \{"id": station_id/);
+  assert.match(server, /"sync-policy"/);
+  assert.match(server, /"queuedDeliveries"/);
+  assert.match(server, /api\/padd\/signal-ack/);
+  assert.match(server, /524_288/);
+  assert.match(server, /secureTransport/);
+  assert.match(crypto, /def encrypt\(/);
+  assert.match(crypto, /def request_signature\(/);
+  assert.match(builder, /shared\/lcars_federation_crypto\.py/);
+});
 
-HOˆÂˆÛÛœÝYÙHH]ØZ]ÛÝ\˜ÙJ‹‹‹Ø\ÜYÙKÞŠNÂˆ\ÜÙ\›X]Ú
-YÙKÝ›ÚXÙT\ÚÕ[ÎˆYKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÝ›ÚXÙUØZÙT˜\ÙN—ÛÛ›ÚXÙUØZÙT˜\ÙNYKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÔ™\]Z\™H	ÐÛÛ\]\‰ÈØZÙHÛÜ™ÊNÂˆ\ÜÙ\›X]Ú
-YÙKØÛÛœÝ[™Ñœ™YOH\™Yœ×›ÚXÙT\ÚÕ[ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÝÚ[™Ý×œÙ][\˜[
-
-
-OO—ÚY—
-›ØÙ\ÜÚ[™×˜Ý\œ™[ÊNÂˆ\ÜÙ\›X]Ú
-YÙK×KL
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÐÓÓTUTˆT“QQÊNÂŸJNÂ‚\Ý
-•™\œÚ[ÛˆÌH›ÚXÙH^XÝ][Ûˆ™[XZ[œÈÜZ[‹]]Üš]KX]Ø\™K[™XY\‹XÛÛZ[™Y‹\Þ[˜È
+test("native Android Federation link discovers, authenticates, and handles handoff", async () => {
+  const [dock, crypto, discovery, store] = await Promise.all([
+    source("../mobile/android/app/src/main/java/com/lcars/padd/CompanionDock.java"),
+    source("../mobile/android/app/src/main/java/com/lcars/padd/FederationCrypto.java"),
+    source("../mobile/android/app/src/main/java/com/lcars/padd/StationDiscovery.java"),
+    source("../mobile/android/app/src/main/java/com/lcars/padd/SecureStationStore.java"),
+  ]);
+  assert.match(discovery, /LCARS_FEDERATION_DISCOVER_V1/);
+  assert.match(dock, /AUTOMATIC FEDERATION DISCOVERY/);
+  assert.match(dock, /FederationCrypto\.signature/);
+  assert.match(dock, /signal-ack/);
+  assert.match(dock, /MediaStore\.Downloads/);
+  assert.match(crypto, /AES\/GCM\/NoPadding/);
+  assert.match(crypto, /HmacSHA256/);
+  assert.match(store, /deviceId/);
+  assert.match(store, /fingerprint/);
+});
 
-HOˆÂˆÛÛœÝÜYÙKÝ[\×HH]ØZ]›ÛZ\ÙK˜[
-ÂˆÛÝ\˜ÙJ‹‹‹Ø\ÜYÙKÞŠKˆÛÝ\˜ÙJ‹‹‹Ø\ÝŒÌ˜ÜÜÈŠKˆJNÂˆ\ÜÙ\›X]Ú
-YÙKÝ›ÚXÙR[[YYX]Q^XÝ][ÛŽˆ˜[ÙKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÑ^XÝ]H™XÛÙÛš^™Y›ÚXÙHÛÛ[X[™È[[YYX][KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÚY—
-\™Yœ×›ÚXÙR[[YYX]Q^XÝ][Û—
-WÜ™]šY]Õ›ÚXÙPÛÛ\]\‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜ[—œ™\]Z\™\ÐÛÛ™š\›X][Û‰‰ˆW
-™Yœ×›ÚXÙP]]Üš^˜][Û‘[˜X›Y	‰˜]]Üš^™Y
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜ™\ÛÛ™PÛÛ\]\ÛÛ[X[™›Ü—
-ÛÛ[X[™›ÚXÙH—
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKØÛÛ[X[™[™×ÈÓÓTUTˆ“ÐÑTÔÒS‘È‹ÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-YÙKØ\›YY×
-\ÞWÈÓÓTUTˆ“ÐÑTÔÒS‘È‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÝ]KZÚXÚÙ\‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÏ]ˆÛ\ÜÓ˜[YOW×
-\Ý[š[™Ö×××JÝ›ÚXÙKXÛÛ›Û›ÚXÙKXÛÛ›ÛZXY\‹ÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-YÙKÏ\ÚYHÛ\ÜÓ˜[YOW×
-\Ý[š[™Ö×××JÝ›ÚXÙKXÛÛ›Û›ÚXÙKXÛÛ›ÛZXY\‹ÊNÂˆ\ÜÙ\›X]Ú
-Ý[\Ë×›ÚXÙKXÛÛ›Û›ÚXÙKXÛÛ›ÛZXY\—ÜÜÚ][ÛŽœÝ]XËÊNÂˆ\ÜÙ\›X]Ú
-Ý[\Ë×›ÚXÙKXÛÛ›Û›ÚXÙKXÛÛ›ÛZXY\—Ö×ŸWJ›Z[‹ZZYÚŒÊNÂˆ\ÜÙ\›X]Ú
-Ý[\ËÝ^[Ý™\™›ÝÎ™[\Ú\ÎÝÚ]K\ÜXÙN››ÝÜ˜\ÊNÂŸJNÂ
+test("hands-free voice retains PTT and makes the Computer wake word optional", async () => {
+  const page = await source("../app/page.tsx");
+  assert.match(page, /voicePushToTalk: true/);
+  assert.match(page, /voiceWakePhrase:v\?old\.voiceWakePhrase:true/);
+  assert.match(page, /Require 'Computer' wake word/);
+  assert.match(page, /const handsFree=!prefs\.voicePushToTalk/);
+  assert.match(page, /window\.setInterval\(\(\)=>\{if\(processing\.current/);
+  assert.match(page, /\},4500\)/);
+  assert.match(page, /COMPUTER ARMED/);
+});
+
+test("Version 30.5 voice execution remains opt-in, authority-aware, and header-contained", async () => {
+  const [page, styles] = await Promise.all([
+    source("../app/page.tsx"),
+    source("../app/v30.css"),
+  ]);
+  assert.match(page, /voiceImmediateExecution: false/);
+  assert.match(page, /Execute recognized voice commands immediately/);
+  assert.match(page, /if\(!prefs\.voiceImmediateExecution\)\{previewVoiceComputer/);
+  assert.match(page, /plan\.requiresConfirmation&&!\(prefs\.voiceAuthorizationEnabled&&authorized\)/);
+  assert.match(page, /resolveComputerCommandFor\(command,"voice"\)/);
+  assert.match(page, /commanding\?"COMPUTER PROCESSING"/);
+  assert.doesNotMatch(page, /armed\?\(busy\?"COMPUTER PROCESSING"/);
+  assert.match(page, /title-kicker/);
+  assert.match(page, /<div className=\{\(listening[\s\S]+voice-control voice-control-header/);
+  assert.doesNotMatch(page, /<aside className=\{\(listening[\s\S]+voice-control voice-control-header/);
+  assert.match(styles, /\.voice-control\.voice-control-header\{position:static/);
+  assert.match(styles, /\.voice-control\.voice-control-header\{[^}]*min-height:0/);
+  assert.match(styles, /text-overflow:ellipsis;white-space:nowrap/);
+});

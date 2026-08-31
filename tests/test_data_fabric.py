@@ -1,29 +1,54 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ¾¼ãm¼óÍºßuÚZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéš[\ÜœÛÛ‚š[\ÜÜÂš[\ÜŞ\Âš[\Ü[\š[Bš[\Ü[š]\İ™œ›ÛH]Xˆ[\Ü]™œ›ÛH[š]\İ›[ØÚÈ[\Ü]Ú‚œŞ\Ëœ]š[œÙ\
-İŠ]
-×Ùš[W×ÊKœ™\ÛÛ™J
-Kœ\™[ÖÌWHÈœÚ\™YŠJB™œ›ÛHØ\œ×Ù]WÙ˜XœšXÈ[\Ü]Q˜XœšXÂ‚‚˜Û\ÜÈ]Q˜XœšXÕ\İÊ[š]\İ•\İØ\ÙJN‚ˆYˆ\İÜš]˜]Wİ˜][Ú\×ÛÜÚ[—Ù[˜Ü\YØ[™ÛY]Y]WÛÛ›JÙ[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
-H\È›Û\‚ˆ˜XœšXÈH]Q˜XœšXÊ]
-›Û\ŠHÈ˜ÛÛ™šYÈ‹\İŠBˆÚ]Ù[‹˜\ÜÙ\˜Z\Ù\Ê\›Z\ÜÚ[Û‘\œ›ÜŠN‚ˆ˜XœšXË›Ü\˜]JÈ›Ü\˜][Ûˆˆ˜][\]‹›˜[YHˆÛÛ[X[™ÛÙ\È‹˜ÛÛ[ˆ™[K\Ù]™[ˆŸJBˆİ]\ÈH˜XœšXË›Ü\˜]JÈ›Ü\˜][ÛˆˆœÛXŞH‹˜Ø]YÛÜšY\ÈˆÈœš]˜]TİÜ˜YÙHˆY__JBˆÙ[‹˜\ÜÙ\YJİ]\ÖÈ˜Ø]YÛÜšY\È—VÈœš]˜]TİÜ˜YÙH—JBˆİ]\ÈH˜XœšXË›Ü\˜]JÈ›Ü\˜][Ûˆˆ˜][\]‹›˜[YHˆÛÛ[X[™ÛÙ\È‹˜ÛÛ[ˆ™[K\Ù]™[ˆŸJBˆÙ[‹˜\ÜÙ\\]X[
-İ]\ÖÈœš]˜]R][\È—VÌVÈ›˜[YH—KÛÛ[X[™ÛÙ\ÈŠBˆÙ[‹˜\ÜÙ\›İ[Š˜ÛÛ[‹İ]\ÖÈœš]˜]R][\È—VÌJBˆÙ[‹˜\ÜÙ\›İ[Š™[K\Ù]™[ˆ‹˜XœšXË˜][Ùš[Kœ™XYİ^
-[˜ÛÙ[™ÏH]‹NŠJBˆÙ[‹˜\ÜÙ\\]X[
-Øİ
-ÜËœİ]
-˜XœšXËšÙ^WÙš[JKœİÛ[ÙH	ˆÍÍÍÊKŒÍŒŠB‚ˆYˆ\İİ™\œÚ[Ûœ×Üİ\™˜XÙWØÛÛ™›Xİ×Ø[™ÚÙY\Ø›İ[™YÚ\İÜJÙ[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
-H\È›Û\‚ˆ˜XœšXÈH]Q˜XœšXÊ]
-›Û\ŠHÈ˜ÛÛ™šYÈ‹\İŠBˆ˜XœšXË›Y\™ÙWİ™\œÚ[ÛŠ™š[\È‹œ™\Ü‹”™\Ü‹È˜[YHˆ_KL“ĞĞSÓÔ‘HŠBˆİ]\ÈH˜XœšXË›Y\™ÙWİ™\œÚ[ÛŠ™š[\È‹œ™\Ü‹”™\Ü‹È˜[YHˆŸKLK”QSHŠBˆÙ[‹˜\ÜÙ\\]X[
-İ]\ÖÈ™XYÛ›ÜİXÜÈ—VÈ›Ü[ÛÛ™›XİÈ—KJBˆÛÛ™›XİHİ]\ÖÈ˜ÛÛ™›XİÈ—VÌBˆ™\ÛÛ™YH˜XœšXË›Ü\˜]JÈ›Ü\˜][Ûˆˆœ™\ÛÛ™KXÛÛ™›Xİ‹šYˆÛÛ™›XİÈšY—Kœ™\ÛÛ][Ûˆˆ˜›İŸJBˆÙ[‹˜\ÜÙ\\]X[
-™\ÛÛ™YÈ™XYÛ›ÜİXÜÈ—VÈ›Ü[ÛÛ™›XİÈ—K
-BˆÙ[‹˜\ÜÙ\Ü™X]\‘\]X[
-™\ÛÛ™YÈ™XYÛ›ÜİXÜÈ—VÈ™\œÚ[Û™Y™XÛÜ™È—KJB‚ˆYˆ\İÜ™XÙ[Ú][\×Ø[™Ùš[WÜÙX\˜ÚØ\™WØ›İ[™Yİ×ÚÛYJÙ[ŠN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ
-H\È›Û\‚ˆÛYHH]
-›Û\ŠHÈšÛYH‚ˆØİ[Y[ÈHÛYHÈ‘Øİ[Y[È‚ˆØİ[Y[Ë›ZÙ\Š\™[ÏUYJBˆ
-Øİ[Y[ÈÈ“Z\ÜÚ[Ûˆ™\ÜŠKÜš]Wİ^
-“ĞT”È‹[˜ÛÙ[™ÏH]‹NŠBˆ˜XœšXÈH]Q˜XœšXÊ]
-›Û\ŠHÈ˜ÛÛ™šYÈ‹\İŠBˆ˜XœšXËœ™XÛÜ™Ü™XÙ[
-™š[\È‹İŠØİ[Y[ÈÈ“Z\ÜÚ[Ûˆ™\ÜŠK“Z\ÜÚ[Ûˆ™\Ü‹‘Øİ[Y[ÈŠBˆÙ[‹˜\ÜÙ\\]X[
-˜XœšXËœİ]\Ê
-VÈœ™XÙ[—VÌVÈ›˜[YH—K“Z\ÜÚ[Ûˆ™\ÜŠBˆÚ]]Ú
-›Ø\œ×Ù]WÙ˜XœšXË”]šÛYH‹™]\›—İ˜[YOZÛYJN‚ˆ™\İ[ÈH˜XœšXËœÙX\˜ÚÙš[\Ê›Z\ÜÚ[ÛˆŠBˆÙ[‹˜\ÜÙ\\]X[
-™\İ[ÖÈœ™\İ[È—VÌVÈ›˜[YH—K“Z\ÜÚ[Ûˆ™\ÜŠBˆÙ[‹˜\ÜÙ\YJ]
-™\İ[ÖÈœ™\İ[È—VÌVÈœ]—JKš\×Ü™[]]™WİÊÛYJJB‚‚šYˆ×Û˜[YW×ÈOH—×ÛXZ[—×È‚ˆ[š]\İ›XZ[Š
-B
+import json
+import os
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import patch
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "shared"))
+from lcars_data_fabric import DataFabric
+
+
+class DataFabricTests(unittest.TestCase):
+    def test_private_vault_is_opt_in_encrypted_and_metadata_only(self):
+        with tempfile.TemporaryDirectory() as folder:
+            fabric = DataFabric(Path(folder) / "config", "test")
+            with self.assertRaises(PermissionError):
+                fabric.operate({"operation": "vault-put", "name": "Command Codes", "content": "delta-seven"})
+            status = fabric.operate({"operation": "policy", "categories": {"privateStorage": True}})
+            self.assertTrue(status["categories"]["privateStorage"])
+            status = fabric.operate({"operation": "vault-put", "name": "Command Codes", "content": "delta-seven"})
+            self.assertEqual(status["privateItems"][0]["name"], "Command Codes")
+            self.assertNotIn("content", status["privateItems"][0])
+            self.assertNotIn("delta-seven", fabric.vault_file.read_text(encoding="utf-8"))
+            self.assertEqual(oct(os.stat(fabric.key_file).st_mode & 0o777), "0o600")
+
+    def test_versions_surface_conflicts_and_keep_bounded_history(self):
+        with tempfile.TemporaryDirectory() as folder:
+            fabric = DataFabric(Path(folder) / "config", "test")
+            fabric.merge_version("files", "report", "Report", {"value": 1}, 100, "LOCAL CORE")
+            status = fabric.merge_version("files", "report", "Report", {"value": 2}, 101, "PADD ALPHA")
+            self.assertEqual(status["diagnostics"]["openConflicts"], 1)
+            conflict = status["conflicts"][0]
+            resolved = fabric.operate({"operation": "resolve-conflict", "id": conflict["id"], "resolution": "both"})
+            self.assertEqual(resolved["diagnostics"]["openConflicts"], 0)
+            self.assertGreaterEqual(resolved["diagnostics"]["versionedRecords"], 1)
+
+    def test_recent_items_and_file_search_are_bounded_to_home(self):
+        with tempfile.TemporaryDirectory() as folder:
+            home = Path(folder) / "home"
+            documents = home / "Documents"
+            documents.mkdir(parents=True)
+            (documents / "Mission Report.txt").write_text("LCARS", encoding="utf-8")
+            fabric = DataFabric(Path(folder) / "config", "test")
+            fabric.record_recent("files", str(documents / "Mission Report.txt"), "Mission Report.txt", "Documents")
+            self.assertEqual(fabric.status()["recent"][0]["name"], "Mission Report.txt")
+            with patch("lcars_data_fabric.Path.home", return_value=home):
+                results = fabric.search_files("mission")
+            self.assertEqual(results["results"][0]["name"], "Mission Report.txt")
+            self.assertTrue(Path(results["results"][0]["path"]).is_relative_to(home))
+
+
+if __name__ == "__main__":
+    unittest.main()

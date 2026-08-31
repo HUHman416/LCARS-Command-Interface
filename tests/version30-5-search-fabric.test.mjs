@@ -1,67 +1,52 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿ]7óŽxÓnüïÝtÖZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜÝšXÝŽÂš[\ÜÈ™XYš[TÞ[˜ËÝ]Þ[˜ÈHœ›ÛH››ÙN™œÈŽÂš[\Ü\Ýœ›ÛH››ÙN\ÝŽÂš[\ÜÈ˜[šÕ[š]™\œØ[™\Ý[ÈHœ›ÛH‹‹‹Ø\ÝŒÌ\ÙX\˜ÚXÛÜ™KÈŽÂ‚˜ÛÛœÝ™XYJ]
-OOœ™XYš[TÞ[˜Ê™]ÈT“
-][\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝYÙO\™XY
-‹‹‹Ø\ÜYÙKÞŠKÙX\˜Ú\™XY
-‹‹‹Ø\ÝŒÌ\ÙX\˜ÚÞŠK˜XœšXÏ\™XY
-‹‹‹ÜÚ\™YÛØ\œ×Ù]WÙ˜XœšXËœHŠK[^\™XY
-‹‹‹ÛØØ[ÛØ\œ×ØœšYÙKœHŠKÚ[™ÝÜÏ\™XY
-‹‹‹ÝÚ[™ÝÜËÛØ\œ×ØœšYÙWÝÚ[™ÝÜËœHŠKÛÜšÙ›ÝÏ\™XY
-‹‹‹Ë™Ú]X‹ÝÛÜšÙ›ÝÜËÝŒÌY]™[ÜY[ž[[ŠKZ[\\™XY
-‹‹‹Ù[XÝ›Û‹XZ[\‹ž[[ŠNÂ‚\Ý
-•[š]™\œØ[ÙX\˜Ú˜[šÜÈ]™\žH[›™YØ]YÛÜžH[™^ÜÙ\ÈXÝ[Û˜X›Hš[H›Ý]\È‹
+import assert from "node:assert/strict";
+import { readFileSync, statSync } from "node:fs";
+import test from "node:test";
+import { rankUniversalResults } from "../app/v30-search-core.ts";
 
-OOžÂˆÛÛœÝ[šY\ÏVÂˆÚYˆ›Û™H‹Ø]YÛÜžNˆ˜\XØ][ÛœÈ‹]Nˆ”Ý[\ˆØ\ÙÜ˜\H‹]Z[ˆ”ØÚY[˜ÙH\XØ][ÛˆŸKˆÚYˆÛÈ‹Ø]YÛÜžNˆ™š[\È‹]Nˆ›Z\ÜÚ[Û‹\™\Üœˆ‹]Z[ˆ‘ØÝ[Y[ÈŸKˆNÂˆ\ÜÙ\™\]X[
-˜[šÕ[š]™\œØ[™\Ý[Ê›Z\ÜÚ[Ûˆ™\Ü‹[šY\ÊVÌKšYÛÈŠNÂˆ›ÜŠÛÛœÝØ]YÛÜžHÙˆÈ˜\XØ][ÛœÈ‹™š[\È‹œÙ][™ÜÈ‹˜ÛÛ[X[™È‹œÝ][ÛœÈ‹››ÝYšXØ][ÛœÈ‹›YYXH‹˜ÛÛXÝÈ‹›[Ù[\È‹œ›ØÙY\™\È‹˜XÝ]š]H—JX\ÜÙ\›ÚÊÙX\˜Úš[˜ÛY\ÊYˆ‰ØØ]YÛÜž_H˜
-KØ]YÛÜžJNÂˆ›ÜŠÛÛœÝXÝ[ÛˆÙˆÈ“ÔSˆT‘H‹“ÔSˆÓˆQ‹”ÑS‘ÈÕUSÓˆ‹UPÒÈ“ÐÑQT‘H—JX\ÜÙ\›ÚÊÙX\˜Úš[˜ÛY\ÊXÝ[ÛŠKXÝ[ÛŠNÂˆ\ÜÙ\›X]Ú
-YÙKÜ˜[šÕ[š]™\œØ[™\Ý[ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜ™\]Y\ÝYš[OWÙš[TÙX\˜Ú\™Ù]KÊNÂˆ\ÜÙ\›X]Ú
-YÙKØ]XÚY[Î—ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÙ˜XœšX××œ™XÙ[×KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜ™XÙ[][\Î™˜XœšX××˜Ø]YÛÜšY\×œ™XÙ[][\ËÊNÂŸJNÂ‚\Ý
-‘]H˜XœšXÈ\ÈØØ[Yš\œÝ[˜Üž\YÙ[XÝ]™K™\œÚ[Û™Y[™Ü›ÜÜË\]›Ü›H‹
+const read=(path)=>readFileSync(new URL(path,import.meta.url),"utf8");
+const page=read("../app/page.tsx"),search=read("../app/v30-search.tsx"),fabric=read("../shared/lcars_data_fabric.py"),linux=read("../local/lcars_bridge.py"),windows=read("../windows/lcars_bridge_windows.py"),workflow=read("../.github/workflows/v30-development.yml"),builder=read("../electron-builder.yml");
 
-OOžÂˆ›ÜŠÛÛœÝÚÙ[ˆÙˆÈœš]˜]TÝÜ˜YÙH‹œÛX[š[\È‹˜Û\›Ø\™‹˜ÛÛ™›XÝÛXÞH‹œ™\ÛÛ™KXÛÛ™›XÝ‹˜][\]‹›Y\™ÙK]™\œÚ[Ûˆ‹“PVÕ‘T”ÒSÓ”È—JX\ÜÙ\›ÚÊ˜XœšXËš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂˆ\ÜÙ\›X]Ú
-˜XœšXËÜÙX[ÚœÛÛ—
-Ù[——ÚÙ^W
-
-K˜[YK›Ø\œËY]KY˜XœšXË\š]˜]K]ŒH—
-KÊNÂˆ\ÜÙ\›X]Ú
-˜XœšXËÛÜ×˜Ú[Ù
-[\Ü˜\žKÍŒ
-KÊNÂˆ›ÜŠÛÛœÝœšYÙHÙˆÛ[^Ú[™ÝÜ×J^Ø\ÜÙ\›X]Ú
-œšYÙKØ\WÙ]KY˜XœšXËÊNØ\ÜÙ\›X]Ú
-œšYÙKØ\WÝ[š]™\œØ[\ÙX\˜ÚÊNØ\ÜÙ\›X]Ú
-œšYÙKÙ[]™\‹Yš[KÊNØ\ÜÙ\›X]Ú
-œšYÙKÍLŽÊNßBˆ\ÜÙ\™\]X[
+test("Universal Search ranks every planned category and exposes actionable file routes",()=>{
+  const entries=[
+    {id:"one",category:"applications",title:"Stellar Cartography",detail:"Science application"},
+    {id:"two",category:"files",title:"mission-report.pdf",detail:"Documents"},
+  ];
+  assert.equal(rankUniversalResults("mission report",entries)[0].id,"two");
+  for(const category of ["applications","files","settings","commands","stations","notifications","media","contacts","modules","procedures","activity"])assert.ok(search.includes(`id:"${category}"`),category);
+  for(const action of ["OPEN HERE","OPEN ON PADD","SEND TO STATION","ATTACH TO PROCEDURE"])assert.ok(search.includes(action),action);
+  assert.match(page,/rankUniversalResults/);
+  assert.match(page,/requestedFile=\{fileSearchTarget\}/);
+  assert.match(page,/attachments:\[/);
+  assert.match(page,/fabric\?\.recent\|\|\[\]/);
+  assert.match(page,/recentItems:fabric\?\.categories\.recentItems/);
+});
 
-Z[\‹›X]Ú
-Ùœ›ÛNˆÚ\™YÛØ\œ×Ù]WÙ˜XœšX×œKÙÊ_×JK›[™ÝŠNÂˆ\ÜÙ\›X]Ú
-ÙX\˜ÚÐQTËLM‹QÐÓKÊNÂˆ\ÜÙ\›X]Ú
-ÙX\˜ÚÔT‹PÐUQÓÔ–HÖSÒ“Ó’VUSÓ‹ÊNÂŸJNÂ‚\Ý
-›ÚXÙH[\È[™ÛÛ™š\›X][Ûˆ\Ý[™ÝZ\ÚÛ™HÛÛ[X[™œ›ÛHHÙ\]Y[˜ÙH‹
+test("Data Fabric is local-first, encrypted, selective, versioned, and cross-platform",()=>{
+  for(const token of ["privateStorage","smallFiles","clipboard","conflictPolicy","resolve-conflict","vault-put","merge-version","MAX_VERSIONS"])assert.ok(fabric.includes(token),token);
+  assert.match(fabric,/seal_json\(self\._key\(\), value, "lcars-data-fabric-private-v1"\)/);
+  assert.match(fabric,/os\.chmod\(temporary, 0o600\)/);
+  for(const bridge of [linux,windows]){assert.match(bridge,/api\/data-fabric/);assert.match(bridge,/api\/universal-search/);assert.match(bridge,/deliver-file/);assert.match(bridge,/524288/);}
+  assert.equal((builder.match(/from: shared\/lcars_data_fabric\.py/g)||[]).length,2);
+  assert.match(search,/AES-256-GCM/);
+  assert.match(search,/PER-CATEGORY SYNCHRONIZATION/);
+});
 
-OOžÂˆÛÛœÝÛÜ™O\™XY
-‹‹‹Ø\ÝŒÌXÛÜ™KÈŠNÂˆ›ÜŠÛÛœÝ˜\ÙHÙˆÈ™Ü™Y[ˆ[\‹››È[\—JX\ÜÙ\›X]Ú
-ÛÜ™K™]È™YÑ^
-˜\ÙJJNÂˆ\ÜÙ\›X]Ú
-YÙKÝ›ÚXÙKXY™š\›X]]™W›\ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÚ[œ][Ú×›\ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜ™\Ý[œÝ\ÏŒKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÛ\ÝÛÛ™š\›X][Û]˜Ý\œ™[MLÊNÂˆ\ÜÙ\›X]Ú
-YÙKÔÜYXÚÞ[\Ú\Õ]\˜[˜ÙW
-Y™š\›X]]™H—
-KÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-YÙKÔ‘TÔÈÈÕS‘ÕÓ‹ÊNÂˆ\ÜÙ\›ÚÊÝ]Þ[˜Ê™]ÈT“
-‹‹‹ÜX›XËØ\ÜÙ]ËÜÛÝ[™ËÚ[œ][ÚË›\È‹[\Ü›Y]K\›
-JKœÚ^™OŒL
-NÂŸJNÂ‚\Ý
-•™\œÚ[ÛˆÌH™[X\ÙHÛÜšÙ›ÝÈX›\Ú\È[]™[ÜY[]›Ü›\È‹
+test("voice alerts and confirmation distinguish one command from a sequence",()=>{
+  const core=read("../app/v30-core.ts");
+  for(const phrase of ["green alert","no alert"])assert.match(core,new RegExp(phrase));
+  assert.match(page,/voice-affirmative\.mp3/);
+  assert.match(page,/input-ok\.mp3/);
+  assert.match(page,/result\.steps>1/);
+  assert.match(page,/lastConfirmationAt\.current<15000/);
+  assert.match(page,/SpeechSynthesisUtterance\("Affirmative"\)/);
+  assert.doesNotMatch(page,/PRESS TO STAND DOWN/);
+  assert.ok(statSync(new URL("../public/assets/sounds/input-ok.mp3",import.meta.url)).size>1000);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-ÛÜšÙ›ÝËÕ™\œÚ[ÛˆÌH[š]™\œØ[ÙX\˜Ú[™]H˜XœšXÈ]™[ÜY[ÊNÂˆ\ÜÙ\›X]Ú
-ÛÜšÙ›ÝËÓÐT”ËPÛÛ[X[™R[\™˜XÙK]ŒÌK^—Í\[XYÙKÊNÂˆ\ÜÙ\›X]Ú
-ÛÜšÙ›ÝËÓÐT”ËUÚ[™ÝÜËTÙ]\]ŒÌW™^KÊNÂˆ\ÜÙ\›X]Ú
-ÛÜšÙ›ÝËÓÐT”ËS[Øš[KQ[š\›Û›Y[]ŒÌKP[™›ÚY˜\ËÊNÂˆ\ÜÙ\›X]Ú
-ÛÜšÙ›ÝËÙÚ™[X\ÙH
-ÎšY]ßÜ™X]JHŒÌKÊNÂŸJNÂ
+test("Version 30.5 release workflow publishes all development platforms",()=>{
+  assert.match(workflow,/Version 30\.5 Universal Search and Data Fabric Development/);
+  assert.match(workflow,/LCARS-Command-Interface-v30\.5-x86_64\.AppImage/);
+  assert.match(workflow,/LCARS-Windows-Setup-v30\.5\.exe/);
+  assert.match(workflow,/LCARS-Mobile-Environment-v30\.5-Android\.apk/);
+  assert.match(workflow,/gh release (?:view|create) v30\.5/);
+});

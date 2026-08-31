@@ -1,41 +1,28 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿ9ßmûçmøß»îZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µé˜ÛÛœÝØXÚS˜[YHH›Ø\œË\Y]ŒÌMKY]™[ÜY[ŽÂ˜ÛÛœÝÚ[HÈ‹È‹‹ÜÝ[\Ë˜ÜÜÈ‹‹Ø\šœÈ‹‹ÛX[šY™\ÝÙX›X[šY™\Ý‹‹ÚXÛÛ‹œ™È—NÂ‚œÙ[‹˜Y]™[\Ý[™\Šš[œÝ[‹
-]™[
-HOˆ]™[ØZ][[
-ˆØXÚ\Ë›Ü[ŠØXÚS˜[YJBˆ[Š
-ØXÚJHOˆØXÚK˜Y[
-Ú[
-JBˆ[Š
+const cacheName = "lcars-padd-v30-5-development";
+const shell = ["/", "/styles.css", "/app.js", "/manifest.webmanifest", "/icon.png"];
 
-HOˆÙ[‹œÚÚ\ØZ][™Ê
-JKŠJNÂ‚œÙ[‹˜Y]™[\Ý[™\Š˜XÝ]˜]H‹
-]™[
-HOˆ]™[ØZ][[
-ˆØXÚ\ËšÙ^\Ê
-Bˆ[Š
-Ù^\ÊHOˆ›ÛZ\ÙK˜[
-Ù^\Ë™š[\Š
-Ù^JHOˆÙ^HOOHØXÚS˜[YJK›X\
+self.addEventListener("install", (event) => event.waitUntil(
+  caches.open(cacheName)
+    .then((cache) => cache.addAll(shell))
+    .then(() => self.skipWaiting()),
+));
 
-Ù^JHOˆØXÚ\Ë™[]JÙ^JJJJBˆ[Š
+self.addEventListener("activate", (event) => event.waitUntil(
+  caches.keys()
+    .then((keys) => Promise.all(keys.filter((key) => key !== cacheName).map((key) => caches.delete(key))))
+    .then(() => self.clients.claim()),
+));
 
-HOˆÙ[‹˜ÛY[Ë˜ÛZ[J
-JKŠJNÂ‚œÙ[‹˜Y]™[\Ý[™\Š™™]Ú‹
-]™[
-HOˆÂˆÛÛœÝ\›H™]ÈT“
-]™[œ™\]Y\Ý\›
-NÂˆYˆ
-]™[œ™\]Y\Ý›Y]ÙOOH‘ÑUˆ\›œ]˜[YKœÝ\ÕÚ]
-‹Ø\KÈŠJH™]\›ŽÂˆ]™[œ™\ÜÛ™Ú]
-ˆ™]Ú
-]™[œ™\]Y\Ý
-Bˆ[Š
-™\ÜÛœÙJHOˆÂˆÛÛœÝÛÜHH™\ÜÛœÙK˜ÛÛ™J
-NÂˆØXÚ\Ë›Ü[ŠØXÚS˜[YJK[Š
-ØXÚJHOˆØXÚKœ]
-]™[œ™\]Y\ÝÛÜJJNÂˆ™]\›ˆ™\ÜÛœÙNÂˆJBˆ˜Ø]Ú
-
-
-HOˆØXÚ\Ë›X]Ú
-]™[œ™\]Y\Ý
-JKˆ
-NÂŸJNÂ
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  if (event.request.method !== "GET" || url.pathname.startsWith("/api/")) return;
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(cacheName).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request)),
+  );
+});

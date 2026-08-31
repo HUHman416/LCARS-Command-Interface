@@ -1,1 +1,7 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ}wëyÛvï®yÖZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µé“ĞT”È[š]™\œØ[[^\ÚİÜŒÌH]™[ÜY[\XØ][Ûˆ™\œÚ[ÛˆÌKŒY]‹ŒB\[XYÙHÒKLMˆÑS‘TUQQT’S‘ËTPÒĞQÒS‘Â‚•H[œİ[\ˆ™\šYšY\È\ÈÚXÚÜİ[H™Y›Ü™H™\XÚ[™ÈH[œİ[Y\XØ][Û‹‚•HÜ[Û˜[ĞT”ÈÙÚ[ˆÙ\ÜÚ[Ûˆ\È[œİ[YÛ›Hœ›ÛHÙ][™ÜÈÚ]^XÚ]]]Üš^˜][Û‹ˆ]™]Z[œÈH›Ü›X[Y\ÚİÜ\ØØ\H›İ]K‚”[ˆ[œİ[X]]Üİ\œÚÈ™YÚ\İ\ˆHÜX›H\[XYÙH[ˆ\XØ][ÛˆÙX\˜Ú[™Ü[Û˜[H[˜X›HÙÚ[ˆİ\\Ú]İ]İYË‚
+LCARS Universal Linux Desktop v30.5 Development
+Application version: 30.5.0-dev.1
+AppImage SHA-256: GENERATED-DURING-PACKAGING
+
+The installer verifies this checksum before replacing the installed application.
+The optional LCARS login session is installed only from Settings with explicit authorization. It retains a normal-desktop escape route.
+Run install-autostart.sh to register a portable AppImage in application search and optionally enable login startup without sudo.

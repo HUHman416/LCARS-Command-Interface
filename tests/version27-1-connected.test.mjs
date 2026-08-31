@@ -1,70 +1,59 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿ^·×Ýz×möãxöZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\Ýœ›ÛH››ÙN\ÝŽÂš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜÝšXÝŽÂš[\ÜœÈœ›ÛH››ÙN™œÈŽÂ‚˜ÛÛœÝ™XYH]OˆœËœ™XYš[TÞ[˜Ê™]ÈT“
-‹‹ÉÜ]X[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝYÙHH™XY
-˜\ÜYÙKÞŠNÂ˜ÛÛœÝÛÛ›™XÝYH™XY
-˜\ÝŒŽXÛÛ›™XÝYÞŠNÂ˜ÛÛœÝÜÜÈH™XY
-˜\ÝŒŽ˜ÜÜÈŠNÂ˜ÛÛœÝYØXÞPÜÜÈH™XY
-˜\ÝŒËLK˜ÜÜÈŠNÂ˜ÛÛœÝ[^H™XY
-›ØØ[ÛØ\œ×ØœšYÙKœHŠNÂ˜ÛÛœÝÚ[™ÝÜÈH™XY
-Ú[™ÝÜËÛØ\œ×ØœšYÙWÝÚ[™ÝÜËœHŠNÂ˜ÛÛœÝYH™XY
-œÚ\™YÛØ\œ×ÜYœHŠNÂ˜ÛÛœÝZ[\ˆH™XY
-™[XÝ›Û‹XZ[\‹ž[[ŠNÂ˜ÛÛœÝÛÛ\[š[ÛˆH™XY
-œYØ\šœÈŠNÂ˜ÛÛœÝX[šY™\ÝH™XY
-œYÛX[šY™\ÝÙX›X[šY™\ÝŠNÂ‚\Ý
-ÛÛ›™XÝYÙ][™ÜÈ™[XZ[ˆ^XÚ]›ÝYÚH™\œÚ[ÛˆŽZYÜ˜][Ûˆ‹
+import test from "node:test";
+import assert from "node:assert/strict";
+import fs from "node:fs";
 
-HOˆÂˆ\ÜÙ\›X]Ú
-YÙKÓÐT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_ŽWŒŒŽWŒ×Œ\˜×Œ_ŽWŒ—ŒY]—Œ_ŽŒŒ
-H‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÊÎŒÌHUŸÌUŸÌŒÈUŸÌŒˆUŸÌŒHUŸŽHÕP“_ŽWŒÈÈ_ŽWŒˆU‘SÔQS•ŽÕP“JKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÐÛÛ›™XÝYÜ\˜][ÛœÔ[™[ÊNÂˆ\ÜÙ\›X]Ú
-ÛÛ›™XÝYÊÎ”Q“QUÓÓSPS‘‘QTUSÓˆÔTUSÓ”ÊKÊNÂˆ\ÜÙ\›X]Ú
-ÛÛ›™XÝYÕ’QUÑT‹Š“ÔTUÔ‹ŠÓÓSPS‘ÜÊNÂˆ\ÜÙ\›X]Ú
-ÜÜË×˜ÛÛ›™XÝY[Ü\˜][ÛœË\[™[ÊNÂŸJNÂ‚\Ý
-”QZ\š[™È\ÈÙ\\˜]K›ÛKYØ]Y™]›ØØX›K[™XÚØYÙY‹
+const read = path => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+const page = read("app/page.tsx");
+const connected = read("app/v28-connected.tsx");
+const css = read("app/v28.css");
+const legacyCss = read("app/v27-1.css");
+const linux = read("local/lcars_bridge.py");
+const windows = read("windows/lcars_bridge_windows.py");
+const padd = read("shared/lcars_padd.py");
+const builder = read("electron-builder.yml");
+const companion = read("padd/app.js");
+const manifest = read("padd/manifest.webmanifest");
 
-HOˆÂˆ›Üˆ
-ÛÛœÝÚÙ[ˆÙˆÈœÙXÜ™]ËÚÙ[—Ý\›ØY™H‹ÚÙ[’\Ú‹šXXË˜ÛÛ\\™WÙYÙ\Ý‹™^\™\Ð]‹œ™]›ÚÙH‹PÕSÓ—Ô“ÓTÈ‹ŒŒŒŒ—JH\ÜÙ\›X]Ú
-Y™]È™YÑ^
-ÚÙ[‹œ™\XÙP[
-‹ˆ‹—ˆŠJJNÂˆ\ÜÙ\›X]Ú
-YÝ\›Z[˜[š[K›ØÙ\ÜËÜˆÝÙ\ŸPÕSÓ—Ô“ÓTËÊNÂˆ\ÜÙ\›X]Ú
-[^ÔQœÝ\
-
-KÊNÂˆ\ÜÙ\›X]Ú
-Ú[™ÝÜËÔQœÝ\
-
-KÊNÂˆ\ÜÙ\›X]Ú
-Z[\‹ÜÚ\™YÛØ\œ×ÜYœV×××J™œ›ÛNˆYÊNÂˆ\ÜÙ\›X]Ú
-X[šY™\ÝÈ™\Ü^HŽˆœÝ[™[Û™H‹ÊNÂˆ\ÜÙ\›X]Ú
-ÛÛ\[š[Û‹ÛØ\œË\Y]ÚÙ[‹]ŒŽÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-™XY
-œYÚ[™^š[ŠKÙ]K]˜[YOHŠÎ\›Z[˜[š[\ÊH‹ÊNÂŸJNÂ‚\Ý
-œZ\š[™ÈØ[ˆ™H\›YYÚ[HH\ØX›YXžKYY˜][\Ý[™\ˆ\ÈÙ™›[™H‹
+test("Connected settings remain explicit through the Version 28 migration", () => {
+  assert.match(page, /LCARS_VERSION="(?:30\.[2345]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0)"/);
+  assert.match(page, /(?:30\.5 DEV|30\.4 DEV|30\.3 DEV|30\.2 DEV|30\.1 DEV|29 STABLE|29\.3 RC 1|29\.2 DEVELOPMENT|28 STABLE)/);
+  assert.match(page, /ConnectedOperationsPanel/);
+  assert.match(connected, /(?:PADD FLEET COMMAND|FEDERATION OPERATIONS)/);
+  assert.match(connected, /VIEWER.*OPERATOR.*COMMAND/s);
+  assert.match(css, /\.connected-operations-panel/);
+});
 
-HOˆÂˆ\ÜÙ\›X]Ú
-ÛÛ›™XÝYÙ\ØX›YWØ\ÞOOOHœÝ\—KÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-ÛÛ›™XÝYØ\ÞOOOHœÝ\—\Ý]\××›Û›[™KÊNÂˆ\ÜÙ\›X]Ú
-YÜÙ[—œÝ\
-›Ü˜ÙOUYW
-KÊNÂŸJNÂ‚\Ý
-™\ÚÝÜ[™ÛÛ\[š[Ûˆ^Ú[™ÙHÛ›H]Y]YY[ÝÛ\ÝYÛÛ[X[™È‹
+test("PADD pairing is separate, role-gated, revocable, and packaged", () => {
+  for (const token of ["secrets.token_urlsafe", "tokenHash", "hmac.compare_digest", "expiresAt", "revoke", "ACTION_ROLES", "0.0.0.0"]) assert.match(padd, new RegExp(token.replaceAll(".", "\\.")));
+  assert.match(padd, /terminal, file, process, or power|ACTION_ROLES/);
+  assert.match(linux, /PADD\.start\(\)/);
+  assert.match(windows, /PADD\.start\(\)/);
+  assert.match(builder, /shared\/lcars_padd\.py[\s\S]*from: padd/);
+  assert.match(manifest, /"display": "standalone"/);
+  assert.match(companion, /lcars-padd-token-v28/);
+  assert.doesNotMatch(read("padd/index.html"), /data-value="(?:terminal|files)"/);
+});
 
-HOˆÂˆ\ÜÙ\›X]Ú
-YÙKØ\WÜY\Þ[˜ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKØ\WÜYXÛÛ[X[™ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKØÛÛ[X[™˜XÝ[ÛOOHœ›Ý][™H‹ÊNÂˆ\ÜÙ\›X]Ú
-YÕ[šÛ›ÝÛˆÐT”ÈYÙKÊNÂˆ\ÜÙ\›X]Ú
-YÕ[šÛ›ÝÛˆYYXHÛÛ[X[™ÊNÂŸJNÂ‚\Ý
-“[^˜^H^ÜÙ\È˜]]™HÝ]\Ó›ÝYšY\ˆÛÛ^XÝ[ÛœÈ‹
+test("pairing can be armed while the disabled-by-default listener is offline", () => {
+  assert.match(connected, /disabled=\{busy==="start"\}/);
+  assert.doesNotMatch(connected, /busy==="start"\|\|!status\?\.online/);
+  assert.match(padd, /self\.start\(force=True\)/);
+});
 
-HOˆÂˆ\ÜÙ\›X]Ú
-[^ÛÜ™×šÙW”Ý]\Ó›ÝYšY\’][W—ÛY]ÙKÊNÂˆ\ÜÙ\›X]Ú
-[^È˜ÛÛ^ŽˆÛÛ^Y[H‹ÊNÂˆ\ÜÙ\›X]Ú
-[^ÛY[WÜ]\›Ü\WÝ˜[YW
-Ù\šXÙK]“Y[H—
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÛÛÛÛ^Y[OKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÔ’QÒPÓPÒÈ“ÔˆTPÕSÓ”ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÓÜ[ˆ	Ú][W›˜[YWHÛÛ^XÝ[ÛœËÊNÂˆ\ÜÙ\›X]Ú
-YØXÞPÜÜË×˜^K\Ù\šXÙKXÛÛ^ÊNÂŸJNÂ
+test("desktop and companion exchange only queued allowlisted commands", () => {
+  assert.match(page, /api\/padd-sync/);
+  assert.match(page, /api\/padd-commands/);
+  assert.match(page, /command\.action==="routine"/);
+  assert.match(padd, /Unknown LCARS page/);
+  assert.match(padd, /Unknown media command/);
+});
+
+test("Linux tray exposes native StatusNotifier context actions", () => {
+  assert.match(linux, /org\.kde\.StatusNotifierItem\.\{method\}/);
+  assert.match(linux, /"context":"ContextMenu"/);
+  assert.match(linux, /menu_path=property_value\(service,path,"Menu"\)/);
+  assert.match(page, /onContextMenu=/);
+  assert.match(page, /RIGHT-CLICK FOR APP ACTIONS/);
+  assert.match(page, /Open \$\{item\.name\} context actions/);
+  assert.match(legacyCss, /\.tray-service-context/);
+});

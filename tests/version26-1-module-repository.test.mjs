@@ -1,38 +1,41 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿ]xãž8Ûnùó¾µòZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\Ýœ›ÛH	Û›ÙN\Ý	ÎÂš[\Ü\ÜÙ\œ›ÛH	Û›ÙN˜\ÜÙ\ÜÝšXÝ	ÎÂš[\ÜÈ™XYš[TÞ[˜ÈHœ›ÛH	Û›ÙN™œÉÎÂ‚˜ÛÛœÝ^[œÚ[ÛœÈH™XYš[TÞ[˜Ê	ÜÚ\™YÛØ\œ×Ù^[œÚ[ÛœËœIË	Ý]Ž	ÊNÂ˜ÛÛœÝYÙHH™XYš[TÞ[˜Ê	Ø\ÜYÙKÞ	Ë	Ý]Ž	ÊNÂ˜ÛÛœÝ™[™\™\ˆH™XYš[TÞ[˜Ê	Ù\ÚÝÜÜ™[™\™\‹Þ	Ë	Ý]Ž	ÊNÂ˜ÛÛœÝXÚØYÙRœÛÛˆH”ÓÓ‹œ\œÙJ™XYš[TÞ[˜Ê	ÜXÚØYÙKšœÛÛ‰Ë	Ý]Ž	ÊJNÂ‚\Ý
-	Ì‹ŒH\ÝÈÛ›HHYXØ]Y[Ù[\Èœ˜[˜Ú	Ë
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
-OOžÂˆ\ÜÙ\›X]Ú
-^[œÚ[ÛœËÔ‘SSÕWÐÐUSÑ×ÕT“KŠ“ÐT”ËPÛÛ[X[™R[\™˜XÙWÓ[Ù[\×ØØ][Ù×šœÛÛ‹ÊNÂˆ\ÜÙ\›X]Ú
-^[œÚ[ÛœËÕ•TÕQÔU×Ô‘Q’VKŠ“ÐT”ËPÛÛ[X[™R[\™˜XÙWÓ[Ù[\×ËÊNÂˆ\ÜÙ\›X]Ú
-^[œÚ[ÛœËÛ[Ù[HÝÛ›ØYT“\ÈÝ]ÚYHH\ÝY[Ù[\Èœ˜[˜ÚÊNÂŸJNÂ‚\Ý
-	Ì‹ŒH™\šYšY\ÈØ][ÙÈ[Ù[H^[ØYÈ™Y›Ü™H[œÝ[][Û‰Ë
+const extensions = readFileSync('shared/lcars_extensions.py','utf8');
+const page = readFileSync('app/page.tsx','utf8');
+const renderer = readFileSync('desktop/renderer.tsx','utf8');
+const packageJson = JSON.parse(readFileSync('package.json','utf8'));
 
-OOžÂˆ\ÜÙ\›X]Ú
-^[œÚ[ÛœËÚ\ÚX—œÚLM—
-^[ØY
-Wš^YÙ\Ý
-
-KÊNÂˆ\ÜÙ\›X]Ú
-^[œÚ[ÛœËÛ[Ù[HÚXÚÜÝ[H™\šYšXØ][Ûˆ˜Z[YÊNÂˆ\ÜÙ\›X]Ú
-^[œÚ[ÛœËÙÝÛ›ØYY[Ù[HYÙ\È›ÝX]ÚØ][ÙÈ[žKÊNÂˆ\ÜÙ\›X]Ú
-^[œÚ[ÛœËÙÝÛ›ØYY[Ù[H™\œÚ[ÛˆÙ\È›ÝX]ÚØ][ÙÈ[žKÊNÂŸJNÂ‚\Ý
-	Ú[YÜ˜]Y[Ù[H™\ÜÚ]ÜžH\ÈH\]\ÈÛÝÈœ›ÝÜÙ\‰Ë
+test('26.1 trusts only the dedicated Modules branch',()=>{
+  assert.match(extensions,/REMOTE_CATALOG_URL=.*LCARS-Command-Interface\/Modules\/catalog\.json/);
+  assert.match(extensions,/TRUSTED_RAW_PREFIX=.*LCARS-Command-Interface\/Modules\//);
+  assert.match(extensions,/module download URL is outside the trusted Modules branch/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKÔÕP“HSÑSHTHŒÈ0­ÈÒQÓ‘QPÒÐQÑTÈ0­ÈTÓÓUQÔÕ‘S‘T‘T‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÓÔSˆU“Ô“KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÔÑPTÒSÑSHU“Ô“KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÛÜ\˜]W
-[žK\]H—
-KÊNÂˆ\ÜÙ\™\]X[
+test('26.1 verifies catalog module payloads before installation',()=>{
+  assert.match(extensions,/hashlib\.sha256\(payload\)\.hexdigest\(\)/);
+  assert.match(extensions,/module checksum verification failed/);
+  assert.match(extensions,/downloaded module id does not match catalog entry/);
+  assert.match(extensions,/downloaded module version does not match catalog entry/);
+});
 
-YÙK›X]Ú
-Ï^[œÚ[Û’XˆÜ[žQY˜][[œÝ[YWÙ^[œÚ[Ûœ×KÙÊ_×JK›[™ÝJNÂŸJNÂ‚\Ý
-	Ù\ÚÝÜ™[™\™\ˆØYÈ™\œÚ[Ûˆ‹ŒHÝ[[™ÈY\ˆ™\œÚ[ÛˆIË
+test('integrated Module Repository is the Updates slot 03 browser',()=>{
+  assert.match(page,/STABLE MODULE API V3 Â· SIGNED PACKAGES Â· ISOLATED HOST RENDERER/);
+  assert.match(page,/OPEN PLATFORM/);
+  assert.match(page,/SEARCH MODULE PLATFORM/);
+  assert.match(page,/operate\(entry,"update"\)/);
+  assert.equal((page.match(/<ExtensionHub openByDefault installed=\{extensions\}/g)||[]).length,1);
+});
 
-OOžÂˆÛÛœÝŒHH™[™\™\‹š[™^ÙŠ	Ú[\Ü‹‹‹Ø\ÝŒK˜ÜÜÈ‰ÊNÂˆÛÛœÝŒŒHH™[™\™\‹š[™^ÙŠ	Ú[\Ü‹‹‹Ø\ÝŒ‹LK˜ÜÜÈ‰ÊNÂˆ\ÜÙ\››Ý\]X[
-ŒKLJNÂˆ\ÜÙ\›ÚÊŒŒHˆŒJNÂŸJNÂ‚\Ý
-	Û™]Ù\ˆØ[™Y]\È™]Z[ˆ™\œÚ[Ûˆ‹ŒH™\ÜÚ]ÜžHÛÝ™\˜YÙIË
+test('desktop renderer loads Version 26.1 styling after Version 25',()=>{
+  const v25 = renderer.indexOf('import "../app/v25.css"');
+  const v261 = renderer.indexOf('import "../app/v26-1.css"');
+  assert.notEqual(v25,-1);
+  assert.ok(v261 > v25);
+});
 
-OOžÂˆ\ÜÙ\›ÚÊÉÌÌKŒY]‹ŒIË	ÌÌŒY]‹ŒIË	ÌÌŒËŒY]‹ŒIË	ÌÌŒ‹ŒY]‹ŒIË	ÌÌŒKŒY]‹Œ‰Ë	ÌŽKŒŒ	Ë	ÌŽKŒËŒ\˜ËŒIË	ÌŽKŒ‹ŒY]‹ŒIË	ÌŽŒŒ	Ë	ÌŽŒËŒ\˜ËŒIË	ÌŽŒ‹ŒY]‹ŒIË	ÌËŒ‹ŒKY]‹ŒIË	ÌËŒ‹ŒY]‹ŒIË	ÌËŒKŒKY]‹ŒIË	Ì‹ŒËŒY]‹ŒIË	Ì‹ŒŒ	×Kš[˜ÛY\ÊXÚØYÙRœÛÛ‹™\œÚ[ÛŠJNÂˆ\ÜÙ\›X]Ú
-YÙKÌÌHUŸÌUŸÌŒÈUŸÌŒˆUŸÌŒHUŸŽHÕP“_ŽWŒÈÈ_ŽWŒˆU‘SÔQS•ŽÕP“_ŽŒÈÈ_ŽŒˆUŸ×ŒŠÎ—ŒJOÈUŸ×ŒJÎ—ŒJOÈUŸ—ŒÈßˆÕP“KÊNÂŸJNÂ
+test('newer candidates retain Version 26.1 repository coverage',()=>{
+  assert.ok(['30.5.0-dev.1','30.4.0-dev.1','30.3.0-dev.1','30.2.0-dev.1','30.1.0-dev.2','29.0.0','29.3.0-rc.1','29.2.0-dev.1','28.0.0','28.3.0-rc.1','28.2.0-dev.1','27.2.1-dev.1','27.2.0-dev.1','27.1.1-dev.1','26.3.0-dev.1','26.0.0'].includes(packageJson.version));
+  assert.match(page,/30\.5 DEV|30\.4 DEV|30\.3 DEV|30\.2 DEV|30\.1 DEV|29 STABLE|29\.3 RC 1|29\.2 DEVELOPMENT|28 STABLE|28\.3 RC 1|28\.2 DEV|27\.2(?:\.1)? DEV|27\.1(?:\.1)? DEV|26\.3 RC|26 STABLE/);
+});

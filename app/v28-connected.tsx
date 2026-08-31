@@ -1,188 +1,171 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨ŸmüÓİtóÎ6×ÎüÒZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéˆ\ÙHÛY[Â‚š[\ÜÈ\ÙSY[[Ë\ÙTİ]HHœ›ÛHœ™XXİÂ‚™^Ü\HY›ÛHHšY]Ù\ˆˆ›Ü\˜]Üˆˆ˜ÛÛ[X[™Â™^Ü\HY\›Z\ÜÚ[ÛˆH›˜]šYØ]Hˆ›YYXHˆ›Û[YHˆ™™ˆœ›İ][™Hˆ˜\ˆÛÜšÜİ][Ûˆˆ››İXÙK\™XYˆ››İXÙKX\˜Ú]™Hˆ››İXÙKY\ÛZ\ÜËX[ˆœ]ZXÚÈˆš[™Ù™ˆˆ˜Û\›Ø\™ˆ™š[K\™XÙZ]™Hˆ˜]]Ğ\›İ™Hˆ˜ÛÛ[][šXØ][ÛœÈˆ[[Y]HÂ™^Ü\HYÚYÙ]Hœİ]\Èˆ›YYXHˆ˜ÛÛ[][šXØ][ÛœÈˆ[[Y]Hˆœ]ZXÚËXXİ[ÛœÈÂ™^Ü\HY›İYšXØ][Û”Ù][™ÜÈHÙ[˜X›Y˜›ÛÛX[Üš[Üš]SÛ›N˜›ÛÛX[ØÛÛ›™Xİ[Û‘]™[Î˜›ÛÛX[Ü›İ][™T™\İ[Î˜›ÛÛX[ŸNÂ™^Ü\HYŞ[˜ÔÛXŞHHÜYÙN˜›ÛÛX[ÛYYXN˜›ÛÛX[Û›İYšXØ][ÛœÎ˜›ÛÛX[İ[[Y]N˜›ÛÛX[İÛÜšÜİ][ÛœÎ˜›ÛÛX[Ø\XØ][ÛœÎ˜›ÛÛX[Ü›ØÙY\™\Î˜›ÛÛX[ØXØÙ\ÜÚXš[]N˜›ÛÛX[Ü™XÙ[][\Î˜›ÛÛX[ØXİ]š]N˜›ÛÛX[ØÛ\›Ø\™˜›ÛÛX[ÜÛX[š[\Î˜›ÛÛX[Üš]˜]TİÜ˜YÙN˜›ÛÛX[ŸNÂ™^Ü\HY]šXÙHHÂˆYœİš[™ÎÛ˜[YNœİš[™ÎÜ›ÛN”Y›ÛNØÜ™X]Y]›[X™\Û\İÙY[›[X™\ÛÛ›[™OÎ˜›ÛÛX[Âˆ\İY™\ÜÏÎœİš[™ÎØÛÛ›™Xİ[ÛÛİ[Î›[X™\Ø˜]\OÎ›[X™\Û™]ÛÜšÏÎœİš[™ÎÛ][˜ŞS\ÏÎ›[X™\ØÛY[™\œÚ[ÛÎœİš[™ÎÂˆ\›Z\ÜÚ[ÛœÏÎ”\X[™XÛÜ™Y\›Z\ÜÚ[Û‹›ÛÛX[İÚYÙ]ÏÎ”YÚYÙ]×NİÛÜšÜİ][ÛÎœİš[™ÎÜ›Ş[Z]OÎ˜›ÛÛX[Âˆ›İYšXØ][ÛœÏÎ”\X[Y›İYšXØ][Û”Ù][™ÜÏØÛÛ\]Xš[]OÎˆ˜ÛÛ\]X›HŸ˜ÛY[[İ]]YŸœİ][Û‹[İ]]YŸ[šÛ›İÛˆÂˆŞ[˜ÏÎ”\X[YŞ[˜ÔÛXŞOİ˜[œÜÜÎœİš[™ÎÜ]Y]YY[]™\šY\ÏÎ›[X™\ÂŸNÂ™^Ü\HY\›İ˜[HÚYœİš[™ÎØXİ[Ûœİš[™Îİ˜[YN[šÛ›İÛÙ]šXÙNœİš[™ÎÙ]šXÙS˜[YNœİš[™ÎØÜ™X]Y]›[X™\Ù^\™\Ğ]›[X™\ŸNÂ™^Ü\HYXİ]š]HHÚYœİš[™ÎØXİ[Ûœİš[™ÎÙ]šXÙNœİš[™ÎÙ]šXÙS˜[YNœİš[™ÎÜİ]\Îœİš[™ÎÙ]Z[œİš[™ÎØÜ™X]Y]›[X™\ŸNÂ™^Ü\HYİ]\ÈHÂˆÚÎ˜›ÛÛX[Ù[˜X›Y˜›ÛÛX[ÛÛ›[™N˜›ÛÛX[Ù\œ›ÜÎœİš[™ÎÜÜ›[X™\İ™\œÚ[Ûœİš[™ÎÜ]›Ü›Nœİš[™ÎÂˆY™\ÜÙ\Îœİš[™Ö×NÙ]šXÙ\Î”Y]šXÙV×NØÛ\›Ø\™[˜X›YÎ˜›ÛÛX[ØXİ]š]OÎ”YXİ]š]V×NØ\›İ˜[ÏÎ”Y\›İ˜[×NÂˆš[U˜[œÙ™\‘[˜X›YÎ˜›ÛÛX[Üİ][ÛÎÚYœİš[™ÎÛ˜[YNœİš[™ÎÙš[™Ù\œš[œİš[™ÎØÜ™X]Y]›[X™\ŸNÙ\ØÛİ™\OÎÙ[˜X›Y˜›ÛÛX[ÜÜ›[X™\ŸNÂˆXYÛ›ÜİXÜÏÎØÛÛ›™XİY›[X™\ÜZ\™Y›[X™\Ü[™[™Ğ\›İ˜[Î›[X™\Ü]Y]YYÛÛ[X[™Î›[X™\Ü]Y]YY[]™\šY\ÏÎ›[X™\Ù]™[˜XÚÛÙÎ›[X™\ŸNÂˆZ\š[™ÏÎØÛÙOÎœİš[™ÎÙ^\™\Ğ]›[X™\Ÿ_[ÛY\ÜØYÙOÎœİš[™ÎÂŸNÂ™^Ü\HYÜ\˜][ÛˆHœİ\ˆ™\ØX›Hˆœ™]›ÚÙHˆœ›ÛHˆœ™[˜[YHˆœ\›Z\ÜÚ[ÛœÈˆœ›Ùš[Hˆ›^[İ]ˆœ›Ş[Z]HˆšY[YHˆ˜Û\›Ø\™ˆ™š[K]˜[œÙ™\ˆˆ˜\›İ™Hˆ™[Hˆ››İYšXØ][ÛœÈˆœŞ[˜Ë\ÛXŞHˆœ™\Ù]ˆ˜ÛÜK\Ù][™ÜÈˆœİ][Û‹\™[˜[YHˆ™[]™\Hˆ˜ÛX\‹\]Y]YHÂ‚˜ÛÛœİ\›Z\ÜÚ[Û‘Ü›İ\Îİ]Nœİš[™ÎÚ][\ÎÚY”Y\›Z\ÜÚ[ÛÛX™[œİš[™ßV×_V×OVÂˆİ]Nˆ”ĞQ‘HÓÓ•“Ó‹][\Î–ŞÚYˆ›˜]šYØ]H‹X™[ˆ“U’QĞUSÓˆŸKÚYˆ›YYXH‹X™[ˆ“QQPHŸKÚYˆ›Û[YH‹X™[ˆ•“ÓSQHŸKÚYˆœ]ZXÚÈ‹X™[ˆ”URPÒÈPÕSÓ”ÈŸW_Kˆİ]NˆÓÓ“‘PÕQÔTUSÓ”È‹][\Î–ŞÚYˆ˜ÛÛ[][šXØ][ÛœÈ‹X™[ˆÓÓSUS’PĞUSÓ”ÈŸKÚYˆ[[Y]H‹X™[ˆ•SSQU–HŸKÚYˆ››İXÙK\™XY‹X™[ˆPÒÓ“ÕÓQÑHŸKÚYˆ››İXÙKX\˜Ú]™H‹X™[ˆTÒU‘HŸKÚYˆ››İXÙKY\ÛZ\ÜËX[‹X™[ˆ‘TÓRTÔÈSŸKÚYˆš[™Ù™ˆ‹X™[ˆ’S‘Ñ‘ˆŸW_Kˆİ]NˆÓÓSPS‘‘TUQTÕÈ‹][\Î–ŞÚYˆ™™‹X™[ˆ‘‘ŸKÚYˆœ›İ][™H‹X™[ˆ”“ÕUS‘TÈŸKÚYˆ˜\‹X™[ˆTPĞUSÓ”ÈŸKÚYˆÛÜšÜİ][Ûˆ‹X™[ˆ•ÓÔ’ÔÕUSÓ”ÈŸKÚYˆ˜Û\›Ø\™‹X™[ˆ•VÓT“ĞT‘ŸKÚYˆ™š[K\™XÙZ]™H‹X™[ˆ”ÓPS’STÈŸKÚYˆ˜]]Ğ\›İ™H‹X™[ˆUUËPT“Õ‘HŸW_K—NÂ˜ÛÛœİÚYÙ]ÎÚY”YÚYÙ]ÛX™[œİš[™ßV×OVÂˆÚYˆœİ]\È‹X™[ˆ”ÕUSÓˆÕUTÈŸKÚYˆ›YYXH‹X™[ˆ““ÕÈVRS‘ÈŸKÚYˆ˜ÛÛ[][šXØ][ÛœÈ‹X™[ˆÓÓSUS’PĞUSÓ”ÈŸKÚYˆ[[Y]H‹X™[ˆ•SSQU–HŸKÚYˆœ]ZXÚËXXİ[ÛœÈ‹X™[ˆ”URPÒÈPÕSÓ”ÈŸK—NÂ˜ÛÛœİ›ÛQY˜][Î”™XÛÜ™Y›ÛK\X[™XÛÜ™Y\›Z\ÜÚ[Û‹›ÛÛX[^ÂˆšY]Ù\ØÛÛ[][šXØ][ÛœÎYK[[Y]NY_KˆÜ\˜]ÜÛ˜]šYØ]NYKYYXNYK›Û[YNYK]ZXÚÎYKÛÛ[][šXØ][ÛœÎYK[[Y]NYK››İXÙK\™XYYK››İXÙKX\˜Ú]™HYK››İXÙKY\ÛZ\ÜËX[YK[™Ù™Y_KˆÛÛ[X[™Û˜]šYØ]NYKYYXNYK›Û[YNYK]ZXÚÎYKÛÛ[][šXØ][ÛœÎYK[[Y]NYK››İXÙK\™XYYK››İXÙKX\˜Ú]™HYK››İXÙKY\ÛZ\ÜËX[YK[™Ù™YK™YK›İ][™NYK\YKÛÜšÜİ][ÛYKÛ\›Ø\™YK™š[K\™XÙZ]™HYK]]Ğ\›İ™N™˜[Ù_KŸNÂ˜ÛÛœİ›İYšXØ][Û‘Y˜][Î”Y›İYšXØ][Û”Ù][™ÜÏ^Ù[˜X›YYKš[Üš]SÛ›NYKÛÛ›™Xİ[Û‘]™[ÎYK›İ][™T™\İ[ÎY_NÂ˜ÛÛœİŞ[˜ÑY˜][Î”YŞ[˜ÔÛXŞO^ÜYÙNYKYYXNYK›İYšXØ][ÛœÎYK[[Y]NYKÛÜšÜİ][ÛœÎYK\XØ][ÛœÎYK›ØÙY\™\ÎYKXØÙ\ÜÚXš[]NYK™XÙ[][\ÎYKXİ]š]N™˜[ÙKÛ\›Ø\™™˜[ÙKÛX[š[\Î™˜[ÙKš]˜]TİÜ˜YÙN™˜[Ù_NÂ‚˜ÛÛœİYÙOJİ[\›[X™\ŠOOœİ[\Û™]È]Jİ[\
-ŒL
-KÓØØ[Tİš[™Ê
-Nˆ“‘U‘TˆÂ˜ÛÛœİ\Ü^U˜[YOJ˜[YN[šÛ›İÛŠOO\[Ùˆ˜[YOOOHœİš[™Èİ˜[YN’”ÓÓ‹œİš[™ÚYJ˜[YJNÂ‚™^Ü[˜İ[ÛˆÛÛ›™XİYÜ\˜][ÛœÔ[™[
-Üİ]\Ë\ŞK›İËÛÜšÜİ][ÛœË™Yœ™\ÚÜ\˜]_NÂˆİ]\Î”Yİ]\ß[Ø\ŞNœİš[™ÎÛ›İÎ›[X™\İÛÜšÜİ][ÛœÎÚYœİš[™ÎÛ˜[YNœİš[™ßV×NÜ™Yœ™\ÚŠ
-OO›ÚYÂˆÜ\˜]NŠÜ\˜][Û”YÜ\˜][Û‹]šXÙOÎ”Y]šXÙK^[ØYÎ”™XÛÜ™İš[™Ë[šÛ›İÛŠOO›ÚYÂŸJ^ÂˆÛÛœİØ\™XKÙ]\™XWO]\ÙTİ]O™™Y\˜][ÛˆŸ™›Y]Ÿ˜\›İ˜[ÈŸ˜Xİ]š]HŸ™XYÛ›ÜİXÜÈŠ™™Y\˜][ÛˆŠNÂˆÛÛœİØÛÜYYÙ]ÛÜYYO]\ÙTİ]J˜[ÙJNÂˆÛÛœİÛ˜[Y\ËÙ]˜[Y\×O]\ÙTİ]O™XÛÜ™İš[™Ëİš[™ÏŠßJNÂˆÛÛœİØÛÜTÛİ\˜Ù\ËÙ]ÛÜTÛİ\˜Ù\×O]\ÙTİ]O™XÛÜ™İš[™Ëİš[™ÏŠßJNÂˆÛÛœİÙ[]™\U^Ù][]™\U^O]\ÙTİ]O™XÛÜ™İš[™Ëİš[™ÏŠßJNÂˆÛÛœİÜİ][Û“˜[YKÙ]İ][Û“˜[YWO]\ÙTİ]JˆŠNÂˆÛÛœİ™[XZ[š[™Ï\İ]\ÏËœZ\š[™ÏÓX]›X^
-İ]\ËœZ\š[™Ë™^\™\Ğ][›İÊNŒÂˆÛÛœİš[X\PY™\ÜÏ\İ]\ÏË˜Y™\ÜÙ\ÖÌ_ˆÂˆÛÛœİÙ]\]Z[ÏVÜš[X\PY™\ÜËİ]\ÏËœZ\š[™ÏË˜ÛÙOØÓÑH	Üİ]\ËœZ\š[™Ë˜ÛÙ_XˆT“HHÓÑHSˆĞT”È—K™š[\Š›ÛÛX[ŠKš›Ú[Šˆ0­ÈŠNÂˆÛÛœİİ[[X\O\İ]\ÏË™XYÛ›ÜİXÜßØÛÛ›™XİYŒZ\™Yœİ]\ÏË™]šXÙ\Ë›[™İ[™[™Ğ\›İ˜[Îœİ]\ÏË˜\›İ˜[ÏË›[™İ]Y]YYÛÛ[X[™ÎŒ]Y]YY[]™\šY\ÎŒ]™[˜XÚÛÙÎŒNÂˆÛÛœİÛ›[™Q]šXÙ\Ï]\ÙSY[[Ê
+"use client";
 
-OOœİ]\ÏË™]šXÙ\Ë™š[\Š
-]šXÙJOO™]šXÙK›Û›[™J_×KÜİ]\×JNÂˆÛÛœİÛÜTÙ]\J
-OO›˜]šYØ]Ü‹˜Û\›Ø\™ËÜš]U^
-Ù]\]Z[ÊK[Š
+import { useMemo, useState } from "react";
 
-OOÜÙ]ÛÜYY
-YJNİÚ[™İËœÙ][Y[İ]
+export type PaddRole = "viewer" | "operator" | "command";
+export type PaddPermission = "navigate" | "media" | "volume" | "dnd" | "routine" | "app" | "workstation" | "notice-read" | "notice-archive" | "notice-dismiss-all" | "quick" | "handoff" | "clipboard" | "file-receive" | "autoApprove" | "communications" | "telemetry";
+export type PaddWidget = "status" | "media" | "communications" | "telemetry" | "quick-actions";
+export type PaddNotificationSettings = {enabled:boolean;priorityOnly:boolean;connectionEvents:boolean;routineResults:boolean};
+export type PaddSyncPolicy = {page:boolean;media:boolean;notifications:boolean;telemetry:boolean;workstations:boolean;applications:boolean;procedures:boolean;accessibility:boolean;recentItems:boolean;activity:boolean;clipboard:boolean;smallFiles:boolean;privateStorage:boolean};
+export type PaddDevice = {
+  id:string;name:string;role:PaddRole;createdAt:number;lastSeen:number;online?:boolean;
+  lastAddress?:string;connectionCount?:number;battery?:number;network?:string;latencyMs?:number;clientVersion?:string;
+  permissions?:Partial<Record<PaddPermission,boolean>>;widgets?:PaddWidget[];workstation?:string;proximity?:boolean;
+  notifications?:Partial<PaddNotificationSettings>;compatibility?:"compatible"|"client-outdated"|"station-outdated"|"unknown";
+  sync?:Partial<PaddSyncPolicy>;transport?:string;queuedDeliveries?:number;
+};
+export type PaddApproval = {id:string;action:string;value:unknown;device:string;deviceName:string;createdAt:number;expiresAt:number};
+export type PaddActivity = {id:string;action:string;device:string;deviceName:string;status:string;detail:string;createdAt:number};
+export type PaddStatus = {
+  ok:boolean;enabled:boolean;online:boolean;error?:string;port:number;version:string;platform:string;
+  addresses:string[];devices:PaddDevice[];clipboardEnabled?:boolean;activity?:PaddActivity[];approvals?:PaddApproval[];
+  fileTransferEnabled?:boolean;station?:{id:string;name:string;fingerprint:string;createdAt:number};discovery?:{enabled:boolean;port:number};
+  diagnostics?:{connected:number;paired:number;pendingApprovals:number;queuedCommands:number;queuedDeliveries?:number;eventBacklog:number};
+  pairing?:{code?:string;expiresAt:number}|null;message?:string;
+};
+export type PaddOperation = "start" | "disable" | "revoke" | "role" | "rename" | "permissions" | "profile" | "layout" | "proximity" | "identify" | "clipboard" | "file-transfer" | "approve" | "deny" | "notifications" | "sync-policy" | "preset" | "copy-settings" | "station-rename" | "delivery" | "clear-queue";
 
+const permissionGroups:{title:string;items:{id:PaddPermission;label:string}[]}[]=[
+  {title:"SAFE CONTROL",items:[{id:"navigate",label:"NAVIGATION"},{id:"media",label:"MEDIA"},{id:"volume",label:"VOLUME"},{id:"quick",label:"QUICK ACTIONS"}]},
+  {title:"CONNECTED OPERATIONS",items:[{id:"communications",label:"COMMUNICATIONS"},{id:"telemetry",label:"TELEMETRY"},{id:"notice-read",label:"ACKNOWLEDGE"},{id:"notice-archive",label:"ARCHIVE"},{id:"notice-dismiss-all",label:"DISMISS ALL"},{id:"handoff",label:"HANDOFF"}]},
+  {title:"COMMAND REQUESTS",items:[{id:"dnd",label:"DND"},{id:"routine",label:"ROUTINES"},{id:"app",label:"APPLICATIONS"},{id:"workstation",label:"WORKSTATIONS"},{id:"clipboard",label:"TEXT CLIPBOARD"},{id:"file-receive",label:"SMALL FILES"},{id:"autoApprove",label:"AUTO-APPROVE"}]},
+];
+const widgets:{id:PaddWidget;label:string}[]=[
+  {id:"status",label:"STATION STATUS"},{id:"media",label:"NOW PLAYING"},{id:"communications",label:"COMMUNICATIONS"},{id:"telemetry",label:"TELEMETRY"},{id:"quick-actions",label:"QUICK ACTIONS"},
+];
+const roleDefaults:Record<PaddRole,Partial<Record<PaddPermission,boolean>>>={
+  viewer:{communications:true,telemetry:true},
+  operator:{navigate:true,media:true,volume:true,quick:true,communications:true,telemetry:true,"notice-read":true,"notice-archive":true,"notice-dismiss-all":true,handoff:true},
+  command:{navigate:true,media:true,volume:true,quick:true,communications:true,telemetry:true,"notice-read":true,"notice-archive":true,"notice-dismiss-all":true,handoff:true,dnd:true,routine:true,app:true,workstation:true,clipboard:true,"file-receive":true,autoApprove:false},
+};
+const notificationDefaults:PaddNotificationSettings={enabled:true,priorityOnly:true,connectionEvents:true,routineResults:true};
+const syncDefaults:PaddSyncPolicy={page:true,media:true,notifications:true,telemetry:true,workstations:true,applications:true,procedures:true,accessibility:true,recentItems:true,activity:false,clipboard:false,smallFiles:false,privateStorage:false};
 
-OOœÙ]ÛÜYY
-˜[ÙJKN
-NßJK˜Ø]Ú
+const age=(stamp:number)=>stamp?new Date(stamp*1000).toLocaleString():"NEVER";
+const displayValue=(value:unknown)=>typeof value==="string"?value:JSON.stringify(value);
 
+export function ConnectedOperationsPanel({status,busy,now,workstations,refresh,operate}:{
+  status:PaddStatus|null;busy:string;now:number;workstations:{id:string;name:string}[];refresh:()=>void;
+  operate:(operation:PaddOperation,device?:PaddDevice,payload?:Record<string,unknown>)=>void;
+}){
+  const [area,setArea]=useState<"federation"|"fleet"|"approvals"|"activity"|"diagnostics">("federation");
+  const [copied,setCopied]=useState(false);
+  const [names,setNames]=useState<Record<string,string>>({});
+  const [copySources,setCopySources]=useState<Record<string,string>>({});
+  const [deliveryText,setDeliveryText]=useState<Record<string,string>>({});
+  const [stationName,setStationName]=useState("");
+  const remaining=status?.pairing?Math.max(0,status.pairing.expiresAt-now):0;
+  const primaryAddress=status?.addresses[0]||"";
+  const setupDetails=[primaryAddress,status?.pairing?.code?`CODE ${status.pairing.code}`:"ARM A CODE IN LCARS"].filter(Boolean).join(" Â· ");
+  const summary=status?.diagnostics||{connected:0,paired:status?.devices.length||0,pendingApprovals:status?.approvals?.length||0,queuedCommands:0,queuedDeliveries:0,eventBacklog:0};
+  const onlineDevices=useMemo(()=>status?.devices.filter((device)=>device.online)||[],[status]);
+  const copySetup=()=>navigator.clipboard?.writeText(setupDetails).then(()=>{setCopied(true);window.setTimeout(()=>setCopied(false),1800);}).catch(()=>{});
+  const permission=(device:PaddDevice,id:PaddPermission)=>device.permissions?.[id]??Boolean(roleDefaults[device.role][id]);
+  const notification=(device:PaddDevice,id:keyof PaddNotificationSettings)=>device.notifications?.[id]??notificationDefaults[id];
+  const sync=(device:PaddDevice,id:keyof PaddSyncPolicy)=>device.sync?.[id]??syncDefaults[id];
+  const changePermission=(device:PaddDevice,id:PaddPermission,value:boolean)=>operate("permissions",device,{permissions:{...device.permissions,[id]:value}});
+  const changeNotification=(device:PaddDevice,id:keyof PaddNotificationSettings,value:boolean)=>operate("notifications",device,{notifications:{...notificationDefaults,...device.notifications,[id]:value}});
+  const changeSync=(device:PaddDevice,id:keyof PaddSyncPolicy,value:boolean)=>operate("sync-policy",device,{sync:{...syncDefaults,...device.sync,[id]:value}});
+  const changeWidget=(device:PaddDevice,id:PaddWidget,value:boolean)=>{
+    const current=device.widgets?.length?device.widgets:widgets.map((item)=>item.id);
+    const next=value?Array.from(new Set([...current,id])):current.filter((item)=>item!==id);
+    operate("layout",device,{widgets:next});
+  };
+  const submitName=(device:PaddDevice)=>{
+    const value=(names[device.id]??device.name).trim().slice(0,48);
+    if(value&&value!==device.name)operate("rename",device,{value});
+  };
+  const exportDiagnostics=()=>{
+    const report={schema:1,kind:"lcars-connected-diagnostics",generatedAt:new Date().toISOString(),station:{enabled:Boolean(status?.enabled),online:Boolean(status?.online),version:status?.version||"unknown",platform:status?.platform||"unknown",listenerPort:status?.port||0,privateAddressAvailable:Boolean(status?.addresses.length),summary},devices:(status?.devices||[]).map((device,index)=>({device:`PADD ${String(index+1).padStart(2,"0")}`,online:Boolean(device.online),role:device.role,battery:device.battery,networkType:device.network,latencyMs:device.latencyMs,clientVersion:device.clientVersion||"unknown",compatibility:device.compatibility||"unknown",connectionCount:device.connectionCount||0,permissions:device.permissions||{},widgets:device.widgets||[],notifications:{...notificationDefaults,...device.notifications}}))};
+    const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:"application/json"})),link=document.createElement("a");
+    link.href=url;link.download=`lcars-connected-diagnostics-${new Date().toISOString().slice(0,10)}.json`;link.click();URL.revokeObjectURL(url);
+  };
+  const mismatches=status?.devices.filter((device)=>device.compatibility&&device.compatibility!=="compatible"&&device.compatibility!=="unknown")||[];
+  const sendText=(device:PaddDevice,kind:"clipboard"|"notice")=>{const value=(deliveryText[device.id]||"").trim();if(!value)return;operate("delivery",device,{kind,payload:kind==="clipboard"?{text:value}:{title:"LCARS TRANSMISSION",text:value,priority:"priority"}});setDeliveryText((old)=>({...old,[device.id]:""}));};
+  const sendFile=(device:PaddDevice,file:File)=>{if(file.size>524288)return window.alert("Federation file transfers are limited to 512 KiB.");const reader=new FileReader();reader.onload=()=>operate("delivery",device,{kind:"file",payload:{name:file.name,mime:file.type||"application/octet-stream",content:String(reader.result).split(",")[1]||""}});reader.readAsDataURL(file);};
+  return <section className="connected-operations-panel">
+    <header className="connected-operations-head">
+      <span><small>VERSION 30.5 DEVELOPMENT Â· DATA FABRIC</small><b>FEDERATION OPERATIONS</b><p>One operator, many trusted stations: automatic discovery, durable identities, AES-256-GCM synchronization, selective data routes, operational handoff, and bounded offline delivery queues.</p></span>
+      <strong className={status?.enabled&&status.online?"online":""}>{status?.enabled&&status.online?"LINK ONLINE":"LINK STANDBY"}</strong>
+    </header>
+    <div className="connected-summary">
+      <article><small>CONNECTED</small><b>{String(summary.connected).padStart(2,"0")}</b><em>{summary.paired} TRUSTED DEVICE{summary.paired===1?"":"S"}</em></article>
+      <article><small>APPROVAL QUEUE</small><b>{String(summary.pendingApprovals).padStart(2,"0")}</b><em>SENSITIVE REQUESTS WAIT HERE</em></article>
+      <article><small>LINK HEALTH</small><b>{status?.online?"NOMINAL":"OFFLINE"}</b><em>{status?.error||`${onlineDevices.length} ACTIVE Â· ${summary.queuedCommands} QUEUED`}</em></article>
+      <article><small>TEXT CLIPBOARD</small><b>{status?.clipboardEnabled?"ARMED":"BLOCKED"}</b><em>TEXT ONLY Â· DESKTOP APPROVAL</em></article>
+    </div>
+    <nav className="connected-area-tabs" aria-label="Connected Operations categories">
+      {([['federation','FEDERATION'],['fleet','TRUST + POLICY'],['approvals',`APPROVALS ${summary.pendingApprovals?`Â· ${summary.pendingApprovals}`:""}`],['activity','TIMELINE'],['diagnostics','DIAGNOSTICS']] as const).map(([id,label])=><button key={id} aria-current={area===id?"page":undefined} onClick={()=>setArea(id)}>{label}</button>)}
+    </nav>
 
-OOßJNÂˆÛÛœİ\›Z\ÜÚ[ÛJ]šXÙN”Y]šXÙKY”Y\›Z\ÜÚ[ÛŠOO™]šXÙKœ\›Z\ÜÚ[ÛœÏË–ÚYOÏĞ›ÛÛX[Š›ÛQY˜][ÖÙ]šXÙKœ›ÛWVÚYJNÂˆÛÛœİ›İYšXØ][ÛJ]šXÙN”Y]šXÙKYšÙ^[ÙˆY›İYšXØ][Û”Ù][™ÜÊOO™]šXÙK››İYšXØ][ÛœÏË–ÚYOÏÛ›İYšXØ][Û‘Y˜][ÖÚYNÂˆÛÛœİŞ[˜ÏJ]šXÙN”Y]šXÙKYšÙ^[ÙˆYŞ[˜ÔÛXŞJOO™]šXÙKœŞ[˜ÏË–ÚYOÏÜŞ[˜ÑY˜][ÖÚYNÂˆÛÛœİÚ[™ÙT\›Z\ÜÚ[ÛJ]šXÙN”Y]šXÙKY”Y\›Z\ÜÚ[Û‹˜[YN˜›ÛÛX[ŠOO›Ü\˜]Jœ\›Z\ÜÚ[ÛœÈ‹]šXÙKÜ\›Z\ÜÚ[ÛœÎË‹‹™]šXÙKœ\›Z\ÜÚ[ÛœËÚYN˜[Y__JNÂˆÛÛœİÚ[™ÙS›İYšXØ][ÛJ]šXÙN”Y]šXÙKYšÙ^[ÙˆY›İYšXØ][Û”Ù][™ÜË˜[YN˜›ÛÛX[ŠOO›Ü\˜]J››İYšXØ][ÛœÈ‹]šXÙKÛ›İYšXØ][ÛœÎË‹‹››İYšXØ][Û‘Y˜][Ë‹‹™]šXÙK››İYšXØ][ÛœËÚYN˜[Y__JNÂˆÛÛœİÚ[™ÙTŞ[˜ÏJ]šXÙN”Y]šXÙKYšÙ^[ÙˆYŞ[˜ÔÛXŞK˜[YN˜›ÛÛX[ŠOO›Ü\˜]JœŞ[˜Ë\ÛXŞH‹]šXÙKÜŞ[˜ÎË‹‹œŞ[˜ÑY˜][Ë‹‹™]šXÙKœŞ[˜ËÚYN˜[Y__JNÂˆÛÛœİÚ[™ÙUÚYÙ]J]šXÙN”Y]šXÙKY”YÚYÙ]˜[YN˜›ÛÛX[ŠOOÂˆÛÛœİİ\œ™[Y]šXÙKÚYÙ]ÏË›[™İÙ]šXÙKÚYÙ]ÎÚYÙ]Ë›X\
+    {area==="federation"&&<>
+      <section className="federation-identity">
+        <header><span><small>PERSISTENT STATION IDENTITY</small><b>{status?.station?.name||"LCARS STATION"}</b></span><em>{status?.station?.fingerprint||"IDENTITY INITIALIZING"}</em></header>
+        <div><label><small>STATION NAME</small><input value={stationName||status?.station?.name||""} onChange={(event)=>setStationName(event.target.value)} maxLength={48}/></label><button onClick={()=>{const value=(stationName||status?.station?.name||"").trim();if(value)operate("station-rename",undefined,{value});}}>SAVE IDENTITY</button><article><small>DISCOVERY BEACON</small><b>{status?.discovery?.enabled?`ONLINE Â· UDP ${status.discovery.port}`:"STANDBY"}</b></article><article><small>TRANSPORT</small><b>AES-256-GCM Â· SIGNED REQUESTS</b></article></div>
+      </section>
+      <section className="federation-delivery">
+        <header><span><small>OPERATIONAL HANDOFF</small><b>STATION ROUTING + OFFLINE QUEUES</b></span><em>{summary.queuedDeliveries||0} QUEUED</em></header>
+        {status?.devices.length?status.devices.map((device,index)=><article key={device.id}>
+          <header><i>{String(index+1).padStart(2,"0")}</i><span><b>{device.name}</b><small>{device.online?"ONLINE":"OFFLINE Â· DELIVERY WILL QUEUE"} Â· {device.transport?.toUpperCase()||"SECURE MIGRATION"}</small></span><em>{device.queuedDeliveries||0} PENDING</em></header>
+          <div className="federation-handoff-actions"><button onClick={()=>operate("delivery",device,{kind:"page",payload:{page:"overview",title:"STATUS CONSOLE"}})}>HAND OFF STATUS</button><button onClick={()=>operate("delivery",device,{kind:"page",payload:{page:"media",title:"MEDIA CONSOLE"}})}>HAND OFF MEDIA</button><button onClick={()=>operate("delivery",device,{kind:"page",payload:{page:"communications",title:"COMMUNICATIONS"}})}>HAND OFF COMMS</button><button disabled={!device.queuedDeliveries} onClick={()=>operate("clear-queue",device)}>CLEAR QUEUE</button></div>
+          <div className="federation-message"><input value={deliveryText[device.id]||""} onChange={(event)=>setDeliveryText((old)=>({...old,[device.id]:event.target.value}))} placeholder="TEXT OR PRIORITY TRANSMISSION" maxLength={4000}/><button disabled={!status?.clipboardEnabled||device.transport!=="aes-256-gcm"} onClick={()=>sendText(device,"clipboard")}>SEND CLIPBOARD</button><button onClick={()=>sendText(device,"notice")}>ROUTE NOTICE</button><label className={!status?.fileTransferEnabled||device.transport!=="aes-256-gcm"?"disabled":""}>SEND FILE<input type="file" disabled={!status?.fileTransferEnabled||device.transport!=="aes-256-gcm"} onChange={(event)=>{const file=event.target.files?.[0];if(file)sendFile(device,file);event.currentTarget.value="";}}/></label></div>
+          {device.transport!=="aes-256-gcm"&&<small className="federation-secure-note">CLIPBOARD + FILE ROUTES REQUIRE THE VERSION 30.2 NATIVE ANDROID LINK</small>}
+        </article>):<p className="connected-empty">PAIR A TRUSTED STATION TO BEGIN FEDERATION HANDOFF</p>}
+      </section>
+    </>}
 
-][JOOš][KšY
-NÂˆÛÛœİ™^]˜[YOĞ\œ˜^K™œ›ÛJ™]ÈÙ]
-Ë‹‹˜İ\œ™[YJJN˜İ\œ™[™š[\Š
-][JOOš][HOOZY
-NÂˆÜ\˜]J›^[İ]‹]šXÙKİÚYÙ]Î›™^JNÂˆNÂˆÛÛœİİX›Z]˜[YOJ]šXÙN”Y]šXÙJOOÂˆÛÛœİ˜[YOJ˜[Y\ÖÙ]šXÙKšYOÏÙ]šXÙK›˜[YJKš[J
-KœÛXÙJ
-NÂˆYŠ˜[YI‰˜[YHOOY]šXÙK›˜[YJ[Ü\˜]Jœ™[˜[YH‹]šXÙKİ˜[Y_JNÂˆNÂˆÛÛœİ^ÜXYÛ›ÜİXÜÏJ
-OOÂˆÛÛœİ™\Ü^ÜØÚ[XNŒKÚ[™ˆ›Ø\œËXÛÛ›™XİYYXYÛ›ÜİXÜÈ‹Ù[™\˜]Y]›™]È]J
-KÒTÓÔİš[™Ê
-Kİ][ÛÙ[˜X›Y›ÛÛX[Šİ]\ÏË™[˜X›Y
-KÛ›[™N›ÛÛX[Šİ]\ÏË›Û›[™JK™\œÚ[Ûœİ]\ÏË™\œÚ[ÛŸ[šÛ›İÛˆ‹]›Ü›Nœİ]\ÏËœ]›Ü›_[šÛ›İÛˆ‹\İ[™\”Üœİ]\ÏËœÜš]˜]PY™\ÜĞ]˜Z[X›N›ÛÛX[Šİ]\ÏË˜Y™\ÜÙ\Ë›[™İ
-Kİ[[X\_K]šXÙ\ÎŠİ]\ÏË™]šXÙ\ß×JK›X\
+    {area==="fleet"&&<>
+      <section className="padd-pairing-deck">
+        <header><span><small>TRUSTED LOCAL NETWORK</small><b>PAIR ANOTHER PADD</b></span><em>{status?.pairing?`${Math.ceil(remaining/60)} MIN REMAINING`:"DISARMED"}</em></header>
+        <div><a className="padd-download-v28" href="https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v30.5/LCARS-Mobile-Environment-v30.5-Android.apk" target="_blank" rel="noreferrer">DOWNLOAD ANDROID 30.5 â†—</a><button disabled={busy==="start"} onClick={()=>operate("start")}>{status?.pairing?"REPLACE CODE":"ARM ONE-USE CODE"}</button><button disabled={!primaryAddress} onClick={copySetup}>{copied?"SETUP COPIED":"COPY STATION + CODE"}</button><button disabled={busy==="refresh"} onClick={refresh}>REFRESH LINK</button><button className="danger" disabled={busy==="disable"||!status?.enabled} onClick={()=>operate("disable")}>DISABLE LINK</button></div>
+        {status?.pairing?.code&&<p className="padd-code-v28"><small>PAIRING CODE</small><b>{status.pairing.code}</b><em>{Math.floor(remaining/60)}:{String(remaining%60).padStart(2,"0")}</em></p>}
+        {status?.addresses.length?<p className="padd-address-v28">{status.addresses.join(" Â· ")}</p>:<p className="padd-address-v28 warning">NO PRIVATE IPv4 ADDRESS DETECTED</p>}
+      </section>
+      <section className="padd-fleet-list">
+        <header><span><small>TRUST REGISTRY</small><b>{status?.devices.length||0} PAIRED PADD{status?.devices.length===1?"":"S"}</b></span><em>TERMINAL Â· FILES Â· PROCESSES Â· POWER REMAIN BLOCKED</em></header>
+        {status?.devices.length?status.devices.map((device,index)=>{
+          const activeWidgets=device.widgets?.length?device.widgets:widgets.map((item)=>item.id);
+          return <article className={device.online?"online":""} key={device.id}>
+            <div className="padd-device-identity"><i>{String(index+1).padStart(2,"0")}</i><span><input aria-label={`Name for ${device.name}`} value={names[device.id]??device.name} onChange={(event)=>setNames((old)=>({...old,[device.id]:event.target.value}))} onBlur={()=>submitName(device)} onKeyDown={(event)=>{if(event.key==="Enter")event.currentTarget.blur();}}/><small>{device.online?"CONNECTED":"OFFLINE"} Â· LAST LINK {age(device.lastSeen)}</small></span><strong className={device.compatibility&&device.compatibility!=="compatible"&&device.compatibility!=="unknown"?"mismatch":""}>{device.compatibility==="client-outdated"?"UPDATE PADD":device.compatibility==="station-outdated"?"UPDATE STATION":device.battery!=null&&device.battery>=0?`${device.battery}% BATTERY`:device.network||"PADD"}</strong></div>
+            <div className="padd-device-controls">
+              <label><small>ROLE</small><select aria-label={`Role for ${device.name}`} value={device.role} onChange={(event)=>operate("role",device,{role:event.target.value})}><option value="viewer">VIEWER</option><option value="operator">OPERATOR</option><option value="command">COMMAND</option></select></label>
+              <label><small>CONNECTED WORKSTATION</small><select value={device.workstation||""} onChange={(event)=>operate("profile",device,{value:event.target.value})}><option value="">NO AUTOMATIC PROFILE</option>{workstations.map((profile)=><option key={profile.id} value={profile.id}>{profile.name}</option>)}</select></label>
+              <label className="padd-inline-toggle"><input type="checkbox" checked={Boolean(device.proximity)} onChange={(event)=>operate("proximity",device,{enabled:event.target.checked})}/><span><b>PROXIMITY PROFILE</b><small>APPLY ON CONNECT</small></span></label>
+            </div>
+            <div className="padd-policy-tools">
+              <span><small>PERMISSION PRESET</small><nav><button onClick={()=>operate("preset",device,{preset:"viewer"})}>MONITOR</button><button onClick={()=>operate("preset",device,{preset:"operator"})}>OPERATOR</button><button onClick={()=>operate("preset",device,{preset:"command"})}>COMMAND</button></nav></span>
+              <label><small>COPY POLICY FROM</small><select value={copySources[device.id]||""} onChange={(event)=>setCopySources((old)=>({...old,[device.id]:event.target.value}))}><option value="">SELECT ANOTHER PADD</option>{status.devices.filter((candidate)=>candidate.id!==device.id).map((candidate)=><option key={candidate.id} value={candidate.id}>{candidate.name}</option>)}</select></label>
+              <button disabled={!copySources[device.id]} onClick={()=>operate("copy-settings",device,{sourceId:copySources[device.id]})}>COPY SETTINGS</button>
+            </div>
+            <div className="padd-permission-grid">
+              {permissionGroups.map((group)=><fieldset key={group.title}><legend>{group.title}</legend>{group.items.map((item)=><label key={item.id}><input type="checkbox" checked={permission(device,item.id)} onChange={(event)=>changePermission(device,item.id,event.target.checked)}/><span>{item.label}</span></label>)}</fieldset>)}
+              <fieldset><legend>PADD WIDGETS</legend>{widgets.map((item)=><label key={item.id}><input type="checkbox" checked={activeWidgets.includes(item.id)} onChange={(event)=>changeWidget(device,item.id,event.target.checked)}/><span>{item.label}</span></label>)}</fieldset>
+              <fieldset><legend>NOTIFICATION ROUTE</legend><label><input type="checkbox" checked={notification(device,"enabled")} onChange={(event)=>changeNotification(device,"enabled",event.target.checked)}/><span>ROUTE TO STATION</span></label><label><input type="checkbox" checked={notification(device,"priorityOnly")} onChange={(event)=>changeNotification(device,"priorityOnly",event.target.checked)}/><span>PRIORITY ONLY</span></label><label><input type="checkbox" checked={notification(device,"connectionEvents")} onChange={(event)=>changeNotification(device,"connectionEvents",event.target.checked)}/><span>LINK EVENTS</span></label><label><input type="checkbox" checked={notification(device,"routineResults")} onChange={(event)=>changeNotification(device,"routineResults",event.target.checked)}/><span>ROUTINE RESULTS</span></label></fieldset>
+              <fieldset><legend>SELECTIVE SYNCHRONIZATION</legend>{(Object.keys(syncDefaults) as (keyof PaddSyncPolicy)[]).map((id)=><label key={id}><input type="checkbox" checked={sync(device,id)} onChange={(event)=>changeSync(device,id,event.target.checked)}/><span>{id.toUpperCase()}</span></label>)}</fieldset>
+            </div>
+            <footer><span>{device.lastAddress||"ADDRESS NOT RECORDED"} Â· {device.network||"NETWORK UNKNOWN"} Â· {device.latencyMs||0} MS Â· {device.connectionCount||0} LINKS Â· CLIENT {device.clientVersion||"UNKNOWN"}</span><div><button onClick={()=>operate("identify",device)}>IDENTIFY</button><button className="danger" onClick={()=>operate("revoke",device)}>REVOKE</button></div></footer>
+          </article>;
+        }):<p className="connected-empty">NO TRUSTED PADD DEVICES Â· ARM A PAIRING CODE TO BEGIN</p>}
+      </section>
+    </>}
 
-]šXÙK[™^
-OOŠÙ]šXÙN˜Q	Ôİš[™Ê[™^
-ÌJKœYİ\
-‹ŒŠ_XÛ›[™N›ÛÛX[Š]šXÙK›Û›[™JK›ÛN™]šXÙKœ›ÛK˜]\N™]šXÙK˜˜]\K™]ÛÜšÕ\N™]šXÙK›™]ÛÜšË][˜ŞS\Î™]šXÙK›][˜ŞS\ËÛY[™\œÚ[Û™]šXÙK˜ÛY[™\œÚ[ÛŸ[šÛ›İÛˆ‹ÛÛ\]Xš[]N™]šXÙK˜ÛÛ\]Xš[]_[šÛ›İÛˆ‹ÛÛ›™Xİ[ÛÛİ[™]šXÙK˜ÛÛ›™Xİ[ÛÛİ[\›Z\ÜÚ[ÛœÎ™]šXÙKœ\›Z\ÜÚ[ÛœßßKÚYÙ]Î™]šXÙKÚYÙ]ß×K›İYšXØ][ÛœÎË‹‹››İYšXØ][Û‘Y˜][Ë‹‹™]šXÙK››İYšXØ][Ûœß_JJ_NÂˆÛÛœİ\›UT“˜Ü™X]SØš™XİT“
-™]È›ØŠÒ”ÓÓ‹œİš[™ÚYJ™\Ü[ŠWKİ\Nˆ˜\XØ][Û‹ÚœÛÛˆŸJJK[šÏYØİ[Y[˜Ü™X]Q[[Y[
-˜HŠNÂˆ[šËš™Y]\›Û[šË™İÛ›ØYXØ\œËXÛÛ›™XİYYXYÛ›ÜİXÜËIÛ™]È]J
-KÒTÓÔİš[™Ê
-KœÛXÙJL
-_KšœÛÛ˜Û[šË˜ÛXÚÊ
-NÕT“œ™]›ÚÙSØš™XİT“
-\›
-NÂˆNÂˆÛÛœİZ\ÛX]Ú\Ï\İ]\ÏË™]šXÙ\Ë™š[\Š
-]šXÙJOO™]šXÙK˜ÛÛ\]Xš[]I‰™]šXÙK˜ÛÛ\]Xš[]HOOH˜ÛÛ\]X›H‰‰™]šXÙK˜ÛÛ\]Xš[]HOOH[šÛ›İÛˆŠ_×NÂˆÛÛœİÙ[™^J]šXÙN”Y]šXÙKÚ[™ˆ˜Û\›Ø\™Ÿ››İXÙHŠOOØÛÛœİ˜[YOJ[]™\U^Ù]šXÙKšY_ˆŠKš[J
-NÚYŠ]˜[YJ\™]\›ÛÜ\˜]J™[]™\H‹]šXÙKÚÚ[™^[ØYšÚ[™OOH˜Û\›Ø\™Şİ^˜[Y_Nİ]Nˆ“ĞT”ÈS”ÓRTÔÒSÓˆ‹^˜[YKš[Üš]Nˆœš[Üš]HŸ_JNÜÙ][]™\U^
+    {area==="approvals"&&<section className="padd-approval-list">
+      <header><span><small>DESKTOP AUTHORIZATION</small><b>PENDING PADD REQUESTS</b></span><em>NOTHING SENSITIVE RUNS UNTIL APPROVED</em></header>
+      {status?.approvals?.length?status.approvals.map((approval,index)=>{const seconds=Math.max(0,approval.expiresAt-now);return <article key={approval.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{approval.deviceName} Â· {age(approval.createdAt)} Â· EXPIRES IN {seconds}s</small><b>{approval.action.toUpperCase()}</b><p>{displayValue(approval.value)}</p></span><div><button disabled={!seconds} onClick={()=>operate("approve",undefined,{approvalId:approval.id})}>APPROVE</button><button className="danger" onClick={()=>operate("deny",undefined,{approvalId:approval.id})}>DENY</button></div></article>}):<p className="connected-empty">APPROVAL QUEUE CLEAR</p>}
+    </section>}
 
-Û
-OOŠË‹‹›ÛÙ]šXÙKšYNˆˆŸJJNßNÂˆÛÛœİÙ[™š[OJ]šXÙN”Y]šXÙKš[N‘š[JOOÚYŠš[KœÚ^™OL
-\™]\›ˆÚ[™İË˜[\
-‘™Y\˜][Ûˆš[H˜[œÙ™\œÈ\™H[Z]YÈLLˆÚP‹ˆŠNØÛÛœİ™XY\[™]Èš[T™XY\Š
-NÜ™XY\‹›Û›ØYJ
-OO›Ü\˜]J™[]™\H‹]šXÙKÚÚ[™ˆ™š[H‹^[ØYÛ˜[YN™š[K›˜[YKZ[YN™š[K\_˜\XØ][Û‹ÛØİ]\İ™X[H‹ÛÛ[”İš[™Ê™XY\‹œ™\İ[
-KœÜ]
-‹ŠVÌW_ˆŸ_JNÜ™XY\‹œ™XY\Ñ]UT“
-š[JNßNÂˆ™]\›ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH˜ÛÛ›™XİY[Ü\˜][ÛœË\[™[‚ˆXY\ˆÛ\ÜÓ˜[YOH˜ÛÛ›™XİY[Ü\˜][ÛœËZXY‚ˆÜ[ÛX[•‘T”ÒSÓˆÌHU‘SÔQS•0­ÈUHP”’PÏÜÛX[‘‘QTUSÓˆÔTUSÓ”ÏØ“Û™HÜ\˜]Ü‹X[H\İYİ][ÛœÎˆ]]ÛX]XÈ\ØÛİ™\K\˜X›HY[]Y\ËQTËLM‹QĞÓHŞ[˜Ú›Ûš^˜][Û‹Ù[Xİ]™H]H›İ]\ËÜ\˜][Û˜[[™Ù™‹[™›İ[™YÙ™›[™H[]™\H]Y]Y\ËÜÜÜ[‚ˆİ›Û™ÈÛ\ÜÓ˜[YO^Üİ]\ÏË™[˜X›Y	‰œİ]\Ë›Û›[™OÈ›Û›[™HˆˆŸOÜİ]\ÏË™[˜X›Y	‰œİ]\Ë›Û›[™OÈ“S’ÈÓ“S‘Hˆ“S’ÈÕS‘–HŸOÜİ›Û™Ï‚ˆÚXY\‚ˆ]ˆÛ\ÜÓ˜[YOH˜ÛÛ›™XİY\İ[[X\H‚ˆ\XÛOÛX[ÓÓ“‘PÕQÜÛX[Ôİš[™Êİ[[X\K˜ÛÛ›™XİY
-KœYİ\
-‹ŒŠ_OØ[OÜİ[[X\KœZ\™YH•TÕQU’PÑ^Üİ[[X\KœZ\™YOOLOÈˆˆ”ÈŸOÙ[OØ\XÛO‚ˆ\XÛOÛX[T“ÕSUQUQOÜÛX[Ôİš[™Êİ[[X\Kœ[™[™Ğ\›İ˜[ÊKœYİ\
-‹ŒŠ_OØ[O”ÑS”ÒUU‘H‘TUQTÕÈĞRUT‘OÙ[OØ\XÛO‚ˆ\XÛOÛX[“S’ÈPSÜÛX[Üİ]\ÏË›Û›[™OÈ““ÓRSSˆ“Ñ‘“S‘HŸOØ[OÜİ]\ÏË™\œ›ÜŸ	ÛÛ›[™Q]šXÙ\Ë›[™İHPÕU‘H0­È	Üİ[[X\Kœ]Y]YYÛÛ[X[™ßHUQUQQOÙ[OØ\XÛO‚ˆ\XÛOÛX[•VÓT“ĞT‘ÜÛX[Üİ]\ÏË˜Û\›Ø\™[˜X›YÈT“QQˆ“ĞÒÑQŸOØ[O•VÓ“H0­ÈTÒÕÔT“ÕSÙ[OØ\XÛO‚ˆÙ]‚ˆ˜]ˆÛ\ÜÓ˜[YOH˜ÛÛ›™XİYX\™XK]XœÈˆ\šXK[X™[HÛÛ›™XİYÜ\˜][ÛœÈØ]YÛÜšY\È‚ˆÊÖÉÙ™Y\˜][Û‰Ë	Ñ‘QTUSÓ‰×KÉÙ›Y]	Ë	Õ•TÕ
-ÈÓPÖI×KÉØ\›İ˜[ÉËT“ÕSÈ	Üİ[[X\Kœ[™[™Ğ\›İ˜[ÏØ0­È	Üİ[[X\Kœ[™[™Ğ\›İ˜[ßXˆˆŸXKÉØXİ]š]IË	ÕSQSS‘I×KÉÙXYÛ›ÜİXÜÉË	ÑPQÓ“ÔÕPÔÉ×WH\ÈÛÛœİ
-K›X\
+    {area==="activity"&&<section className="padd-activity-list">
+      <header><span><small>LOCAL AUDIT TRAIL</small><b>CONNECTED ACTIVITY</b></span><em>NO TOKENS OR CLIPBOARD CONTENT ARE RECORDED</em></header>
+      {status?.activity?.length?status.activity.map((item,index)=><article key={item.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{item.deviceName} Â· {age(item.createdAt)}</small><b>{item.action.replaceAll("-"," ").toUpperCase()}</b><p>{item.detail||item.status}</p></span><em>{item.status.toUpperCase()}</em></article>):<p className="connected-empty">NO CONNECTED ACTIVITY RECORDED</p>}
+    </section>}
 
-ÚYX™[JOO]ÛˆÙ^O^ÚYH\šXKXİ\œ™[^Ø\™XOOOZYÈœYÙH[™Yš[™YHÛÛXÚÏ^Ê
-OOœÙ]\™XJY
-_OÛX™[OØ]ÛŠ_BˆÛ˜]‚‚ˆØ\™XOOOH™™Y\˜][Ûˆ‰‰‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH™™Y\˜][Û‹ZY[]H‚ˆXY\Ü[ÛX[”T”ÒTÕS•ÕUSÓˆQS•UOÜÛX[Üİ]\ÏËœİ][ÛË›˜[Y_“ĞT”ÈÕUSÓˆŸOØÜÜ[[OÜİ]\ÏËœİ][ÛË™š[™Ù\œš[’QS•UHS’UPSV’S‘ÈŸOÙ[OÚXY\‚ˆ]X™[ÛX[”ÕUSÓˆSQOÜÛX[[œ]˜[YO^Üİ][Û“˜[Y_İ]\ÏËœİ][ÛË›˜[Y_ˆŸHÛÚ[™ÙO^Ê]™[
-OOœÙ]İ][Û“˜[YJ]™[\™Ù]˜[YJ_HX^[™İ^ÍKÏÛX™[]ÛˆÛÛXÚÏ^Ê
-OOØÛÛœİ˜[YOJİ][Û“˜[Y_İ]\ÏËœİ][ÛË›˜[Y_ˆŠKš[J
-NÚYŠ˜[YJ[Ü\˜]Jœİ][Û‹\™[˜[YH‹[™Yš[™Yİ˜[Y_JNß_O”ĞU‘HQS•UOØ]Û\XÛOÛX[‘TĞÓÕ‘T–H‘PPÓÓÜÛX[Üİ]\ÏË™\ØÛİ™\OË™[˜X›YØÓ“S‘H0­ÈQ	Üİ]\Ë™\ØÛİ™\KœÜXˆ”ÕS‘–HŸOØØ\XÛO\XÛOÛX[•S”ÔÔ•ÜÛX[QTËLM‹QĞÓH0­ÈÒQÓ‘Q‘TUQTÕÏØØ\XÛOÙ]‚ˆÜÙXİ[Û‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YOH™™Y\˜][Û‹Y[]™\H‚ˆXY\Ü[ÛX[“ÔTUSÓSS‘Ñ‘ÜÛX[”ÕUSÓˆ“ÕUS‘È
-ÈÑ‘“S‘HUQUQTÏØÜÜ[[OÜİ[[X\Kœ]Y]YY[]™\šY\ßHUQUQQÙ[OÚXY\‚ˆÜİ]\ÏË™]šXÙ\Ë›[™İÜİ]\Ë™]šXÙ\Ë›X\
-
-]šXÙK[™^
-OO\XÛHÙ^O^Ù]šXÙKšYO‚ˆXY\OÔİš[™Ê[™^
-ÌJKœYİ\
-‹ŒŠ_OÚOÜ[Ù]šXÙK›˜[Y_OØÛX[Ù]šXÙK›Û›[™OÈ“Ó“S‘Hˆ“Ñ‘“S‘H0­ÈSU‘T–HÒSUQUQHŸH0­ÈÙ]šXÙK˜[œÜÜËÕ\\Ø\ÙJ
-_”ÑPÕT‘HRQÔUSÓˆŸOÜÛX[ÜÜ[[OÙ]šXÙKœ]Y]YY[]™\šY\ßHS‘S‘ÏÙ[OÚXY\‚ˆ]ˆÛ\ÜÓ˜[YOH™™Y\˜][Û‹Z[™Ù™‹XXİ[ÛœÈ]ÛˆÛÛXÚÏ^Ê
-OO›Ü\˜]J™[]™\H‹]šXÙKÚÚ[™ˆœYÙH‹^[ØYÜYÙNˆ›İ™\šY]È‹]Nˆ”ÕUTÈÓÓ”ÓÓHŸ_J_O’S‘Ñ‘ˆÕUTÏØ]Û]ÛˆÛÛXÚÏ^Ê
-OO›Ü\˜]J™[]™\H‹]šXÙKÚÚ[™ˆœYÙH‹^[ØYÜYÙNˆ›YYXH‹]Nˆ“QQPHÓÓ”ÓÓHŸ_J_O’S‘Ñ‘ˆQQPOØ]Û]ÛˆÛÛXÚÏ^Ê
-OO›Ü\˜]J™[]™\H‹]šXÙKÚÚ[™ˆœYÙH‹^[ØYÜYÙNˆ˜ÛÛ[][šXØ][ÛœÈ‹]NˆÓÓSUS’PĞUSÓ”ÈŸ_J_O’S‘Ñ‘ˆÓÓSTÏØ]Û]Ûˆ\ØX›Y^ÈY]šXÙKœ]Y]YY[]™\šY\ßHÛÛXÚÏ^Ê
-OO›Ü\˜]J˜ÛX\‹\]Y]YH‹]šXÙJ_OÓPTˆUQUQOØ]ÛÙ]‚ˆ]ˆÛ\ÜÓ˜[YOH™™Y\˜][Û‹[Y\ÜØYÙH[œ]˜[YO^Ù[]™\U^Ù]šXÙKšY_ˆŸHÛÚ[™ÙO^Ê]™[
-OOœÙ][]™\U^
-
-Û
-OOŠË‹‹›ÛÙ]šXÙKšYN™]™[\™Ù]˜[Y_JJ_HXÙZÛ\H•VÔˆ’SÔ’UHS”ÓRTÔÒSÓˆˆX^[™İ^ÍKÏ]Ûˆ\ØX›Y^È\İ]\ÏË˜Û\›Ø\™[˜X›Y]šXÙK˜[œÜÜOOH˜Y\ËLM‹YØÛHŸHÛÛXÚÏ^Ê
-OOœÙ[™^
-]šXÙK˜Û\›Ø\™Š_O”ÑS‘ÓT“ĞT‘Ø]Û]ÛˆÛÛXÚÏ^Ê
-OOœÙ[™^
-]šXÙK››İXÙHŠ_O”“ÕUH“ÕPÑOØ]ÛX™[Û\ÜÓ˜[YO^È\İ]\ÏË™š[U˜[œÙ™\‘[˜X›Y]šXÙK˜[œÜÜOOH˜Y\ËLM‹YØÛHÈ™\ØX›YˆˆŸO”ÑS‘’SO[œ]\OH™š[Hˆ\ØX›Y^È\İ]\ÏË™š[U˜[œÙ™\‘[˜X›Y]šXÙK˜[œÜÜOOH˜Y\ËLM‹YØÛHŸHÛÚ[™ÙO^Ê]™[
-OOØÛÛœİš[OY]™[\™Ù]™š[\ÏË–ÌNÚYŠš[J\Ù[™š[J]šXÙKš[JNÙ]™[˜İ\œ™[\™Ù]˜[YOHˆß_KÏÛX™[Ù]‚ˆÙ]šXÙK˜[œÜÜOOH˜Y\ËLM‹YØÛH‰‰ÛX[Û\ÜÓ˜[YOH™™Y\˜][Û‹\ÙXİ\™K[›İHÓT“ĞT‘
-È’SH“ÕUTÈ‘TURT‘HH‘T”ÒSÓˆÌŒˆUU‘HS‘“ÒQS’ÏÜÛX[ŸBˆØ\XÛOŠNÛ\ÜÓ˜[YOH˜ÛÛ›™XİYY[\H”RTˆH•TÕQÕUSÓˆÈ‘QÒSˆ‘QTUSÓˆS‘Ñ‘ÜŸBˆÜÙXİ[Û‚ˆÏŸB‚ˆØ\™XOOOH™›Y]‰‰‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YOHœY\Z\š[™ËYXÚÈ‚ˆXY\Ü[ÛX[••TÕQĞĞS‘UÓÔ’ÏÜÛX[”RTˆS“ÕTˆQØÜÜ[[OÜİ]\ÏËœZ\š[™ÏØ	ÓX]˜ÙZ[
-™[XZ[š[™ËÍŒ
-_HRSˆ‘SPRS’S‘Øˆ‘TĞT“QQŸOÙ[OÚXY\‚ˆ]HÛ\ÜÓ˜[YOHœYYİÛ›ØY]Œˆ™YHšÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËÙİÛ›ØYİŒÌKÓĞT”ËS[Øš[KQ[š\›Û›Y[]ŒÌKP[™›ÚY˜\Èˆ\™Ù]H—Ø›[šÈˆ™[H››Ü™Y™\œ™\ˆ‘ÕÓ“ĞQS‘“ÒQÌH8¡¥ÏØO]Ûˆ\ØX›Y^Ø\ŞOOOHœİ\ŸHÛÛXÚÏ^Ê
-OO›Ü\˜]Jœİ\Š_OÜİ]\ÏËœZ\š[™ÏÈ”‘TPÑHÓÑHˆT“HÓ‘KUTÑHÓÑHŸOØ]Û]Ûˆ\ØX›Y^È\š[X\PY™\ÜßHÛÛXÚÏ^ØÛÜTÙ]\OØÛÜYYÈ”ÑUTÓÔQQˆÓÔHÕUSÓˆ
-ÈÓÑHŸOØ]Û]Ûˆ\ØX›Y^Ø\ŞOOOHœ™Yœ™\ÚŸHÛÛXÚÏ^Ü™Yœ™\ÚO”‘Q”‘TÒS’ÏØ]Û]ÛˆÛ\ÜÓ˜[YOH™[™Ù\ˆˆ\ØX›Y^Ø\ŞOOOH™\ØX›HŸ\İ]\ÏË™[˜X›YHÛÛXÚÏ^Ê
-OO›Ü\˜]J™\ØX›HŠ_O‘TĞP“HS’ÏØ]ÛÙ]‚ˆÜİ]\ÏËœZ\š[™ÏË˜ÛÙI‰Û\ÜÓ˜[YOHœYXÛÙK]ŒÛX[”RT’S‘ÈÓÑOÜÛX[Üİ]\ËœZ\š[™Ë˜ÛÙ_OØ[OÓX]™›ÛÜŠ™[XZ[š[™ËÍŒ
-_NÔİš[™Ê™[XZ[š[™ÉMŒ
-KœYİ\
-‹ŒŠ_OÙ[OÜŸBˆÜİ]\ÏË˜Y™\ÜÙ\Ë›[™İÏÛ\ÜÓ˜[YOHœYXY™\ÜË]ŒÜİ]\Ë˜Y™\ÜÙ\Ëš›Ú[Šˆ0­ÈŠ_OÜÛ\ÜÓ˜[YOHœYXY™\ÜË]ŒØ\›š[™È““È’UUHTQ‘TÔÈUPÕQÜŸBˆÜÙXİ[Û‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YOHœYY›Y][\İ‚ˆXY\Ü[ÛX[••TÕ‘QÒTÕ–OÜÛX[Üİ]\ÏË™]šXÙ\Ë›[™İHRT‘QQÜİ]\ÏË™]šXÙ\Ë›[™İOOLOÈˆˆ”ÈŸOØÜÜ[[O•T“RSS0­È’STÈ0­È“ĞÑTÔÑTÈ0­ÈÕÑTˆ‘SPRSˆ“ĞÒÑQÙ[OÚXY\‚ˆÜİ]\ÏË™]šXÙ\Ë›[™İÜİ]\Ë™]šXÙ\Ë›X\
-
-]šXÙK[™^
-OOÂˆÛÛœİXİ]™UÚYÙ]ÏY]šXÙKÚYÙ]ÏË›[™İÙ]šXÙKÚYÙ]ÎÚYÙ]Ë›X\
-
-][JOOš][KšY
-NÂˆ™]\›ˆ\XÛHÛ\ÜÓ˜[YO^Ù]šXÙK›Û›[™OÈ›Û›[™HˆˆŸHÙ^O^Ù]šXÙKšYO‚ˆ]ˆÛ\ÜÓ˜[YOHœYY]šXÙKZY[]HOÔİš[™Ê[™^
-ÌJKœYİ\
-‹ŒŠ_OÚOÜ[[œ]\šXK[X™[^Ø˜[YH›Üˆ	Ù]šXÙK›˜[Y_XH˜[YO^Û˜[Y\ÖÙ]šXÙKšYOÏÙ]šXÙK›˜[Y_HÛÚ[™ÙO^Ê]™[
-OOœÙ]˜[Y\Ê
-Û
-OOŠË‹‹›ÛÙ]šXÙKšYN™]™[\™Ù]˜[Y_JJ_HÛ›\^Ê
-OOœİX›Z]˜[YJ]šXÙJ_HÛ’Ù^QİÛ^Ê]™[
-OOÚYŠ]™[šÙ^OOOH‘[\ˆŠY]™[˜İ\œ™[\™Ù]˜›\Š
-Nß_KÏÛX[Ù]šXÙK›Û›[™OÈÓÓ“‘PÕQˆ“Ñ‘“S‘HŸH0­ÈTÕS’ÈØYÙJ]šXÙK›\İÙY[Š_OÜÛX[ÜÜ[İ›Û™ÈÛ\ÜÓ˜[YO^Ù]šXÙK˜ÛÛ\]Xš[]I‰™]šXÙK˜ÛÛ\]Xš[]HOOH˜ÛÛ\]X›H‰‰™]šXÙK˜ÛÛ\]Xš[]HOOH[šÛ›İÛˆÈ›Z\ÛX]ÚˆˆŸOÙ]šXÙK˜ÛÛ\]Xš[]OOOH˜ÛY[[İ]]YÈ•TUHQ™]šXÙK˜ÛÛ\]Xš[]OOOHœİ][Û‹[İ]]YÈ•TUHÕUSÓˆ™]šXÙK˜˜]\HO[[	‰™]šXÙK˜˜]\OLØ	Ù]šXÙK˜˜]\_IHUT–X™]šXÙK›™]ÛÜšß”QŸOÜİ›Û™ÏÙ]‚ˆ]ˆÛ\ÜÓ˜[YOHœYY]šXÙKXÛÛ›ÛÈ‚ˆX™[ÛX[”“ÓOÜÛX[Ù[Xİ\šXK[X™[^Ø›ÛH›Üˆ	Ù]šXÙK›˜[Y_XH˜[YO^Ù]šXÙKœ›Û_HÛÚ[™ÙO^Ê]™[
-OO›Ü\˜]Jœ›ÛH‹]šXÙKÜ›ÛN™]™[\™Ù]˜[Y_J_OÜ[Ûˆ˜[YOHšY]Ù\ˆ•’QUÑTÛÜ[ÛÜ[Ûˆ˜[YOH›Ü\˜]Üˆ“ÔTUÔÛÜ[ÛÜ[Ûˆ˜[YOH˜ÛÛ[X[™ÓÓSPS‘ÛÜ[ÛÜÙ[XİÛX™[‚ˆX™[ÛX[ÓÓ“‘PÕQÓÔ’ÔÕUSÓÜÛX[Ù[Xİ˜[YO^Ù]šXÙKÛÜšÜİ][ÛŸˆŸHÛÚ[™ÙO^Ê]™[
-OO›Ü\˜]Jœ›Ùš[H‹]šXÙKİ˜[YN™]™[\™Ù]˜[Y_J_OÜ[Ûˆ˜[YOHˆ““ÈUUÓPUPÈ“Ñ’SOÛÜ[ÛİÛÜšÜİ][ÛœË›X\
-
-›Ùš[JOOÜ[ÛˆÙ^O^Ü›Ùš[KšYH˜[YO^Ü›Ùš[KšYOÜ›Ùš[K›˜[Y_OÛÜ[ÛŠ_OÜÙ[XİÛX™[‚ˆX™[Û\ÜÓ˜[YOHœYZ[›[™K]ÙÙÛH[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^Ğ›ÛÛX[Š]šXÙKœ›Ş[Z]J_HÛÚ[™ÙO^Ê]™[
-OO›Ü\˜]Jœ›Ş[Z]H‹]šXÙKÙ[˜X›Y™]™[\™Ù]˜ÚXÚÙYJ_KÏÜ[”“ÖSRUH“Ñ’SOØÛX[THÓˆÓÓ“‘PÕÜÛX[ÜÜ[ÛX™[‚ˆÙ]‚ˆ]ˆÛ\ÜÓ˜[YOHœY\ÛXŞK]ÛÛÈ‚ˆÜ[ÛX[”T“RTÔÒSÓˆ‘TÑUÜÛX[˜]]ÛˆÛÛXÚÏ^Ê
-OO›Ü\˜]Jœ™\Ù]‹]šXÙKÜ™\Ù]ˆšY]Ù\ˆŸJ_O“SÓ’UÔØ]Û]ÛˆÛÛXÚÏ^Ê
-OO›Ü\˜]Jœ™\Ù]‹]šXÙKÜ™\Ù]ˆ›Ü\˜]ÜˆŸJ_O“ÔTUÔØ]Û]ÛˆÛÛXÚÏ^Ê
-OO›Ü\˜]Jœ™\Ù]‹]šXÙKÜ™\Ù]ˆ˜ÛÛ[X[™ŸJ_OÓÓSPS‘Ø]ÛÛ˜]ÜÜ[‚ˆX™[ÛX[ÓÔHÓPÖH”“ÓOÜÛX[Ù[Xİ˜[YO^ØÛÜTÛİ\˜Ù\ÖÙ]šXÙKšY_ˆŸHÛÚ[™ÙO^Ê]™[
-OOœÙ]ÛÜTÛİ\˜Ù\Ê
-Û
-OOŠË‹‹›ÛÙ]šXÙKšYN™]™[\™Ù]˜[Y_JJ_OÜ[Ûˆ˜[YOHˆ”ÑSPÕS“ÕTˆQÛÜ[ÛÜİ]\Ë™]šXÙ\Ë™š[\Š
-Ø[™Y]JOO˜Ø[™Y]KšYOOY]šXÙKšY
-K›X\
-
-Ø[™Y]JOOÜ[ÛˆÙ^O^ØØ[™Y]KšYH˜[YO^ØØ[™Y]KšYOØØ[™Y]K›˜[Y_OÛÜ[ÛŠ_OÜÙ[XİÛX™[‚ˆ]Ûˆ\ØX›Y^ÈXÛÜTÛİ\˜Ù\ÖÙ]šXÙKšY_HÛÛXÚÏ^Ê
-OO›Ü\˜]J˜ÛÜK\Ù][™ÜÈ‹]šXÙKÜÛİ\˜ÙRY˜ÛÜTÛİ\˜Ù\ÖÙ]šXÙKšY_J_OÓÔHÑUS‘ÔÏØ]Û‚ˆÙ]‚ˆ]ˆÛ\ÜÓ˜[YOHœY\\›Z\ÜÚ[Û‹YÜšY‚ˆÜ\›Z\ÜÚ[Û‘Ü›İ\Ë›X\
-
-Ü›İ\
-OOšY[Ù]Ù^O^ÙÜ›İ\]_OYÙ[™ÙÜ›İ\]_OÛYÙ[™ÙÜ›İ\š][\Ë›X\
-
-][JOOX™[Ù^O^Ú][KšYO[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^Ü\›Z\ÜÚ[ÛŠ]šXÙK][KšY
-_HÛÚ[™ÙO^Ê]™[
-OO˜Ú[™ÙT\›Z\ÜÚ[ÛŠ]šXÙK][KšY]™[\™Ù]˜ÚXÚÙY
-_KÏÜ[Ú][K›X™[OÜÜ[ÛX™[Š_OÙšY[Ù]Š_BˆšY[Ù]YÙ[™”QÒQÑUÏÛYÙ[™İÚYÙ]Ë›X\
-
-][JOOX™[Ù^O^Ú][KšYO[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^ØXİ]™UÚYÙ]Ëš[˜ÛY\Ê][KšY
-_HÛÚ[™ÙO^Ê]™[
-OO˜Ú[™ÙUÚYÙ]
-]šXÙK][KšY]™[\™Ù]˜ÚXÚÙY
-_KÏÜ[Ú][K›X™[OÜÜ[ÛX™[Š_OÙšY[Ù]‚ˆšY[Ù]YÙ[™““ÕQ’PĞUSÓˆ“ÕUOÛYÙ[™X™[[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^Û›İYšXØ][ÛŠ]šXÙK™[˜X›YŠ_HÛÚ[™ÙO^Ê]™[
-OO˜Ú[™ÙS›İYšXØ][ÛŠ]šXÙK™[˜X›Y‹]™[\™Ù]˜ÚXÚÙY
-_KÏÜ[”“ÕUHÈÕUSÓÜÜ[ÛX™[X™[[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^Û›İYšXØ][ÛŠ]šXÙKœš[Üš]SÛ›HŠ_HÛÚ[™ÙO^Ê]™[
-OO˜Ú[™ÙS›İYšXØ][ÛŠ]šXÙKœš[Üš]SÛ›H‹]™[\™Ù]˜ÚXÚÙY
-_KÏÜ[”’SÔ’UHÓ“OÜÜ[ÛX™[X™[[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^Û›İYšXØ][ÛŠ]šXÙK˜ÛÛ›™Xİ[Û‘]™[ÈŠ_HÛÚ[™ÙO^Ê]™[
-OO˜Ú[™ÙS›İYšXØ][ÛŠ]šXÙK˜ÛÛ›™Xİ[Û‘]™[È‹]™[\™Ù]˜ÚXÚÙY
-_KÏÜ[“S’ÈU‘S•ÏÜÜ[ÛX™[X™[[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^Û›İYšXØ][ÛŠ]šXÙKœ›İ][™T™\İ[ÈŠ_HÛÚ[™ÙO^Ê]™[
-OO˜Ú[™ÙS›İYšXØ][ÛŠ]šXÙKœ›İ][™T™\İ[È‹]™[\™Ù]˜ÚXÚÙY
-_KÏÜ[”“ÕUS‘H‘TÕSÏÜÜ[ÛX™[ÙšY[Ù]‚ˆšY[Ù]YÙ[™”ÑSPÕU‘HÖSÒ“Ó’VUSÓÛYÙ[™ÊØš™XİšÙ^\ÊŞ[˜ÑY˜][ÊH\È
-Ù^[ÙˆYŞ[˜ÔÛXŞJV×JK›X\
-
-Y
-OOX™[Ù^O^ÚYO[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^ÜŞ[˜Ê]šXÙKY
-_HÛÚ[™ÙO^Ê]™[
-OO˜Ú[™ÙTŞ[˜Ê]šXÙKY]™[\™Ù]˜ÚXÚÙY
-_KÏÜ[ÚYÕ\\Ø\ÙJ
-_OÜÜ[ÛX™[Š_OÙšY[Ù]‚ˆÙ]‚ˆ›Ûİ\Ü[Ù]šXÙK›\İY™\ÜßQ‘TÔÈ“Õ‘PÓÔ‘QŸH0­ÈÙ]šXÙK›™]ÛÜšß“‘UÓÔ’ÈS’Ó“ÕÓˆŸH0­ÈÙ]šXÙK›][˜ŞS\ßHTÈ0­ÈÙ]šXÙK˜ÛÛ›™Xİ[ÛÛİ[HS’ÔÈ0­ÈÓQS•Ù]šXÙK˜ÛY[™\œÚ[ÛŸ•S’Ó“ÕÓˆŸOÜÜ[]]ÛˆÛÛXÚÏ^Ê
-OO›Ü\˜]JšY[YH‹]šXÙJ_O’QS•Q–OØ]Û]ÛˆÛ\ÜÓ˜[YOH™[™Ù\ˆˆÛÛXÚÏ^Ê
-OO›Ü\˜]Jœ™]›ÚÙH‹]šXÙJ_O”‘U“ÒÑOØ]ÛÙ]Ù›Ûİ\‚ˆØ\XÛOÂˆJNÛ\ÜÓ˜[YOH˜ÛÛ›™XİYY[\H““È•TÕQQU’PÑTÈ0­ÈT“HHRT’S‘ÈÓÑHÈ‘QÒSÜŸBˆÜÙXİ[Û‚ˆÏŸB‚ˆØ\™XOOOH˜\›İ˜[È‰‰ÙXİ[ÛˆÛ\ÜÓ˜[YOHœYX\›İ˜[[\İ‚ˆXY\Ü[ÛX[‘TÒÕÔUUÔ’VUSÓÜÛX[”S‘S‘ÈQ‘TUQTÕÏØÜÜ[[O““ÕS‘ÈÑS”ÒUU‘H•S”ÈS•ST“Õ‘QÙ[OÚXY\‚ˆÜİ]\ÏË˜\›İ˜[ÏË›[™İÜİ]\Ë˜\›İ˜[Ë›X\
-
-\›İ˜[[™^
-OOØÛÛœİÙXÛÛ™ÏSX]›X^
-\›İ˜[™^\™\Ğ][›İÊNÜ™]\›ˆ\XÛHÙ^O^Ø\›İ˜[šYOOÔİš[™Ê[™^
-ÌJKœYİ\
-‹ŒŠ_OÚOÜ[ÛX[Ø\›İ˜[™]šXÙS˜[Y_H0­ÈØYÙJ\›İ˜[˜Ü™X]Y]
-_H0­ÈVT‘TÈSˆÜÙXÛÛ™ß\ÏÜÛX[Ø\›İ˜[˜Xİ[Û‹Õ\\Ø\ÙJ
-_OØÙ\Ü^U˜[YJ\›İ˜[˜[YJ_OÜÜÜ[]]Ûˆ\ØX›Y^È\ÙXÛÛ™ßHÛÛXÚÏ^Ê
-OO›Ü\˜]J˜\›İ™H‹[™Yš[™YØ\›İ˜[Y˜\›İ˜[šYJ_OT“Õ‘OØ]Û]ÛˆÛ\ÜÓ˜[YOH™[™Ù\ˆˆÛÛXÚÏ^Ê
-OO›Ü\˜]J™[H‹[™Yš[™YØ\›İ˜[Y˜\›İ˜[šYJ_O‘S–OØ]ÛÙ]Ø\XÛOŸJNÛ\ÜÓ˜[YOH˜ÛÛ›™XİYY[\HT“ÕSUQUQHÓPTÜŸBˆÜÙXİ[ÛŸB‚ˆØ\™XOOOH˜Xİ]š]H‰‰ÙXİ[ÛˆÛ\ÜÓ˜[YOHœYXXİ]š]K[\İ‚ˆXY\Ü[ÛX[“ĞĞSUQURSÜÛX[ÓÓ“‘PÕQPÕU’UOØÜÜ[[O““ÈÒÑS”ÈÔˆÓT“ĞT‘ÓÓ•S•T‘H‘PÓÔ‘QÙ[OÚXY\‚ˆÜİ]\ÏË˜Xİ]š]OË›[™İÜİ]\Ë˜Xİ]š]K›X\
-
-][K[™^
-OO\XÛHÙ^O^Ú][KšYOOÔİš[™Ê[™^
-ÌJKœYİ\
-‹ŒŠ_OÚOÜ[ÛX[Ú][K™]šXÙS˜[Y_H0­ÈØYÙJ][K˜Ü™X]Y]
-_OÜÛX[Ú][K˜Xİ[Û‹œ™\XÙP[
-‹H‹ˆŠKÕ\\Ø\ÙJ
-_OØÚ][K™]Z[][Kœİ]\ßOÜÜÜ[[OÚ][Kœİ]\ËÕ\\Ø\ÙJ
-_OÙ[OØ\XÛOŠNÛ\ÜÓ˜[YOH˜ÛÛ›™XİYY[\H““ÈÓÓ“‘PÕQPÕU’UH‘PÓÔ‘QÜŸBˆÜÙXİ[ÛŸB‚ˆØ\™XOOOH™XYÛ›ÜİXÜÈ‰‰ÙXİ[ÛˆÛ\ÜÓ˜[YOHœYYXYÛ›ÜİXÜË]Œ‚ˆXY\Ü[ÛX[ÓÓ“‘PÕSÓˆUPSUOÜÛX[‘“QUPQÓ“ÔÕPÔÏØÜÜ[[OÜİ]\ÏË™\œÚ[ÛŸ•‘T”ÒSÓˆS’Ó“ÕÓˆŸH0­ÈÜİ]\ÏËœ]›Ü›_”U“Ô“HS’Ó“ÕÓˆŸOÙ[OÚXY\‚ˆ]ˆÛ\ÜÓ˜[YOHœYYXYÛ›ÜİXËYÜšY\XÛOÛX[“TÕS‘TÜÛX[Üİ]\ÏË›Û›[™OØÔ•	Üİ]\ËœÜXˆ“Ñ‘“S‘HŸOØÜİ]\ÏË™\œ›ÜŸ‘ÕPT‘QĞĞSS‘UÓÔ’ÈÑT•’PÑHŸOÜØ\XÛO\XÛOÛX[‘U‘S•PÒÓÑÏÜÛX[Üİ[[X\K™]™[˜XÚÛÙßOØÓÓ“‘PÕÑTĞÓÓ“‘PÕUUÓPUSÓˆÒQÓSÏÜØ\XÛO\XÛOÛX[ÓÓSPS‘UQUQOÜÛX[Üİ[[X\Kœ]Y]YYÛÛ[X[™ßOØSÕÓTÕQ‘TUQTÕÈ‘PQH“ÔˆĞT”ÏÜØ\XÛO\XÛOÛX[PÕU‘HS’ÔÏÜÛX[Üİ[[X\K˜ÛÛ›™XİYKŞÜİ[[X\KœZ\™YOØ’PT•‘PUÒS‘ÕÎˆŒÑPÓÓ‘ÏÜØ\XÛOÙ]‚ˆÙXİ[ÛˆÛ\ÜÓ˜[YO^ØY\™XÛİ™\K\[™[	Üİ]\ÏË›Û›[™I‰œš[X\PY™\ÜÉ‰ˆ[Z\ÛX]Ú\Ë›[™İÈ››ÛZ[˜[ˆ˜][[ÛˆŸXOXY\Ü[ÛX[ÓÓ“‘PÕSÓˆ‘PÓÕ‘T–OÜÛX[Üİ]\ÏË›Û›[™I‰œš[X\PY™\ÜÉ‰ˆ[Z\ÛX]Ú\Ë›[™İÈ“S’ÈU“ÓRSSˆPÕSÓˆ‘PÓÓSQS‘QŸOØÜÜ[[OÛZ\ÛX]Ú\Ë›[™İØ	ÛZ\ÛX]Ú\Ë›[™İH‘T”ÒSÓˆRTÓPUÒ	ÛZ\ÛX]Ú\Ë›[™İOOLOÈˆˆ‘TÈŸXœš[X\PY™\ÜÏÈ”’UUHQ‘TÔÈ‘PQHˆ”’UUHQ‘TÔÈRTÔÒS‘ÈŸOÙ[OÚXY\ÛHÛ\ÜÓ˜[YO^Üİ]\ÏË™[˜X›YÈœ™XYHˆˆŸO”QÑT•’PÑHSP“QÛOHÛ\ÜÓ˜[YO^Üİ]\ÏË›Û›[™OÈœ™XYHˆˆŸO“ĞĞSTÕS‘Tˆ‘TÔÓ‘S‘ÏÛOHÛ\ÜÓ˜[YO^Üš[X\PY™\ÜÏÈœ™XYHˆˆŸO”’UUH‘UÓÔ’ÈQ‘TÔÈURSP“OÛOHÛ\ÜÓ˜[YO^È[Z\ÛX]Ú\Ë›[™İÈœ™XYHˆˆŸOÓQS•‘T”ÒSÓ”ÈSQÓ‘QÛOÛÛÛZ\ÛX]Ú\Ë›[™İÈ•\]HH\İYQÜˆ\ÚİÜ™Y›Ü™H™[Z[™ÈÛˆ™[[İHÛÛ[X[™ËˆZ\š[™È™[XZ[œÈ]˜Z[X›H›Üˆ™XÛİ™\Kˆˆ\š[X\PY™\ÜÏÈÛÛ›™XİH\ÚİÜÈH\İYš]˜]HÚKQšHÜˆ]\›™]™]ÛÜšË[ˆ[ˆH[šÈÚXÚÈYØZ[‹ˆœİ]\ÏË›Û›[™OÈ’YˆHQİ[Ø[››İ™XÛÛ›™Xİ™Yœ™\Ú›İ[™Ë™\šYH^HÚ\™HHØ[YHš]˜]H™]ÛÜšË[ˆ™]›ÚÙH[™Z\ˆYØZ[‹ˆˆ”İ\HQÙ\šXÙH[™™\šYH›Èš\™]Ø[[H\È›ØÚÚ[™ÈHØØ[\İ[™\‹ˆŸOÜÜÙXİ[Û‚ˆX™[Û\ÜÓ˜[YOH˜Û\›Ø\™X\›H[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^Ğ›ÛÛX[Šİ]\ÏË˜Û\›Ø\™[˜X›Y
-_HÛÚ[™ÙO^Ê]™[
-OO›Ü\˜]J˜Û\›Ø\™‹[™Yš[™YÙ[˜X›Y™]™[\™Ù]˜ÚXÚÙYJ_KÏÜ[‘SP“HÔRSˆVÓT“ĞT‘‘TUQTÕÏØÛX[•^Û›K[Z]Y[ˆÚ^™K[™]™\H™\]Y\İ™\]Z\™\È\›İ˜[[›\ÜÈ[İH^XÚ]H[˜X›H]]ËX\›İ˜[›Üˆ]]šXÙKÜÛX[ÜÜ[ÛX™[‚ˆX™[Û\ÜÓ˜[YOH˜Û\›Ø\™X\›H[œ]\OH˜ÚXÚØ›ŞˆÚXÚÙY^Ğ›ÛÛX[Šİ]\ÏË™š[U˜[œÙ™\‘[˜X›Y
-_HÛÚ[™ÙO^Ê]™[
-OO›Ü\˜]J™š[K]˜[œÙ™\ˆ‹[™Yš[™YÙ[˜X›Y™]™[\™Ù]˜ÚXÚÙYJ_KÏÜ[‘SP“HÓPSQ’SH‘QTUSÓˆS”Ñ‘TØÛX[‘\ÚİÜZ[š]X]Yš[\È\™HQTËLM‹QĞÓH›İXİY[ˆ˜[œÚ][Z]YÈLLˆÚP‹[™[]™\™YÛ›HÈZ\™Yİ][ÛœÈÚ]^XÚ]š[H\›Z\ÜÚ[Û‹ÜÛX[ÜÜ[ÛX™[‚ˆ]ˆÛ\ÜÓ˜[YOHœYYXYÛ›ÜİXËXXİ[ÛœÈ]ÛˆÛÛXÚÏ^Ü™Yœ™\ÚO”•SˆS’ÈÒPÒÏØ]Û]Ûˆ\ØX›Y^È\š[X\PY™\ÜßHÛÛXÚÏ^ØÛÜTÙ]\OÓÔHÓÓ“‘PÕSÓˆURSÏØ]Û]ÛˆÛÛXÚÏ^Ù^ÜXYÛ›ÜİXÜßO‘VÔ•’UUHPQÓ“ÔÕPÔÏØ]Û]ÛˆÛÛXÚÏ^Ê
-OO›Ü\˜]Jœİ\Š_OT“H‘PÓÕ‘T–HÓÑOØ]ÛÙ]‚ˆÜÙXİ[ÛŸBˆÜÙXİ[ÛÂŸB
+    {area==="diagnostics"&&<section className="padd-diagnostics-v28">
+      <header><span><small>CONNECTION QUALITY</small><b>FLEET DIAGNOSTICS</b></span><em>{status?.version||"VERSION UNKNOWN"} Â· {status?.platform||"PLATFORM UNKNOWN"}</em></header>
+      <div className="padd-diagnostic-grid"><article><small>LISTENER</small><b>{status?.online?`PORT ${status.port}`:"OFFLINE"}</b><p>{status?.error||"GUARDED LOCAL-NETWORK SERVICE"}</p></article><article><small>EVENT BACKLOG</small><b>{summary.eventBacklog}</b><p>CONNECT/DISCONNECT AUTOMATION SIGNALS</p></article><article><small>COMMAND QUEUE</small><b>{summary.queuedCommands}</b><p>ALLOWLISTED REQUESTS READY FOR LCARS</p></article><article><small>ACTIVE LINKS</small><b>{summary.connected}/{summary.paired}</b><p>HEARTBEAT WINDOW: 20 SECONDS</p></article></div>
+      <section className={`padd-recovery-panel ${status?.online&&primaryAddress&&!mismatches.length?"nominal":"attention"}`}><header><span><small>CONNECTION RECOVERY</small><b>{status?.online&&primaryAddress&&!mismatches.length?"LINK PATH NOMINAL":"ACTION RECOMMENDED"}</b></span><em>{mismatches.length?`${mismatches.length} VERSION MISMATCH${mismatches.length===1?"":"ES"}`:primaryAddress?"PRIVATE ADDRESS READY":"PRIVATE ADDRESS MISSING"}</em></header><ol><li className={status?.enabled?"ready":""}>PADD SERVICE ENABLED</li><li className={status?.online?"ready":""}>LOCAL LISTENER RESPONDING</li><li className={primaryAddress?"ready":""}>PRIVATE NETWORK ADDRESS AVAILABLE</li><li className={!mismatches.length?"ready":""}>CLIENT VERSIONS ALIGNED</li></ol><p>{mismatches.length?"Update the listed PADD or desktop before relying on remote commands. Pairing remains available for recovery.":!primaryAddress?"Connect the desktop to a trusted private Wi-Fi or Ethernet network, then run the link check again.":status?.online?"If a PADD still cannot reconnect, refresh both ends, verify they share the same private network, then revoke and pair again.":"Start the PADD service and verify no firewall rule is blocking the local listener."}</p></section>
+      <label className="clipboard-arm"><input type="checkbox" checked={Boolean(status?.clipboardEnabled)} onChange={(event)=>operate("clipboard",undefined,{enabled:event.target.checked})}/><span><b>ENABLE OPT-IN TEXT CLIPBOARD REQUESTS</b><small>Text only, limited in size, and every request requires approval unless you explicitly enable auto-approval for that device.</small></span></label>
+      <label className="clipboard-arm"><input type="checkbox" checked={Boolean(status?.fileTransferEnabled)} onChange={(event)=>operate("file-transfer",undefined,{enabled:event.target.checked})}/><span><b>ENABLE SMALL-FILE FEDERATION TRANSFER</b><small>Desktop-initiated files are AES-256-GCM protected in transit, limited to 512 KiB, and delivered only to paired stations with explicit file permission.</small></span></label>
+      <div className="padd-diagnostic-actions"><button onClick={refresh}>RUN LINK CHECK</button><button disabled={!primaryAddress} onClick={copySetup}>COPY CONNECTION DETAILS</button><button onClick={exportDiagnostics}>EXPORT PRIVATE DIAGNOSTICS</button><button onClick={()=>operate("start")}>ARM RECOVERY CODE</button></div>
+    </section>}
+  </section>;
+}

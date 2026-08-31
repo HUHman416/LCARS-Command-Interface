@@ -1,826 +1,664 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿnwã]ûÓNöÛ|ÖZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µéˆÈKİ\Ü‹Øš[‹Ù[ˆ]ÛŒÂˆˆˆ“ÛÜ˜XÚË[Û›HÚ[™İÜÈLÌLHŞ\İ[HœšYÙH›ÜˆHĞT”È[\™˜XÙKˆˆˆ‚š[\Üİ\\ËœÛÛ‹ÜË]Y]YK™KÚ][İXœ›ØÙ\ÜË™XY[™Ë[YK]ZY˜\ÙM[\š[KŞ\Â™œ›ÛHİ\\È[\ÜÚ[\\Â™œ›ÛHœÙ\™\ˆ[\Ü˜\ÙR™\]Y\İ[™\‹™XY[™ÒÙ\™\‚™œ›ÛH]Xˆ[\Ü]™œ›ÛH\›X‹œ\œÙH[\Ü\œÙWÜ\Ë\›\œÙB‚œŞ\Ëœ]š[œÙ\
-İŠ]
-×Ùš[W×ÊKœ™\ÛÛ™J
-Kœ\™[œ\™[ÈœÚ\™YŠJB™œ›ÛHØ\œ×İ\]\ˆ[\ÜÚXÚ×İ\]KİÛ›ØYİ\]KØÚY[WÚ[œİ[›Û˜XÚ×Üİ]\ËØÚY[WÜ›Û˜XÚÂ™œ›ÛHØ\œ×Ù^[œÚ[ÛœÈ[\ÜØYÙ^[œÚ[ÛœË^[œÚ[Û—Üİ]KØ]™WÙ^[œÚ[Û—Üİ]K^[œÚ[Û—ØØ][ÙÈ\ÈZ[Ù^[œÚ[Û—ØØ][ÙË^[œÚ[Û—ÛÜ\˜][Û‹™\ÜÚ]ÜWÜÛİ\˜ÙWÛÜ\˜][Û‹™\\™WÛ[Ù[WÜX›XØ][Û‹[Ù[WÜ]›Ü›WÜİ]\Ë[Ù[WÜ]›Ü›WÛÜ\˜][Û‹[Ù[WÜXÚØYÙWÛÜ\˜][Û‹Ü™X]WÛ[Ù[WÙ˜Y™œ›ÛHØ\œ×ÙØİ[Y[È[\Ü™XYÙØİ[Y[Üš]WÙØİ[Y[™œ›ÛHØ\œ×ÜY[\ÜYÛÛ›Û\‚™œ›ÛHØ\œ×Ù]WÙ˜XœšXÈ[\Ü]Q˜XœšXÂ‚”Ô•NÍB“ĞT”×Õ‘T”ÒSÓHŒÌH‚’ÓQOT]šÛYJ
-BÓÓ‘’Q×ÑTT]
-ÜË™[š\›Û‹™Ù]
-TUH‹ÓQJJKÈ“ĞT”ÈÛÛ[X[™[\™˜XÙH‚ÓÓ‘’Q×Ñ’SOPÓÓ‘’Q×ÑT‹ÈœÙ][™ÜËšœÛÛˆ‚•TUWÑTPÓÓ‘’Q×ÑT‹È\]\È‚‘VS”ÒSÓ—ÑTT]
-ÜË™[š\›Û‹™Ù]
-“ĞT”×ÑVS”ÒSÓ—ÑTˆ‹]
-ÜË™[š\›Û‹™Ù]
-“ĞĞSTUH‹ÓQJJKÈ“ĞT”ÈÛÛ[X[™[\™˜XÙH‹È™^[œÚ[ÛœÈŠJB•RSS—ÑVS”ÒSÓ—ÑTT]
-×Ùš[W×ÊKœ™\ÛÛ™J
-Kœ\™[œ\™[È™^[œÚ[ÛœÈ‚‘VS”ÒSÓ—ÔÕUWÑTPÓÓ‘’Q×ÑT‹È™^[œÚ[Û‹\İ]H‚“SÑSWÔÓÕTÑWÑ’SOPÓÓ‘’Q×ÑT‹È›[Ù[K\Ûİ\˜Ù\ËšœÛÛˆ‚“SÑSWÔP“TÒT—ÑTPÓÓ‘’Q×ÑT‹È›[Ù[K\X›\Ú\ˆ‚“SÑSWÔ•S•SQWÑTPÓÓ‘’Q×ÑT‹È›[Ù[K\]›Ü›H‚”QĞTÔÑUÑTT]
-×Ùš[W×ÊKœ™\ÛÛ™J
-Kœ\™[œ\™[ÈœY‚”QTYÛÛ›Û\ŠÓÓ‘’Q×ÑT‹QĞTÔÑUÑT‹ĞT”×Õ‘T”ÒSÓ‹Ú[™İÜÈŠB‘UWÑP”’PÏQ]Q˜XœšXÊÓÓ‘’Q×ÑT‹Ú[™İÜÈŠB•T“RSSÏ^ßB•T“RSSÓĞÒÏ]™XY[™Ë“ØÚÊ
-BTĞĞPÒO^ßB•ÒS‘ÕÔ×ÒPÓÓ—ĞĞPÒO^ßB“‘UÓÔ’×ĞĞPÒO^È˜]Œ˜[YH“›Û™_B‚™Yˆ™]ÛÜš×Ù]Z[Ê
-N‚ˆYˆ‘UÓÔ’×ĞĞPÒVÈ˜[YH—H[™[YK[YJ
-KS‘UÓÔ’×ĞĞPÒVÈ˜]—Oœ™]\›ˆ‘UÓÔ’×ĞĞPÒVÈ˜[YH—Bˆ[\™˜XÙ\ÏV×NÜØÜš\H‘Ù]S™]TÛÛ™šYİ\˜][Ûˆ›Ü‘XXÚSØš™XİÈ	OQÙ]S™]Y\\ˆR[\™˜XÙR[™^	Ë’[\™˜XÙR[™^Q\œ›ÜXİ[ÛˆÚ[[PÛÛ[YNÈ	ÏQÙ]S™]Y\\”İ]\İXÜÈR[\™˜XÙR[™^	Ë’[\™˜XÙR[™^Q\œ›ÜXİ[ÛˆÚ[[PÛÛ[YNÈÜØİ\İÛ[Øš™XİPÚYVÜİš[™×IË’[\™˜XÙR[™^Û˜[YOIË’[\™˜XÙP[X\ÎÚÚ[™IK“YYXU\NÜİ]OIK”İ]\ÎØY™\ÜÏJ	Ë’TY™\ÜË’TY™\ÜÈZ›Ú[ˆ	Ë	ÊNÙØ]]Ø^OJ	Ë’TY˜][Ø]]Ø^K“™^ÜZ›Ú[ˆ	Ë	ÊNÜÜYYVÜİš[™×IK“[šÔÜYYÜ™XÙZ]™YVÚ[IË”™XÙZ]™Y]\ÎÜÙ[VÚ[IË”Ù[]\ßHHÛÛ™\ËRœÛÛˆPÛÛ\™\ÜÈ‚ˆN‚ˆ™\İ[\İXœ›ØÙ\ÜËœ[ŠÈœİÙ\œÚ[™^H‹‹S›Ô›Ùš[H‹‹PÛÛ[X[™‹ØÜš\KØ\\™WÛİ]]UYK^UYK[Y[İ]MJNÜ›İÜÏZœÛÛ‹›ØYÊ™\İ[œİİ]Üˆ–×HŠNÜ›İÜÏVÜ›İÜ×HYˆ\Ú[œİ[˜ÙJ›İÜËXİ
-H[ÙH›İÜÂˆ›Üˆ›İÈ[ˆ›İÜÎš[\™˜XÙ\Ë˜\[™
-ÊŠœ›İËšÚ[™ˆÚ\™[\ÜÈˆYˆÚ\™[\ÜÈˆ[ˆİŠ›İË™Ù]
-šÚ[™‹ˆŠJK›İÙ\Š
-HÜˆÚKYšHˆ[ˆİŠ›İË™Ù]
-›˜[YH‹ˆŠJK›İÙ\Š
-H[ÙH™]\›™]‹œİ]Hˆ˜ÛÛ›™XİYˆYˆİŠ›İË™Ù]
-œİ]H‹ˆŠJK›İÙ\Š
-OOH\ˆ[ÙHİŠ›İË™Ù]
-œİ]H‹[šÛ›İÛˆŠJK›İÙ\Š
-K™œÈˆ”ÖTÕSH‘TÓÓ‘TˆŸJBˆ^Ù\^Ù\[Ûœ\ÜÂˆÛ›[™OX[J™Ù]
-œİ]HŠOOH˜ÛÛ›™XİYˆ›Üˆ[ˆ[\™˜XÙ\ÊNİ˜[YO^Èš[\™˜XÙ\Èš[\™˜XÙ\Ë™XYÛ›ÜİXÜÈÈ™Ø]]Ø^H˜[J›ÛÛ
-™Ù]
-™Ø]]Ø^HŠJH›Üˆ[ˆ[\™˜XÙ\ÊK™œÈ›Û›[™Kš[\›™]›Û›[™K›][˜ŞH“›Û™_K˜›Y]Ûİ˜›ÛÛ
-Ú][ÚXÚ
-™œÜ]Z\™^HŠJ_NÓ‘UÓÔ’×ĞĞPÒK\]J]][YK[YJ
-K˜[YO]˜[YJNÜ™]\›ˆ˜[YB‚™Yˆ^[œÚ[Û—ÛX[šY™\İÊ
-N‚ˆ™]\›ˆ[Ù[WÜ]›Ü›WÜİ]\ÊVS”ÒSÓ—ÑT‹•RSS—ÑVS”ÒSÓ—ÑT‹SÑSWÔ•S•SQWÑTŠBˆÈYØXŞH\œÙ\ˆ™]Z[™Y™[İÈ›ÜˆZYÜ˜][Ûˆ™Y™\™[˜ÙNÈTHŒˆ›Ü›X[^™\ÈŒK‚ˆˆˆ“ØYH›Û‹Y^Xİ]X›H[Ù[HTHŒHX[šY™\İ›Ü›X]ˆˆˆ‚ˆVS”ÒSÓ—ÑT‹›ZÙ\Š\™[ÏUYK^\İÛÚÏUYJBˆ[Ù[\ÏV×NÙ\œ›ÜœÏV×NÜÙY[\Ù]
+#!/usr/bin/env python3
+"""Loopback-only Windows 10/11 system bridge for the LCARS interface."""
+import ctypes, json, os, queue, re, shutil, subprocess, threading, time, uuid, base64, tempfile, sys
+from ctypes import wintypes
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
-Bˆ›Üˆ][ˆ\İ
-VS”ÒSÓ—ÑT‹™ÛØŠŠŠ‹ÛØ\œË[[Ù[KšœÛÛˆŠJVÎN‚ˆN‚ˆYˆ]œİ]
+sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
+from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
+from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation, repository_source_operation, prepare_module_publication, module_platform_status, module_platform_operation, module_package_operation, create_module_draft
+from lcars_documents import read_document, write_document
+from lcars_padd import PaddController
+from lcars_data_fabric import DataFabric
 
-KœİÜÚ^™OMLÍˆ˜Z\ÙH˜[YQ\œ›ÜŠ›X[šY™\İ^ÙYYÈÚPˆŠBˆ]OZœÛÛ‹›ØYÊ]œ™XYİ^
-[˜ÛÙ[™ÏH]‹NŠJNÚY[\İŠ]K™Ù]
-šY‹ˆŠJKœİš\
+PORT=8765
+LCARS_VERSION="30.5"
+HOME=Path.home()
+CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
+CONFIG_FILE=CONFIG_DIR/"settings.json"
+UPDATE_DIR=CONFIG_DIR/"updates"
+EXTENSION_DIR=Path(os.environ.get("LCARS_EXTENSION_DIR",Path(os.environ.get("LOCALAPPDATA",HOME))/"LCARS Command Interface"/"extensions"))
+BUILTIN_EXTENSION_DIR=Path(__file__).resolve().parent.parent/"extensions"
+EXTENSION_STATE_DIR=CONFIG_DIR/"extension-state"
+MODULE_SOURCE_FILE=CONFIG_DIR/"module-sources.json"
+MODULE_PUBLISHER_DIR=CONFIG_DIR/"module-publisher"
+MODULE_RUNTIME_DIR=CONFIG_DIR/"module-platform"
+PADD_ASSET_DIR=Path(__file__).resolve().parent.parent/"padd"
+PADD=PaddController(CONFIG_DIR,PADD_ASSET_DIR,LCARS_VERSION,"windows")
+DATA_FABRIC=DataFabric(CONFIG_DIR,"windows")
+TERMINALS={}
+TERMINAL_LOCK=threading.Lock()
+APP_CACHE={}
+WINDOWS_ICON_CACHE={}
+NETWORK_CACHE={"at":0,"value":None}
 
-NÛ[Ù[OY]K™Ù]
-›[Ù[H‹ßJBˆYˆ›İ™K™[X]Ú
-ˆ–ØK^ŒNWVØK^ŒNKW^Ì‹ßH‹Y[
-Nˆ˜Z\ÙH˜[YQ\œ›ÜŠš[˜[Y[Ù[HYŠBˆYˆY[[ˆÙY[ˆ˜Z\ÙH˜[YQ\œ›ÜŠ™\XØ]H[Ù[HYŠBˆYˆ]K™Ù]
-œØÚ[XHŠHOLHÜˆ[Ù[K™Ù]
-\HŠHOH˜ÚXÚÛ\İˆ˜Z\ÙH˜[YQ\œ›ÜŠ[œİ\ÜY[Ù[HØÚ[XHÜˆ\HŠBˆ][\Ï[[Ù[K™Ù]
-™Y˜][][\È‹×JBˆYˆ›İ\Ú[œİ[˜ÙJ][\Ë\İ
-Nˆ˜Z\ÙH˜[YQ\œ›ÜŠ™Y˜][][\È]\İ™HH\İŠBˆÛX[—Ú][\ÏVÜİŠ][JKœİš\
+def network_details():
+    if NETWORK_CACHE["value"] and time.time()-NETWORK_CACHE["at"]<6:return NETWORK_CACHE["value"]
+    interfaces=[];script="Get-NetIPConfiguration | ForEach-Object { $a=Get-NetAdapter -InterfaceIndex $_.InterfaceIndex -ErrorAction SilentlyContinue; $s=Get-NetAdapterStatistics -InterfaceIndex $_.InterfaceIndex -ErrorAction SilentlyContinue; [pscustomobject]@{id=[string]$_.InterfaceIndex;name=$_.InterfaceAlias;kind=$a.MediaType;state=$a.Status;address=($_.IPv4Address.IPAddress -join ', ');gateway=($_.IPv4DefaultGateway.NextHop -join ', ');speed=[string]$a.LinkSpeed;received=[int64]$s.ReceivedBytes;sent=[int64]$s.SentBytes} } | ConvertTo-Json -Compress"
+    try:
+        result=subprocess.run(["powershell.exe","-NoProfile","-Command",script],capture_output=True,text=True,timeout=5);rows=json.loads(result.stdout or "[]");rows=[rows] if isinstance(rows,dict) else rows
+        for row in rows:interfaces.append({**row,"kind":"wireless" if "wireless" in str(row.get("kind","")).lower() or "wi-fi" in str(row.get("name","")).lower() else "ethernet","state":"connected" if str(row.get("state","")).lower()=="up" else str(row.get("state","unknown")).lower(),"dns":"SYSTEM RESOLVER"})
+    except Exception:pass
+    online=any(x.get("state")=="connected" for x in interfaces);value={"interfaces":interfaces,"diagnostics":{"gateway":any(bool(x.get("gateway")) for x in interfaces),"dns":online,"internet":online,"latency":None},"bluetooth":bool(shutil.which("fsquirt.exe"))};NETWORK_CACHE.update(at=time.time(),value=value);return value
 
-VÎŒLH›Üˆ][H[ˆ][\ÖÎŒHYˆİŠ][JKœİš\
+def extension_manifests():
+    return module_platform_status(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_RUNTIME_DIR)
+    # Legacy parser retained below for migration reference; API v2 normalizes v1.
+    """Load the non-executable Module API v1 manifest format."""
+    EXTENSION_DIR.mkdir(parents=True,exist_ok=True)
+    modules=[];errors=[];seen=set()
+    for path in list(EXTENSION_DIR.glob("**/lcars-module.json"))[:64]:
+        try:
+            if path.stat().st_size>65536: raise ValueError("manifest exceeds 64 KiB")
+            data=json.loads(path.read_text(encoding="utf-8"));ident=str(data.get("id","")).strip();module=data.get("module",{})
+            if not re.fullmatch(r"[a-z0-9][a-z0-9-]{2,47}",ident): raise ValueError("invalid module id")
+            if ident in seen: raise ValueError("duplicate module id")
+            if data.get("schema")!=1 or module.get("type")!="checklist": raise ValueError("unsupported module schema or type")
+            items=module.get("defaultItems",[])
+            if not isinstance(items,list): raise ValueError("defaultItems must be a list")
+            clean_items=[str(item).strip()[:100] for item in items[:24] if str(item).strip()]
+            allowed_pages={"overview","terminal","files","system","media","network","updates","settings"};voice=[]
+            for command in data.get("voiceCommands",[])[:12]:
+                phrase=str(command.get("phrase","")).strip()[:80];page=str(command.get("page","")).strip()
+                if phrase and page in allowed_pages:voice.append({"phrase":phrase,"page":page,"response":str(command.get("response",""))[:120]})
+            modules.append({"schema":1,"id":ident,"name":str(data.get("name",ident))[:48],"version":str(data.get("version","1.0.0"))[:20],"description":str(data.get("description","Local LCARS extension"))[:180],"author":str(data.get("author","Unknown"))[:64],"voiceCommands":voice,"module":{"type":"checklist","defaultSize":module.get("defaultSize","standard") if module.get("defaultSize") in ("compact","standard","wide") else "standard","defaultItems":clean_items}});seen.add(ident)
+        except Exception as exc: errors.append({"file":path.name,"error":str(exc)})
+    return {"extensions":modules,"errors":errors,"directory":str(EXTENSION_DIR)}
 
-WBˆ[İÙYÜYÙ\Ï^È›İ™\šY]È‹\›Z[˜[‹™š[\È‹œŞ\İ[H‹›YYXH‹›™]ÛÜšÈ‹\]\È‹œÙ][™ÜÈŸNİ›ÚXÙOV×Bˆ›ÜˆÛÛ[X[™[ˆ]K™Ù]
-›ÚXÙPÛÛ[X[™È‹×JVÎŒL—N‚ˆ˜\ÙO\İŠÛÛ[X[™™Ù]
-œ˜\ÙH‹ˆŠJKœİš\
+try:
+    import psutil
+except Exception:
+    psutil=None
 
-VÎNÜYÙO\İŠÛÛ[X[™™Ù]
-œYÙH‹ˆŠJKœİš\
+def run_ps(script,timeout=12):
+    try:
+        return subprocess.run(["powershell.exe","-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",script],capture_output=True,text=True,timeout=timeout,creationflags=0x08000000).stdout.strip()
+    except Exception:
+        return ""
 
-BˆYˆ˜\ÙH[™YÙH[ˆ[İÙYÜYÙ\Î›ÚXÙK˜\[™
-Èœ˜\ÙHœ˜\ÙKœYÙHœYÙKœ™\ÜÛœÙHœİŠÛÛ[X[™™Ù]
-œ™\ÜÛœÙH‹ˆŠJVÎŒLŒ_JBˆ[Ù[\Ë˜\[™
-ÈœØÚ[XHŒKšYšY[›˜[YHœİŠ]K™Ù]
-›˜[YH‹Y[
-JVÎK™\œÚ[ÛˆœİŠ]K™Ù]
-™\œÚ[Ûˆ‹ŒKŒŒŠJVÎŒŒK™\ØÜš\[ÛˆœİŠ]K™Ù]
-™\ØÜš\[Ûˆ‹“ØØ[ĞT”È^[œÚ[ÛˆŠJVÎŒNK˜]]ÜˆœİŠ]K™Ù]
-˜]]Üˆ‹•[šÛ›İÛˆŠJVÎK›ÚXÙPÛÛ[X[™È›ÚXÙK›[Ù[HÈ\Hˆ˜ÚXÚÛ\İ‹™Y˜][Ú^™H›[Ù[K™Ù]
-™Y˜][Ú^™H‹œİ[™\™ŠHYˆ[Ù[K™Ù]
-™Y˜][Ú^™HŠH[ˆ
-˜ÛÛ\Xİ‹œİ[™\™‹ÚYHŠH[ÙHœİ[™\™‹™Y˜][][\È˜ÛX[—Ú][\ß_JNÜÙY[‹˜Y
-Y[
-Bˆ^Ù\^Ù\[Ûˆ\È^Îˆ\œ›ÜœË˜\[™
-È™š[Hœ]›˜[YK™\œ›ÜˆœİŠ^Ê_JBˆ™]\›ˆÈ™^[œÚ[ÛœÈ›[Ù[\Ë™\œ›ÜœÈ™\œ›ÜœË™\™XİÜHœİŠVS”ÒSÓ—ÑTŠ_B‚N‚ˆ[\Üİ][™^Ù\^Ù\[Û‚ˆİ][S›Û™B‚™Yˆ[—ÜÊØÜš\[Y[İ]LLŠN‚ˆN‚ˆ™]\›ˆİXœ›ØÙ\ÜËœ[ŠÈœİÙ\œÚ[™^H‹‹S›ÓÙÛÈ‹‹S›Ô›Ùš[H‹‹S›Û’[\˜Xİ]™H‹‹Q^Xİ][Û”ÛXŞH‹\\ÜÈ‹‹PÛÛ[X[™‹ØÜš\KØ\\™WÛİ]]UYK^UYK[Y[İ]][Y[İ]Ü™X][Û™›YÜÏL
-Kœİİ]œİš\
+def applications():
+    global APP_CACHE
+    roots=[Path(os.environ.get("PROGRAMDATA","C:/ProgramData"))/"Microsoft/Windows/Start Menu/Programs",Path(os.environ.get("APPDATA",HOME))/"Microsoft/Windows/Start Menu/Programs"]
+    found=[]
+    for root in roots:
+        if not root.exists(): continue
+        for item in root.rglob("*.lnk"):
+            if any(part.lower() in ("startup","administrative tools") for part in item.parts): continue
+            ident="win-"+uuid.uuid5(uuid.NAMESPACE_URL,str(item).lower()).hex[:20]
+            APP_CACHE[ident]=str(item)
+            found.append({"id":ident,"name":item.stem,"comment":item.parent.name if item.parent!=root else "Windows Application","shortcut":str(item)})
+    application_icons([app["shortcut"] for app in found])
+    for app in found:app["icon"]=WINDOWS_ICON_CACHE.get(app.pop("shortcut"),"")
+    # Keep one item for duplicate application names, preferring the per-user shortcut.
+    unique={}
+    for app in found: unique[app["name"].lower()]=app
+    return sorted(unique.values(),key=lambda a:a["name"].lower())
 
-Bˆ^Ù\^Ù\[Û‚ˆ™]\›ˆˆ‚‚™Yˆ\XØ][ÛœÊ
-N‚ˆÛØ˜[TĞĞPÒBˆ›ÛİÏVÔ]
-ÜË™[š\›Û‹™Ù]
-”“ÑÔSQUH‹Î‹Ô›ÙÜ˜[Q]HŠJKÈ“ZXÜ›ÜÛÙÕÚ[™İÜËÔİ\Y[KÔ›ÙÜ˜[\È‹]
-ÜË™[š\›Û‹™Ù]
-TUH‹ÓQJJKÈ“ZXÜ›ÜÛÙÕÚ[™İÜËÔİ\Y[KÔ›ÙÜ˜[\È—Bˆ›İ[™V×Bˆ›Üˆ›Ûİ[ˆ›ÛİÎ‚ˆYˆ›İ›Ûİ™^\İÊ
-NˆÛÛ[YBˆ›Üˆ][H[ˆ›Ûİœ™ÛØŠŠ‹›šÈŠN‚ˆYˆ[J\›İÙ\Š
-H[ˆ
-œİ\\‹˜YZ[š\İ˜]]™HÛÛÈŠH›Üˆ\[ˆ][Kœ\ÊNˆÛÛ[YBˆY[HÚ[‹HŠİ]ZY]ZYJ]ZY“SQTÔPÑWÕT“İŠ][JK›İÙ\Š
-JKš^ÎŒŒBˆTĞĞPÒVÚY[O\İŠ][JBˆ›İ[™˜\[™
-ÈšYšY[›˜[YHš][Kœİ[K˜ÛÛ[Y[š][Kœ\™[›˜[YHYˆ][Kœ\™[O\›Ûİ[ÙH•Ú[™İÜÈ\XØ][Ûˆ‹œÚÜİ]œİŠ][J_JBˆ\XØ][Û—ÚXÛÛœÊØ\ÈœÚÜİ]—H›Üˆ\[ˆ›İ[™JBˆ›Üˆ\[ˆ›İ[™˜\ÈšXÛÛˆ—OUÒS‘ÕÔ×ÒPÓÓ—ĞĞPÒK™Ù]
-\œÜ
-œÚÜİ]ŠKˆŠBˆÈÙY\Û™H][H›Üˆ\XØ]H\XØ][Ûˆ˜[Y\Ë™Y™\œš[™ÈH\‹]\Ù\ˆÚÜİ]‚ˆ[š\]YO^ßBˆ›Üˆ\[ˆ›İ[™ˆ[š\]YVØ\È›˜[YH—K›İÙ\Š
-WOX\ˆ™]\›ˆÛÜY
-[š\]YK˜[Y\Ê
-KÙ^O[[X™HN˜VÈ›˜[YH—K›İÙ\Š
-JB‚™Yˆ\XØ][Û—ÚXÛÛœÊÚÜİ]ÊN‚ˆZ\ÜÚ[™ÏVÜ]›Üˆ][ˆÚÜİ]ÈYˆ]›İ[ˆÒS‘ÕÔ×ÒPÓÓ—ĞĞPÒWVÎŒÌBˆYˆ›İZ\ÜÚ[™Îœ™]\›‚ˆ\İÙš[OS›Û™BˆN‚ˆÚ][\š[K“˜[YY[\Ü˜\Qš[JÈ‹İY™š^H‹šœÛÛˆ‹[]OQ˜[ÙK[˜ÛÙ[™ÏH]‹NŠH\È[™NšœÛÛ‹™[\
-Z\ÜÚ[™Ë[™JNÛ\İÙš[OZ[™K›˜[YBˆ\ØØ\Y[\İÙš[Kœ™\XÙJ‰È‹‰ÉÈŠBˆØÜš\Y‰ÉÉĞYU\HP\ÜÙ[X›S˜[YHŞ\İ[K‘˜]Ú[™ÎÉÜÏS™]ËSØš™XİPÛÛSØš™XİÔØÜš\”Ú[É™\İ[PŞß_NÑÙ]PÛÛ[S]\˜[]	ŞÙ\ØØ\YIÈT˜]ßÛÛ™\œ›ÛKRœÛÛŸ›Ü‘XXÚSØš™XİŞÉÚÜİ]IÎİ^ŞÉ\™Ù]IÜËÜ™X]TÚÜİ]
-	ÚÜİ]
-K•\™Ù]]ÚYŠ\İT]S]\˜[]	\™Ù]
-^ŞÉXÛÛVÔŞ\İ[K‘˜]Ú[™Ë’XÛÛ—N‘^˜Xİ\ÜÛØÚX]YXÛÛŠ	\™Ù]
-NÉİ™X[OS™]ËSØš™XİSË“Y[[ÜTİ™X[NÉXÛÛ‹•Ğš]X\
+def application_icons(shortcuts):
+    missing=[path for path in shortcuts if path not in WINDOWS_ICON_CACHE][:300]
+    if not missing:return
+    list_file=None
+    try:
+        with tempfile.NamedTemporaryFile("w",suffix=".json",delete=False,encoding="utf-8") as handle:json.dump(missing,handle);list_file=handle.name
+        escaped=list_file.replace("'","''")
+        script=f'''Add-Type -AssemblyName System.Drawing;$ws=New-Object -ComObject WScript.Shell;$result=@{{}};Get-Content -LiteralPath '{escaped}' -Raw|ConvertFrom-Json|ForEach-Object {{$shortcut=$_;try{{$target=$ws.CreateShortcut($shortcut).TargetPath;if(Test-Path -LiteralPath $target){{$icon=[System.Drawing.Icon]::ExtractAssociatedIcon($target);$stream=New-Object IO.MemoryStream;$icon.ToBitmap().Save($stream,[Drawing.Imaging.ImageFormat]::Png);$result[$shortcut]=[Convert]::ToBase64String($stream.ToArray());$stream.Dispose();$icon.Dispose()}}}}catch{{$result[$shortcut]=''}}}};$result|ConvertTo-Json -Compress'''
+        raw=run_ps(script,45);values=json.loads(raw) if raw else {}
+        for path in missing:WINDOWS_ICON_CACHE[path]="data:image/png;base64,"+values[path] if values.get(path) else ""
+    except Exception:
+        for path in missing:WINDOWS_ICON_CACHE[path]=""
+    finally:
+        if list_file:
+            try:Path(list_file).unlink()
+            except Exception:pass
 
-K”Ø]™J	İ™X[KÑ˜]Ú[™Ë’[XYÚ[™Ë’[XYÙQ›Ü›X]N”™ÊNÉ™\İ[ÉÚÜİ]OVĞÛÛ™\N•Ğ˜\ÙMİš[™Ê	İ™X[K•Ğ\œ˜^J
-JNÉİ™X[K‘\ÜÜÙJ
-NÉXÛÛ‹‘\ÜÜÙJ
-____XØ]ÚŞÉ™\İ[ÉÚÜİ]OIÉß___NÉ™\İ[ÛÛ™\ËRœÛÛˆPÛÛ\™\ÜÉÉÉÂˆ˜]Ï\[—ÜÊØÜš\JNİ˜[Y\ÏZœÛÛ‹›ØYÊ˜]ÊHYˆ˜]È[ÙHßBˆ›Üˆ][ˆZ\ÜÚ[™Î•ÒS‘ÕÔ×ÒPÓÓ—ĞĞPÒVÜ]OH™]Nš[XYÙKÜ™ÎØ˜\ÙMŠİ˜[Y\ÖÜ]HYˆ˜[Y\Ë™Ù]
-]
-H[ÙHˆ‚ˆ^Ù\^Ù\[Û‚ˆ›Üˆ][ˆZ\ÜÚ[™Î•ÒS‘ÕÔ×ÒPÓÓ—ĞĞPÒVÜ]OHˆ‚ˆš[˜[N‚ˆYˆ\İÙš[N‚ˆN”]
-\İÙš[JK[›[šÊ
-Bˆ^Ù\^Ù\[Ûœ\ÜÂ‚™Yˆ^Xİ]X›WÚXÛÛŠ]
-N‚ˆÙ^O\İŠ]ÜˆˆŠBˆYˆ›İÙ^Nœ™]\›ˆˆ‚ˆYˆÙ^H[ˆÒS‘ÕÔ×ÒPÓÓ—ĞĞPÒNœ™]\›ˆÒS‘ÕÔ×ÒPÓÓ—ĞĞPÒVÚÙ^WBˆ\ØØ\YZÙ^Kœ™\XÙJ‰È‹‰ÉÈŠBˆØÜš\Y‰ÉÉĞYU\HP\ÜÙ[X›S˜[YHŞ\İ[K‘˜]Ú[™Îİ^ŞÉXÛÛVÔŞ\İ[K‘˜]Ú[™Ë’XÛÛ—N‘^˜Xİ\ÜÛØÚX]YXÛÛŠ	ŞÙ\ØØ\YIÊNÉİ™X[OS™]ËSØš™XİSË“Y[[ÜTİ™X[NÉXÛÛ‹•Ğš]X\
+def executable_icon(path):
+    key=str(path or "")
+    if not key:return ""
+    if key in WINDOWS_ICON_CACHE:return WINDOWS_ICON_CACHE[key]
+    escaped=key.replace("'","''")
+    script=f'''Add-Type -AssemblyName System.Drawing;try{{$icon=[System.Drawing.Icon]::ExtractAssociatedIcon('{escaped}');$stream=New-Object IO.MemoryStream;$icon.ToBitmap().Save($stream,[Drawing.Imaging.ImageFormat]::Png);[Convert]::ToBase64String($stream.ToArray());$stream.Dispose();$icon.Dispose()}}catch{{''}}'''
+    raw=run_ps(script,8);WINDOWS_ICON_CACHE[key]="data:image/png;base64,"+raw if raw else "";return WINDOWS_ICON_CACHE[key]
 
-K”Ø]™J	İ™X[KÑ˜]Ú[™Ë’[XYÚ[™Ë’[XYÙQ›Ü›X]N”™ÊNÖĞÛÛ™\N•Ğ˜\ÙMİš[™Ê	İ™X[K•Ğ\œ˜^J
-JNÉİ™X[K‘\ÜÜÙJ
-NÉXÛÛ‹‘\ÜÜÙJ
-__XØ]ÚŞÉÉß_IÉÉÂˆ˜]Ï\[—ÜÊØÜš\
-NÕÒS‘ÕÔ×ÒPÓÓ—ĞĞPÒVÚÙ^WOH™]Nš[XYÙKÜ™ÎØ˜\ÙMŠÜ˜]ÈYˆ˜]È[ÙHˆÜ™]\›ˆÒS‘ÕÔ×ÒPÓÓ—ĞĞPÒVÚÙ^WB‚™YˆÚ[™İÜ×ÜŞ\İ[WÙ˜[˜XÚÊ
-N‚ˆØÜš\\‰ÉÉÉÜOJÙ]PÚ[R[œİ[˜ÙHÚ[ŒÌ—Ô›ØÙ\ÜÛÜˆYX\İ\™KSØš™XİT›Ü\HØY\˜Ù[YÙHP]™\˜YÙJK]™\˜YÙNÉÜÏQÙ]PÚ[R[œİ[˜ÙHÚ[ŒÌ—ÓÜ\˜][™ÔŞ\İ[NÉš]™OQÙ]PÚ[R[œİ[˜ÙHÚ[ŒÌ—ÓÙÚXØ[\ÚÈQš[\ˆ‘]šXÙRQIÉ[”Ş\İ[Qš]™IÈÉÜOQÙ]PÚ[R[œİ[˜ÙHÚ[ŒÌ—ÕšY[ĞÛÛ›Û\ˆÚ\™KSØš™XİÉË“˜[Y_HÙ[XİSØš™XİQš\œİHQ^[™›Ü\H˜[YNÉÜU\ØYÙOLİ^ÉØ[\\ÏJÙ]PÛİ[\ˆ	×ÔH[™Ú[™J
-ŠW][^˜][Ûˆ\˜Ù[YÙIÈQ\œ›ÜXİ[ÛˆİÜ
-KÛİ[\”Ø[\\ß›Ü‘XXÚSØš™XİÖÙİX›WIËÛÛÚÙY˜[Y_NÚYŠ	Ø[\\Ê^ÉÜU\ØYÙOVÛX]N”›İ[™
+def windows_system_fallback():
+    script=r'''$cpu=(Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average;$os=Get-CimInstance Win32_OperatingSystem;$drive=Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='$env:SystemDrive'";$gpu=Get-CimInstance Win32_VideoController | Where-Object {$_.Name} | Select-Object -First 1 -ExpandProperty Name;$gpuUsage=0;try{$samples=(Get-Counter '\\GPU Engine(*)\\Utilization Percentage' -ErrorAction Stop).CounterSamples|ForEach-Object{[double]$_.CookedValue};if($samples){$gpuUsage=[math]::Round(($samples|Measure-Object -Maximum).Maximum)}}catch{};[pscustomobject]@{cpu=[int]$cpu;memTotal=[int64]([double]$os.TotalVisibleMemorySize*1024);memFree=[int64]([double]$os.FreePhysicalMemory*1024);diskTotal=[int64]$drive.Size;diskFree=[int64]$drive.FreeSpace;gpuName=[string]$gpu;gpuUsage=[int]$gpuUsage}|ConvertTo-Json -Compress'''
+    try:return json.loads(run_ps(script,8) or "{}")
+    except Exception:return {}
 
-	Ø[\\ßYX\İ\™KSØš™XİSX^[][JK“X^[][J__XØ]ÚßNÖÜØİ\İÛ[Øš™XİPØÜOVÚ[IÜNÛY[Uİ[VÚ[JÙİX›WIÜË•İ[š\ÚX›SY[[ÜTÚ^™JŒL
-NÛY[Qœ™YOVÚ[JÙİX›WIÜË‘œ™YT\ÚXØ[Y[[ÜJŒL
-NÙ\ÚÕİ[VÚ[Iš]™K”Ú^™NÙ\ÚÑœ™YOVÚ[Iš]™K‘œ™YTÜXÙNÙÜS˜[YOVÜİš[™×IÜNÙÜU\ØYÙOVÚ[IÜU\ØYÙ__ÛÛ™\ËRœÛÛˆPÛÛ\™\ÜÉÉÉÂˆNœ™]\›ˆœÛÛ‹›ØYÊ[—ÜÊØÜš\
-HÜˆßHŠBˆ^Ù\^Ù\[Ûœ™]\›ˆßB‚™YˆŞ\İ[WÙ]J
-N‚ˆ˜[˜XÚÏ]Ú[™İÜ×ÜŞ\İ[WÙ˜[˜XÚÊ
-BˆÜO\›İ[™
-İ][˜ÜWÜ\˜Ù[
-ŒLŠJHYˆİ][[ÙH[
-˜[˜XÚË™Ù]
-˜ÜHŠHÜˆ
-BˆY[[ÜO\İ][š\X[ÛY[[ÜJ
-HYˆİ][[ÙH›Û™Bˆ\ÚÏ\İ][™\Ú×İ\ØYÙJİŠ]šÛYJ
-K˜[˜ÚÜŠJHYˆİ][[ÙH›Û™BˆÜO[X^
-Z[ŠL[
-˜[˜XÚË™Ù]
-™ÜU\ØYÙHŠHÜˆ
-JJNÙÜWÛ˜[YO\İŠ˜[˜XÚË™Ù]
-™ÜS˜[YHŠHÜˆ•ÒS‘ÕÔÈÔTPÔÈŠBˆYˆÚ][ÚXÚ
-›šYXK\ÛZHŠN‚ˆN‚ˆİ]\İXœ›ØÙ\ÜËœ[ŠÈ›šYXK\ÛZH‹‹K\]Y\KYÜO]][^˜][Û‹™ÜK˜[YH‹‹KY›Ü›X]XÜİ‹›ÚXY\‹›İ[š]È—KØ\\™WÛİ]]UYK^UYK[Y[İ]LËÜ™X][Û™›YÜÏL
-Kœİİ]œİš\
+def system_data():
+    fallback=windows_system_fallback()
+    cpu=round(psutil.cpu_percent(.12)) if psutil else int(fallback.get("cpu") or 0)
+    memory=psutil.virtual_memory() if psutil else None
+    disk=psutil.disk_usage(str(Path.home().anchor)) if psutil else None
+    gpu=max(0,min(100,int(fallback.get("gpuUsage") or 0)));gpu_name=str(fallback.get("gpuName") or "WINDOWS GRAPHICS")
+    if shutil.which("nvidia-smi"):
+        try:
+            out=subprocess.run(["nvidia-smi","--query-gpu=utilization.gpu,name","--format=csv,noheader,nounits"],capture_output=True,text=True,timeout=3,creationflags=0x08000000).stdout.strip().splitlines()[0]
+            gpu_s,gpu_name=out.split(",",1);gpu=max(0,min(100,int(float(gpu_s))));gpu_name=gpu_name.strip()
+        except Exception: pass
+    if memory:
+        mem_pct=round(memory.percent);mem_text=f"{memory.used/1073741824:.1f} / {memory.total/1073741824:.1f} GB"
+    else:
+        mem_total=int(fallback.get("memTotal") or 0);mem_free=int(fallback.get("memFree") or 0);mem_used=max(0,mem_total-mem_free)
+        mem_pct=round(mem_used*100/mem_total) if mem_total else 0
+        mem_text=f"{mem_used/1073741824:.1f} / {mem_total/1073741824:.1f} GB" if mem_total else "WINDOWS MEMORY"
+    if disk:
+        disk_pct=round(disk.percent);disk_text=f"{disk.free/1073741824:.0f} GB AVAILABLE"
+    else:
+        disk_total=int(fallback.get("diskTotal") or 0);disk_free=int(fallback.get("diskFree") or 0);disk_used=max(0,disk_total-disk_free)
+        disk_pct=round(disk_used*100/disk_total) if disk_total else 0
+        disk_text=f"{disk_free/1073741824:.0f} GB AVAILABLE" if disk_total else "SYSTEM DRIVE"
+    return {"platform":"WINDOWS 11" if sys_version()>=11 else "WINDOWS 10","meters":[["CPU",cpu,"SYSTEM PROCESSOR"],["GPU",gpu,gpu_name],["MEM",mem_pct,mem_text],["DISK",disk_pct,disk_text]]}
 
-KœÜ][™\Ê
-VÌBˆÜWÜËÜWÛ˜[YO[İ]œÜ]
-‹‹JNÙÜO[X^
-Z[ŠL[
-›Ø]
-ÜWÜÊJJJNÙÜWÛ˜[YOYÜWÛ˜[YKœİš\
+def storage_data():
+    if not psutil:return []
+    items=[]
+    for part in psutil.disk_partitions(all=True):
+        try:
+            usage=psutil.disk_usage(part.mountpoint);drive=part.device.rstrip("\\")
+            dtype=run_ps(f"(Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='{drive}'\").DriveType")
+            removable=dtype in ("2","5")
+            items.append({"id":drive,"name":drive or part.mountpoint,"size":usage.total,"type":"volume","filesystem":part.fstype,"mountpoints":[part.mountpoint],"mounted":True,"removable":removable})
+        except Exception:pass
+    return items
 
-Bˆ^Ù\^Ù\[Ûˆ\ÜÂˆYˆY[[ÜN‚ˆY[WÜİ\›İ[™
-Y[[ÜKœ\˜Ù[
-NÛY[Wİ^YˆÛY[[ÜK\ÙYÌLÌÍÍN‹ŒYŸHÈÛY[[ÜKİ[ÌLÌÍÍN‹ŒYŸHĞˆ‚ˆ[ÙN‚ˆY[Wİİ[Z[
-˜[˜XÚË™Ù]
-›Y[Uİ[ŠHÜˆ
-NÛY[WÙœ™YOZ[
-˜[˜XÚË™Ù]
-›Y[Qœ™YHŠHÜˆ
-NÛY[Wİ\ÙY[X^
-Y[Wİİ[[Y[WÙœ™YJBˆY[WÜİ\›İ[™
-Y[Wİ\ÙY
-ŒLÛY[Wİİ[
-HYˆY[Wİİ[[ÙHˆY[Wİ^YˆÛY[Wİ\ÙYÌLÌÍÍN‹ŒYŸHÈÛY[Wİİ[ÌLÌÍÍN‹ŒYŸHĞˆˆYˆY[Wİİ[[ÙH•ÒS‘ÕÔÈQSSÔ–H‚ˆYˆ\ÚÎ‚ˆ\Ú×Üİ\›İ[™
-\ÚËœ\˜Ù[
-NÙ\Ú×İ^YˆÙ\ÚË™œ™YKÌLÌÍÍN‹ŒŸHĞˆURSP“H‚ˆ[ÙN‚ˆ\Ú×İİ[Z[
-˜[˜XÚË™Ù]
-™\ÚÕİ[ŠHÜˆ
-NÙ\Ú×Ùœ™YOZ[
-˜[˜XÚË™Ù]
-™\ÚÑœ™YHŠHÜˆ
-NÙ\Ú×İ\ÙY[X^
-\Ú×İİ[Y\Ú×Ùœ™YJBˆ\Ú×Üİ\›İ[™
-\Ú×İ\ÙY
-ŒLÙ\Ú×İİ[
-HYˆ\Ú×İİ[[ÙHˆ\Ú×İ^YˆÙ\Ú×Ùœ™YKÌLÌÍÍN‹ŒŸHĞˆURSP“HˆYˆ\Ú×İİ[[ÙH”ÖTÕSH’U‘H‚ˆ™]\›ˆÈœ]›Ü›Hˆ•ÒS‘ÕÔÈLHˆYˆŞ\×İ™\œÚ[ÛŠ
-OLLH[ÙH•ÒS‘ÕÔÈL‹›Y]\œÈ–ÖÈÔH‹ÜK”ÖTÕSH“ĞÑTÔÓÔˆ—KÈ‘ÔH‹ÜKÜWÛ˜[YWKÈ“QSH‹Y[WÜİY[Wİ^KÈ‘TÒÈ‹\Ú×Üİ\Ú×İ^W_B‚™YˆİÜ˜YÙWÙ]J
-N‚ˆYˆ›İİ][œ™]\›ˆ×Bˆ][\ÏV×Bˆ›Üˆ\[ˆİ][™\Ú×Ü\][ÛœÊ[UYJN‚ˆN‚ˆ\ØYÙO\İ][™\Ú×İ\ØYÙJ\›[İ[Ú[
-NÙš]™O\\™]šXÙKœœİš\
-—ŠBˆ\O\[—ÜÊˆŠÙ]PÚ[R[œİ[˜ÙHÚ[ŒÌ—ÓÙÚXØ[\ÚÈQš[\ˆ‘]šXÙRQIŞÙš]™_I×ŠK‘š]™U\HŠBˆ™[[İ˜X›OY\H[ˆ
-Œˆ‹HŠBˆ][\Ë˜\[™
-ÈšY™š]™K›˜[YH™š]™HÜˆ\›[İ[Ú[œÚ^™H\ØYÙKİ[\Hˆ›Û[YH‹™š[\Ş\İ[Hœ\™œİ\K›[İ[Ú[È–Ü\›[İ[Ú[K›[İ[Y•YKœ™[[İ˜X›Hœ™[[İ˜X›_JBˆ^Ù\^Ù\[Ûœ\ÜÂˆ™]\›ˆ][\Â‚™YˆŞ\İ[WÙ]Z[Ê
-N‚ˆÜO\İ][˜ÜWÜ\˜Ù[
-ŒMK\˜ÜOUYJHYˆİ][[ÙH×BˆØÜš\\‰ÉÉÉÜÏQÙ]PÚ[R[œİ[˜ÙHÚ[ŒÌ—ÓÜ\˜][™ÔŞ\İ[NÉ[Ù[\ÏP
-Ù]PÚ[R[œİ[˜ÙHÚ[ŒÌ—Ô\ÚXØ[Y[[Ü_›Ü‘XXÚSØš™XİÉ˜[šÏIË˜[šÓX™[ÚYŠI˜[šÊ^É˜[šÏIË‘]šXÙSØØ]ÜŸNÖÜØİ\İÛ[Øš™XİPØ˜[šÏVÜİš[™×I˜[šÎØØ\XÚ]OVÚ[IËØ\XÚ]NÜÜYYVÚ[IË”ÜYYÛX[Y˜Xİ\™\VÜİš[™×IË“X[Y˜Xİ\™\Ü\VÜİš[™×IË”\[X™\Ÿ_JNÉ\ØYÙOLİ^ÉØ[\\ÏJÙ]PÛİ[\ˆ	×ÔH[™Ú[™J
-ŠW][^˜][Ûˆ\˜Ù[YÙIÈQ\œ›ÜXİ[ÛˆİÜ
-KÛİ[\”Ø[\\ß›Ü‘XXÚSØš™XİÖÙİX›WIËÛÛÚÙY˜[Y_NÚYŠ	Ø[\\Ê^É\ØYÙOVÛX]N”›İ[™
+def system_details():
+    cpu=psutil.cpu_percent(.15,percpu=True) if psutil else []
+    script=r'''$os=Get-CimInstance Win32_OperatingSystem;$modules=@(Get-CimInstance Win32_PhysicalMemory|ForEach-Object{$bank=$_.BankLabel;if(!$bank){$bank=$_.DeviceLocator};[pscustomobject]@{bank=[string]$bank;capacity=[int64]$_.Capacity;speed=[int]$_.Speed;manufacturer=[string]$_.Manufacturer;part=[string]$_.PartNumber}});$usage=0;try{$samples=(Get-Counter '\GPU Engine(*)\Utilization Percentage' -ErrorAction Stop).CounterSamples|ForEach-Object{[double]$_.CookedValue};if($samples){$usage=[math]::Round(($samples|Measure-Object -Maximum).Maximum)}}catch{};$gpus=@(Get-CimInstance Win32_VideoController|Where-Object{$_.Name}|ForEach-Object{[pscustomobject]@{name=[string]$_.Name;vendor=[string]$_.AdapterCompatibility;driver=[string]$_.DriverVersion;usage=[int]$usage;temperature=$null;memoryTotal=[int64]$_.AdapterRAM;memoryUsed=0;resolution=if($_.CurrentHorizontalResolution){"$($_.CurrentHorizontalResolution)x$($_.CurrentVerticalResolution)"}else{""}}});[pscustomobject]@{memory=[pscustomobject]@{total=[int64]([double]$os.TotalVisibleMemorySize*1024);used=[int64](([double]$os.TotalVisibleMemorySize-[double]$os.FreePhysicalMemory)*1024);available=[int64]([double]$os.FreePhysicalMemory*1024);percent=[math]::Round((1-([double]$os.FreePhysicalMemory/[math]::Max(1,[double]$os.TotalVisibleMemorySize)))*100);swapTotal=[int64]([double]$os.TotalVirtualMemorySize*1024);swapUsed=[int64](([double]$os.TotalVirtualMemorySize-[double]$os.FreeVirtualMemory)*1024);modules=$modules};graphics=$gpus}|ConvertTo-Json -Depth 6 -Compress'''
+    try:hardware=json.loads(run_ps(script,12) or "{}")
+    except Exception:hardware={}
+    memory=hardware.get("memory") if isinstance(hardware.get("memory"),dict) else {}
+    if psutil:
+        physical=psutil.virtual_memory();swap=psutil.swap_memory();memory={**memory,"total":physical.total,"used":physical.used,"available":physical.available,"percent":round(physical.percent),"swapTotal":swap.total,"swapUsed":swap.used}
+    graphics=hardware.get("graphics",[]);graphics=[graphics] if isinstance(graphics,dict) else graphics if isinstance(graphics,list) else []
+    if shutil.which("nvidia-smi") and graphics:
+        try:
+            values=subprocess.run(["nvidia-smi","--query-gpu=name,utilization.gpu,temperature.gpu,memory.total,memory.used,driver_version","--format=csv,noheader,nounits"],capture_output=True,text=True,timeout=3,creationflags=0x08000000).stdout.splitlines()
+            for index,row in enumerate(values):
+                parts=[item.strip() for item in row.split(",")]
+                if len(parts)>=6 and index<len(graphics):graphics[index].update({"name":parts[0],"usage":max(0,min(100,int(float(parts[1] or 0)))),"temperature":float(parts[2]) if parts[2] else None,"memoryTotal":int(float(parts[3] or 0))*1048576,"memoryUsed":int(float(parts[4] or 0))*1048576,"driver":parts[5]})
+        except Exception:pass
+    for adapter in graphics:adapter["usage"]=max(0,min(100,int(adapter.get("usage") or 0)))
+    return {"cpu":{"logical":len(cpu) or (os.cpu_count() or 1),"load":[],"cores":[{"name":f"CORE {i}","usage":round(value)} for i,value in enumerate(cpu)]},"memory":memory,"graphics":graphics,"storage":storage_data(),"kernel":"WINDOWS NT"}
 
-	Ø[\\ßYX\İ\™KSØš™XİSX^[][JK“X^[][J__XØ]ÚßNÉÜ\ÏP
-Ù]PÚ[R[œİ[˜ÙHÚ[ŒÌ—ÕšY[ĞÛÛ›Û\ŸÚ\™KSØš™XİÉË“˜[Y__›Ü‘XXÚSØš™XİÖÜØİ\İÛ[Øš™XİPÛ˜[YOVÜİš[™×IË“˜[YNİ™[™ÜVÜİš[™×IËY\\ÛÛ\]Xš[]NÙš]™\VÜİš[™×IË‘š]™\•™\œÚ[Ûİ\ØYÙOVÚ[I\ØYÙNİ[\\˜]\™OI[ÛY[[ÜUİ[VÚ[IËY\\”SNÛY[[ÜU\ÙYLÜ™\ÛÛ][ÛZYŠ	Ëİ\œ™[Üš^›Û[™\ÛÛ][ÛŠ^È‰
-	Ëİ\œ™[Üš^›Û[™\ÛÛ][ÛŠ^	
-	Ëİ\œ™[™\XØ[™\ÛÛ][ÛŠHŸY[Ù^ÈˆŸ__JNÖÜØİ\İÛ[Øš™XİPÛY[[ÜOVÜØİ\İÛ[Øš™XİPİİ[VÚ[JÙİX›WIÜË•İ[š\ÚX›SY[[ÜTÚ^™JŒL
-Nİ\ÙYVÚ[J
-ÙİX›WIÜË•İ[š\ÚX›SY[[ÜTÚ^™KVÙİX›WIÜË‘œ™YT\ÚXØ[Y[[ÜJJŒL
-NØ]˜Z[X›OVÚ[JÙİX›WIÜË‘œ™YT\ÚXØ[Y[[ÜJŒL
-NÜ\˜Ù[VÛX]N”›İ[™
+def storage_action(ident,action):
+    allowed={x["id"] for x in storage_data() if x["removable"]}
+    if ident not in allowed:return {"ok":False,"message":"Only detected removable volumes can be controlled from LCARS"}
+    if action=="unmount":
+        result=run_ps(f"$v=Get-Volume -DriveLetter '{ident[0]}';$v|Get-Partition|Remove-PartitionAccessPath -AccessPath '{ident}\\' -ErrorAction Stop;'Volume safely unmounted'")
+        return {"ok":bool(result),"message":result or "Windows could not safely unmount the volume"}
+    return {"ok":False,"message":"Windows remount requires Disk Management; reconnect the device or use the Storage panel"}
 
-KJÙİX›WIÜË‘œ™YT\ÚXØ[Y[[ÜKÖÛX]N“X^
-KÙİX›WIÜË•İ[š\ÚX›SY[[ÜTÚ^™JJJJŒL
-NÜİØ\İ[VÚ[JÙİX›WIÜË•İ[š\X[Y[[ÜTÚ^™JŒL
-NÜİØ\\ÙYVÚ[J
-ÙİX›WIÜË•İ[š\X[Y[[ÜTÚ^™KVÙİX›WIÜË‘œ™YUš\X[Y[[ÜJJŒL
-NÛ[Ù[\ÏI[Ù[\ßNÙÜ˜\XÜÏIÜ\ß_ÛÛ™\ËRœÛÛˆQ\ˆPÛÛ\™\ÜÉÉÉÂˆNš\™Ø\™OZœÛÛ‹›ØYÊ[—ÜÊØÜš\LŠHÜˆßHŠBˆ^Ù\^Ù\[Ûš\™Ø\™O^ßBˆY[[ÜOZ\™Ø\™K™Ù]
-›Y[[ÜHŠHYˆ\Ú[œİ[˜ÙJ\™Ø\™K™Ù]
-›Y[[ÜHŠKXİ
-H[ÙHßBˆYˆİ][‚ˆ\ÚXØ[\İ][š\X[ÛY[[ÜJ
-NÜİØ\\İ][œİØ\ÛY[[ÜJ
-NÛY[[ÜO^ÊŠ›Y[[ÜKİ[œ\ÚXØ[İ[\ÙYœ\ÚXØ[\ÙY˜]˜Z[X›Hœ\ÚXØ[˜]˜Z[X›Kœ\˜Ù[œ›İ[™
-\ÚXØ[œ\˜Ù[
-KœİØ\İ[œİØ\İ[œİØ\\ÙYœİØ\\ÙYBˆÜ˜\XÜÏZ\™Ø\™K™Ù]
-™Ü˜\XÜÈ‹×JNÙÜ˜\XÜÏVÙÜ˜\XÜ×HYˆ\Ú[œİ[˜ÙJÜ˜\XÜËXİ
-H[ÙHÜ˜\XÜÈYˆ\Ú[œİ[˜ÙJÜ˜\XÜË\İ
-H[ÙH×BˆYˆÚ][ÚXÚ
-›šYXK\ÛZHŠH[™Ü˜\XÜÎ‚ˆN‚ˆ˜[Y\Ï\İXœ›ØÙ\ÜËœ[ŠÈ›šYXK\ÛZH‹‹K\]Y\KYÜO[˜[YK][^˜][Û‹™ÜK[\\˜]\™K™ÜKY[[ÜKİ[Y[[ÜK\ÙYš]™\—İ™\œÚ[Ûˆ‹‹KY›Ü›X]XÜİ‹›ÚXY\‹›İ[š]È—KØ\\™WÛİ]]UYK^UYK[Y[İ]LËÜ™X][Û™›YÜÏL
-Kœİİ]œÜ][™\Ê
-Bˆ›Üˆ[™^›İÈ[ˆ[[Y\˜]J˜[Y\ÊN‚ˆ\ÏVÚ][Kœİš\
+def voice_status():
+    root=Path(__file__).resolve().parent.parent;runtime=next((path for path in (root/"voice",root/"voice-runtime"/"windows") if path.exists()),root/"voice")
+    engine=next((str(path) for path in (runtime/"whisper-cli.exe",runtime/"main.exe") if path.is_file()),"") or shutil.which("whisper-cli.exe") or shutil.which("whisper-cli")
+    model=next((str(path) for path in (runtime/"ggml-tiny.en-q5_1.bin",runtime/"ggml-tiny.en.bin") if path.is_file()),"");ffmpeg=shutil.which("ffmpeg.exe") or shutil.which("ffmpeg") or "";available=bool(engine and model)
+    return {"available":available,"engine":engine or "","model":model,"ffmpeg":ffmpeg,"bundled":bool(engine and model and runtime in Path(engine).parents),"runtime":str(runtime),"reason":"" if available else "Bundled whisper.cpp voice files are unavailable; custom engine and model paths remain supported"}
 
-H›Üˆ][H[ˆ›İËœÜ]
-‹ŠWBˆYˆ[Š\ÊOMˆ[™[™^[ŠÜ˜\XÜÊN™Ü˜\XÜÖÚ[™^K\]JÈ›˜[YHœ\ÖÌK\ØYÙH›X^
-Z[ŠL[
-›Ø]
-\ÖÌWHÜˆ
-JJJK[\\˜]\™H™›Ø]
-\ÖÌ—JHYˆ\ÖÌ—H[ÙH›Û™K›Y[[ÜUİ[š[
-›Ø]
-\ÖÌ×HÜˆ
-JJŒLMÍ‹›Y[[ÜU\ÙYš[
-›Ø]
-\ÖÍHÜˆ
-JJŒLMÍ‹™š]™\ˆœ\ÖÍW_JBˆ^Ù\^Ù\[Ûœ\ÜÂˆ›ÜˆY\\ˆ[ˆÜ˜\XÜÎ˜Y\\–È\ØYÙH—O[X^
-Z[ŠL[
-Y\\‹™Ù]
-\ØYÙHŠHÜˆ
-JJBˆ™]\›ˆÈ˜ÜHÈ›ÙÚXØ[›[ŠÜJHÜˆ
-ÜË˜ÜWØÛİ[
+def voice_transcribe(data):
+    try:config=json.loads(CONFIG_FILE.read_text())
+    except:config={}
+    prefs=config.get("shell_prefs",{});status=voice_status();engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or status.get("model") or "")).expanduser();encoded=str(data.get("audio","")).split(",")[-1]
+    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.5 or select custom files in Settings"}
+    try:
+        with tempfile.TemporaryDirectory(prefix="lcars-voice-") as folder:
+            raw=base64.b64decode(encoded,validate=True);source=Path(folder)/"sample.input";wav=Path(folder)/"sample.wav"
+            if raw[:4]==b"RIFF" and raw[8:12]==b"WAVE":wav.write_bytes(raw)
+            else:
+                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.5 PCM recorder does not"}
+                source.write_bytes(raw)
+                if subprocess.run([status["ffmpeg"],"-loglevel","error","-y","-i",str(source),"-ar","16000","-ac","1",str(wav)],creationflags=0x08000000).returncode:return {"ok":False,"message":"FFmpeg could not decode the microphone sample"}
+            environment={**os.environ,"PATH":str(Path(engine).parent)+os.pathsep+os.environ.get("PATH","")}
+            result=subprocess.run([engine,"-m",str(model),"-f",str(wav),"-l","en","-nt","-np"],capture_output=True,text=True,timeout=90,creationflags=0x08000000,cwd=str(Path(engine).parent),env=environment);text=result.stdout.strip()
+            return {"ok":result.returncode==0 and bool(text),"text":text,"message":result.stderr.strip()[-300:] or "Voice command was not recognized"}
+    except Exception as exc:return {"ok":False,"message":str(exc)}
 
-HÜˆJK›ØY–×K˜ÛÜ™\È–ŞÈ›˜[YH™ˆÓÔ‘HÚ_H‹\ØYÙHœ›İ[™
-˜[YJ_H›ÜˆK˜[YH[ˆ[[Y\˜]JÜJW_K›Y[[ÜH›Y[[ÜK™Ü˜\XÜÈ™Ü˜\XÜËœİÜ˜YÙHœİÜ˜YÙWÙ]J
-KšÙ\›™[ˆ•ÒS‘ÕÔÈ•ŸB‚™YˆİÜ˜YÙWØXİ[ÛŠY[Xİ[ÛŠN‚ˆ[İÙY^ŞÈšY—H›Üˆ[ˆİÜ˜YÙWÙ]J
-HYˆÈœ™[[İ˜X›H—_BˆYˆY[›İ[ˆ[İÙYœ™]\›ˆÈ›ÚÈ‘˜[ÙK›Y\ÜØYÙHˆ“Û›H]XİY™[[İ˜X›H›Û[Y\ÈØ[ˆ™HÛÛ›ÛYœ›ÛHĞT”ÈŸBˆYˆXİ[ÛOH[›[İ[‚ˆ™\İ[\[—ÜÊˆ‰QÙ]U›Û[YHQš]™S]\ˆ	ŞÚY[Ì_IÎÉŸÙ]T\][ÛŸ™[[İ™KT\][ÛXØÙ\ÜÔ]PXØÙ\ÜÔ]	ŞÚY[W	ÈQ\œ›ÜXİ[ÛˆİÜÉÕ›Û[YHØY™[H[›[İ[Y	ÈŠBˆ™]\›ˆÈ›ÚÈ˜›ÛÛ
-™\İ[
-K›Y\ÜØYÙHœ™\İ[Üˆ•Ú[™İÜÈÛİ[›İØY™[H[›[İ[H›Û[YHŸBˆ™]\›ˆÈ›ÚÈ‘˜[ÙK›Y\ÜØYÙHˆ•Ú[™İÜÈ™[[İ[™\]Z\™\È\ÚÈX[˜YÙ[Y[È™XÛÛ›™XİH]šXÙHÜˆ\ÙHHİÜ˜YÙH[™[ŸB‚™Yˆ›ÚXÙWÜİ]\Ê
-N‚ˆ›ÛİT]
-×Ùš[W×ÊKœ™\ÛÛ™J
-Kœ\™[œ\™[Ü[[YO[™^
+def sys_version():
+    try:return int(run_ps("[System.Environment]::OSVersion.Version.Build") or 0)>=22000 and 11 or 10
+    except:return 10
 
-]›Üˆ][ˆ
-›ÛİÈ›ÚXÙH‹›ÛİÈ›ÚXÙK\[[YH‹ÈÚ[™İÜÈŠHYˆ]™^\İÊ
-JK›ÛİÈ›ÚXÙHŠBˆ[™Ú[™O[™^
+def window_list():
+    user32=ctypes.windll.user32;items=[]
+    EnumProc=ctypes.WINFUNCTYPE(wintypes.BOOL,wintypes.HWND,wintypes.LPARAM)
+    def visit(hwnd,lparam):
+        if not user32.IsWindowVisible(hwnd) or user32.GetWindowTextLengthW(hwnd)==0:return True
+        length=user32.GetWindowTextLengthW(hwnd)+1;buf=ctypes.create_unicode_buffer(length);user32.GetWindowTextW(hwnd,buf,length)
+        title=buf.value.strip()
+        if not title:return True
+        pid=wintypes.DWORD();user32.GetWindowThreadProcessId(hwnd,ctypes.byref(pid));name="Application"
+        if psutil:
+            try:name=psutil.Process(pid.value).name().removesuffix(".exe")
+            except Exception:pass
+        items.append({"id":str(int(hwnd)),"name":title,"app":name,"monitor":monitor_name(hwnd),"active":hwnd==user32.GetForegroundWindow(),"minimized":bool(user32.IsIconic(hwnd))})
+        return True
+    user32.EnumWindows(EnumProc(visit),0)
+    return items
 
-İŠ]
-H›Üˆ][ˆ
-[[YKÈÚ\Ü\‹XÛK™^H‹[[YKÈ›XZ[‹™^HŠHYˆ]š\×Ùš[J
-JKˆŠHÜˆÚ][ÚXÚ
-Ú\Ü\‹XÛK™^HŠHÜˆÚ][ÚXÚ
-Ú\Ü\‹XÛHŠBˆ[Ù[[™^
+def monitor_name(hwnd):
+    try:
+        mon=ctypes.windll.user32.MonitorFromWindow(hwnd,2);info=MONITORINFOEX();info.cbSize=ctypes.sizeof(info);ctypes.windll.user32.GetMonitorInfoW(mon,ctypes.byref(info));return info.szDevice.replace("\\.\\","")
+    except Exception:return "DISPLAY 1"
 
-İŠ]
-H›Üˆ][ˆ
-[[YKÈ™ÙÛ[][K™[‹\MWÌK˜š[ˆ‹[[YKÈ™ÙÛ[][K™[‹˜š[ˆŠHYˆ]š\×Ùš[J
-JKˆŠNÙ™›\YÏ\Ú][ÚXÚ
-™™›\YË™^HŠHÜˆÚ][ÚXÚ
-™™›\YÈŠHÜˆˆØ]˜Z[X›OX›ÛÛ
-[™Ú[™H[™[Ù[
-Bˆ™]\›ˆÈ˜]˜Z[X›H˜]˜Z[X›K™[™Ú[™H™[™Ú[™HÜˆˆ‹›[Ù[›[Ù[™™›\YÈ™™›\YË˜[™Y˜›ÛÛ
-[™Ú[™H[™[Ù[[™[[YH[ˆ]
-[™Ú[™JKœ\™[ÊKœ[[YHœİŠ[[YJKœ™X\ÛÛˆˆˆˆYˆ]˜Z[X›H[ÙH[™YÚ\Ü\‹˜Ü›ÚXÙHš[\È\™H[˜]˜Z[X›NÈİ\İÛH[™Ú[™H[™[Ù[]È™[XZ[ˆİ\ÜYŸB‚™Yˆ›ÚXÙWİ˜[œØÜšX™J]JN‚ˆN˜ÛÛ™šYÏZœÛÛ‹›ØYÊÓÓ‘’Q×Ñ’SKœ™XYİ^
+class RECT(ctypes.Structure):_fields_=[("left",wintypes.LONG),("top",wintypes.LONG),("right",wintypes.LONG),("bottom",wintypes.LONG)]
+class MONITORINFOEX(ctypes.Structure):_fields_=[("cbSize",wintypes.DWORD),("rcMonitor",RECT),("rcWork",RECT),("dwFlags",wintypes.DWORD),("szDevice",wintypes.WCHAR*32)]
 
-JBˆ^Ù\˜ÛÛ™šYÏ^ßBˆ™YœÏXÛÛ™šYË™Ù]
-œÚ[Ü™YœÈ‹ßJNÜİ]\Ï]›ÚXÙWÜİ]\Ê
-NÙ[™Ú[™O\İŠ™YœË™Ù]
-›ÚXÙQ[™Ú[™HŠHÜˆİ]\ÖÈ™[™Ú[™H—JNÛ[Ù[T]
-İŠ™YœË™Ù]
-›ÚXÙS[Ù[ŠHÜˆİ]\Ë™Ù]
-›[Ù[ŠHÜˆˆŠJK™^[™\Ù\Š
-NÙ[˜ÛÙY\İŠ]K™Ù]
-˜]Y[È‹ˆŠJKœÜ]
-‹ŠVËLWBˆYˆ›İ[™Ú[™HÜˆ›İ]
-[™Ú[™JKš\×Ùš[J
-HÜˆ›İ[Ù[š\×Ùš[J
-Nœ™]\›ˆÈ›ÚÈ‘˜[ÙK›Y\ÜØYÙHˆ•HØØ[Ú\Ü\‹˜Ü›ÚXÙH[[YH\È[˜]˜Z[X›NÈ™Z[œİ[ÌHÜˆÙ[Xİİ\İÛHš[\È[ˆÙ][™ÜÈŸBˆN‚ˆÚ][\š[K•[\Ü˜\Q\™XİÜJ™Yš^H›Ø\œË]›ÚXÙKHŠH\È›Û\‚ˆ˜]ÏX˜\ÙM˜XÛÙJ[˜ÛÙY˜[Y]OUYJNÜÛİ\˜ÙOT]
-›Û\ŠKÈœØ[\Kš[œ]İØ]T]
-›Û\ŠKÈœØ[\KØ]ˆ‚ˆYˆ˜]ÖÎOOXˆ”’Q‘ˆˆ[™˜]ÖÎŒL—OOXˆ•ĞU‘HØ]‹Üš]WØ]\Ê˜]ÊBˆ[ÙN‚ˆYˆ›İİ]\ÖÈ™™›\YÈ—Nœ™]\›ˆÈ›ÚÈ‘˜[ÙK›Y\ÜØYÙHˆ•\ÈYØXŞHZXÜ›ÜÛ™H›Ü›X]™YYÈ‘›\YÎÈHÌHÓH™XÛÜ™\ˆÙ\È›İŸBˆÛİ\˜ÙKÜš]WØ]\Ê˜]ÊBˆYˆİXœ›ØÙ\ÜËœ[ŠÜİ]\ÖÈ™™›\YÈ—K‹[ÙÛ]™[‹™\œ›Üˆ‹‹^H‹‹ZH‹İŠÛİ\˜ÙJK‹X\ˆ‹ŒMŒ‹‹XXÈ‹ŒH‹İŠØ]ŠWKÜ™X][Û™›YÜÏL
-Kœ™]\›˜ÛÙNœ™]\›ˆÈ›ÚÈ‘˜[ÙK›Y\ÜØYÙHˆ‘‘›\YÈÛİ[›İXÛÙHHZXÜ›ÜÛ™HØ[\HŸBˆ[š\›Û›Y[^ÊŠ›ÜË™[š\›Û‹”UœİŠ]
-[™Ú[™JKœ\™[
-JÛÜËœ]Ù\
-ÛÜË™[š\›Û‹™Ù]
-”U‹ˆŠ_Bˆ™\İ[\İXœ›ØÙ\ÜËœ[ŠÙ[™Ú[™K‹[H‹İŠ[Ù[
-K‹Yˆ‹İŠØ]ŠK‹[‹™[ˆ‹‹[‹‹[œ—KØ\\™WÛİ]]UYK^UYK[Y[İ]NLÜ™X][Û™›YÜÏLİÙ\İŠ]
-[™Ú[™JKœ\™[
-K[Y[š\›Û›Y[
-Nİ^\™\İ[œİİ]œİš\
+def displays_data():
+    user32=ctypes.windll.user32;items=[];MonitorProc=ctypes.WINFUNCTYPE(wintypes.BOOL,wintypes.HMONITOR,wintypes.HDC,ctypes.POINTER(RECT),wintypes.LPARAM)
+    def visit(mon,dc,rect,lparam):
+        info=MONITORINFOEX();info.cbSize=ctypes.sizeof(info);user32.GetMonitorInfoW(mon,ctypes.byref(info));r=info.rcMonitor;name=info.szDevice.replace("\\.\\","")
+        items.append({"id":str(int(mon)),"name":name,"enabled":True,"primary":bool(info.dwFlags&1),"geometry":f"{r.right-r.left}Ã—{r.bottom-r.top}+{r.left}+{r.top}","source":"WIN32 DISPLAY API"})
+        return True
+    user32.EnumDisplayMonitors(0,None,MonitorProc(visit),0)
+    return items
 
-Bˆ™]\›ˆÈ›ÚÈœ™\İ[œ™]\›˜ÛÙOOL[™›ÛÛ
-^
-K^^›Y\ÜØYÙHœ™\İ[œİ\œ‹œİš\
+def window_action(ident,action,display=""):
+    try:hwnd=int(ident);user32=ctypes.windll.user32
+    except:return "Invalid Windows window identifier"
+    if not user32.IsWindow(hwnd):return "Window is no longer available"
+    if action=="activate": user32.ShowWindow(hwnd,9);user32.SetForegroundWindow(hwnd);return "Window focused"
+    if action=="minimize": user32.ShowWindow(hwnd,6);return "Window minimized"
+    if action=="close": user32.PostMessageW(hwnd,0x0010,0,0);return "Close request sent"
+    if action=="move":
+        target=next((d for d in display_rects() if d["name"]==display),None)
+        if not target:return "Requested display was not found"
+        r=RECT();user32.GetWindowRect(hwnd,ctypes.byref(r));w=max(640,r.right-r.left);h=max(480,r.bottom-r.top);user32.MoveWindow(hwnd,target["left"]+30,target["top"]+30,min(w,target["width"]-60),min(h,target["height"]-60),True);return f"Window moved to {display}"
+    return "Unknown window command"
 
-VËLÌ—HÜˆ•›ÚXÙHÛÛ[X[™Ø\È›İ™XÛÙÛš^™YŸBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÈ›ÚÈ‘˜[ÙK›Y\ÜØYÙHœİŠ^Ê_B‚™YˆŞ\×İ™\œÚ[ÛŠ
-N‚ˆNœ™]\›ˆ[
-[—ÜÊ–ÔŞ\İ[K‘[š\›Û›Y[N“ÔÕ™\œÚ[Û‹•™\œÚ[Û‹Z[ŠHÜˆ
-OLŒŒ[™LHÜˆLˆ^Ù\œ™]\›ˆL‚™YˆÚ[™İ×Û\İ
+def display_rects():
+    result=[];user32=ctypes.windll.user32;MonitorProc=ctypes.WINFUNCTYPE(wintypes.BOOL,wintypes.HMONITOR,wintypes.HDC,ctypes.POINTER(RECT),wintypes.LPARAM)
+    def visit(mon,dc,rect,lparam):
+        info=MONITORINFOEX();info.cbSize=ctypes.sizeof(info);user32.GetMonitorInfoW(mon,ctypes.byref(info));r=info.rcWork;result.append({"name":info.szDevice.replace("\\.\\",""),"left":r.left,"top":r.top,"width":r.right-r.left,"height":r.bottom-r.top});return True
+    user32.EnumDisplayMonitors(0,None,MonitorProc(visit),0);return result
 
-N‚ˆ\Ù\ŒÌXİ\\ËÚ[™\Ù\ŒÌÚ][\ÏV×Bˆ[[T›ØÏXİ\\Ë•ÒS‘•SÕTJÚ[\\Ë“ÓÓÚ[\\Ë’Ó‘Ú[\\Ë“TSJBˆYˆš\Ú]
-Û™\˜[JN‚ˆYˆ›İ\Ù\ŒÌ‹’\ÕÚ[™İÕš\ÚX›JÛ™
-HÜˆ\Ù\ŒÌ‹‘Ù]Ú[™İÕ^[™İÊÛ™
-OOLœ™]\›ˆYBˆ[™İ]\Ù\ŒÌ‹‘Ù]Ú[™İÕ^[™İÊÛ™
-JÌNØYXİ\\Ë˜Ü™X]Wİ[šXÛÙWØY™™\Š[™İ
-Nİ\Ù\ŒÌ‹‘Ù]Ú[™İÕ^ÊÛ™Y‹[™İ
-Bˆ]OXY‹˜[YKœİš\
+def display_action(action,display):
+    if action=="terminal":
+        executable=os.environ.get("LCARS_EXECUTABLE","")
+        if not executable or not Path(executable).is_file():return "Remote Terminal requires the installed native LCARS desktop application"
+        target=next((item for item in display_rects() if item["name"]==display),None);position=f'{target["left"]},{target["top"]}' if target else ""
+        subprocess.Popen([executable,"--lcars-terminal",f"--display={display}",f"--position={position}"],creationflags=0x08000000);return f"Native LCARS Terminal requested for {display}"
+    if action=="move-lcars":return "Use the Task Rail to move the LCARS browser window to the selected display"
+    return "Display command sent"
 
-BˆYˆ›İ]Nœ™]\›ˆYBˆY]Ú[\\Ë‘ÓÔ‘
+def terminal_create(name="Main",shell="",directory="~",**_):
+    ident=uuid.uuid4().hex[:12];chosen=shell if shell and Path(shell).exists() else "powershell.exe";cwd=Path(directory).expanduser()
+    if not cwd.is_dir():cwd=HOME
+    flags=0x08000000
+    process=subprocess.Popen([chosen,"-NoLogo","-NoProfile"] if "powershell" in chosen.lower() else [chosen],cwd=cwd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,text=True,bufsize=1,creationflags=flags)
+    TERMINALS[ident]={"id":ident,"name":name[:32],"process":process,"output":f"LCARS WINDOWS COMMAND ENVIRONMENT\nPowerShell Â· {cwd}\n","closed":False}
+    def reader():
+        while ident in TERMINALS and not TERMINALS[ident]["closed"]:
+            line=process.stdout.readline() if process.stdout else ""
+            if line:
+                with TERMINAL_LOCK:TERMINALS[ident]["output"]=(TERMINALS[ident]["output"]+line)[-200000:]
+            elif process.poll() is not None:break
+            else:time.sleep(.05)
+    threading.Thread(target=reader,daemon=True).start();return {"id":ident,"name":name[:32]}
 
-Nİ\Ù\ŒÌ‹‘Ù]Ú[™İÕ™XY›ØÙ\ÜÒY
-Û™İ\\Ë˜\™YŠY
-JNÛ˜[YOH\XØ][Ûˆ‚ˆYˆİ][‚ˆN›˜[YO\İ][”›ØÙ\ÜÊY˜[YJK›˜[YJ
-Kœ™[[İ™\İY™š^
-‹™^HŠBˆ^Ù\^Ù\[Ûœ\ÜÂˆ][\Ë˜\[™
-ÈšYœİŠ[
-Û™
-JK›˜[YH]K˜\›˜[YK›[Ûš]Üˆ›[Ûš]Ü—Û˜[YJÛ™
-K˜Xİ]™HšÛ™O]\Ù\ŒÌ‹‘Ù]›Ü™YÜ›İ[™Ú[™İÊ
-K›Z[š[Z^™Y˜›ÛÛ
-\Ù\ŒÌ‹’\ÒXÛÛšXÊÛ™
-J_JBˆ™]\›ˆYBˆ\Ù\ŒÌ‹‘[[UÚ[™İÜÊ[[T›ØÊš\Ú]
-K
-Bˆ™]\›ˆ][\Â‚™Yˆ[Ûš]Ü—Û˜[YJÛ™
-N‚ˆN‚ˆ[ÛXİ\\ËÚ[™\Ù\ŒÌ‹“[Ûš]Ü‘œ›ÛUÚ[™İÊÛ™ŠNÚ[™›ÏSSÓ’UÔ’S‘“ÑV
+def terminal_input(ident,value):
+    term=TERMINALS.get(ident)
+    if not term or term["closed"]:return False
+    try:term["process"].stdin.write(value.replace("\r","\n"));term["process"].stdin.flush();return True
+    except:return False
 
-NÚ[™›Ë˜Ø”Ú^™OXİ\\ËœÚ^™[ÙŠ[™›ÊNØİ\\ËÚ[™\Ù\ŒÌ‹‘Ù][Ûš]Ü’[™›ÕÊ[Û‹İ\\Ë˜\™YŠ[™›ÊJNÜ™]\›ˆ[™›ËœŞ‘]šXÙKœ™\XÙJ——‹ˆŠBˆ^Ù\^Ù\[Ûœ™]\›ˆ‘TÔVHH‚‚˜Û\ÜÈ‘PÕ
-İ\\Ë”İXİ\™JN—ÙšY[×ÏVÊ›Y‹Ú[\\Ë“Ó‘ÊK
-Ü‹Ú[\\Ë“Ó‘ÊK
-œšYÚ‹Ú[\\Ë“Ó‘ÊK
-˜›İÛH‹Ú[\\Ë“Ó‘ÊWB˜Û\ÜÈSÓ’UÔ’S‘“ÑV
-İ\\Ë”İXİ\™JN—ÙšY[×ÏVÊ˜Ø”Ú^™H‹Ú[\\Ë‘ÓÔ‘
-K
-œ˜Ó[Ûš]Üˆ‹‘PÕ
-K
-œ˜ÕÛÜšÈ‹‘PÕ
-K
-™Ñ›YÜÈ‹Ú[\\Ë‘ÓÔ‘
-K
-œŞ‘]šXÙH‹Ú[\\Ë•ĞÒTŠŒÌŠWB‚™Yˆ\Ü^\×Ù]J
-N‚ˆ\Ù\ŒÌXİ\\ËÚ[™\Ù\ŒÌÚ][\ÏV×NÓ[Ûš]Ü”›ØÏXİ\\Ë•ÒS‘•SÕTJÚ[\\Ë“ÓÓÚ[\\Ë’SÓ’UÔ‹Ú[\\Ë’Ëİ\\Ë”ÒS•TŠ‘PÕ
-KÚ[\\Ë“TSJBˆYˆš\Ú]
-[Û‹Ë™Xİ\˜[JN‚ˆ[™›ÏSSÓ’UÔ’S‘“ÑV
+def terminal_close(ident):
+    term=TERMINALS.pop(ident,None)
+    if term:
+        term["closed"]=True
+        try:term["process"].terminate()
+        except:pass
 
-NÚ[™›Ë˜Ø”Ú^™OXİ\\ËœÚ^™[ÙŠ[™›ÊNİ\Ù\ŒÌ‹‘Ù][Ûš]Ü’[™›ÕÊ[Û‹İ\\Ë˜\™YŠ[™›ÊJNÜZ[™›Ëœ˜Ó[Ûš]ÜÛ˜[YOZ[™›ËœŞ‘]šXÙKœ™\XÙJ——‹ˆŠBˆ][\Ë˜\[™
-ÈšYœİŠ[
-[ÛŠJK›˜[YH›˜[YK™[˜X›Y•YKœš[X\H˜›ÛÛ
-[™›Ë™Ñ›YÜÉŒJK™Ù[ÛY]H™ˆÜ‹œšYÚ\‹›YpåŞÜ‹˜›İÛK\‹ÜJŞÜ‹›YJŞÜ‹ÜH‹œÛİ\˜ÙHˆ•ÒSŒÌˆTÔVHTHŸJBˆ™]\›ˆYBˆ\Ù\ŒÌ‹‘[[Q\Ü^S[Ûš]ÜœÊ›Û™K[Ûš]Ü”›ØÊš\Ú]
-K
-Bˆ™]\›ˆ][\Â‚™YˆÚ[™İ×ØXİ[ÛŠY[Xİ[Û‹\Ü^OHˆŠN‚ˆNšÛ™Z[
-Y[
-Nİ\Ù\ŒÌXİ\\ËÚ[™\Ù\ŒÌ‚ˆ^Ù\œ™]\›ˆ’[˜[YÚ[™İÜÈÚ[™İÈY[YšY\ˆ‚ˆYˆ›İ\Ù\ŒÌ‹’\ÕÚ[™İÊÛ™
-Nœ™]\›ˆ•Ú[™İÈ\È›ÈÛ™Ù\ˆ]˜Z[X›H‚ˆYˆXİ[ÛOH˜Xİ]˜]Hˆ\Ù\ŒÌ‹”ÚİÕÚ[™İÊÛ™JNİ\Ù\ŒÌ‹”Ù]›Ü™YÜ›İ[™Ú[™İÊÛ™
-NÜ™]\›ˆ•Ú[™İÈ›Øİ\ÙY‚ˆYˆXİ[ÛOH›Z[š[Z^™Hˆ\Ù\ŒÌ‹”ÚİÕÚ[™İÊÛ™ŠNÜ™]\›ˆ•Ú[™İÈZ[š[Z^™Y‚ˆYˆXİ[ÛOH˜ÛÜÙHˆ\Ù\ŒÌ‹”ÜİY\ÜØYÙUÊÛ™L
-NÜ™]\›ˆÛÜÙH™\]Y\İÙ[‚ˆYˆXİ[ÛOH›[İ™H‚ˆ\™Ù][™^
+def audio_data():
+    try:
+        from ctypes import POINTER, cast
+        from comtypes import CLSCTX_ALL
+        from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+        endpoint=AudioUtilities.GetSpeakers();interface=endpoint.Activate(IAudioEndpointVolume._iid_,CLSCTX_ALL,None);control=cast(interface,POINTER(IAudioEndpointVolume));volume=control.GetMasterVolumeLevelScalar()
+        return {"volume":round(volume*100),"muted":bool(control.GetMute()),"available":True}
+    except Exception:return {"volume":50,"muted":False,"available":False}
 
-›Üˆ[ˆ\Ü^WÜ™XİÊ
-HYˆÈ›˜[YH—OOY\Ü^JK›Û™JBˆYˆ›İ\™Ù]œ™]\›ˆ”™\]Y\İY\Ü^HØ\È›İ›İ[™‚ˆT‘PÕ
+def audio_devices():
+    raw=run_ps("if(Get-Module -ListAvailable AudioDeviceCmdlets){Import-Module AudioDeviceCmdlets;Get-AudioDevice -List|Select-Object ID,Name,Type,Default|ConvertTo-Json -Compress}")
+    if not raw:return []
+    try:
+        data=json.loads(raw);data=data if isinstance(data,list) else [data]
+        return [{"id":str(x.get("ID","")),"name":x.get("Name","Windows Audio Device"),"kind":"input" if str(x.get("Type","")).lower()=="recording" else "output","default":bool(x.get("Default"))} for x in data]
+    except:return []
 
-Nİ\Ù\ŒÌ‹‘Ù]Ú[™İÔ™Xİ
-Û™İ\\Ë˜\™YŠŠJNİÏ[X^
-‹œšYÚ\‹›Y
-NÚ[X^
-‹˜›İÛK\‹Ü
-Nİ\Ù\ŒÌ‹“[İ™UÚ[™İÊÛ™\™Ù]È›Y—JÌÌ\™Ù]ÈÜ—JÌÌZ[ŠË\™Ù]ÈÚY—KMŒ
-KZ[Š\™Ù]ÈšZYÚ—KMŒ
-KYJNÜ™]\›ˆˆ•Ú[™İÈ[İ™YÈÙ\Ü^_H‚ˆ™]\›ˆ•[šÛ›İÛˆÚ[™İÈÛÛ[X[™‚‚™Yˆ\Ü^WÜ™XİÊ
-N‚ˆ™\İ[V×Nİ\Ù\ŒÌXİ\\ËÚ[™\Ù\ŒÌÓ[Ûš]Ü”›ØÏXİ\\Ë•ÒS‘•SÕTJÚ[\\Ë“ÓÓÚ[\\Ë’SÓ’UÔ‹Ú[\\Ë’Ëİ\\Ë”ÒS•TŠ‘PÕ
-KÚ[\\Ë“TSJBˆYˆš\Ú]
-[Û‹Ë™Xİ\˜[JN‚ˆ[™›ÏSSÓ’UÔ’S‘“ÑV
+def stream_data():
+    if not psutil:return []
+    try:
+        from pycaw.pycaw import AudioUtilities
+        result=[]
+        for index,session in enumerate(AudioUtilities.GetAllSessions()):
+            if not session.Process:continue
+            name=session.Process.name().removesuffix(".exe");vol=session.SimpleAudioVolume.GetMasterVolume()
+            try:icon=executable_icon(session.Process.exe())
+            except Exception:icon=""
+            result.append({"id":f"{session.Process.pid}:{index}","name":name,"group":name,"volume":round(vol*100),"muted":bool(session.SimpleAudioVolume.GetMute()),"advanced":False,"routeAvailable":True,"icon":icon})
+        return result
+    except:return []
 
-NÚ[™›Ë˜Ø”Ú^™OXİ\\ËœÚ^™[ÙŠ[™›ÊNİ\Ù\ŒÌ‹‘Ù][Ûš]Ü’[™›ÕÊ[Û‹İ\\Ë˜\™YŠ[™›ÊJNÜZ[™›Ëœ˜ÕÛÜšÎÜ™\İ[˜\[™
-È›˜[YHš[™›ËœŞ‘]šXÙKœ™\XÙJ——‹ˆŠK›Yœ‹›YÜœ‹ÜÚYœ‹œšYÚ\‹›YšZYÚœ‹˜›İÛK\‹ÜJNÜ™]\›ˆYBˆ\Ù\ŒÌ‹‘[[Q\Ü^S[Ûš]ÜœÊ›Û™K[Ûš]Ü”›ØÊš\Ú]
-K
-NÜ™]\›ˆ™\İ[‚™Yˆ\Ü^WØXİ[ÛŠXİ[Û‹\Ü^JN‚ˆYˆXİ[ÛOH\›Z[˜[‚ˆ^Xİ]X›O[ÜË™[š\›Û‹™Ù]
-“ĞT”×ÑVPÕUP“H‹ˆŠBˆYˆ›İ^Xİ]X›HÜˆ›İ]
-^Xİ]X›JKš\×Ùš[J
-Nœ™]\›ˆ”™[[İH\›Z[˜[™\]Z\™\ÈH[œİ[Y˜]]™HĞT”È\ÚİÜ\XØ][Ûˆ‚ˆ\™Ù][™^
+def set_stream_audio(ident,volume=None,muted=None):
+    try:
+        from pycaw.pycaw import AudioUtilities
+        pid=int(str(ident).split(":",1)[0]);changed=False
+        for session in AudioUtilities.GetAllSessions():
+            if not session.Process or session.Process.pid!=pid:continue
+            if volume is not None:session.SimpleAudioVolume.SetMasterVolume(max(0,min(100,int(volume)))/100,None)
+            if muted is not None:session.SimpleAudioVolume.SetMute(bool(muted),None)
+            changed=True
+        return changed
+    except:return False
 
-][H›Üˆ][H[ˆ\Ü^WÜ™XİÊ
-HYˆ][VÈ›˜[YH—OOY\Ü^JK›Û™JNÜÜÚ][ÛY‰Şİ\™Ù]È›Y—_Kİ\™Ù]ÈÜ—_IÈYˆ\™Ù][ÙHˆ‚ˆİXœ›ØÙ\ÜË”Ü[ŠÙ^Xİ]X›K‹K[Ø\œË]\›Z[˜[‹ˆ‹KY\Ü^O^Ù\Ü^_H‹ˆ‹K\ÜÚ][Û^ÜÜÚ][ÛŸH—KÜ™X][Û™›YÜÏL
-NÜ™]\›ˆˆ“˜]]™HĞT”È\›Z[˜[™\]Y\İY›ÜˆÙ\Ü^_H‚ˆYˆXİ[ÛOH›[İ™K[Ø\œÈœ™]\›ˆ•\ÙHH\ÚÈ˜Z[È[İ™HHĞT”Èœ›İÜÙ\ˆÚ[™İÈÈHÙ[XİY\Ü^H‚ˆ™]\›ˆ‘\Ü^HÛÛ[X[™Ù[‚‚™Yˆ\›Z[˜[ØÜ™X]J˜[YOH“XZ[ˆ‹Ú[Hˆ‹\™XİÜOHŸˆ‹
-Š—ÊN‚ˆY[]]ZY]ZY
+def media_data():
+    players=[]
+    if psutil:
+        known={"spotify":"Spotify","vlc":"VLC","music.ui":"Media Player","wmplayer":"Windows Media Player","foobar2000":"foobar2000"}
+        for p in psutil.process_iter(["pid","name"]):
+            key=(p.info["name"] or "").lower().removesuffix(".exe")
+            if key in known:
+                try:icon=executable_icon(p.exe())
+                except Exception:icon=""
+                players.append({"id":key,"name":known[key],"status":"Active","artist":"Windows Media Session","title":known[key],"album":"","volume":100,"icon":icon})
+    return {"players":players,"streams":stream_data()}
 
-Kš^ÎŒL—NØÚÜÙ[\Ú[YˆÚ[[™]
-Ú[
-K™^\İÊ
-H[ÙHœİÙ\œÚ[™^HØİÙT]
-\™XİÜJK™^[™\Ù\Š
-BˆYˆ›İİÙš\×Ù\Š
-N˜İÙRÓQBˆ›YÜÏLˆ›ØÙ\ÜÏ\İXœ›ØÙ\ÜË”Ü[ŠØÚÜÙ[‹‹S›ÓÙÛÈ‹‹S›Ô›Ùš[H—HYˆœİÙ\œÚ[ˆ[ˆÚÜÙ[‹›İÙ\Š
-H[ÙHØÚÜÙ[—KİÙXİÙİ[\İXœ›ØÙ\ÜË”TKİİ]\İXœ›ØÙ\ÜË”TKİ\œ\İXœ›ØÙ\ÜË”ÕÕU^UYKYœÚ^™OLKÜ™X][Û™›YÜÏY›YÜÊBˆT“RSSÖÚY[O^ÈšYšY[›˜[YH›˜[YVÎŒÌ—Kœ›ØÙ\ÜÈœ›ØÙ\ÜË›İ]]™ˆ“ĞT”ÈÒS‘ÕÔÈÓÓSPS‘S•’T“Ó“QS•”İÙ\”Ú[0­ÈØİÙWˆ‹˜ÛÜÙY‘˜[Ù_BˆYˆ™XY\Š
-N‚ˆÚ[HY[[ˆT“RSSÈ[™›İT“RSSÖÚY[VÈ˜ÛÜÙY—N‚ˆ[™O\›ØÙ\ÜËœİİ]œ™XY[™J
-HYˆ›ØÙ\ÜËœİİ][ÙHˆ‚ˆYˆ[™N‚ˆÚ]T“RSSÓĞÒÎ•T“RSSÖÚY[VÈ›İ]]—OJT“RSSÖÚY[VÈ›İ]]—JÛ[™JVËLŒ—Bˆ[Yˆ›ØÙ\ÜËœÛ
+def media_key(command):
+    codes={"previous":0xB1,"next":0xB0,"play-pause":0xB3,"stop":0xB2,"shuffle":0xB3};code=codes.get(command)
+    if not code:return False
+    ctypes.windll.user32.keybd_event(code,0,0,0);ctypes.windll.user32.keybd_event(code,0,2,0);return True
 
-H\È›İ›Û™N˜œ™XZÂˆ[ÙN[YKœÛY\
-ŒJBˆ™XY[™Ë•™XY
-\™Ù]\™XY\‹Y[[ÛUYJKœİ\
+def files_data(path):
+    target=Path(path).expanduser()
+    if str(path)=="~":target=HOME
+    target=target.resolve()
+    if not target.is_dir():return {"error":"Folder not found"}
+    items=[]
+    try:
+        for f in target.iterdir():
+            try:s=f.stat();items.append({"name":f.name,"path":str(f),"directory":f.is_dir(),"size":s.st_size,"modified":s.st_mtime,"hidden":bool(f.name.startswith(".") or ctypes.windll.kernel32.GetFileAttributesW(str(f))&2)})
+            except:pass
+    except PermissionError:return {"error":"Windows denied access to this folder"}
+    return {"path":str(target),"parent":str(target.parent) if target.parent!=target else "","items":sorted(items,key=lambda x:(not x["directory"],x["name"].lower()))}
 
-NÜ™]\›ˆÈšYšY[›˜[YH›˜[YVÎŒÌ—_B‚™Yˆ\›Z[˜[Ú[œ]
-Y[˜[YJN‚ˆ\›OUT“RSSË™Ù]
-Y[
-BˆYˆ›İ\›HÜˆ\›VÈ˜ÛÜÙY—Nœ™]\›ˆ˜[ÙBˆN\›VÈœ›ØÙ\ÜÈ—Kœİ[‹Üš]J˜[YKœ™\XÙJ—ˆ‹—ˆŠJNİ\›VÈœ›ØÙ\ÜÈ—Kœİ[‹™›\Ú
+def protected_action(action):
+    commands={"system-monitor":["taskmgr.exe"],"processes":["taskmgr.exe"],"storage":["explorer.exe","shell:MyComputerFolder"],"audio-settings":["ms-settings:apps-volume"],"network-settings":["ms-settings:network-status"],"wifi":["ms-settings:network-wifi"],"bluetooth":["ms-settings:bluetooth"],"software-center":["ms-windows-store://downloadsandupdates"],"check-updates":["ms-settings:windowsupdate"],"display-settings":["ms-settings:display"]}
+    if action in commands:
+        subprocess.Popen(commands[action],shell=True);return action.replace("-"," ").title()+" opened"
+    if action=="poweroff":subprocess.Popen(["shutdown.exe","/s","/t","0"],creationflags=0x08000000);return "Computer shutdown requested"
+    if action=="reboot":subprocess.Popen(["shutdown.exe","/r","/t","0"],creationflags=0x08000000);return "Computer restart requested"
+    if action=="sleep":
+        script="Add-Type -AssemblyName System.Windows.Forms;[System.Windows.Forms.Application]::SetSuspendState([System.Windows.Forms.PowerState]::Suspend,$false,$false)"
+        subprocess.Popen(["powershell.exe","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",script],creationflags=0x08000000)
+        return "Computer sleep requested"
+    if action=="identify-displays":subprocess.Popen(["DisplaySwitch.exe"]);return "Windows display routing opened"
+    if action=="shell-mode-on":return "Windows immersive mode uses full screen and automatic taskbar hiding; Explorer remains available for recovery"
+    if action=="shell-mode-off":subprocess.Popen(["explorer.exe"]);return "Windows Explorer restored"
+    if action in ("startup-console-on","startup-console-off"):return "Windows launches LCARS without a separate console"
+    if action=="integration-recheck":return "Windows integration check complete"
+    if action=="repair-installation":
+        executable=os.environ.get("LCARS_EXECUTABLE","")
+        if not executable or not Path(executable).is_file():return "Repair could not locate the installed LCARS executable; rerun Windows Setup and keep settings"
+        escaped=executable.replace("'","''")
+        script=f"$w=New-Object -ComObject WScript.Shell;$p=Join-Path $env:APPDATA 'Microsoft\\Windows\\Start Menu\\Programs\\LCARS Command Interface.lnk';$s=$w.CreateShortcut($p);$s.TargetPath='{escaped}';$s.WorkingDirectory=(Split-Path '{escaped}');$s.Save()"
+        result=subprocess.run(["powershell.exe","-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",script],capture_output=True,text=True,timeout=10,creationflags=0x08000000)
+        return "Windows application search shortcut repaired; rerun Setup to refresh optional runtimes" if result.returncode==0 else "Windows shortcut repair failed; rerun Setup in Repair mode"
+    if action=="lcars-update-check":return "Use Updates â†’ LCARS Interface to check the verified GitHub release channel"
+    if action=="lcars-rollback":return "No previous Windows release has been archived yet"
+    if action=="extension-scan":EXTENSION_DIR.mkdir(parents=True,exist_ok=True);return f"Extension scan complete â€” {len(list(EXTENSION_DIR.glob('**/lcars-module.json')))} manifest(s) found"
+    if action=="extension-folder":EXTENSION_DIR.mkdir(parents=True,exist_ok=True);os.startfile(EXTENSION_DIR);return "Extensions folder opened"
+    if action in ("refresh-system","network-refresh","close-bay-app","minimize-bay-app"):return action.replace("-"," ").title()
+    return "This Windows integration is not available yet"
 
-NÜ™]\›ˆYBˆ^Ù\œ™]\›ˆ˜[ÙB‚™Yˆ\›Z[˜[ØÛÜÙJY[
-N‚ˆ\›OUT“RSSËœÜ
-Y[›Û™JBˆYˆ\›N‚ˆ\›VÈ˜ÛÜÙY—OUYBˆN\›VÈœ›ØÙ\ÜÈ—K\›Z[˜]J
-Bˆ^Ù\œ\ÜÂ‚™Yˆ]Y[×Ù]J
-N‚ˆN‚ˆœ›ÛHİ\\È[\ÜÒS•T‹Ø\İˆœ›ÛHÛÛ]\\È[\ÜÓĞÕĞSˆœ›ÛHXØ]ËœXØ]È[\Ü]Y[Õ][]Y\ËP]Y[Ñ[™Ú[›Û[YBˆ[™Ú[P]Y[Õ][]Y\Ë‘Ù]ÜXZÙ\œÊ
-NÚ[\™˜XÙOY[™Ú[Xİ]˜]JP]Y[Ñ[™Ú[›Û[YK—ÚZYËÓĞÕĞS›Û™JNØÛÛ›ÛXØ\İ
-[\™˜XÙKÒS•TŠP]Y[Ñ[™Ú[›Û[YJJNİ›Û[YOXÛÛ›Û‘Ù]X\İ\•›Û[YS]™[ØØ[\Š
-Bˆ™]\›ˆÈ›Û[YHœ›İ[™
-›Û[YJŒL
-K›]]Y˜›ÛÛ
-ÛÛ›Û‘Ù]]]J
-JK˜]˜Z[X›H•Y_Bˆ^Ù\^Ù\[Ûœ™]\›ˆÈ›Û[YHL›]]Y‘˜[ÙK˜]˜Z[X›H‘˜[Ù_B‚™Yˆ]Y[×Ù]šXÙ\Ê
-N‚ˆ˜]Ï\[—ÜÊšYŠÙ]S[Ù[HS\İ]˜Z[X›H]Y[Ñ]šXÙPÛY]Ê^Ò[\ÜS[Ù[H]Y[Ñ]šXÙPÛY]ÎÑÙ]P]Y[Ñ]šXÙHS\İÙ[XİSØš™XİQ˜[YK\KY˜][ÛÛ™\ËRœÛÛˆPÛÛ\™\ÜßHŠBˆYˆ›İ˜]Îœ™]\›ˆ×BˆN‚ˆ]OZœÛÛ‹›ØYÊ˜]ÊNÙ]OY]HYˆ\Ú[œİ[˜ÙJ]K\İ
-H[ÙHÙ]WBˆ™]\›ˆŞÈšYœİŠ™Ù]
-’Q‹ˆŠJK›˜[YH™Ù]
-“˜[YH‹•Ú[™İÜÈ]Y[È]šXÙHŠKšÚ[™ˆš[œ]ˆYˆİŠ™Ù]
-•\H‹ˆŠJK›İÙ\Š
-OOHœ™XÛÜ™[™Èˆ[ÙH›İ]]‹™Y˜][˜›ÛÛ
-™Ù]
-‘Y˜][ŠJ_H›Üˆ[ˆ]WBˆ^Ù\œ™]\›ˆ×B‚™Yˆİ™X[WÙ]J
-N‚ˆYˆ›İİ][œ™]\›ˆ×BˆN‚ˆœ›ÛHXØ]ËœXØ]È[\Ü]Y[Õ][]Y\Âˆ™\İ[V×Bˆ›Üˆ[™^Ù\ÜÚ[Ûˆ[ˆ[[Y\˜]J]Y[Õ][]Y\Ë‘Ù][Ù\ÜÚ[ÛœÊ
-JN‚ˆYˆ›İÙ\ÜÚ[Û‹”›ØÙ\ÜÎ˜ÛÛ[YBˆ˜[YO\Ù\ÜÚ[Û‹”›ØÙ\ÜË›˜[YJ
-Kœ™[[İ™\İY™š^
-‹™^HŠNİ›Û\Ù\ÜÚ[Û‹”Ú[\P]Y[Õ›Û[YK‘Ù]X\İ\•›Û[YJ
-BˆNšXÛÛY^Xİ]X›WÚXÛÛŠÙ\ÜÚ[Û‹”›ØÙ\ÜË™^J
-JBˆ^Ù\^Ù\[ÛšXÛÛHˆ‚ˆ™\İ[˜\[™
-ÈšY™ˆÜÙ\ÜÚ[Û‹”›ØÙ\ÜËœYNÚ[™^H‹›˜[YH›˜[YK™Ü›İ\›˜[YK›Û[YHœ›İ[™
-›Û
-ŒL
-K›]]Y˜›ÛÛ
-Ù\ÜÚ[Û‹”Ú[\P]Y[Õ›Û[YK‘Ù]]]J
-JK˜Y˜[˜ÙY‘˜[ÙKœ›İ]P]˜Z[X›H•YKšXÛÛˆšXÛÛŸJBˆ™]\›ˆ™\İ[ˆ^Ù\œ™]\›ˆ×B‚™YˆÙ]Üİ™X[WØ]Y[ÊY[›Û[YOS›Û™K]]YS›Û™JN‚ˆN‚ˆœ›ÛHXØ]ËœXØ]È[\Ü]Y[Õ][]Y\ÂˆYZ[
-İŠY[
-KœÜ]
-ˆ‹JVÌJNØÚ[™ÙYQ˜[ÙBˆ›ÜˆÙ\ÜÚ[Ûˆ[ˆ]Y[Õ][]Y\Ë‘Ù][Ù\ÜÚ[ÛœÊ
-N‚ˆYˆ›İÙ\ÜÚ[Û‹”›ØÙ\ÜÈÜˆÙ\ÜÚ[Û‹”›ØÙ\ÜËœYO\Y˜ÛÛ[YBˆYˆ›Û[YH\È›İ›Û™NœÙ\ÜÚ[Û‹”Ú[\P]Y[Õ›Û[YK”Ù]X\İ\•›Û[YJX^
-Z[ŠL[
-›Û[YJJJKÌL›Û™JBˆYˆ]]Y\È›İ›Û™NœÙ\ÜÚ[Û‹”Ú[\P]Y[Õ›Û[YK”Ù]]]J›ÛÛ
-]]Y
-K›Û™JBˆÚ[™ÙYUYBˆ™]\›ˆÚ[™ÙYˆ^Ù\œ™]\›ˆ˜[ÙB‚™YˆYYXWÙ]J
-N‚ˆ^Y\œÏV×BˆYˆİ][‚ˆÛ›İÛ^ÈœÜİYHˆ”ÜİYH‹›Èˆ•“È‹›]\ÚXËZHˆ“YYXH^Y\ˆ‹Û\^Y\ˆˆ•Ú[™İÜÈYYXH^Y\ˆ‹™›ÛØ˜\ŒŒˆ™›ÛØ˜\ŒŒŸBˆ›Üˆ[ˆİ][œ›ØÙ\Ü×Ú]\ŠÈœY‹›˜[YH—JN‚ˆÙ^OJš[™›ÖÈ›˜[YH—HÜˆˆŠK›İÙ\Š
-Kœ™[[İ™\İY™š^
-‹™^HŠBˆYˆÙ^H[ˆÛ›İÛ‚ˆNšXÛÛY^Xİ]X›WÚXÛÛŠ™^J
-JBˆ^Ù\^Ù\[ÛšXÛÛHˆ‚ˆ^Y\œË˜\[™
-ÈšYšÙ^K›˜[YHšÛ›İÛ–ÚÙ^WKœİ]\ÈˆXİ]™H‹˜\\İˆ•Ú[™İÜÈYYXHÙ\ÜÚ[Ûˆ‹]HšÛ›İÛ–ÚÙ^WK˜[[Hˆˆ‹›Û[YHŒLšXÛÛˆšXÛÛŸJBˆ™]\›ˆÈœ^Y\œÈœ^Y\œËœİ™X[\Èœİ™X[WÙ]J
-_B‚™YˆYYXWÚÙ^JÛÛ[X[™
-N‚ˆÛÙ\Ï^Èœ™]š[İ\ÈŒŒK›™^ŒŒœ^K\]\ÙHŒŒËœİÜŒŒ‹œÚY™›HŒŒßNØÛÙOXÛÙ\Ë™Ù]
-ÛÛ[X[™
-BˆYˆ›İÛÙNœ™]\›ˆ˜[ÙBˆİ\\ËÚ[™\Ù\ŒÌ‹šÙ^X™Ù]™[
-ÛÙK
-NØİ\\ËÚ[™\Ù\ŒÌ‹šÙ^X™Ù]™[
-ÛÙK‹
-NÜ™]\›ˆYB‚™Yˆš[\×Ù]J]
-N‚ˆ\™Ù]T]
-]
-K™^[™\Ù\Š
-BˆYˆİŠ]
-OOHŸˆ\™Ù]RÓQBˆ\™Ù]]\™Ù]œ™\ÛÛ™J
-BˆYˆ›İ\™Ù]š\×Ù\Š
-Nœ™]\›ˆÈ™\œ›Üˆˆ‘›Û\ˆ›İ›İ[™ŸBˆ][\ÏV×BˆN‚ˆ›Üˆˆ[ˆ\™Ù]š]\™\Š
-N‚ˆNœÏY‹œİ]
+def integration_health():
+    try:extensions=extension_manifests()
+    except Exception as exc:extensions={"extensions":[],"errors":[{"error":type(exc).__name__}]}
+    voice=voice_status();devices=audio_devices()
+    return {
+        "window_control":{"available":True,"detail":"Win32 bridge ready","remedy":"Restart LCARS to restart its local Win32 bridge."},
+        "displays":{"available":True,"detail":f"{len(displays_data())} display(s)","remedy":"Open Windows Display Settings and select Detect."},
+        "audio":{"available":bool(devices),"detail":"Windows Core Audio" if devices else "No Core Audio devices reported","remedy":"Reconnect the device or restart Windows Audio."},
+        "media":{"available":True,"detail":"Windows media keys ready","remedy":"The media application must support Windows media controls."},
+        "terminal":{"available":True,"detail":"PowerShell","remedy":"Choose powershell.exe or another installed shell in Settings."},
+        "storage":{"available":bool(psutil),"detail":f"{len(storage_data())} volume(s)","remedy":"Repair the optional psutil component from the installer."},
+        "voice":{"available":voice["available"],"detail":voice["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.5 voice resources or select custom whisper.cpp files in Settings."},
+        "tray":{"available":False,"detail":"Windows cannot safely re-host every third-party notification icon","remedy":"Use LCARS quick controls or the native Windows notification area."},
+        "extensions":{"available":not bool(extensions.get("errors")),"detail":f"{len(extensions.get('extensions',[]))} module(s), {len(extensions.get('errors',[]))} rejected","remedy":"Remove or update rejected manifests shown in the extension bay."},
+        "configuration":{"available":True,"detail":"Local AppData settings storage ready","remedy":"Repair write access to the LCARS AppData directory."},
+        "updater":{"available":True,"detail":"Verified GitHub release channel configured","remedy":"Connect to GitHub and use the manual update check for detailed errors."},
+        "power":{"available":True,"detail":"Windows power APIs ready","remedy":"Use the native Windows power menu if system policy blocks the request."},
+    }
 
-NÚ][\Ë˜\[™
-È›˜[YH™‹›˜[YKœ]œİŠŠK™\™XİÜH™‹š\×Ù\Š
-KœÚ^™HœËœİÜÚ^™K›[ÙYšYYœËœİÛ][YKšY[ˆ˜›ÛÛ
-‹›˜[YKœİ\İÚ]
-‹ˆŠHÜˆİ\\ËÚ[™šÙ\›™[Ì‹‘Ù]š[P]šX]\ÕÊİŠŠJIŒŠ_JBˆ^Ù\œ\ÜÂˆ^Ù\\›Z\ÜÚ[Û‘\œ›Üœ™]\›ˆÈ™\œ›Üˆˆ•Ú[™İÜÈ[šYYXØÙ\ÜÈÈ\È›Û\ˆŸBˆ™]\›ˆÈœ]œİŠ\™Ù]
-Kœ\™[œİŠ\™Ù]œ\™[
-HYˆ\™Ù]œ\™[O]\™Ù][ÙHˆ‹š][\ÈœÛÜY
-][\ËÙ^O[[X™HŠ›İÈ™\™XİÜH—KÈ›˜[YH—K›İÙ\Š
-JJ_B‚™Yˆ›İXİYØXİ[ÛŠXİ[ÛŠN‚ˆÛÛ[X[™Ï^ÈœŞ\İ[K[[Ûš]Üˆ–È\ÚÛYÜ‹™^H—Kœ›ØÙ\ÜÙ\È–È\ÚÛYÜ‹™^H—KœİÜ˜YÙH–È™^Ü™\‹™^H‹œÚ[“^PÛÛ\]\‘›Û\ˆ—K˜]Y[Ë\Ù][™ÜÈ–È›\Ë\Ù][™ÜÎ˜\Ë]›Û[YH—K›™]ÛÜšË\Ù][™ÜÈ–È›\Ë\Ù][™ÜÎ›™]ÛÜšË\İ]\È—KÚYšH–È›\Ë\Ù][™ÜÎ›™]ÛÜšË]ÚYšH—K˜›Y]Ûİ–È›\Ë\Ù][™ÜÎ˜›Y]Ûİ—KœÛÙØ\™KXÙ[\ˆ–È›\Ë]Ú[™İÜË\İÜ™N‹ËÙİÛ›ØYØ[™\]\È—K˜ÚXÚË]\]\È–È›\Ë\Ù][™ÜÎÚ[™İÜİ\]H—K™\Ü^K\Ù][™ÜÈ–È›\Ë\Ù][™ÜÎ™\Ü^H—_BˆYˆXİ[Ûˆ[ˆÛÛ[X[™Î‚ˆİXœ›ØÙ\ÜË”Ü[ŠÛÛ[X[™ÖØXİ[Û—KÚ[UYJNÜ™]\›ˆXİ[Û‹œ™\XÙJ‹H‹ˆŠK]J
-JÈˆÜ[™Y‚ˆYˆXİ[ÛOHœİÙ\›Ù™ˆœİXœ›ØÙ\ÜË”Ü[ŠÈœÚ]İÛ‹™^H‹‹ÜÈ‹‹İ‹Œ—KÜ™X][Û™›YÜÏL
-NÜ™]\›ˆÛÛ\]\ˆÚ]İÛˆ™\]Y\İY‚ˆYˆXİ[ÛOHœ™X›ÛİœİXœ›ØÙ\ÜË”Ü[ŠÈœÚ]İÛ‹™^H‹‹Üˆ‹‹İ‹Œ—KÜ™X][Û™›YÜÏL
-NÜ™]\›ˆÛÛ\]\ˆ™\İ\™\]Y\İY‚ˆYˆXİ[ÛOHœÛY\‚ˆØÜš\HYU\HP\ÜÙ[X›S˜[YHŞ\İ[K•Ú[™İÜË‘›Ü›\ÎÖÔŞ\İ[K•Ú[™İÜË‘›Ü›\Ë\XØ][Û—N”Ù]İ\Ü[™İ]JÔŞ\İ[K•Ú[™İÜË‘›Ü›\Ë”İÙ\”İ]WN”İ\Ü[™	˜[ÙK	˜[ÙJH‚ˆİXœ›ØÙ\ÜË”Ü[ŠÈœİÙ\œÚ[™^H‹‹S›Ô›Ùš[H‹‹S›Û’[\˜Xİ]™H‹‹Q^Xİ][Û”ÛXŞH‹\\ÜÈ‹‹PÛÛ[X[™‹ØÜš\KÜ™X][Û™›YÜÏL
-Bˆ™]\›ˆÛÛ\]\ˆÛY\™\]Y\İY‚ˆYˆXİ[ÛOHšY[YKY\Ü^\ÈœİXœ›ØÙ\ÜË”Ü[ŠÈ‘\Ü^TİÚ]Ú™^H—JNÜ™]\›ˆ•Ú[™İÜÈ\Ü^H›İ][™ÈÜ[™Y‚ˆYˆXİ[ÛOHœÚ[[[ÙK[Ûˆœ™]\›ˆ•Ú[™İÜÈ[[Y\œÚ]™H[ÙH\Ù\È[ØÜ™Y[ˆ[™]]ÛX]XÈ\ÚØ˜\ˆY[™ÎÈ^Ü™\ˆ™[XZ[œÈ]˜Z[X›H›Üˆ™XÛİ™\H‚ˆYˆXİ[ÛOHœÚ[[[ÙK[Ù™ˆœİXœ›ØÙ\ÜË”Ü[ŠÈ™^Ü™\‹™^H—JNÜ™]\›ˆ•Ú[™İÜÈ^Ü™\ˆ™\İÜ™Y‚ˆYˆXİ[Ûˆ[ˆ
-œİ\\XÛÛœÛÛK[Ûˆ‹œİ\\XÛÛœÛÛK[Ù™ˆŠNœ™]\›ˆ•Ú[™İÜÈ][˜Ú\ÈĞT”ÈÚ]İ]HÙ\\˜]HÛÛœÛÛH‚ˆYˆXİ[ÛOHš[YÜ˜][Û‹\™XÚXÚÈœ™]\›ˆ•Ú[™İÜÈ[YÜ˜][ÛˆÚXÚÈÛÛ\]H‚ˆYˆXİ[ÛOHœ™\Z\‹Z[œİ[][Ûˆ‚ˆ^Xİ]X›O[ÜË™[š\›Û‹™Ù]
-“ĞT”×ÑVPÕUP“H‹ˆŠBˆYˆ›İ^Xİ]X›HÜˆ›İ]
-^Xİ]X›JKš\×Ùš[J
-Nœ™]\›ˆ”™\Z\ˆÛİ[›İØØ]HH[œİ[YĞT”È^Xİ]X›NÈ™\[ˆÚ[™İÜÈÙ]\[™ÙY\Ù][™ÜÈ‚ˆ\ØØ\YY^Xİ]X›Kœ™\XÙJ‰È‹‰ÉÈŠBˆØÜš\Yˆ‰ÏS™]ËSØš™XİPÛÛSØš™XİÔØÜš\”Ú[ÉR›Ú[‹T]	[TUH	ÓZXÜ›ÜÛÙÚ[™İÜ×İ\Y[W›ÙÜ˜[\×ĞT”ÈÛÛ[X[™[\™˜XÙK›šÉÎÉÏIËÜ™X]TÚÜİ]
-	
-NÉË•\™Ù]]IŞÙ\ØØ\YIÎÉË•ÛÜšÚ[™Ñ\™XİÜOJÜ]T]	ŞÙ\ØØ\YIÊNÉË”Ø]™J
-H‚ˆ™\İ[\İXœ›ØÙ\ÜËœ[ŠÈœİÙ\œÚ[™^H‹‹S›ÓÙÛÈ‹‹S›Ô›Ùš[H‹‹S›Û’[\˜Xİ]™H‹‹Q^Xİ][Û”ÛXŞH‹\\ÜÈ‹‹PÛÛ[X[™‹ØÜš\KØ\\™WÛİ]]UYK^UYK[Y[İ]LLÜ™X][Û™›YÜÏL
-Bˆ™]\›ˆ•Ú[™İÜÈ\XØ][ÛˆÙX\˜ÚÚÜİ]™\Z\™YÈ™\[ˆÙ]\È™Yœ™\ÚÜ[Û˜[[[Y\ÈˆYˆ™\İ[œ™]\›˜ÛÙOOL[ÙH•Ú[™İÜÈÚÜİ]™\Z\ˆ˜Z[YÈ™\[ˆÙ]\[ˆ™\Z\ˆ[ÙH‚ˆYˆXİ[ÛOH›Ø\œË]\]KXÚXÚÈœ™]\›ˆ•\ÙH\]\È8¡¤ˆĞT”È[\™˜XÙHÈÚXÚÈH™\šYšYYÚ]Xˆ™[X\ÙHÚ[›™[‚ˆYˆXİ[ÛOH›Ø\œË\›Û˜XÚÈœ™]\›ˆ“›È™]š[İ\ÈÚ[™İÜÈ™[X\ÙH\È™Y[ˆ\˜Ú]™YY]‚ˆYˆXİ[ÛOH™^[œÚ[Û‹\ØØ[ˆ‘VS”ÒSÓ—ÑT‹›ZÙ\Š\™[ÏUYK^\İÛÚÏUYJNÜ™]\›ˆˆ‘^[œÚ[ÛˆØØ[ˆÛÛ\]H8 %Û[Š\İ
-VS”ÒSÓ—ÑT‹™ÛØŠ	ÊŠ‹ÛØ\œË[[Ù[KšœÛÛ‰ÊJJ_HX[šY™\İ
-ÊH›İ[™‚ˆYˆXİ[ÛOH™^[œÚ[Û‹Y›Û\ˆ‘VS”ÒSÓ—ÑT‹›ZÙ\Š\™[ÏUYK^\İÛÚÏUYJNÛÜËœİ\š[JVS”ÒSÓ—ÑTŠNÜ™]\›ˆ‘^[œÚ[ÛœÈ›Û\ˆÜ[™Y‚ˆYˆXİ[Ûˆ[ˆ
-œ™Yœ™\Ú\Ş\İ[H‹›™]ÛÜšË\™Yœ™\Ú‹˜ÛÜÙKX˜^KX\‹›Z[š[Z^™KX˜^KX\ŠNœ™]\›ˆXİ[Û‹œ™\XÙJ‹H‹ˆŠK]J
-Bˆ™]\›ˆ•\ÈÚ[™İÜÈ[YÜ˜][Ûˆ\È›İ]˜Z[X›HY]‚‚™Yˆ[YÜ˜][Û—ÚX[
+def engineering_data():
+    processes=[];sensors=[];critical={"system","registry","smss.exe","csrss.exe","wininit.exe","services.exe","lsass.exe","winlogon.exe","dwm.exe","explorer.exe","lcars-command-interface.exe","python.exe","pythonw.exe"}
+    if psutil:
+        try:current_user=psutil.Process().username()
+        except Exception:current_user=""
+        for process in psutil.process_iter(["pid","name","cpu_percent","memory_percent","username","status"]):
+            try:
+                info=process.info;name=str(info.get("name") or "PROCESS");owner=str(info.get("username") or "")
+                if current_user and owner and owner.casefold()!=current_user.casefold():continue
+                protected=process.pid in (0,4,os.getpid(),os.getppid()) or name.casefold() in critical or "lcars" in name.casefold()
+                processes.append({"pid":process.pid,"name":name[:80],"cpu":round(float(info.get("cpu_percent") or 0),1),"memory":round(float(info.get("memory_percent") or 0),1),"user":owner.split("\\")[-1][:48],"state":"stopped" if str(info.get("status"))==getattr(psutil,"STATUS_STOPPED","stopped") else "running","protected":protected})
+            except Exception:pass
+        processes.sort(key=lambda item:(item["cpu"],item["memory"]),reverse=True)
+        try:
+            battery=psutil.sensors_battery()
+            if battery:sensors.append({"id":"windows-battery","name":"SYSTEM BATTERY","kind":"battery","value":f"{round(battery.percent)}%","status":"attention" if battery.percent<20 and not battery.power_plugged else "ready","detail":"AC POWER" if battery.power_plugged else "DISCHARGING"})
+        except Exception:pass
+    sensors.append({"id":"windows-storage","name":"STORAGE MATRIX","kind":"drive","value":f"{len(storage_data())} VOLUMES","status":"ready","detail":"WINDOWS VOLUME INVENTORY"})
+    sensors.append({"id":"windows-thermal","name":"THERMAL ADAPTER","kind":"temperature","value":"OS MANAGED","status":"unavailable","detail":"WINDOWS DOES NOT EXPOSE A UNIVERSAL NON-ADMIN SENSOR API"})
+    return {"generated":int(time.time()),"processes":processes[:80],"sensors":sensors,"processControl":bool(psutil),"serviceControl":False,"notes":["Only current-user processes are offered for control","Windows and LCARS processes remain protected"]}
 
-N‚ˆN™^[œÚ[ÛœÏY^[œÚ[Û—ÛX[šY™\İÊ
-Bˆ^Ù\^Ù\[Ûˆ\È^Î™^[œÚ[ÛœÏ^È™^[œÚ[ÛœÈ–×K™\œ›ÜœÈ–ŞÈ™\œ›Üˆ\J^ÊK—×Û˜[YW×ßW_Bˆ›ÚXÙO]›ÚXÙWÜİ]\Ê
-NÙ]šXÙ\ÏX]Y[×Ù]šXÙ\Ê
-Bˆ™]\›ˆÂˆÚ[™İ×ØÛÛ›ÛÈ˜]˜Z[X›H•YK™]Z[ˆ•Ú[ŒÌˆœšYÙH™XYH‹œ™[YYHˆ”™\İ\ĞT”ÈÈ™\İ\]ÈØØ[Ú[ŒÌˆœšYÙKˆŸKˆ™\Ü^\ÈÈ˜]˜Z[X›H•YK™]Z[™ˆÛ[Š\Ü^\×Ù]J
-J_H\Ü^JÊH‹œ™[YYHˆ“Ü[ˆÚ[™İÜÈ\Ü^HÙ][™ÜÈ[™Ù[Xİ]XİˆŸKˆ˜]Y[ÈÈ˜]˜Z[X›H˜›ÛÛ
-]šXÙ\ÊK™]Z[ˆ•Ú[™İÜÈÛÜ™H]Y[ÈˆYˆ]šXÙ\È[ÙH“›ÈÛÜ™H]Y[È]šXÙ\È™\ÜY‹œ™[YYHˆ”™XÛÛ›™XİH]šXÙHÜˆ™\İ\Ú[™İÜÈ]Y[ËˆŸKˆ›YYXHÈ˜]˜Z[X›H•YK™]Z[ˆ•Ú[™İÜÈYYXHÙ^\È™XYH‹œ™[YYHˆ•HYYXH\XØ][Ûˆ]\İİ\ÜÚ[™İÜÈYYXHÛÛ›ÛËˆŸKˆ\›Z[˜[È˜]˜Z[X›H•YK™]Z[ˆ”İÙ\”Ú[‹œ™[YYHˆÚÛÜÙHİÙ\œÚ[™^HÜˆ[›İ\ˆ[œİ[YÚ[[ˆÙ][™ÜËˆŸKˆœİÜ˜YÙHÈ˜]˜Z[X›H˜›ÛÛ
-İ][
-K™]Z[™ˆÛ[ŠİÜ˜YÙWÙ]J
-J_H›Û[YJÊH‹œ™[YYHˆ”™\Z\ˆHÜ[Û˜[İ][ÛÛ\Û™[œ›ÛHH[œİ[\‹ˆŸKˆ›ÚXÙHÈ˜]˜Z[X›H›ÚXÙVÈ˜]˜Z[X›H—K™]Z[›ÚXÙVÈœ™X\ÛÛˆ—HÜˆ[™YÙ™›[™HÚ\Ü\‹˜Ü[™[™Û\ÚÛÛ[X[™[Ù[™XYH‹œ™[YYHˆ”™Z[œİ[™\œÚ[ÛˆÌH›ÚXÙH™\Ûİ\˜Ù\ÈÜˆÙ[Xİİ\İÛHÚ\Ü\‹˜Üš[\È[ˆÙ][™ÜËˆŸKˆ˜^HÈ˜]˜Z[X›H‘˜[ÙK™]Z[ˆ•Ú[™İÜÈØ[››İØY™[H™KZÜİ]™\H\™\\H›İYšXØ][ÛˆXÛÛˆ‹œ™[YYHˆ•\ÙHĞT”È]ZXÚÈÛÛ›ÛÈÜˆH˜]]™HÚ[™İÜÈ›İYšXØ][Ûˆ\™XKˆŸKˆ™^[œÚ[ÛœÈÈ˜]˜Z[X›H››İ›ÛÛ
-^[œÚ[ÛœË™Ù]
-™\œ›ÜœÈŠJK™]Z[™ˆÛ[Š^[œÚ[ÛœË™Ù]
-	Ù^[œÚ[ÛœÉË×JJ_H[Ù[JÊKÛ[Š^[œÚ[ÛœË™Ù]
-	Ù\œ›ÜœÉË×JJ_H™Z™XİY‹œ™[YYHˆ”™[[İ™HÜˆ\]H™Z™XİYX[šY™\İÈÚİÛˆ[ˆH^[œÚ[Ûˆ˜^KˆŸKˆ˜ÛÛ™šYİ\˜][ÛˆÈ˜]˜Z[X›H•YK™]Z[ˆ“ØØ[\]HÙ][™ÜÈİÜ˜YÙH™XYH‹œ™[YYHˆ”™\Z\ˆÜš]HXØÙ\ÜÈÈHĞT”È\]H\™XİÜKˆŸKˆ\]\ˆÈ˜]˜Z[X›H•YK™]Z[ˆ•™\šYšYYÚ]Xˆ™[X\ÙHÚ[›™[ÛÛ™šYİ\™Y‹œ™[YYHˆÛÛ›™XİÈÚ]Xˆ[™\ÙHHX[X[\]HÚXÚÈ›Üˆ]Z[Y\œ›ÜœËˆŸKˆœİÙ\ˆÈ˜]˜Z[X›H•YK™]Z[ˆ•Ú[™İÜÈİÙ\ˆT\È™XYH‹œ™[YYHˆ•\ÙHH˜]]™HÚ[™İÜÈİÙ\ˆY[HYˆŞ\İ[HÛXŞH›ØÚÜÈH™\]Y\İˆŸKˆB‚™Yˆ[™Ú[™Y\š[™×Ù]J
-N‚ˆ›ØÙ\ÜÙ\ÏV×NÜÙ[œÛÜœÏV×NØÜš]XØ[^ÈœŞ\İ[H‹œ™YÚ\İH‹œÛ\ÜË™^H‹˜ÜÜœÜË™^H‹Ú[š[š]™^H‹œÙ\šXÙ\Ë™^H‹›Ø\ÜË™^H‹Ú[›ÙÛÛ‹™^H‹™ÛK™^H‹™^Ü™\‹™^H‹›Ø\œËXÛÛ[X[™Z[\™˜XÙK™^H‹œ]Û‹™^H‹œ]ÛË™^HŸBˆYˆİ][‚ˆN˜İ\œ™[İ\Ù\\İ][”›ØÙ\ÜÊ
-K\Ù\›˜[YJ
-Bˆ^Ù\^Ù\[Û˜İ\œ™[İ\Ù\Hˆ‚ˆ›Üˆ›ØÙ\ÜÈ[ˆİ][œ›ØÙ\Ü×Ú]\ŠÈœY‹›˜[YH‹˜ÜWÜ\˜Ù[‹›Y[[ÜWÜ\˜Ù[‹\Ù\›˜[YH‹œİ]\È—JN‚ˆN‚ˆ[™›Ï\›ØÙ\ÜËš[™›ÎÛ˜[YO\İŠ[™›Ë™Ù]
-›˜[YHŠHÜˆ”“ĞÑTÔÈŠNÛİÛ™\\İŠ[™›Ë™Ù]
-\Ù\›˜[YHŠHÜˆˆŠBˆYˆİ\œ™[İ\Ù\ˆ[™İÛ™\ˆ[™İÛ™\‹˜Ø\ÙY›Û
+def process_action(pid,action):
+    if not psutil:raise RuntimeError("the optional psutil component is not installed")
+    if action not in ("terminate","suspend","resume"):raise ValueError("unsupported process action")
+    process=psutil.Process(int(pid));name=process.name().casefold()
+    if process.pid in (0,4,os.getpid(),os.getppid()) or name in {"system","registry","smss.exe","csrss.exe","wininit.exe","services.exe","lsass.exe","winlogon.exe","dwm.exe","explorer.exe"} or "lcars" in name:raise PermissionError("this Windows or LCARS process is protected")
+    try:
+        if process.username().casefold()!=psutil.Process().username().casefold():raise PermissionError("LCARS only controls processes owned by the current user")
+    except psutil.AccessDenied:raise PermissionError("Windows protected this process")
+    {"terminate":process.terminate,"suspend":process.suspend,"resume":process.resume}[action]()
+    return {"ok":True,"message":f"Process {pid} {action} command accepted"}
 
-HOXİ\œ™[İ\Ù\‹˜Ø\ÙY›Û
+def routine_command(command):
+    commands={"refresh-applications":lambda:"Application inventory refreshed","integration-recheck":lambda:protected_action("integration-recheck"),"open-system-monitor":lambda:protected_action("system-monitor"),"open-software-center":lambda:protected_action("software-center")}
+    if command not in commands:raise PermissionError("routine command is not on the LCARS allowlist")
+    return {"ok":True,"message":commands[command]()}
 
-N˜ÛÛ[YBˆ›İXİY\›ØÙ\ÜËœY[ˆ
-ÜË™Ù]Y
+def diagnostics_report():
+    try:extensions=extension_manifests()
+    except Exception as exc:extensions={"extensions":[],"errors":[{"error":type(exc).__name__}]}
+    media=media_data()
+    return {
+        "schema":1,"generatedUtc":time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime()),"lcarsVersion":LCARS_VERSION,
+        "platform":{"family":"Windows","release":os.environ.get("OS","Windows NT")},
+        "health":integration_health(),
+        "inventory":{"displays":len(displays_data()),"applications":sum(len(list(root.rglob("*.lnk"))) for root in [Path(os.environ.get("PROGRAMDATA","C:/ProgramData"))/"Microsoft/Windows/Start Menu/Programs",Path(os.environ.get("APPDATA",HOME))/"Microsoft/Windows/Start Menu/Programs"] if root.exists()),"drives":len(storage_data()),"mediaPlayers":len(media.get("players",[])),"audioStreams":len(media.get("streams",[])),"extensions":len(extensions.get("extensions",[])),"rejectedExtensions":len(extensions.get("errors",[]))},
+        "configuration":{"settingsFilePresent":CONFIG_FILE.is_file(),"extensionStateDirectoryPresent":EXTENSION_STATE_DIR.is_dir(),"updateDirectoryPresent":UPDATE_DIR.is_dir()},
+        "privacy":"Sanitized report: no usernames, home paths, file names, credentials, terminal history, window titles, or media titles are included.",
+    }
 
-KÜË™Ù]Y
+def export_diagnostics():
+    destination=HOME/"Downloads"/f"LCARS-Diagnostics-{time.strftime('%Y%m%d-%H%M%S')}.json";destination.parent.mkdir(parents=True,exist_ok=True);destination.write_text(json.dumps(diagnostics_report(),indent=2),encoding="utf-8")
+    return {"ok":True,"message":"Privacy-safe diagnostics report exported to Downloads","path":str(destination)}
 
-JHÜˆ˜[YK˜Ø\ÙY›Û
+class Handler(BaseHTTPRequestHandler):
+    def send_json(self,data,status=200):
+        body=json.dumps(data).encode();origin=self.headers.get("Origin","");allowed=origin if origin in ("lcars://app","http://127.0.0.1:8764") else "lcars://app";self.send_response(status);self.send_header("Content-Type","application/json");self.send_header("Content-Length",str(len(body)));self.send_header("Access-Control-Allow-Origin",allowed);self.send_header("Access-Control-Allow-Headers","Content-Type");self.end_headers();self.wfile.write(body)
+    def do_OPTIONS(self):
+        origin=self.headers.get("Origin","");allowed=origin if origin in ("lcars://app","http://127.0.0.1:8764") else "lcars://app";self.send_response(204);self.send_header("Access-Control-Allow-Origin",allowed);self.send_header("Access-Control-Allow-Methods","GET,POST,OPTIONS");self.send_header("Access-Control-Allow-Headers","Content-Type");self.end_headers()
+    def do_GET(self):
+        parsed=urlparse(self.path);route=parsed.path
+        if route=="/api/apps":return self.send_json({"apps":applications()})
+        if route=="/api/system":return self.send_json(system_data())
+        if route=="/api/system-details":return self.send_json(system_details())
+        if route=="/api/storage":return self.send_json({"drives":storage_data()})
+        if route=="/api/network-details":return self.send_json(network_details())
+        if route=="/api/tray":return self.send_json({"items":[],"supported":False,"reason":"Windows does not expose a supported API for re-hosting every third-party notification icon; LCARS quick controls remain available"})
+        if route=="/api/padd-pairing":return self.send_json(PADD.status(True))
+        if route=="/api/padd-commands":return self.send_json({"commands":PADD.pop_commands()})
+        if route=="/api/padd-events":return self.send_json({"events":PADD.pop_events()})
+        if route=="/api/data-fabric":return self.send_json(DATA_FABRIC.status())
+        if route=="/api/universal-search":
+            try:return self.send_json(DATA_FABRIC.search_files(parse_qs(parsed.query).get("q",[""])[0],24))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/voice-status":return self.send_json(voice_status())
+        if route=="/api/audio":return self.send_json(audio_data())
+        if route=="/api/audio-devices":return self.send_json({"devices":audio_devices()})
+        if route=="/api/media":return self.send_json(media_data())
+        if route=="/api/windows":return self.send_json({"windows":window_list(),"kwin":True})
+        if route=="/api/displays":return self.send_json({"displays":displays_data()})
+        if route=="/api/health-check":return self.send_json({"health":integration_health()})
+        if route=="/api/diagnostics":return self.send_json(diagnostics_report())
+        if route=="/api/extensions":return self.send_json(extension_manifests())
+        if route=="/api/extension-catalog":return self.send_json(build_extension_catalog(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_SOURCE_FILE,runtime_dir=MODULE_RUNTIME_DIR))
+        if route=="/api/module-platform":return self.send_json(module_platform_status(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_RUNTIME_DIR))
+        if route=="/api/engineering":return self.send_json(engineering_data())
+        if route=="/api/extension-state":
+            try:return self.send_json({"state":extension_state(EXTENSION_STATE_DIR,parse_qs(parsed.query).get("id",[""])[0])})
+            except Exception as exc:return self.send_json({"error":str(exc)},400)
+        if route=="/api/lcars-update":
+            try:
+                channel=parse_qs(parsed.query).get("channel",["stable"])[0]
+                return self.send_json({**check_update(LCARS_VERSION,"windows",channel),"rollback":rollback_status("windows",os.environ.get("LCARS_EXECUTABLE",""),CONFIG_DIR/"previous-release")})
+            except Exception as exc:return self.send_json({"ok":False,"silent":True,"error":str(exc)},503)
+        if route=="/api/document":
+            try:return self.send_json(read_document(parse_qs(parsed.query).get("path",[""])[0]))
+            except Exception as exc:return self.send_json({"error":str(exc)},400)
+        if route=="/api/config":
+            try:return self.send_json(json.loads(CONFIG_FILE.read_text()))
+            except:return self.send_json({})
+        if route.startswith("/api/terminal-output/"):
+            ident=route.rsplit("/",1)[-1];term=TERMINALS.get(ident);return self.send_json({"output":term["output"] if term else "","closed":not term or term["process"].poll() is not None})
+        if route=="/api/files":return self.send_json(files_data(parse_qs(parsed.query).get("path",["~"])[0]))
+        if route=="/api/file-preview":
+            try:
+                path=Path(os.path.expandvars(os.path.expanduser(parse_qs(parsed.query).get("path",[""])[0]))).resolve();mime=__import__('mimetypes').guess_type(path.name)[0] or ""
+                if not path.is_file() or path.stat().st_size>2097152:return self.send_json({"error":"preview unavailable"},400)
+                if mime.startswith("image/"):return self.send_json({"kind":"image","content":f"data:{mime};base64,"+base64.b64encode(path.read_bytes()).decode()})
+                if mime.startswith("text/") or path.suffix.lower() in (".md",".json",".log",".ini",".conf",".py",".js",".ts",".tsx",".css",".html",".ps1"):return self.send_json({"kind":"text","content":path.read_text(encoding="utf-8",errors="replace")[:32768]})
+                return self.send_json({"kind":"","content":""})
+            except Exception as exc:return self.send_json({"error":str(exc)},400)
+        return self.send_json({"error":"not found"},404)
+    def do_POST(self):
+        length=int(self.headers.get("Content-Length","0"));data=json.loads(self.rfile.read(length) or b"{}")
+        route=urlparse(self.path).path
+        if route=="/api/lcars-update":
+            operation=str(data.get("operation","check"))
+            requested_channel=str(data.get("channel","stable"));channel=requested_channel if requested_channel in {"development","stable-release"} else "stable"
+            try:
+                executable=os.environ.get("LCARS_EXECUTABLE","");archive=CONFIG_DIR/"previous-release"
+                if operation=="check":return self.send_json({**check_update(LCARS_VERSION,"windows",channel),"rollback":rollback_status("windows",executable,archive)})
+                if operation=="download":return self.send_json({**download_update(LCARS_VERSION,"windows",UPDATE_DIR,channel),"rollback":rollback_status("windows",executable,archive)})
+                if operation=="install":return self.send_json(schedule_install(str(data.get("path","")),"windows",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
+                if operation=="rollback":return self.send_json(schedule_rollback("windows",int(os.environ.get("LCARS_PARENT_PID",os.getppid())),executable,archive))
+                if operation=="status":return self.send_json({"ok":True,"rollback":rollback_status("windows",executable,archive)})
+                return self.send_json({"ok":False,"error":"Unknown update operation"},400)
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},503)
+        if route=="/api/diagnostics-export":
+            try:return self.send_json(export_diagnostics())
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},500)
+        if route=="/api/extension-state":
+            try:return self.send_json({"ok":True,"state":save_extension_state(EXTENSION_STATE_DIR,str(data.get("id","")),data.get("state",{}))})
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/extension-install":
+            try:return self.send_json(extension_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,str(data.get("id","")),str(data.get("operation","install")),MODULE_SOURCE_FILE,str(data.get("sourceId","")),MODULE_RUNTIME_DIR,data.get("approvedCapabilities",[])))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/module-source":
+            try:return self.send_json(repository_source_operation(MODULE_SOURCE_FILE,str(data.get("operation","")),str(data.get("url","")),str(data.get("id","")),str(data.get("channel","stable"))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/module-publisher":
+            try:return self.send_json(prepare_module_publication(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_PUBLISHER_DIR,str(data.get("id","")),str(data.get("repository","YOUR-GITHUB-NAME/YOUR-REPOSITORY"))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/module-platform":
+            try:return self.send_json(module_platform_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_RUNTIME_DIR,str(data.get("operation","")),str(data.get("id","")),data.get("capabilities",[]),str(data.get("detail",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/module-package":
+            try:return self.send_json(module_package_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_PUBLISHER_DIR,MODULE_RUNTIME_DIR,str(data.get("operation","")),str(data.get("id","")),str(data.get("path","")),data.get("approvedCapabilities",[])))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/module-forge":
+            try:return self.send_json(create_module_draft(EXTENSION_DIR,data))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/padd-pairing":
+            try:return self.send_json(PADD.manage(data))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/data-fabric":
+            try:
+                operation=str(data.get("operation","status"))
+                if operation=="deliver-file":
+                    if not DATA_FABRIC.status()["categories"]["smallFiles"]:raise PermissionError("Small-file transfer is disabled in Data Fabric")
+                    path=Path(os.path.expandvars(os.path.expanduser(str(data.get("path",""))))).resolve();home=Path.home().resolve()
+                    path.relative_to(home)
+                    if not path.is_file():return self.send_json({"ok":False,"error":"File was not found"},404)
+                    if path.stat().st_size>524288:return self.send_json({"ok":False,"error":"Federation file transfers are limited to 512 KiB"},400)
+                    result=PADD.manage({"operation":"delivery","id":str(data.get("deviceId","")),"kind":"file","payload":{"name":path.name,"mime":__import__('mimetypes').guess_type(path.name)[0] or "application/octet-stream","content":base64.b64encode(path.read_bytes()).decode("ascii")}})
+                    DATA_FABRIC.record_recent("files",str(path),path.name,str(path.parent),result.get("station",{}).get("name","LOCAL CORE"))
+                    return self.send_json(result)
+                if operation=="deliver-clipboard":
+                    if not DATA_FABRIC.status()["categories"]["clipboard"]:raise PermissionError("Clipboard handoff is disabled in Data Fabric")
+                    result=PADD.manage({"operation":"delivery","id":str(data.get("deviceId","")),"kind":"clipboard","payload":{"text":str(data.get("text",""))}})
+                    DATA_FABRIC.record_recent("clipboard",uuid.uuid4().hex,"Clipboard handoff",str(data.get("text",""))[:80])
+                    return self.send_json(result)
+                if operation=="policy":
+                    result=DATA_FABRIC.operate(data)
+                    PADD.manage({"operation":"clipboard","enabled":result["categories"]["clipboard"]})
+                    PADD.manage({"operation":"file-transfer","enabled":result["categories"]["smallFiles"]})
+                    return self.send_json(result)
+                return self.send_json(DATA_FABRIC.operate(data))
+            except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/padd-sync":
+            try:return self.send_json(PADD.sync(data))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/process-action":
+            try:return self.send_json(process_action(data.get("pid",0),str(data.get("action",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+        if route=="/api/routine-command":
+            if not bool(data.get("approved")):return self.send_json({"ok":False,"error":"operator approval is required"},403)
+            try:return self.send_json(routine_command(str(data.get("command",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+        if route=="/api/document":
+            try:return self.send_json(write_document(str(data.get("path","")),str(data.get("content",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/launch":
+            ident=str(data.get("id",""));path=APP_CACHE.get(ident)
+            if not path:return self.send_json({"error":"Application is not in the Windows launcher inventory"},403)
+            os.startfile(path);return self.send_json({"ok":True})
+        if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action",""))))
+        if route=="/api/voice-transcribe":return self.send_json(voice_transcribe(data))
+        if route=="/api/action":return self.send_json({"message":protected_action(str(data.get("action","")))})
+        if route=="/api/window-action":return self.send_json({"message":window_action(str(data.get("id","")),str(data.get("action","")),str(data.get("display","")))})
+        if route=="/api/display-action":return self.send_json({"message":display_action(str(data.get("action","")),str(data.get("display","")))})
+        if route=="/api/terminal-create":return self.send_json(terminal_create(str(data.get("name","Terminal")),str(data.get("shell","")),str(data.get("directory","~"))))
+        if route=="/api/terminal-input":return self.send_json({"ok":terminal_input(str(data.get("id","")),str(data.get("input","")))})
+        if route=="/api/terminal-close":terminal_close(str(data.get("id","")));return self.send_json({"ok":True})
+        if route=="/api/media-control":return self.send_json({"ok":media_key(str(data.get("command","")))})
+        if route=="/api/audio":
+            try:
+                from ctypes import POINTER, cast
+                from comtypes import CLSCTX_ALL
+                from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
+                endpoint=AudioUtilities.GetSpeakers();interface=endpoint.Activate(IAudioEndpointVolume._iid_,CLSCTX_ALL,None);control=cast(interface,POINTER(IAudioEndpointVolume))
+                if "muted" in data:control.SetMute(bool(data.get("muted")),None);return self.send_json({"ok":True,"muted":bool(data.get("muted"))})
+                control.SetMasterVolumeLevelScalar(max(0,min(100,int(data.get("volume",0))))/100,None);return self.send_json({"ok":True})
+            except:return self.send_json({"error":"Windows Core Audio component unavailable"},503)
+        if route=="/api/audio-device":
+            ident=str(data.get("id","")).replace("'","''");run_ps(f"Import-Module AudioDeviceCmdlets;Set-AudioDevice -ID '{ident}'");return self.send_json({"message":"Windows audio device changed"})
+        if route=="/api/stream-volume":
+            volume=max(0,min(100,int(data.get("volume",0))));ok=set_stream_audio(str(data.get("id","")),volume=volume);return self.send_json({"ok":ok,"volume":volume,"message":"Application volume changed" if ok else "Windows audio session is no longer active"},200 if ok else 404)
+        if route=="/api/stream-mute":
+            muted=bool(data.get("muted"));ok=set_stream_audio(str(data.get("id","")),muted=muted);return self.send_json({"ok":ok,"muted":muted,"message":"Application mute changed" if ok else "Windows audio session is no longer active"},200 if ok else 404)
+        if route=="/api/config":CONFIG_DIR.mkdir(parents=True,exist_ok=True);CONFIG_FILE.write_text(json.dumps(data,indent=2));return self.send_json({"ok":True})
+        if route=="/api/file-open":os.startfile(str(data.get("path","")));return self.send_json({"ok":True})
+        if route=="/api/file-folder":Path(str(data.get("path","~"))).expanduser().joinpath(str(data.get("name","New Folder"))).mkdir();return self.send_json({"ok":True})
+        if route=="/api/file-transfer":
+            src=Path(str(data.get("source","")));dst=Path(str(data.get("destination","")))/src.name
+            (shutil.move if data.get("move") else (shutil.copytree if src.is_dir() else shutil.copy2))(str(src),str(dst));return self.send_json({"ok":True})
+        return self.send_json({"error":"not found"},404)
+    def log_message(self,format,*args):pass
 
-H[ˆÜš]XØ[Üˆ›Ø\œÈˆ[ˆ˜[YK˜Ø\ÙY›Û
-
-Bˆ›ØÙ\ÜÙ\Ë˜\[™
-ÈœYœ›ØÙ\ÜËœY›˜[YH›˜[YVÎK˜ÜHœ›İ[™
-›Ø]
-[™›Ë™Ù]
-˜ÜWÜ\˜Ù[ŠHÜˆ
-KJK›Y[[ÜHœ›İ[™
-›Ø]
-[™›Ë™Ù]
-›Y[[ÜWÜ\˜Ù[ŠHÜˆ
-KJK\Ù\ˆ›İÛ™\‹œÜ]
-—ŠVËLWVÎKœİ]HˆœİÜYˆYˆİŠ[™›Ë™Ù]
-œİ]\ÈŠJOOYÙ]]Šİ][”ÕUT×ÔÕÔQ‹œİÜYŠH[ÙHœ[›š[™È‹œ›İXİYœ›İXİYJBˆ^Ù\^Ù\[Ûœ\ÜÂˆ›ØÙ\ÜÙ\ËœÛÜ
-Ù^O[[X™H][NŠ][VÈ˜ÜH—K][VÈ›Y[[ÜH—JK™]™\œÙOUYJBˆN‚ˆ˜]\O\İ][œÙ[œÛÜœ×Ø˜]\J
-BˆYˆ˜]\NœÙ[œÛÜœË˜\[™
-ÈšYˆÚ[™İÜËX˜]\H‹›˜[YHˆ”ÖTÕSHUT–H‹šÚ[™ˆ˜˜]\H‹˜[YH™ˆÜ›İ[™
-˜]\Kœ\˜Ù[
-_IH‹œİ]\Èˆ˜][[ÛˆˆYˆ˜]\Kœ\˜Ù[Œ[™›İ˜]\KœİÙ\—ÜYÙÙY[ÙHœ™XYH‹™]Z[ˆPÈÕÑTˆˆYˆ˜]\KœİÙ\—ÜYÙÙY[ÙH‘TĞÒT‘ÒS‘ÈŸJBˆ^Ù\^Ù\[Ûœ\ÜÂˆÙ[œÛÜœË˜\[™
-ÈšYˆÚ[™İÜË\İÜ˜YÙH‹›˜[YHˆ”ÕÔQÑHPU’V‹šÚ[™ˆ™š]™H‹˜[YH™ˆÛ[ŠİÜ˜YÙWÙ]J
-J_H“ÓSQTÈ‹œİ]\Èˆœ™XYH‹™]Z[ˆ•ÒS‘ÕÔÈ“ÓSQHS•‘S•Ô–HŸJBˆÙ[œÛÜœË˜\[™
-ÈšYˆÚ[™İÜË]\›X[‹›˜[YHˆ•T“PSQTTˆ‹šÚ[™ˆ[\\˜]\™H‹˜[YHˆ“ÔÈPSQÑQ‹œİ]\Èˆ[˜]˜Z[X›H‹™]Z[ˆ•ÒS‘ÕÔÈÑTÈ“ÕVÔÑHHS’U‘T”ĞS“Ó‹PQRSˆÑS”ÓÔˆTHŸJBˆ™]\›ˆÈ™Ù[™\˜]Yš[
-[YK[YJ
-JKœ›ØÙ\ÜÙ\Èœ›ØÙ\ÜÙ\ÖÎKœÙ[œÛÜœÈœÙ[œÛÜœËœ›ØÙ\ÜĞÛÛ›Û˜›ÛÛ
-İ][
-KœÙ\šXÙPÛÛ›Û‘˜[ÙK››İ\È–È“Û›Hİ\œ™[]\Ù\ˆ›ØÙ\ÜÙ\È\™HÙ™™\™Y›ÜˆÛÛ›Û‹•Ú[™İÜÈ[™ĞT”È›ØÙ\ÜÙ\È™[XZ[ˆ›İXİY—_B‚™Yˆ›ØÙ\Ü×ØXİ[ÛŠYXİ[ÛŠN‚ˆYˆ›İİ][œ˜Z\ÙH[[YQ\œ›ÜŠHÜ[Û˜[İ][ÛÛ\Û™[\È›İ[œİ[YŠBˆYˆXİ[Ûˆ›İ[ˆ
-\›Z[˜]H‹œİ\Ü[™‹œ™\İ[YHŠNœ˜Z\ÙH˜[YQ\œ›ÜŠ[œİ\ÜY›ØÙ\ÜÈXİ[ÛˆŠBˆ›ØÙ\ÜÏ\İ][”›ØÙ\ÜÊ[
-Y
-JNÛ˜[YO\›ØÙ\ÜË›˜[YJ
-K˜Ø\ÙY›Û
-
-BˆYˆ›ØÙ\ÜËœY[ˆ
-ÜË™Ù]Y
-
-KÜË™Ù]Y
-
-JHÜˆ˜[YH[ˆÈœŞ\İ[H‹œ™YÚ\İH‹œÛ\ÜË™^H‹˜ÜÜœÜË™^H‹Ú[š[š]™^H‹œÙ\šXÙ\Ë™^H‹›Ø\ÜË™^H‹Ú[›ÙÛÛ‹™^H‹™ÛK™^H‹™^Ü™\‹™^HŸHÜˆ›Ø\œÈˆ[ˆ˜[YNœ˜Z\ÙH\›Z\ÜÚ[Û‘\œ›ÜŠ\ÈÚ[™İÜÈÜˆĞT”È›ØÙ\ÜÈ\È›İXİYŠBˆN‚ˆYˆ›ØÙ\ÜË\Ù\›˜[YJ
-K˜Ø\ÙY›Û
-
-HO\İ][”›ØÙ\ÜÊ
-K\Ù\›˜[YJ
-K˜Ø\ÙY›Û
-
-Nœ˜Z\ÙH\›Z\ÜÚ[Û‘\œ›ÜŠ“ĞT”ÈÛ›HÛÛ›ÛÈ›ØÙ\ÜÙ\ÈİÛ™YHHİ\œ™[\Ù\ˆŠBˆ^Ù\İ][XØÙ\ÜÑ[šYYœ˜Z\ÙH\›Z\ÜÚ[Û‘\œ›ÜŠ•Ú[™İÜÈ›İXİY\È›ØÙ\ÜÈŠBˆÈ\›Z[˜]Hœ›ØÙ\ÜË\›Z[˜]Kœİ\Ü[™œ›ØÙ\ÜËœİ\Ü[™œ™\İ[YHœ›ØÙ\ÜËœ™\İ[Y_VØXİ[Û—J
-Bˆ™]\›ˆÈ›ÚÈ•YK›Y\ÜØYÙH™ˆ”›ØÙ\ÜÈÜYHØXİ[ÛŸHÛÛ[X[™XØÙ\YŸB‚™Yˆ›İ][™WØÛÛ[X[™
-ÛÛ[X[™
-N‚ˆÛÛ[X[™Ï^Èœ™Yœ™\ÚX\XØ][ÛœÈ›[X™Nˆ\XØ][Ûˆ[™[ÜH™Yœ™\ÚY‹š[YÜ˜][Û‹\™XÚXÚÈ›[X™Nœ›İXİYØXİ[ÛŠš[YÜ˜][Û‹\™XÚXÚÈŠK›Ü[‹\Ş\İ[K[[Ûš]Üˆ›[X™Nœ›İXİYØXİ[ÛŠœŞ\İ[K[[Ûš]ÜˆŠK›Ü[‹\ÛÙØ\™KXÙ[\ˆ›[X™Nœ›İXİYØXİ[ÛŠœÛÙØ\™KXÙ[\ˆŠ_BˆYˆÛÛ[X[™›İ[ˆÛÛ[X[™Îœ˜Z\ÙH\›Z\ÜÚ[Û‘\œ›ÜŠœ›İ][™HÛÛ[X[™\È›İÛˆHĞT”È[İÛ\İŠBˆ™]\›ˆÈ›ÚÈ•YK›Y\ÜØYÙH˜ÛÛ[X[™ÖØÛÛ[X[™J
-_B‚™YˆXYÛ›ÜİXÜ×Ü™\Ü
-
-N‚ˆN™^[œÚ[ÛœÏY^[œÚ[Û—ÛX[šY™\İÊ
-Bˆ^Ù\^Ù\[Ûˆ\È^Î™^[œÚ[ÛœÏ^È™^[œÚ[ÛœÈ–×K™\œ›ÜœÈ–ŞÈ™\œ›Üˆ\J^ÊK—×Û˜[YW×ßW_BˆYYXO[YYXWÙ]J
-Bˆ™]\›ˆÂˆœØÚ[XHŒK™Ù[™\˜]Y]È[YKœİ™[YJ‰VKI[KIY	R‰SN‰TÖˆ‹[YK™Û][YJ
-JK›Ø\œÕ™\œÚ[Ûˆ“ĞT”×Õ‘T”ÒSÓ‹ˆœ]›Ü›HÈ™˜[Z[Hˆ•Ú[™İÜÈ‹œ™[X\ÙH›ÜË™[š\›Û‹™Ù]
-“ÔÈ‹•Ú[™İÜÈ•Š_KˆšX[š[YÜ˜][Û—ÚX[
-
-Kˆš[™[ÜHÈ™\Ü^\È›[Š\Ü^\×Ù]J
-JK˜\XØ][ÛœÈœİ[J[Š\İ
-›Ûİœ™ÛØŠŠ‹›šÈŠJJH›Üˆ›Ûİ[ˆÔ]
-ÜË™[š\›Û‹™Ù]
-”“ÑÔSQUH‹Î‹Ô›ÙÜ˜[Q]HŠJKÈ“ZXÜ›ÜÛÙÕÚ[™İÜËÔİ\Y[KÔ›ÙÜ˜[\È‹]
-ÜË™[š\›Û‹™Ù]
-TUH‹ÓQJJKÈ“ZXÜ›ÜÛÙÕÚ[™İÜËÔİ\Y[KÔ›ÙÜ˜[\È—HYˆ›Ûİ™^\İÊ
-JK™š]™\È›[ŠİÜ˜YÙWÙ]J
-JK›YYXT^Y\œÈ›[ŠYYXK™Ù]
-œ^Y\œÈ‹×JJK˜]Y[Ôİ™X[\È›[ŠYYXK™Ù]
-œİ™X[\È‹×JJK™^[œÚ[ÛœÈ›[Š^[œÚ[ÛœË™Ù]
-™^[œÚ[ÛœÈ‹×JJKœ™Z™XİY^[œÚ[ÛœÈ›[Š^[œÚ[ÛœË™Ù]
-™\œ›ÜœÈ‹×JJ_Kˆ˜ÛÛ™šYİ\˜][ÛˆÈœÙ][™ÜÑš[T™\Ù[ÓÓ‘’Q×Ñ’SKš\×Ùš[J
-K™^[œÚ[Û”İ]Q\™XİÜT™\Ù[‘VS”ÒSÓ—ÔÕUWÑT‹š\×Ù\Š
-K\]Q\™XİÜT™\Ù[•TUWÑT‹š\×Ù\Š
-_Kˆœš]˜XŞHˆ”Ø[š]^™Y™\Üˆ›È\Ù\›˜[Y\ËÛYH]Ëš[H˜[Y\ËÜ™Y[X[Ë\›Z[˜[\İÜKÚ[™İÈ]\ËÜˆYYXH]\È\™H[˜ÛYYˆ‹ˆB‚™Yˆ^ÜÙXYÛ›ÜİXÜÊ
-N‚ˆ\İ[˜][ÛRÓQKÈ‘İÛ›ØYÈ‹Ùˆ“ĞT”ËQXYÛ›ÜİXÜË^İ[YKœİ™[YJ	ÉVI[IYIR	SITÉÊ_KšœÛÛˆÙ\İ[˜][Û‹œ\™[›ZÙ\Š\™[ÏUYK^\İÛÚÏUYJNÙ\İ[˜][Û‹Üš]Wİ^
-œÛÛ‹™[\ÊXYÛ›ÜİXÜ×Ü™\Ü
-
-K[™[LŠK[˜ÛÙ[™ÏH]‹NŠBˆ™]\›ˆÈ›ÚÈ•YK›Y\ÜØYÙHˆ”š]˜XŞK\ØY™HXYÛ›ÜİXÜÈ™\Ü^ÜYÈİÛ›ØYÈ‹œ]œİŠ\İ[˜][ÛŠ_B‚˜Û\ÜÈ[™\Š˜\ÙR™\]Y\İ[™\ŠN‚ˆYˆÙ[™ÚœÛÛŠÙ[‹]Kİ]\ÏLŒ
-N‚ˆ›ÙOZœÛÛ‹™[\Ê]JK™[˜ÛÙJ
-NÛÜšYÚ[\Ù[‹šXY\œË™Ù]
-“ÜšYÚ[ˆ‹ˆŠNØ[İÙY[ÜšYÚ[ˆYˆÜšYÚ[ˆ[ˆ
-›Ø\œÎ‹ËØ\‹š‹ËÌLËŒŒŒNÍŠH[ÙH›Ø\œÎ‹ËØ\ÜÙ[‹œÙ[™Ü™\ÜÛœÙJİ]\ÊNÜÙ[‹œÙ[™ÚXY\ŠÛÛ[U\H‹˜\XØ][Û‹ÚœÛÛˆŠNÜÙ[‹œÙ[™ÚXY\ŠÛÛ[S[™İ‹İŠ[Š›ÙJJJNÜÙ[‹œÙ[™ÚXY\ŠXØÙ\ÜËPÛÛ›ÛP[İËSÜšYÚ[ˆ‹[İÙY
-NÜÙ[‹œÙ[™ÚXY\ŠXØÙ\ÜËPÛÛ›ÛP[İËRXY\œÈ‹ÛÛ[U\HŠNÜÙ[‹™[™ÚXY\œÊ
-NÜÙ[‹Ùš[KÜš]J›ÙJBˆYˆ×ÓÔSÓ”ÊÙ[ŠN‚ˆÜšYÚ[\Ù[‹šXY\œË™Ù]
-“ÜšYÚ[ˆ‹ˆŠNØ[İÙY[ÜšYÚ[ˆYˆÜšYÚ[ˆ[ˆ
-›Ø\œÎ‹ËØ\‹š‹ËÌLËŒŒŒNÍŠH[ÙH›Ø\œÎ‹ËØ\ÜÙ[‹œÙ[™Ü™\ÜÛœÙJŒ
-NÜÙ[‹œÙ[™ÚXY\ŠXØÙ\ÜËPÛÛ›ÛP[İËSÜšYÚ[ˆ‹[İÙY
-NÜÙ[‹œÙ[™ÚXY\ŠXØÙ\ÜËPÛÛ›ÛP[İËSY]ÙÈ‹‘ÑUÔÕÔSÓ”ÈŠNÜÙ[‹œÙ[™ÚXY\ŠXØÙ\ÜËPÛÛ›ÛP[İËRXY\œÈ‹ÛÛ[U\HŠNÜÙ[‹™[™ÚXY\œÊ
-BˆYˆ×ÑÑU
-Ù[ŠN‚ˆ\œÙY]\›\œÙJÙ[‹œ]
-NÜ›İ]O\\œÙYœ]ˆYˆ›İ]OOH‹Ø\KØ\Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ˜\È˜\XØ][ÛœÊ
-_JBˆYˆ›İ]OOH‹Ø\KÜŞ\İ[Hœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠŞ\İ[WÙ]J
-JBˆYˆ›İ]OOH‹Ø\KÜŞ\İ[KY]Z[Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠŞ\İ[WÙ]Z[Ê
-JBˆYˆ›İ]OOH‹Ø\KÜİÜ˜YÙHœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™š]™\ÈœİÜ˜YÙWÙ]J
-_JBˆYˆ›İ]OOH‹Ø\KÛ™]ÛÜšËY]Z[Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ™]ÛÜš×Ù]Z[Ê
-JBˆYˆ›İ]OOH‹Ø\Kİ˜^Hœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈš][\È–×Kœİ\ÜY‘˜[ÙKœ™X\ÛÛˆˆ•Ú[™İÜÈÙ\È›İ^ÜÙHHİ\ÜYTH›Üˆ™KZÜİ[™È]™\H\™\\H›İYšXØ][ÛˆXÛÛÈĞT”È]ZXÚÈÛÛ›ÛÈ™[XZ[ˆ]˜Z[X›HŸJBˆYˆ›İ]OOH‹Ø\KÜY\Z\š[™Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠQœİ]\ÊYJJBˆYˆ›İ]OOH‹Ø\KÜYXÛÛ[X[™Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ˜ÛÛ[X[™È”QœÜØÛÛ[X[™Ê
-_JBˆYˆ›İ]OOH‹Ø\KÜYY]™[Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™]™[È”QœÜÙ]™[Ê
-_JBˆYˆ›İ]OOH‹Ø\KÙ]KY˜XœšXÈœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠUWÑP”’PËœİ]\Ê
-JBˆYˆ›İ]OOH‹Ø\Kİ[š]™\œØ[\ÙX\˜Ú‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠUWÑP”’PËœÙX\˜ÚÙš[\Ê\œÙWÜ\Ê\œÙYœ]Y\JK™Ù]
-œH‹Èˆ—JVÌK
-JBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\Kİ›ÚXÙK\İ]\Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ›ÚXÙWÜİ]\Ê
-JBˆYˆ›İ]OOH‹Ø\KØ]Y[Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ]Y[×Ù]J
-JBˆYˆ›İ]OOH‹Ø\KØ]Y[ËY]šXÙ\Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™]šXÙ\È˜]Y[×Ù]šXÙ\Ê
-_JBˆYˆ›İ]OOH‹Ø\KÛYYXHœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠYYXWÙ]J
-JBˆYˆ›İ]OOH‹Ø\KİÚ[™İÜÈœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈÚ[™İÜÈÚ[™İ×Û\İ
-
-KšİÚ[ˆ•Y_JBˆYˆ›İ]OOH‹Ø\KÙ\Ü^\Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™\Ü^\È™\Ü^\×Ù]J
-_JBˆYˆ›İ]OOH‹Ø\KÚX[XÚXÚÈœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈšX[š[YÜ˜][Û—ÚX[
-
-_JBˆYˆ›İ]OOH‹Ø\KÙXYÛ›ÜİXÜÈœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠXYÛ›ÜİXÜ×Ü™\Ü
-
-JBˆYˆ›İ]OOH‹Ø\KÙ^[œÚ[ÛœÈœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ^[œÚ[Û—ÛX[šY™\İÊ
-JBˆYˆ›İ]OOH‹Ø\KÙ^[œÚ[Û‹XØ][ÙÈœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠZ[Ù^[œÚ[Û—ØØ][ÙÊVS”ÒSÓ—ÑT‹•RSS—ÑVS”ÒSÓ—ÑT‹SÑSWÔÓÕTÑWÑ’SK[[YWÙ\SSÑSWÔ•S•SQWÑTŠJBˆYˆ›İ]OOH‹Ø\KÛ[Ù[K\]›Ü›Hœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ[Ù[WÜ]›Ü›WÜİ]\ÊVS”ÒSÓ—ÑT‹•RSS—ÑVS”ÒSÓ—ÑT‹SÑSWÔ•S•SQWÑTŠJBˆYˆ›İ]OOH‹Ø\KÙ[™Ú[™Y\š[™Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ[™Ú[™Y\š[™×Ù]J
-JBˆYˆ›İ]OOH‹Ø\KÙ^[œÚ[Û‹\İ]H‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈœİ]H™^[œÚ[Û—Üİ]JVS”ÒSÓ—ÔÕUWÑT‹\œÙWÜ\Ê\œÙYœ]Y\JK™Ù]
-šY‹Èˆ—JVÌJ_JBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÛØ\œË]\]H‚ˆN‚ˆÚ[›™[\\œÙWÜ\Ê\œÙYœ]Y\JK™Ù]
-˜Ú[›™[‹ÈœİX›H—JVÌBˆ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÊŠ˜ÚXÚ×İ\]JĞT”×Õ‘T”ÒSÓ‹Ú[™İÜÈ‹Ú[›™[
-Kœ›Û˜XÚÈœ›Û˜XÚ×Üİ]\ÊÚ[™İÜÈ‹ÜË™[š\›Û‹™Ù]
-“ĞT”×ÑVPÕUP“H‹ˆŠKÓÓ‘’Q×ÑT‹Èœ™]š[İ\Ë\™[X\ÙHŠ_JBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙKœÚ[[•YK™\œ›ÜˆœİŠ^Ê_KLÊBˆYˆ›İ]OOH‹Ø\KÙØİ[Y[‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ™XYÙØİ[Y[
-\œÙWÜ\Ê\œÙYœ]Y\JK™Ù]
-œ]‹Èˆ—JVÌJJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KØÛÛ™šYÈ‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠœÛÛ‹›ØYÊÓÓ‘’Q×Ñ’SKœ™XYİ^
-
-JJBˆ^Ù\œ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠßJBˆYˆ›İ]Kœİ\İÚ]
-‹Ø\Kİ\›Z[˜[[İ]]ÈŠN‚ˆY[\›İ]KœœÜ]
-‹È‹JVËLWNİ\›OUT“RSSË™Ù]
-Y[
-NÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›İ]]\›VÈ›İ]]—HYˆ\›H[ÙHˆ‹˜ÛÜÙY››İ\›HÜˆ\›VÈœ›ØÙ\ÜÈ—KœÛ
-
-H\È›İ›Û™_JBˆYˆ›İ]OOH‹Ø\KÙš[\Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠš[\×Ù]J\œÙWÜ\Ê\œÙYœ]Y\JK™Ù]
-œ]‹ÈŸˆ—JVÌJJBˆYˆ›İ]OOH‹Ø\KÙš[K\™]šY]È‚ˆN‚ˆ]T]
-ÜËœ]™^[™˜\œÊÜËœ]™^[™\Ù\Š\œÙWÜ\Ê\œÙYœ]Y\JK™Ù]
-œ]‹Èˆ—JVÌJJJKœ™\ÛÛ™J
-NÛZ[YOW×Ú[\Ü×Ê	ÛZ[Y]\\ÉÊK™İY\Ü×İ\J]›˜[YJVÌHÜˆˆ‚ˆYˆ›İ]š\×Ùš[J
-HÜˆ]œİ]
-
-KœİÜÚ^™OŒŒMÌMLœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™\œ›Üˆˆœ™]šY]È[˜]˜Z[X›HŸK
-BˆYˆZ[YKœİ\İÚ]
-š[XYÙKÈŠNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈšÚ[™ˆš[XYÙH‹˜ÛÛ[™ˆ™]NÛZ[Y_NØ˜\ÙMŠØ˜\ÙM˜[˜ÛÙJ]œ™XYØ]\Ê
-JK™XÛÙJ
-_JBˆYˆZ[YKœİ\İÚ]
-^ÈŠHÜˆ]œİY™š^›İÙ\Š
-H[ˆ
-‹›Y‹‹šœÛÛˆ‹‹›ÙÈ‹‹š[šH‹‹˜ÛÛ™ˆ‹‹œH‹‹šœÈ‹‹È‹‹Ş‹‹˜ÜÜÈ‹‹š[‹‹œÌHŠNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈšÚ[™ˆ^‹˜ÛÛ[œ]œ™XYİ^
-[˜ÛÙ[™ÏH]‹N‹\œ›ÜœÏHœ™\XÙHŠVÎŒÌÍ_JBˆ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈšÚ[™ˆˆ‹˜ÛÛ[ˆˆŸJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™\œ›ÜˆœİŠ^Ê_K
-Bˆ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™\œ›Üˆˆ››İ›İ[™ŸK
-BˆYˆ×ÔÔÕ
-Ù[ŠN‚ˆ[™İZ[
-Ù[‹šXY\œË™Ù]
-ÛÛ[S[™İ‹ŒŠJNÙ]OZœÛÛ‹›ØYÊÙ[‹œ™š[Kœ™XY
-[™İ
-HÜˆˆßHŠBˆ›İ]O]\›\œÙJÙ[‹œ]
-Kœ]ˆYˆ›İ]OOH‹Ø\KÛØ\œË]\]H‚ˆÜ\˜][Û\İŠ]K™Ù]
-›Ü\˜][Ûˆ‹˜ÚXÚÈŠJBˆ™\]Y\İYØÚ[›™[\İŠ]K™Ù]
-˜Ú[›™[‹œİX›HŠJNØÚ[›™[\™\]Y\İYØÚ[›™[Yˆ™\]Y\İYØÚ[›™[[ˆÈ™]™[ÜY[‹œİX›K\™[X\ÙHŸH[ÙHœİX›H‚ˆN‚ˆ^Xİ]X›O[ÜË™[š\›Û‹™Ù]
-“ĞT”×ÑVPÕUP“H‹ˆŠNØ\˜Ú]™OPÓÓ‘’Q×ÑT‹Èœ™]š[İ\Ë\™[X\ÙH‚ˆYˆÜ\˜][ÛOH˜ÚXÚÈœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÊŠ˜ÚXÚ×İ\]JĞT”×Õ‘T”ÒSÓ‹Ú[™İÜÈ‹Ú[›™[
-Kœ›Û˜XÚÈœ›Û˜XÚ×Üİ]\ÊÚ[™İÜÈ‹^Xİ]X›K\˜Ú]™J_JBˆYˆÜ\˜][ÛOH™İÛ›ØYœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÊŠ™İÛ›ØYİ\]JĞT”×Õ‘T”ÒSÓ‹Ú[™İÜÈ‹TUWÑT‹Ú[›™[
-Kœ›Û˜XÚÈœ›Û˜XÚ×Üİ]\ÊÚ[™İÜÈ‹^Xİ]X›K\˜Ú]™J_JBˆYˆÜ\˜][ÛOHš[œİ[œ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠØÚY[WÚ[œİ[
-İŠ]K™Ù]
-œ]‹ˆŠJKÚ[™İÜÈ‹[
-ÜË™[š\›Û‹™Ù]
-“ĞT”×ÔT‘S•ÔQ‹ÜË™Ù]Y
-
-JJK^Xİ]X›K\˜Ú]™JJBˆYˆÜ\˜][ÛOHœ›Û˜XÚÈœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠØÚY[WÜ›Û˜XÚÊÚ[™İÜÈ‹[
-ÜË™[š\›Û‹™Ù]
-“ĞT”×ÔT‘S•ÔQ‹ÜË™Ù]Y
-
-JJK^Xİ]X›K\˜Ú]™JJBˆYˆÜ\˜][ÛOHœİ]\Èœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ•YKœ›Û˜XÚÈœ›Û˜XÚ×Üİ]\ÊÚ[™İÜÈ‹^Xİ]X›K\˜Ú]™J_JBˆ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›Üˆˆ•[šÛ›İÛˆ\]HÜ\˜][ÛˆŸK
-Bˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_KLÊBˆYˆ›İ]OOH‹Ø\KÙXYÛ›ÜİXÜËY^Ü‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ^ÜÙXYÛ›ÜİXÜÊ
-JBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_KL
-BˆYˆ›İ]OOH‹Ø\KÙ^[œÚ[Û‹\İ]H‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ•YKœİ]HœØ]™WÙ^[œÚ[Û—Üİ]JVS”ÒSÓ—ÔÕUWÑT‹İŠ]K™Ù]
-šY‹ˆŠJK]K™Ù]
-œİ]H‹ßJJ_JBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÙ^[œÚ[Û‹Z[œİ[‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ^[œÚ[Û—ÛÜ\˜][ÛŠVS”ÒSÓ—ÑT‹•RSS—ÑVS”ÒSÓ—ÑT‹İŠ]K™Ù]
-šY‹ˆŠJKİŠ]K™Ù]
-›Ü\˜][Ûˆ‹š[œİ[ŠJKSÑSWÔÓÕTÑWÑ’SKİŠ]K™Ù]
-œÛİ\˜ÙRY‹ˆŠJKSÑSWÔ•S•SQWÑT‹]K™Ù]
-˜\›İ™YØ\Xš[]Y\È‹×JJJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÛ[Ù[K\Ûİ\˜ÙH‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ™\ÜÚ]ÜWÜÛİ\˜ÙWÛÜ\˜][ÛŠSÑSWÔÓÕTÑWÑ’SKİŠ]K™Ù]
-›Ü\˜][Ûˆ‹ˆŠJKİŠ]K™Ù]
-\›‹ˆŠJKİŠ]K™Ù]
-šY‹ˆŠJKİŠ]K™Ù]
-˜Ú[›™[‹œİX›HŠJJJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÛ[Ù[K\X›\Ú\ˆ‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ™\\™WÛ[Ù[WÜX›XØ][ÛŠVS”ÒSÓ—ÑT‹•RSS—ÑVS”ÒSÓ—ÑT‹SÑSWÔP“TÒT—ÑT‹İŠ]K™Ù]
-šY‹ˆŠJKİŠ]K™Ù]
-œ™\ÜÚ]ÜH‹–SÕT‹QÒUP‹SSQKÖSÕT‹T‘TÔÒUÔ–HŠJJJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÛ[Ù[K\]›Ü›H‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ[Ù[WÜ]›Ü›WÛÜ\˜][ÛŠVS”ÒSÓ—ÑT‹•RSS—ÑVS”ÒSÓ—ÑT‹SÑSWÔ•S•SQWÑT‹İŠ]K™Ù]
-›Ü\˜][Ûˆ‹ˆŠJKİŠ]K™Ù]
-šY‹ˆŠJK]K™Ù]
-˜Ø\Xš[]Y\È‹×JKİŠ]K™Ù]
-™]Z[‹ˆŠJJJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÛ[Ù[K\XÚØYÙH‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ[Ù[WÜXÚØYÙWÛÜ\˜][ÛŠVS”ÒSÓ—ÑT‹•RSS—ÑVS”ÒSÓ—ÑT‹SÑSWÔP“TÒT—ÑT‹SÑSWÔ•S•SQWÑT‹İŠ]K™Ù]
-›Ü\˜][Ûˆ‹ˆŠJKİŠ]K™Ù]
-šY‹ˆŠJKİŠ]K™Ù]
-œ]‹ˆŠJK]K™Ù]
-˜\›İ™YØ\Xš[]Y\È‹×JJJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÛ[Ù[KY›Ü™ÙH‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÜ™X]WÛ[Ù[WÙ˜Y
-VS”ÒSÓ—ÑT‹]JJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÜY\Z\š[™È‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠQ›X[˜YÙJ]JJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÙ]KY˜XœšXÈ‚ˆN‚ˆÜ\˜][Û\İŠ]K™Ù]
-›Ü\˜][Ûˆ‹œİ]\ÈŠJBˆYˆÜ\˜][ÛOH™[]™\‹Yš[H‚ˆYˆ›İUWÑP”’PËœİ]\Ê
-VÈ˜Ø]YÛÜšY\È—VÈœÛX[š[\È—Nœ˜Z\ÙH\›Z\ÜÚ[Û‘\œ›ÜŠ”ÛX[Yš[H˜[œÙ™\ˆ\È\ØX›Y[ˆ]H˜XœšXÈŠBˆ]T]
-ÜËœ]™^[™˜\œÊÜËœ]™^[™\Ù\ŠİŠ]K™Ù]
-œ]‹ˆŠJJJJKœ™\ÛÛ™J
-NÚÛYOT]šÛYJ
-Kœ™\ÛÛ™J
-Bˆ]œ™[]]™WİÊÛYJBˆYˆ›İ]š\×Ùš[J
-Nœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›Üˆˆ‘š[HØ\È›İ›İ[™ŸK
-BˆYˆ]œİ]
-
-KœİÜÚ^™OLœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›Üˆˆ‘™Y\˜][Ûˆš[H˜[œÙ™\œÈ\™H[Z]YÈLLˆÚPˆŸK
-Bˆ™\İ[TQ›X[˜YÙJÈ›Ü\˜][Ûˆˆ™[]™\H‹šYœİŠ]K™Ù]
-™]šXÙRY‹ˆŠJKšÚ[™ˆ™š[H‹œ^[ØYÈ›˜[YHœ]›˜[YK›Z[YH—×Ú[\Ü×Ê	ÛZ[Y]\\ÉÊK™İY\Ü×İ\J]›˜[YJVÌHÜˆ˜\XØ][Û‹ÛØİ]\İ™X[H‹˜ÛÛ[˜˜\ÙM˜[˜ÛÙJ]œ™XYØ]\Ê
-JK™XÛÙJ˜\ØÚZHŠ__JBˆUWÑP”’PËœ™XÛÜ™Ü™XÙ[
-™š[\È‹İŠ]
-K]›˜[YKİŠ]œ\™[
-K™\İ[™Ù]
-œİ][Ûˆ‹ßJK™Ù]
-›˜[YH‹“ĞĞSÓÔ‘HŠJBˆ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ™\İ[
-BˆYˆÜ\˜][ÛOH™[]™\‹XÛ\›Ø\™‚ˆYˆ›İUWÑP”’PËœİ]\Ê
-VÈ˜Ø]YÛÜšY\È—VÈ˜Û\›Ø\™—Nœ˜Z\ÙH\›Z\ÜÚ[Û‘\œ›ÜŠÛ\›Ø\™[™Ù™ˆ\È\ØX›Y[ˆ]H˜XœšXÈŠBˆ™\İ[TQ›X[˜YÙJÈ›Ü\˜][Ûˆˆ™[]™\H‹šYœİŠ]K™Ù]
-™]šXÙRY‹ˆŠJKšÚ[™ˆ˜Û\›Ø\™‹œ^[ØYÈ^œİŠ]K™Ù]
-^‹ˆŠJ__JBˆUWÑP”’PËœ™XÛÜ™Ü™XÙ[
-˜Û\›Ø\™‹]ZY]ZY
-
-Kš^Û\›Ø\™[™Ù™ˆ‹İŠ]K™Ù]
-^‹ˆŠJVÎJBˆ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ™\İ[
-BˆYˆÜ\˜][ÛOHœÛXŞH‚ˆ™\İ[QUWÑP”’PË›Ü\˜]J]JBˆQ›X[˜YÙJÈ›Ü\˜][Ûˆˆ˜Û\›Ø\™‹™[˜X›Yœ™\İ[È˜Ø]YÛÜšY\È—VÈ˜Û\›Ø\™—_JBˆQ›X[˜YÙJÈ›Ü\˜][Ûˆˆ™š[K]˜[œÙ™\ˆ‹™[˜X›Yœ™\İ[È˜Ø]YÛÜšY\È—VÈœÛX[š[\È—_JBˆ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ™\İ[
-Bˆ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠUWÑP”’PË›Ü\˜]J]JJBˆ^Ù\\›Z\ÜÚ[Û‘\œ›Üˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_KÊBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÜY\Ş[˜È‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠQœŞ[˜Ê]JJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÜ›ØÙ\ÜËXXİ[Ûˆ‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ›ØÙ\Ü×ØXİ[ÛŠ]K™Ù]
-œY‹
-KİŠ]K™Ù]
-˜Xİ[Ûˆ‹ˆŠJJJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_KÊBˆYˆ›İ]OOH‹Ø\KÜ›İ][™KXÛÛ[X[™‚ˆYˆ›İ›ÛÛ
-]K™Ù]
-˜\›İ™YŠJNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›Üˆˆ›Ü\˜]Üˆ\›İ˜[\È™\]Z\™YŸKÊBˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ›İ][™WØÛÛ[X[™
-İŠ]K™Ù]
-˜ÛÛ[X[™‹ˆŠJJJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_KÊBˆYˆ›İ]OOH‹Ø\KÙØİ[Y[‚ˆNœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÜš]WÙØİ[Y[
-İŠ]K™Ù]
-œ]‹ˆŠJKİŠ]K™Ù]
-˜ÛÛ[‹ˆŠJJJBˆ^Ù\^Ù\[Ûˆ\È^Îœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ‘˜[ÙK™\œ›ÜˆœİŠ^Ê_K
-BˆYˆ›İ]OOH‹Ø\KÛ][˜Ú‚ˆY[\İŠ]K™Ù]
-šY‹ˆŠJNÜ]PTĞĞPÒK™Ù]
-Y[
-BˆYˆ›İ]œ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™\œ›Üˆˆ\XØ][Ûˆ\È›İ[ˆHÚ[™İÜÈ][˜Ú\ˆ[™[ÜHŸKÊBˆÜËœİ\š[J]
-NÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ•Y_JBˆYˆ›İ]OOH‹Ø\KÜİÜ˜YÙKXXİ[Ûˆœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠİÜ˜YÙWØXİ[ÛŠİŠ]K™Ù]
-šY‹ˆŠJKİŠ]K™Ù]
-˜Xİ[Ûˆ‹ˆŠJJJBˆYˆ›İ]OOH‹Ø\Kİ›ÚXÙK]˜[œØÜšX™Hœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ›ÚXÙWİ˜[œØÜšX™J]JJBˆYˆ›İ]OOH‹Ø\KØXİ[Ûˆœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›Y\ÜØYÙHœ›İXİYØXİ[ÛŠİŠ]K™Ù]
-˜Xİ[Ûˆ‹ˆŠJJ_JBˆYˆ›İ]OOH‹Ø\KİÚ[™İËXXİ[Ûˆœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›Y\ÜØYÙHÚ[™İ×ØXİ[ÛŠİŠ]K™Ù]
-šY‹ˆŠJKİŠ]K™Ù]
-˜Xİ[Ûˆ‹ˆŠJKİŠ]K™Ù]
-™\Ü^H‹ˆŠJJ_JBˆYˆ›İ]OOH‹Ø\KÙ\Ü^KXXİ[Ûˆœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›Y\ÜØYÙH™\Ü^WØXİ[ÛŠİŠ]K™Ù]
-˜Xİ[Ûˆ‹ˆŠJKİŠ]K™Ù]
-™\Ü^H‹ˆŠJJ_JBˆYˆ›İ]OOH‹Ø\Kİ\›Z[˜[XÜ™X]Hœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠ\›Z[˜[ØÜ™X]JİŠ]K™Ù]
-›˜[YH‹•\›Z[˜[ŠJKİŠ]K™Ù]
-œÚ[‹ˆŠJKİŠ]K™Ù]
-™\™XİÜH‹ŸˆŠJJJBˆYˆ›İ]OOH‹Ø\Kİ\›Z[˜[Z[œ]œ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ\›Z[˜[Ú[œ]
-İŠ]K™Ù]
-šY‹ˆŠJKİŠ]K™Ù]
-š[œ]‹ˆŠJJ_JBˆYˆ›İ]OOH‹Ø\Kİ\›Z[˜[XÛÜÙH\›Z[˜[ØÛÜÙJİŠ]K™Ù]
-šY‹ˆŠJJNÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ•Y_JBˆYˆ›İ]OOH‹Ø\KÛYYXKXÛÛ›Ûœ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ›YYXWÚÙ^JİŠ]K™Ù]
-˜ÛÛ[X[™‹ˆŠJJ_JBˆYˆ›İ]OOH‹Ø\KØ]Y[È‚ˆN‚ˆœ›ÛHİ\\È[\ÜÒS•T‹Ø\İˆœ›ÛHÛÛ]\\È[\ÜÓĞÕĞSˆœ›ÛHXØ]ËœXØ]È[\Ü]Y[Õ][]Y\ËP]Y[Ñ[™Ú[›Û[YBˆ[™Ú[P]Y[Õ][]Y\Ë‘Ù]ÜXZÙ\œÊ
-NÚ[\™˜XÙOY[™Ú[Xİ]˜]JP]Y[Ñ[™Ú[›Û[YK—ÚZYËÓĞÕĞS›Û™JNØÛÛ›ÛXØ\İ
-[\™˜XÙKÒS•TŠP]Y[Ñ[™Ú[›Û[YJJBˆYˆ›]]Yˆ[ˆ]N˜ÛÛ›Û”Ù]]]J›ÛÛ
-]K™Ù]
-›]]YŠJK›Û™JNÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ•YK›]]Y˜›ÛÛ
-]K™Ù]
-›]]YŠJ_JBˆÛÛ›Û”Ù]X\İ\•›Û[YS]™[ØØ[\ŠX^
-Z[ŠL[
-]K™Ù]
-›Û[YH‹
-JJJKÌL›Û™JNÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ•Y_JBˆ^Ù\œ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™\œ›Üˆˆ•Ú[™İÜÈÛÜ™H]Y[ÈÛÛ\Û™[[˜]˜Z[X›HŸKLÊBˆYˆ›İ]OOH‹Ø\KØ]Y[ËY]šXÙH‚ˆY[\İŠ]K™Ù]
-šY‹ˆŠJKœ™\XÙJ‰È‹‰ÉÈŠNÜ[—ÜÊˆ’[\ÜS[Ù[H]Y[Ñ]šXÙPÛY]ÎÔÙ]P]Y[Ñ]šXÙHRQ	ŞÚY[IÈŠNÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›Y\ÜØYÙHˆ•Ú[™İÜÈ]Y[È]šXÙHÚ[™ÙYŸJBˆYˆ›İ]OOH‹Ø\KÜİ™X[K]›Û[YH‚ˆ›Û[YO[X^
-Z[ŠL[
-]K™Ù]
-›Û[YH‹
-JJJNÛÚÏ\Ù]Üİ™X[WØ]Y[ÊİŠ]K™Ù]
-šY‹ˆŠJK›Û[YO]›Û[YJNÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ›ÚË›Û[YH›Û[YK›Y\ÜØYÙHˆ\XØ][Ûˆ›Û[YHÚ[™ÙYˆYˆÚÈ[ÙH•Ú[™İÜÈ]Y[ÈÙ\ÜÚ[Ûˆ\È›ÈÛ™Ù\ˆXİ]™HŸKŒYˆÚÈ[ÙH
-BˆYˆ›İ]OOH‹Ø\KÜİ™X[K[]]H‚ˆ]]YX›ÛÛ
-]K™Ù]
-›]]YŠJNÛÚÏ\Ù]Üİ™X[WØ]Y[ÊİŠ]K™Ù]
-šY‹ˆŠJK]]Y[]]Y
-NÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ›ÚË›]]Y›]]Y›Y\ÜØYÙHˆ\XØ][Ûˆ]]HÚ[™ÙYˆYˆÚÈ[ÙH•Ú[™İÜÈ]Y[ÈÙ\ÜÚ[Ûˆ\È›ÈÛ™Ù\ˆXİ]™HŸKŒYˆÚÈ[ÙH
-BˆYˆ›İ]OOH‹Ø\KØÛÛ™šYÈÓÓ‘’Q×ÑT‹›ZÙ\Š\™[ÏUYK^\İÛÚÏUYJNĞÓÓ‘’Q×Ñ’SKÜš]Wİ^
-œÛÛ‹™[\Ê]K[™[LŠJNÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ•Y_JBˆYˆ›İ]OOH‹Ø\KÙš[K[Ü[ˆ›ÜËœİ\š[JİŠ]K™Ù]
-œ]‹ˆŠJJNÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ•Y_JBˆYˆ›İ]OOH‹Ø\KÙš[KY›Û\ˆ”]
-İŠ]K™Ù]
-œ]‹ŸˆŠJJK™^[™\Ù\Š
-Kš›Ú[œ]
-İŠ]K™Ù]
-›˜[YH‹“™]È›Û\ˆŠJJK›ZÙ\Š
-NÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ•Y_JBˆYˆ›İ]OOH‹Ø\KÙš[K]˜[œÙ™\ˆ‚ˆÜ˜ÏT]
-İŠ]K™Ù]
-œÛİ\˜ÙH‹ˆŠJJNÙİT]
-İŠ]K™Ù]
-™\İ[˜][Ûˆ‹ˆŠJJKÜÜ˜Ë›˜[YBˆ
-Ú][›[İ™HYˆ]K™Ù]
-›[İ™HŠH[ÙH
-Ú][˜ÛÜ]™YHYˆÜ˜Ëš\×Ù\Š
-H[ÙHÚ][˜ÛÜLŠJJİŠÜ˜ÊKİŠİ
-JNÜ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ›ÚÈ•Y_JBˆ™]\›ˆÙ[‹œÙ[™ÚœÛÛŠÈ™\œ›Üˆˆ››İ›İ[™ŸK
-BˆYˆÙ×ÛY\ÜØYÙJÙ[‹›Ü›X]
-˜\™ÜÊNœ\ÜÂ‚šYˆ×Û˜[YW×ÏOH—×ÛXZ[—×È‚ˆQœİ\
-
-Bˆš[
-ˆ“ĞT”ÈÚ[™İÜÈØØ[ÛÜ™H™XYHÛˆ‹ËÌLËŒŒŒNÔÔ•HŠBˆ™XY[™ÒÙ\™\Š
-ŒLËŒŒŒH‹Ô•
-K[™\ŠKœÙ\™WÙ›Ü™]™\Š
-B
+if __name__=="__main__":
+    PADD.start()
+    print(f"LCARS Windows local core ready on http://127.0.0.1:{PORT}")
+    ThreadingHTTPServer(("127.0.0.1",PORT),Handler).serve_forever()

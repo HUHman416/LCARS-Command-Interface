@@ -1,59 +1,62 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿ_:÷mý×}·ï~¶îZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\Ýœ›ÛH››ÙN\ÝŽÂš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜÝšXÝŽÂš[\ÜÈ™XYš[TÞ[˜ÈHœ›ÛH››ÙN™œÈŽÂ‚˜ÛÛœÝYÙHH™XYš[TÞ[˜Ê˜\ÜYÙKÞ‹]ŽŠNÂ˜ÛÛœÝÛÜ™HH™XYš[TÞ[˜Ê˜\ÝŒ‹XÛÜ™KÈ‹]ŽŠNÂ˜ÛÛœÝÜÜÈH™XYš[TÞ[˜Ê˜\ÝŒ‹˜ÜÜÈ‹]ŽŠNÂ˜ÛÛœÝ™[™\™\ˆH™XYš[TÞ[˜Ê™\ÚÝÜÜ™[™\™\‹Þ‹]ŽŠNÂ˜ÛÛœÝXÚØYÙRœÛÛˆH”ÓÓ‹œ\œÙJ™XYš[TÞ[˜ÊœXÚØYÙKšœÛÛˆ‹]ŽŠJNÂ‚\Ý
-•™\œÚ[ÛˆˆÜ\ÛÜšÜÜXÙH\œÚ\ÝÈ[Ú[™ÝÈÙ[ÛY]žH‹
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
-HOˆÂˆ\ÜÙ\›X]Ú
-ÛÜ™KÛØ\œË\Ü\[^[Ý]Ë]Œ‹ÊNÂˆ\ÜÙ\›X]Ú
-ÛÜ™KÛYÎˆ[X™\‹ÊNÂˆ\ÜÙ\›X]Ú
-ÛÜ™KÝÜÎˆ[X™\‹ÊNÂˆ\ÜÙ\›X]Ú
-ÛÜ™KÛZ[š[Z^™YÎˆ›ÛÛX[‹ÊNÂˆ\ÜÙ\›X]Ú
-ÛÜ™KÜÛ˜\Ü\Ù[ÛY]žKÊNÂˆ\ÜÙ\›X]Ú
-ÛÜ™KØ\œ˜[™ÙTÜ\Ú[™ÝÜËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÝÛÜšÜÜXÙK]Ú[™ÝËXÛÛ›ÛËÊNÂˆ\ÜÙ\›X]Ú
-YÙKØ™YÚ[‘˜YËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÙ\™XÝ[Û—š[˜ÛY\×
-›ˆ—
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÙ\™XÝ[Û—š[˜ÛY\×
-œÈ—
-KÊNÂŸJNÂ‚\Ý
-•™\œÚ[ÛˆˆÝ\ÜÈ][\H[™\[™[H[›™YYÙHYZÜÈ‹
+const page = readFileSync("app/page.tsx", "utf8");
+const core = readFileSync("app/v26-core.ts", "utf8");
+const css = readFileSync("app/v26.css", "utf8");
+const renderer = readFileSync("desktop/renderer.tsx", "utf8");
+const packageJson = JSON.parse(readFileSync("package.json", "utf8"));
 
-HOˆÂˆ\ÜÙ\›X]Ú
-YÙKÜÜYYX[YÙ\×›X\ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜÜ\Ù^OWØÜYYYX[\YÙK\YZÎ—	ÜYZ×šYXKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜØ]™TYÙTYZÜËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜYÙTYZÜ×ÎˆYÙTYZÔÝ]W×KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜÜ\^[Ý]ÎˆÜ\^[Ý]X\ÊNÂŸJNÂ‚\Ý
-•ÛÜšÜÝ][ÛœÈØ\\™H[™™\ÝÜ™HHÜ\ÛÜšÜÜXÙH‹
+test("Version 26 popup workspace persists full window geometry", () => {
+  assert.match(core, /lcars-popup-layouts-v26/);
+  assert.match(core, /left\?: number/);
+  assert.match(core, /top\?: number/);
+  assert.match(core, /minimized\?: boolean/);
+  assert.match(core, /snapPopupGeometry/);
+  assert.match(core, /arrangePopupWindows/);
+  assert.match(page, /workspace-window-controls/);
+  assert.match(page, /beginDrag/);
+  assert.match(page, /direction\.includes\("n"\)/);
+  assert.match(page, /direction\.includes\("s"\)/);
+});
 
-HOˆÂˆ\ÜÙ\›X]Ú
-YÙKÜYÙTYZÜÎœÜYYX[YÙ\×›X\ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜÜ\^[Ý]œ™XYÜ\^[Ý]×
-
-KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÜ›Ùš[WœÜ\^[Ý]ÊNÂˆ\ÜÙ\›X]Ú
-YÙKØÛÛ[X[™ˆœ™\ÝÜ™H‹ÊNÂŸJNÂ‚\Ý
-”Q˜]šYØ][Ûˆ\ÈÝXÚYš\œÝ[ˆÜ˜Z][™[™ØØ\H‹
+test("Version 26 supports multiple independently pinned Page Peeks", () => {
+  assert.match(page, /speedDialPages\.map/);
+  assert.match(page, /popupKey=\{`speed-dial-page-peek:\$\{peek\.id\}`\}/);
+  assert.match(page, /savePagePeeks/);
+  assert.match(page, /pagePeeks\?: PagePeekState\[\]/);
+  assert.match(page, /popupLayout\?: PopupLayoutMap/);
+});
 
-HOˆÂˆ\ÜÙ\›X]Ú
-YÙKÔQ˜]šYØ][Û‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÛ[Øš[KXÛÛ[X[™\ÚY]ÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÐYYXH
-X^]ÚYˆÍŒ
-KÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÐYYXH
-Ú[\ŽˆÛØ\œÙW
-KÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÛÜšY[][ÛŽˆ[™ØØ\KÊNÂˆ\ÜÙ\›X]Ú
-ÜÜË×›[Øš[KXÛÛ[X[™X˜\‹ÊNÂˆ\ÜÙ\›X]Ú
-ÜÜË×œÞ\Ý[K]˜^WœÜYYYX[ÊNÂŸJNÂ‚\Ý
-ÛÛ[][šXØ][ÛœÈ\Ù\ÈÛ™H]ZY]XØÙ\ÜÚX›HØÜ›Û[™È™YY‹
+test("Workstations capture and restore the popup workspace", () => {
+  assert.match(page, /pagePeeks:speedDialPages\.map/);
+  assert.match(page, /popupLayout:readPopupLayouts\(\)/);
+  assert.match(page, /profile\.popupLayout/);
+  assert.match(page, /command:"restore"/);
+});
 
-HOˆÂˆ\ÜÙ\›X]Ú
-YÙKØÛ\ÜÓ˜[YOH˜ÛÛ[][šXØ][ÛœËY™YYˆX’[™^WÌKÊNÂˆ\ÜÙ\›X]Ú
-ÜÜË×˜ÛÛ[][šXØ][ÛœËY™YYÖ×ŸWJ›Ý™\™›ÝÎˆ]]ËÜÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÜØÜ›Û˜\‹]ÚYˆ›Û™KÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÎŽ‹]ÙXšÚ]\ØÜ›Û˜\‹ÊNÂŸJNÂ‚\Ý
-•™\œÚ[Ûˆ‹ŒÈÝ[[™ÈØYÈ\ÝÛˆ\ÚÝÜ‹
+test("PADD navigation is touch-first in portrait and landscape", () => {
+  assert.match(page, /PADD navigation/);
+  assert.match(page, /mobile-command-sheet/);
+  assert.match(css, /@media \(max-width: 760px\)/);
+  assert.match(css, /@media \(pointer: coarse\)/);
+  assert.match(css, /orientation: landscape/);
+  assert.match(css, /\.mobile-command-bar/);
+  assert.match(css, /\.system-tray\.speed-dial/);
+});
 
-HOˆÂˆ\ÜÙ\›ÚÊÈŒÌKŒY]‹ŒH‹ŒÌŒY]‹ŒH‹ŒÌŒËŒY]‹ŒH‹ŒÌŒ‹ŒY]‹ŒH‹ŒÌŒKŒY]‹Œˆ‹ŒŽKŒŒ‹ŒŽKŒËŒ\˜ËŒH‹ŒŽKŒ‹ŒY]‹ŒH‹ŒŽŒŒ‹ŒŽŒËŒ\˜ËŒH‹ŒŽŒ‹ŒY]‹ŒH‹ŒËŒ‹ŒKY]‹ŒH‹ŒËŒ‹ŒY]‹ŒH‹ŒËŒKŒKY]‹ŒH‹Œ‹ŒËŒY]‹ŒH‹Œ‹ŒŒ—Kš[˜ÛY\ÊXÚØYÙRœÛÛ‹™\œÚ[ÛŠJNÂˆÛÛœÝ™\ÜÚ]ÜžHH™[™\™\‹š[™^ÙŠ	Ú[\Ü‹‹‹Ø\ÝŒ‹LK˜ÜÜÈ‰ÊNÂˆÛÛœÝÛÜšÜÜXÙHH™[™\™\‹š[™^ÙŠ	Ú[\Ü‹‹‹Ø\ÝŒ‹˜ÜÜÈ‰ÊNÂˆÛÛœÝÝ\œ™[H™[™\™\‹š[™^ÙŠ	Ú[\Ü‹‹‹Ø\ÝŒ‹LË˜ÜÜÈ‰ÊNÂˆ\ÜÙ\›ÚÊ™\ÜÚ]ÜžHH	‰ˆÛÜšÜÜXÙHˆ™\ÜÚ]ÜžH	‰ˆÝ\œ™[ˆÛÜšÜÜXÙJNÂŸJNÂ
+test("Communications uses one quiet accessible scrolling feed", () => {
+  assert.match(page, /className="communications-feed" tabIndex=\{0\}/);
+  assert.match(css, /\.communications-feed \{[^}]*overflow: auto/s);
+  assert.match(css, /scrollbar-width: none/);
+  assert.match(css, /::-webkit-scrollbar/);
+});
+
+test("Version 26.3 styling loads last on desktop", () => {
+  assert.ok(["30.5.0-dev.1","30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(packageJson.version));
+  const repository = renderer.indexOf('import "../app/v26-1.css"');
+  const workspace = renderer.indexOf('import "../app/v26.css"');
+  const current = renderer.indexOf('import "../app/v26-3.css"');
+  assert.ok(repository >= 0 && workspace > repository && current > workspace);
+});

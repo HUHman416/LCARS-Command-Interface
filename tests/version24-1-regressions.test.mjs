@@ -1,88 +1,84 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿn5ã_tãMwën·ÞZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\Ýœ›ÛH››ÙN\ÝŽÂš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜÝšXÝŽÂš[\ÜÈ™XYš[TÞ[˜ÈHœ›ÛH››ÙN™œÈŽÂ‚˜ÛÛœÝYÙO\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ø\ÜYÙKÞ‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝÜÜÏ\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ø\ÝŒLK˜ÜÜÈ‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝ™[™\™\\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ù\ÚÝÜÜ™[™\™\‹Þ‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝ[^\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹ÛØØ[ÛØ\œ×ØœšYÙKœH‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝÚ[™ÝÜÏ\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹ÝÚ[™ÝÜËÛØ\œ×ØœšYÙWÝÚ[™ÝÜËœH‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝ\]\\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹ÜÚ\™YÛØ\œ×Ý\]\‹œH‹[\Ü›Y]K\›
-K]ŽŠNÂ˜ÛÛœÝZ[\\™XYš[TÞ[˜Ê™]ÈT“
-‹‹‹Ù[XÝ›Û‹XZ[\‹ž[[‹[\Ü›Y]K\›
-K]ŽŠNÂ‚\Ý
-“YYXH\ÈH™\ÜÛœÚ]™H™YK^›Û™HÛÛœÛÛHÚ][\›˜[\ÝØÜ›Û[™È‹
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKÙ[˜Ý[ÛˆYYXPÛÛœÛÛKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÙ[˜Ý[Ûˆ\XØ][Û“Z^\‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÓ“ÕÈVRS‘ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÓPTÕTˆUQSËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÐTPÐUSÓˆRVT‹ÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÜYÙKY[œÚ]K]ÚYH›YYXKXÛÛœÛÛKÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÜYÙKY[œÚ]KXÛÛ\XÝ›YYXKXÛÛœÛÛK]XœËÊNÂˆ\ÜÙ\›X]Ú
-ÜÜË×›YYXK\ÛÝ\˜ÙK[\Ý×ž×J—ËÊNÂˆ\ÜÙ\›X]Ú
-ÜÜË×›YYXK[Z^\‹[\Ý×ž×J—ËÊNÂˆ\ÜÙ\›X]Ú
-ÜÜËÛÝ™\™›ÝË^Nˆ]]ËÊNÂˆ\ÜÙ\›X]Ú
-ÜÜË×œYÙK[YYXHÖ×××JÛÝ™\™›ÝÎˆY[‹ÊNÂŸJNÂ‚\Ý
-“[^[™Ú[™ÝÜÈ^ÜÙHX\Ý\‹Ý™X[H]]K]šXÙ\Ë[™Ü›Ý\Y\]Y[È‹
+const page=readFileSync(new URL("../app/page.tsx",import.meta.url),"utf8");
+const css=readFileSync(new URL("../app/v24-1.css",import.meta.url),"utf8");
+const renderer=readFileSync(new URL("../desktop/renderer.tsx",import.meta.url),"utf8");
+const linux=readFileSync(new URL("../local/lcars_bridge.py",import.meta.url),"utf8");
+const windows=readFileSync(new URL("../windows/lcars_bridge_windows.py",import.meta.url),"utf8");
+const updater=readFileSync(new URL("../shared/lcars_updater.py",import.meta.url),"utf8");
+const builder=readFileSync(new URL("../electron-builder.yml",import.meta.url),"utf8");
 
-OOžÂˆ›ÜŠÛÛœÝœšYÙHÙˆÛ[^Ú[™ÝÜ×J^Âˆ\ÜÙ\›X]Ú
-œšYÙK×Ø\WÜÝ™X[K[]]KÊNÂˆ\ÜÙ\›X]Ú
-œšYÙK×Ø\WØ]Y[ËY]šXÙKÊNÂˆ\ÜÙ\›X]Ú
-œšYÙKÈ›]]Y‹ÊNÂˆ\ÜÙ\›X]Ú
-œšYÙKÈœ›Ý]P]˜Z[X›H‹ÊNÂˆBˆ\ÜÙ\›X]Ú
-YÙKØÛÛœÝÜ›Ý\ÈH\œ˜^W™œ›ÛW
-™]ÈÙ]
-Ý™X[\ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÔÒÕÈSÕ‘PSTËÊNÂŸJNÂ‚\Ý
-‘XYÛ›ÜÝXÜÈ^ÜÈ\™HØØ[[™^XÚ]Hš]˜XÞHØÜX˜™Y‹
+test("Media is a responsive three-zone console with internal list scrolling",()=>{
+  assert.match(page,/function MediaConsole/);
+  assert.match(page,/function ApplicationMixer/);
+  assert.match(page,/NOW PLAYING/);
+  assert.match(page,/MASTER AUDIO/);
+  assert.match(page,/APPLICATION MIXER/);
+  assert.match(css,/page-density-wide \.media-console/);
+  assert.match(css,/page-density-compact \.media-console-tabs/);
+  assert.match(css,/\.media-source-list[^{]*\{/);
+  assert.match(css,/\.media-mixer-list[^{]*\{/);
+  assert.match(css,/overflow-y: auto/);
+  assert.match(css,/\.page-media \{[\s\S]*?overflow: hidden/);
+});
 
-OOžÂˆ›ÜŠÛÛœÝœšYÙHÙˆÛ[^Ú[™ÝÜ×J^Âˆ\ÜÙ\›X]Ú
-œšYÙKÙYˆXYÛ›ÜÝXÜ×Ü™\ÜÊNÂˆ\ÜÙ\›X]Ú
-œšYÙKÙYˆ^ÜÙXYÛ›ÜÝXÜËÊNÂˆ\ÜÙ\›X]Ú
-œšYÙK×Ø\WÙXYÛ›ÜÝXÜËY^ÜÊNÂˆ\ÜÙ\›X]Ú
-œšYÙKÛ›È\Ù\›˜[Y\ËÛYH]Ëš[H˜[Y\ËÜ™Y[X[ËÊNÂˆBˆ\ÜÙ\›X]Ú
-YÙKÙ[˜Ý[ÛˆXYÛ›ÜÝXÜÐÙ[\‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÑVÔ•ÐQ‘HÕTÔ•‘TÔ•ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÔ’UPÖH’STˆPÕU‘KÊNÂŸJNÂ‚\Ý
-”ØY™HÝ\\™\Ù\™\ÈÛ˜\ÚÝÈ[™Ø[ˆ™\ÝÜ™H\ÝZÛ›ÝÛ‹YÛÛÙÙ][™ÜÈ‹
+test("Linux and Windows expose master, stream mute, devices, and grouped app audio",()=>{
+  for(const bridge of [linux,windows]){
+    assert.match(bridge,/\/api\/stream-mute/);
+    assert.match(bridge,/\/api\/audio-device/);
+    assert.match(bridge,/"muted"/);
+    assert.match(bridge,/"routeAvailable"/);
+  }
+  assert.match(page,/const groups = Array\.from\(new Set\(streams/);
+  assert.match(page,/SHOW ALL STREAMS/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKÛØ\œËXÛÛ™šYË\Û˜\ÚÝËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÛØ\œË[\ÝZÛ›ÝÛ‹YÛÛÙÊNÂˆ\ÜÙ\›X]Ú
-YÙKÛØ\œË\ØY™K[[ÙKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÙ[˜Ý[Ûˆ™XÛÝ™\žPÛÛ›ÛËÊNÂˆ\ÜÙ\›X]Ú
-™[™\™\‹Ø›ÛÝ][\ÏLËÊNÂˆ\ÜÙ\›X]Ú
-™[™\™\‹ÔÕT•ÐQ‘HSÑKÊNÂˆ\ÜÙ\›X]Ú
-™[™\™\‹Ô‘TÕÔ‘HTÕÓ“ÕÓˆÓÓÑÊNÂŸJNÂ‚\Ý
-‘^[œÚ[ÛœÈ\™H\ÛÛ]Y[™]X\˜[[™YY\ˆ™\X]Y™[™\™\ˆ˜Z[\™\È‹
+test("Diagnostics exports are local and explicitly privacy scrubbed",()=>{
+  for(const bridge of [linux,windows]){
+    assert.match(bridge,/def diagnostics_report/);
+    assert.match(bridge,/def export_diagnostics/);
+    assert.match(bridge,/\/api\/diagnostics-export/);
+    assert.match(bridge,/no usernames, home paths, file names, credentials/);
+  }
+  assert.match(page,/function DiagnosticsCenter/);
+  assert.match(page,/EXPORT SAFE SUPPORT REPORT/);
+  assert.match(page,/PRIVACY FILTER ACTIVE/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-YÙKØÛ\ÜÈ^[œÚ[Û›Ý[™\žKÊNÂˆ\ÜÙ\›X]Ú
-YÙKÛØ\œËY^[œÚ[Û‹Y˜Z[\™\ËÊNÂˆ\ÜÙ\›X]Ú
-YÙKÙ˜Z[\™\ÏL‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÛØ\œËY^[œÚ[Û‹\]X\˜[[™KÊNÂˆ\ÜÙ\›X]Ú
-YÙKÔ‘U–HSÑSTËÊNÂŸJNÂ‚\Ý
-•\]\ˆ\˜Ú]™\È[^™[X\Ù\Ë™\šYšY\ÈÝÛ›ØYË[™Ý\ÜÈ›Û˜XÚÈ‹
+test("Safe startup preserves snapshots and can restore last-known-good settings",()=>{
+  assert.match(page,/lcars-config-snapshots/);
+  assert.match(page,/lcars-last-known-good/);
+  assert.match(page,/lcars-safe-mode/);
+  assert.match(page,/function RecoveryControls/);
+  assert.match(renderer,/bootAttempts>=3/);
+  assert.match(renderer,/START SAFE MODE/);
+  assert.match(renderer,/RESTORE LAST KNOWN GOOD/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-\]\‹ÑÝÛ›ØYY[œÝ[\ˆ˜Z[YÒKLMˆ™\šYšXØ][Û‹ÊNÂˆ\ÜÙ\›X]Ú
-\]\‹ÙYˆ›Û˜XÚ×ÜÝ]\ËÊNÂˆ\ÜÙ\›X]Ú
-\]\‹ÙYˆØÚY[WÜ›Û˜XÚËÊNÂˆ\ÜÙ\›X]Ú
-\]\‹×œ™]š[Ý\ËÊNÂˆ\ÜÙ\›X]Ú
-[^ÛÜ\˜][ÛOHœ›Û˜XÚÈ‹ÊNÂˆ\ÜÙ\›X]Ú
-Ú[™ÝÜËÛÜ\˜][ÛOHœ›Û˜XÚÈ‹ÊNÂˆ\ÜÙ\›X]Ú
-YÙKÔ‘TÕÔ‘H‘U’SÕTÈ‘SPTÑKÊNÂŸJNÂ‚\Ý
-”XÚØYÙY™\Z\ˆÝ\Ü[™Ý\œ™[œšYÙH™\œÚ[ÛœÈÝ^H[YÛ™Y‹
+test("Extensions are isolated and quarantined after repeated renderer failures",()=>{
+  assert.match(page,/class ExtensionBoundary/);
+  assert.match(page,/lcars-extension-failures/);
+  assert.match(page,/failures>=2/);
+  assert.match(page,/lcars-extension-quarantine/);
+  assert.match(page,/RETRY MODULES/);
+});
 
-OOžÂˆ\ÜÙ\›X]Ú
-Z[\‹Ü™XÛÝ™\žWÜ™YÚ\Ý\‹X\œÚÊNÂˆ\ÜÙ\›X]Ú
-[^Ü™\Z\‹Z[œÝ[][Û‹ÊNÂˆ\ÜÙ\›X]Ú
-Ú[™ÝÜËÜ™\Z\‹Z[œÝ[][Û‹ÊNÂˆ\ÜÙ\›X]Ú
-[^ÓÐT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_ŽWŒŒŽWŒ×Œ\˜×Œ_ŽWŒ—ŒY]—Œ_ŽŒŒŽŒË\˜×Œ_ŽŒ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
-JH‹ÊNÂˆ\ÜÙ\›X]Ú
-Ú[™ÝÜËÓÐT”×Õ‘T”ÒSÓHŠÎŒÌ–ÌŒÍW_ÌŒKP_ŽWŒŒŽWŒ×Œ\˜×Œ_ŽWŒ—ŒY]—Œ_ŽŒŒŽŒË\˜×Œ_ŽŒ‹Y]—Œ_×ŠÎŒ—–ÌW_WŒJKY]—Œ_—ŠÎŒ×ŒY]—Œ_Œ
-JH‹ÊNÂŸJNÂ
+test("Updater archives Linux releases, verifies downloads, and supports rollback",()=>{
+  assert.match(updater,/Downloaded installer failed SHA-256 verification/);
+  assert.match(updater,/def rollback_status/);
+  assert.match(updater,/def schedule_rollback/);
+  assert.match(updater,/\.previous/);
+  assert.match(linux,/operation=="rollback"/);
+  assert.match(windows,/operation=="rollback"/);
+  assert.match(page,/RESTORE PREVIOUS RELEASE/);
+});
+
+test("Packaged repair support and current bridge versions stay aligned",()=>{
+  assert.match(builder,/recovery\/register-app\.sh/);
+  assert.match(linux,/repair-installation/);
+  assert.match(windows,/repair-installation/);
+  assert.match(linux,/LCARS_VERSION="(?:30\.[2345]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(windows,/LCARS_VERSION="(?:30\.[2345]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+});

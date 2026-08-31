@@ -1,148 +1,315 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨ŸÎ;ÛÎ<ßn¶ëÍ½ÞZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µé™^Ü\H›Ý][™TÝ\Ú[™BˆœYÙH‚ˆ˜\‚ˆÛÜšÜÝ][Ûˆ‚ˆ[YH‚ˆ™™‚ˆ›Û[YH‚ˆ˜]Y[ËY]šXÙH‚ˆ›YYXH‚ˆœÞ\Ý[H‚ˆ˜ÛÛ[X[™‚ˆœ›Û\‚ˆØZ]ŽÂ‚™^Ü\H›Ý][™PÛÛ™][ÛˆHÂˆÛÝ\˜ÙNˆ˜œšYÙHˆ›YYXHˆ˜\XØ][Ûˆˆ™]šXÙHˆ™™ŽÂˆÜ\˜]ÜŽˆ˜]˜Z[X›Hˆ[˜]˜Z[X›Hˆ™\]X[Èˆ››ÝY\]X[ÈŽÂˆ˜[YOÎˆÝš[™ÎÂŸNÂ‚™^Ü\H›Ý][™TÝ\HÂˆYˆÝš[™ÎÂˆÚ[™ˆ›Ý][™TÝ\Ú[™Âˆ\™Ù]ˆÝš[™ÎÂˆ˜[YOÎˆÝš[™È[X™\ˆ›ÛÛX[ŽÂˆÛÛ™][ÛÎˆ›Ý][™PÛÛ™][ÛŽÂˆ[^S\ÏÎˆ[X™\ŽÂˆ™]šY\ÏÎˆ[X™\ŽÂˆÛ‘˜Z[\™OÎˆœÝÜˆ˜ÛÛ[YHŽÂˆ›Û\ÎˆÝš[™ÎÂŸNÂ‚™^Ü\H›Ý][™UšYÙÙ\ˆHÂˆ\Nˆ›X[X[ˆœÝ\\ˆ[YHˆ˜\ˆ™]šXÙHˆ˜˜]\žKX™[ÝÈˆ›™]ÛÜšÈˆ››ÝXÙHˆ›YYXHˆœÝ][Ûˆˆš[\˜[ŽÂˆ˜[YOÎˆÝš[™ÎÂŸNÂ‚™^Ü\H›Ý][™HHÂˆYˆÝš[™ÎÂˆ˜[YNˆÝš[™ÎÂˆ\ØÜš\[ÛŽˆÝš[™ÎÂˆ›Û\ÎˆÝš[™ÎÂˆÛÛÜŽˆ›Ü˜[™ÙHˆ™ÛÛˆš[Û]ˆ˜›YHˆœ[šÈŽÂˆ[˜X›Yˆ›ÛÛX[ŽÂˆšYÙÙ\Žˆ›Ý][™UšYÙÙ\ŽÂˆÝ\Îˆ›Ý][™TÝ\×NÂˆÛÛÛÝÛ”ÙXÛÛ™ÏÎˆ[X™\ŽÂˆX^[[YTÙXÛÛ™ÏÎˆ[X™\ŽÂˆžT[žQY˜][Îˆ›ÛÛX[ŽÂˆ]XÚY[ÏÎˆÈYˆÝš[™ÎÈ˜[YNˆÝš[™ÎÈ]ˆÝš[™ÎÈYY]ˆÝš[™ÈV×NÂŸNÂ‚™^Ü\HXÝ]š]Q[žHHÂˆYˆÝš[™ÎÂˆ[YNˆÝš[™ÎÂˆÛÝ\˜ÙNˆ“ÔTUÔˆˆ”“ÕUS‘Hˆ”ÖTÕSHˆ‘VS”ÒSÓˆˆ•TUHŽÂˆ]NˆÝš[™ÎÂˆ]Z[ˆÝš[™ÎÂˆÝ]\ÎˆœÝXØÙ\ÜÈˆ˜][[Ûˆˆœ[›š[™Èˆ˜Ø[˜Ù[YŽÂˆ™]™\œÚX›OÎˆ›ÛÛX[ŽÂŸNÂ‚™^Ü\H˜^TÚÜÝ]HÂˆYˆÝš[™ÎÂˆÚ[™ˆ˜\ˆœ›Ý][™HˆœYÙHŽÂˆ\™Ù]ˆÝš[™ÎÂˆX™[ˆÝš[™ÎÂŸNÂ‚™^Ü\HÛÛ›ÛX\[™ÈHÂˆYˆÝš[™ÎÂˆÚÜÝ]ˆÝš[™ÎÂˆ\™Ù]ˆÝš[™ÎÂˆX™[ˆÝš[™ÎÂˆ[˜X›Yˆ›ÛÛX[ŽÂŸNÂ‚™^Ü\H[™Ú[™Y\š[™Ô›ØÙ\ÜÈHÂˆYˆ[X™\ŽÂˆ˜[YNˆÝš[™ÎÂˆÜNˆ[X™\ŽÂˆY[[ÜžNˆ[X™\ŽÂˆ\Ù\ÎˆÝš[™ÎÂˆÝ]OÎˆÝš[™ÎÂˆ›ÝXÝYÎˆ›ÛÛX[ŽÂŸNÂ‚™^Ü\H[™Ú[™Y\š[™ÔÙ[œÛÜˆHÂˆYˆÝš[™ÎÂˆ˜[YNˆÝš[™ÎÂˆÚ[™ˆ[\\˜]\™Hˆ™˜[ˆˆ˜˜]\žHˆ\Èˆ™š]™HŽÂˆ˜[YNˆÝš[™ÎÂˆÝ]\Îˆœ™XYHˆ˜][[Ûˆˆ[˜]˜Z[X›HŽÂˆ]Z[ÎˆÝš[™ÎÂŸNÂ‚™^Ü\H[™Ú[™Y\š[™Ñ]HHÂˆÙ[™\˜]YÎˆ[X™\ŽÂˆ›ØÙ\ÜÙ\Îˆ[™Ú[™Y\š[™Ô›ØÙ\ÜÖ×NÂˆÙ[œÛÜœÎˆ[™Ú[™Y\š[™ÔÙ[œÛÜ–×NÂˆ›ØÙ\ÜÐÛÛ›Ûˆ›ÛÛX[ŽÂˆÙ\šXÙPÛÛ›ÛÎˆ›ÛÛX[ŽÂˆ›Ý\ÏÎˆÝš[™Ö×NÂŸNÂ‚™^Ü\H^[œÚ[ÛØ][ÙÑ[žHHÂˆYˆÝš[™ÎÂˆ˜[YNˆÝš[™ÎÂˆ™\œÚ[ÛŽˆÝš[™ÎÂˆ\ØÜš\[ÛŽˆÝš[™ÎÂˆ]]ÜŽˆÝš[™ÎÂˆØ\Xš[]Y\ÎˆÝš[™Ö×NÂˆ[œÝ[Yˆ›ÛÛX[ŽÂˆ[™YÎˆ›ÛÛX[ŽÂˆX[šY™\Ý\›ÎˆÝš[™ÎÂˆ™\ÜÚ]ÜžOÎˆ›ÛÛX[ŽÂˆ\]P]˜Z[X›OÎˆ›ÛÛX[ŽÂˆ[œÝ[Y™\œÚ[ÛÎˆÝš[™ÎÂˆZ[š[][SØ\œÕ™\œÚ[ÛÎˆÝš[™ÎÂˆØ]YÛÜžOÎˆÝš[™ÎÂˆÚLMÎˆÝš[™ÎÂˆ™X]\™YÎˆ›ÛÛX[ŽÂˆ\Ý\]YÎˆÝš[™ÎÂˆÛÝ\˜ÙRYÎˆÝš[™ÎÂˆÛÝ\˜ÙS˜[YOÎˆÝš[™ÎÂˆÙ™šXÚX[Îˆ›ÛÛX[ŽÂˆÚ[›™[ÎˆœÝX›Hˆ™]™[ÜY[ŽÂˆÚYÛ˜]\™TÝ]\ÏÎˆœÚYÛ™Yˆ™\šYšYYˆ›YØXÞHˆ›ØØ[ˆ˜[™Yˆš[˜[YŽÂˆÚYÛ™\’Ù^RYÎˆÝš[™ÎÂˆ›Û˜XÚÐ]˜Z[X›OÎˆ›ÛÛX[ŽÂˆÜ˜[YØ\Xš[]Y\ÏÎˆÝš[™Ö×NÂˆ[Ù[RX[Îˆ[Ù[RX[™XÛÜ™ÂŸNÂ‚™^Ü\H[Ù[RX[™XÛÜ™HÂˆYˆÝš[™ÎÂˆ\U™\œÚ[ÛŽˆ[X™\ŽÂˆ\TÝ]\ÎˆœÝX›Hˆ˜ÛÛ\]X›Hˆ›YØXÞHŽÂˆ™\]Y\ÝYØ\Xš[]Y\ÎˆÝš[™Ö×NÂˆÜ˜[YØ\Xš[]Y\ÎˆÝš[™Ö×NÂˆ\›Z\ÜÚ[Û“X™[Îˆ™XÛÜ™Ýš[™ËÝš[™ÏŽÂˆX[ˆœ™XYHˆš\ÛÛ]Yˆ˜][[ÛˆŽÂˆ˜Z[\™PÛÝ[ˆ[X™\ŽÂˆ\Ý˜Z[\™OÎˆÝš[™ÎÂˆ›Û˜XÚÐ]˜Z[X›Nˆ›ÛÛX[ŽÂˆÚYÛ™YˆÝš[™ÎÂˆÚYÛ™\’Ù^RYÎˆÝš[™ÎÂˆÛÝ\˜ÙRYˆÝš[™ÎÂˆ[™Yˆ›ÛÛX[ŽÂŸNÂ‚™^Ü\H[Ù[T™\ÜÚ]ÜžTÛÝ\˜ÙHHÂˆYˆÝš[™ÎÂˆ˜[YNˆÝš[™ÎÂˆ™\ÜÚ]ÜžU\›ÎˆÝš[™ÎÂˆØ][ÙÕ\›ˆÝš[™ÎÂˆ[˜X›Yˆ›ÛÛX[ŽÂˆÙ™šXÚX[ˆ›ÛÛX[ŽÂˆÛÝ[Îˆ[X™\ŽÂˆ\œ›ÜÎˆÝš[™ÎÂˆÝ]\ÏÎˆœ™XYHˆ˜][[Ûˆˆ™\ØX›YŽÂˆÚ[›™[ÎˆœÝX›Hˆ™]™[ÜY[ŽÂŸNÂ‚™^ÜÛÛœÝŒTYÙ\ÈHÂˆ›Ý™\šY]È‹ˆ\›Z[˜[‹ˆ™š[\È‹ˆœÞ\Ý[H‹ˆ›YYXH‹ˆ›™]ÛÜšÈ‹ˆ\]\È‹ˆœÙ][™ÜÈ‹—H\ÈÛÛœÝÂ‚™^ÜÛÛœÝY˜][˜^TÚÜÝ]Îˆ˜^TÚÜÝ]×HHÂˆÈYˆ˜^K[™]ÛÜšÈ‹Ú[™ˆœYÙH‹\™Ù]ˆ›™]ÛÜšÈ‹X™[ˆ“‘UÓÔ’ÈˆKˆÈYˆ˜^K[YYXH‹Ú[™ˆœYÙH‹\™Ù]ˆ›YYXH‹X™[ˆ“QQPH	ˆUQSÈˆK—NÂ‚™^ÜÛÛœÝY˜][ÛÛ›ÛX\[™ÜÎˆÛÛ›ÛX\[™Ö×HHÂˆÈYˆ›X\[™Ë\›Ý][™\È‹ÚÜÝ]ˆÕ“
-ÐS
-Ôˆ‹\™Ù]ˆ˜XÝ[ÛŽœ›Ý][™\È‹X™[ˆ“ÔTUSÓ”È“ÕUS‘TÈ‹[˜X›YˆYHKˆÈYˆ›X\[™ËXÛÛ[\È‹ÚÜÝ]ˆÕ“
-ÐS
-ÐÈ‹\™Ù]ˆ˜XÝ[ÛŽ˜ÛÛ[][šXØ][ÛœÈ‹X™[ˆÓÓSUS’PÐUSÓ”ÈÑS•Tˆ‹[˜X›YˆYHKˆÈYˆ›X\[™ËY[™Ú[™Y\š[™È‹ÚÜÝ]ˆÕ“
-ÐS
-ÑH‹\™Ù]ˆœYÙNœÞ\Ý[H‹X™[ˆ‘S‘ÒS‘QT’S‘ÈÓÓ”ÓÓH‹[˜X›YˆYHK—NÂ‚˜ÛÛœÝÛX[•^H
-˜[YNˆ[šÛ›ÝÛ‹[Z]ˆ[X™\ŠHO‚ˆ\[Ùˆ˜[YHOOHœÝš[™ÈˆÈ˜[YKš[J
-KœÛXÙJ[Z]
-HˆˆŽÂ‚™^ÜÛÛœÝÜ™X]UŒRYH
-™Yš^ˆÝš[™ÊHO‚ˆ	Ü™Yš^KIÑ]K››ÝÊ
-KÔÝš[™ÊÍŠ_KIÓX]œ˜[™ÛJ
-KÔÝš[™ÊÍŠKœÛXÙJ‹Ê_XÂ‚™^ÜÛÛœÝ›Ü›X[^™T›Ý][™\ÈH
-˜[YNˆ[šÛ›ÝÛŠNˆ›Ý][™V×HOˆÂˆYˆ
-P\œ˜^Kš\Ð\œ˜^J˜[YJJH™]\›ˆ×NÂˆÛÛœÝÚ[™ÈH™]ÈÙ]›Ý][™TÝ\Ú[™ŠÂˆœYÙH‹˜\‹ÛÜšÜÝ][Ûˆ‹[YH‹™™‹›Û[YH‹˜]Y[ËY]šXÙH‹ˆ›YYXH‹œÞ\Ý[H‹˜ÛÛ[X[™‹œ›Û\‹ØZ]‹ˆJNÂˆÛÛœÝšYÙÙ\œÈH™]ÈÙ]
-È›X[X[‹œÝ\\‹[YH‹˜\‹™]šXÙH‹˜˜]\žKX™[ÝÈ‹›™]ÛÜšÈ‹››ÝXÙH‹›YYXH‹œÝ][Ûˆ‹š[\˜[—JNÂˆÛÛœÝÛÛÜœÈH™]ÈÙ]
-È›Ü˜[™ÙH‹™ÛÛ‹š[Û]‹˜›YH‹œ[šÈ—JNÂˆ™]\›ˆ˜[YKœÛXÙJ
-K™›]X\
+export type RoutineStepKind =
+  | "page"
+  | "app"
+  | "workstation"
+  | "theme"
+  | "dnd"
+  | "volume"
+  | "audio-device"
+  | "media"
+  | "system"
+  | "command"
+  | "prompt"
+  | "wait";
 
-Ø[™Y]JNˆ›Ý][™V×HOˆÂˆYˆ
-XØ[™Y]H\[ÙˆØ[™Y]HOOH›Øš™XÝŠH™]\›ˆ×NÂˆÛÛœÝ][HHØ[™Y]H\È\X[›Ý][™OŽÂˆÛÛœÝYHÛX[•^
-][KšY
-Kœ™\XÙJÖ×˜K^ŒNKWKÙÚK‹HŠNÂˆÛÛœÝ˜[YHHÛX[•^
-][K›˜[YK
-NÂˆYˆ
-ZY[˜[YJH™]\›ˆ×NÂˆÛÛœÝšYÙÙ\ˆH][KšYÙÙ\ˆ	‰ˆ\[Ùˆ][KšYÙÙ\ˆOOH›Øš™XÝˆ	‰ˆšYÙÙ\œËš\ÊÝš[™Ê][KšYÙÙ\‹\JJBˆÈÈ\Nˆ][KšYÙÙ\‹\H\È›Ý][™UšYÙÙ\–È\H—K˜[YNˆÛX[•^
-][KšYÙÙ\‹˜[YKLŒ
-H[™Yš[™YBˆˆÈ\Nˆ›X[X[ˆ\ÈÛÛœÝNÂˆÛÛœÝÝ\ÈH\œ˜^Kš\Ð\œ˜^J][KœÝ\ÊHÈ][KœÝ\ËœÛXÙJ
-K™›]X\
+export type RoutineCondition = {
+  source: "bridge" | "media" | "application" | "device" | "dnd";
+  operator: "available" | "unavailable" | "equals" | "not-equals";
+  value?: string;
+};
 
-Ø[™Y]TÝ\
-Nˆ›Ý][™TÝ\×HOˆÂˆYˆ
-XØ[™Y]TÝ\\[ÙˆØ[™Y]TÝ\OOH›Øš™XÝŠH™]\›ˆ×NÂˆÛÛœÝÝ\HØ[™Y]TÝ\\È\X[›Ý][™TÝ\ŽÂˆYˆ
-ZÚ[™Ëš\ÊÝ\šÚ[™\È›Ý][™TÝ\Ú[™
-JH™]\›ˆ×NÂˆ™]\›ˆÞÂˆYˆÛX[•^
-Ý\šY
-Kœ™\XÙJÖ×˜K^ŒNKWKÙÚK‹HŠHÜ™X]UŒRY
-œÝ\ŠKˆÚ[™ˆÝ\šÚ[™\È›Ý][™TÝ\Ú[™ˆ\™Ù]ˆÛX[•^
-Ý\\™Ù]LLŠKˆ˜[YNˆ\[ÙˆÝ\˜[YHOOHœÝš[™Èˆ\[ÙˆÝ\˜[YHOOH›[X™\ˆˆ\[ÙˆÝ\˜[YHOOH˜›ÛÛX[ˆˆÈÝ\˜[YHˆ[™Yš[™YˆÛÛ™][ÛŽˆÝ\˜ÛÛ™][Ûˆ	‰ˆ\[ÙˆÝ\˜ÛÛ™][ÛˆOOH›Øš™XÝˆ	‰ˆÈ˜œšYÙH‹›YYXH‹˜\XØ][Ûˆ‹™]šXÙH‹™™—Kš[˜ÛY\ÊÝš[™ÊÝ\˜ÛÛ™][Û‹œÛÝ\˜ÙJJH	‰ˆÈ˜]˜Z[X›H‹[˜]˜Z[X›H‹™\]X[È‹››ÝY\]X[È—Kš[˜ÛY\ÊÝš[™ÊÝ\˜ÛÛ™][Û‹›Ü\˜]ÜŠJHÈÂˆÛÝ\˜ÙNˆÝ\˜ÛÛ™][Û‹œÛÝ\˜ÙH\È›Ý][™PÛÛ™][Û–ÈœÛÝ\˜ÙH—KˆÜ\˜]ÜŽˆÝ\˜ÛÛ™][Û‹›Ü\˜]Üˆ\È›Ý][™PÛÛ™][Û–È›Ü\˜]Üˆ—Kˆ˜[YNˆÛX[•^
-Ý\˜ÛÛ™][Û‹˜[YKLŒ
-_[™Yš[™YˆHˆ[™Yš[™Yˆ[^S\ÎˆX]›X^
-X]›Z[ŠÌ[X™\ŠÝ\™[^S\Ê_
-JKˆ™]šY\ÎˆX]›X^
-X]›Z[ŠK[X™\ŠÝ\œ™]šY\Ê_
-JKˆÛ‘˜Z[\™NˆÝ\›Û‘˜Z[\™OOOH˜ÛÛ[YHÈ˜ÛÛ[YHŽˆœÝÜ‹ˆ›Û\ˆÛX[•^
-Ý\œ›Û\N
-_[™Yš[™YˆWNÂˆJHˆ×NÂˆ™]\›ˆÞÂˆYˆ˜[YKˆ\ØÜš\[ÛŽˆÛX[•^
-][K™\ØÜš\[Û‹MŒ
-Kˆ›Û\ŽˆÛX[•^
-][K™›Û\‹
-_‘ÑS‘TS‹ˆÛÛÜŽˆÛÛÜœËš\ÊÝš[™Ê][K˜ÛÛÜŠJHÈ][K˜ÛÛÜˆ\È›Ý][™VÈ˜ÛÛÜˆ—Hˆ›Ü˜[™ÙH‹ˆ[˜X›Yˆ][K™[˜X›YOOH˜[ÙKˆšYÙÙ\‹ˆÝ\ËˆÛÛÛÝÛ”ÙXÛÛ™ÎˆX]›X^
-X]›Z[Š[X™\Š][K˜ÛÛÛÝÛ”ÙXÛÛ™Ê_
-JKˆX^[[YTÙXÛÛ™ÎˆX]›X^
-KX]›Z[ŠÍŒ[X™\Š][K›X^[[YTÙXÛÛ™Ê_LŒ
-JKˆžT[žQY˜][ˆ›ÛÛX[Š][K™žT[žQY˜][
-Kˆ]XÚY[Îˆ\œ˜^Kš\Ð\œ˜^J][K˜]XÚY[ÊHÈ][K˜]XÚY[ËœÛXÙJŒ
-K™›]X\
+export type RoutineStep = {
+  id: string;
+  kind: RoutineStepKind;
+  target: string;
+  value?: string | number | boolean;
+  condition?: RoutineCondition;
+  delayMs?: number;
+  retries?: number;
+  onFailure?: "stop" | "continue";
+  prompt?: string;
+};
 
-]XÚY[
-HOˆÂˆYˆ
-X]XÚY[\[Ùˆ]XÚY[OOH›Øš™XÝŠH™]\›ˆ×NÂˆÛÛœÝ˜[YHH]XÚY[\ÈÈYÎˆ[šÛ›ÝÛŽÈ˜[YOÎˆ[šÛ›ÝÛŽÈ]Îˆ[šÛ›ÝÛŽÈYY]Îˆ[šÛ›ÝÛˆNÂˆÛÛœÝ]HÛX[•^
-˜[YKœ]Œ
-K˜[YHHÛX[•^
-˜[YK›˜[YKLŒ
-NÂˆYˆ
-\][˜[YJH™]\›ˆ×NÂˆ™]\›ˆÞÈYˆÛX[•^
-˜[YKšY
-HÜ™X]UŒRY
-˜]XÚY[ŠK˜[YK]YY]ˆÛX[•^
-˜[YK˜YY]
-H™]È]J
-KÒTÓÔÝš[™Ê
-HWNÂˆJHˆ×KˆWNÂˆJNÂŸNÂ‚™^ÜÛÛœÝ›Ü›X[^™U˜^TÚÜÝ]ÈH
-˜[YNˆ[šÛ›ÝÛŠNˆ˜^TÚÜÝ]×HOˆÂˆYˆ
-P\œ˜^Kš\Ð\œ˜^J˜[YJJH™]\›ˆY˜][˜^TÚÜÝ]ÎÂˆÛÛœÝÚ[™ÈH™]ÈÙ]
-È˜\‹œ›Ý][™H‹œYÙH—JNÂˆÛÛœÝ™\Ý[H˜[YKœÛXÙJ
-K™›]X\
+export type RoutineTrigger = {
+  type: "manual" | "startup" | "time" | "app" | "device" | "battery-below" | "network" | "notice" | "media" | "station" | "interval";
+  value?: string;
+};
 
-Ø[™Y]JNˆ˜^TÚÜÝ]×HOˆÂˆYˆ
-XØ[™Y]H\[ÙˆØ[™Y]HOOH›Øš™XÝŠH™]\›ˆ×NÂˆÛÛœÝ][HHØ[™Y]H\È\X[˜^TÚÜÝ]ŽÂˆYˆ
-ZÚ[™Ëš\ÊÝš[™Ê][KšÚ[™
-JJH™]\›ˆ×NÂˆÛÛœÝ\™Ù]HÛX[•^
-][K\™Ù]N
-KX™[HÛX[•^
-][K›X™[
-NÂˆYˆ
-]\™Ù][X™[
-H™]\›ˆ×NÂˆ™]\›ˆÞÂˆYˆÛX[•^
-][KšY
-Kœ™\XÙJÖ×˜K^ŒNKWKÙÚK‹HŠHÜ™X]UŒRY
-˜^HŠKˆÚ[™ˆ][KšÚ[™\È˜^TÚÜÝ]ÈšÚ[™—K\™Ù]X™[ˆWNÂˆJNÂˆ™]\›ˆ™\Ý[›[™ÝÈ™\Ý[ˆY˜][˜^TÚÜÝ]ÎÂŸNÂ‚™^ÜÛÛœÝ›Ü›X[^™PÛÛ›ÛX\[™ÜÈH
-˜[YNˆ[šÛ›ÝÛŠNˆÛÛ›ÛX\[™Ö×HOˆÂˆYˆ
-P\œ˜^Kš\Ð\œ˜^J˜[YJJH™]\›ˆY˜][ÛÛ›ÛX\[™ÜÎÂˆÛÛœÝ™\Ý[H˜[YKœÛXÙJ
-K™›]X\
+export type Routine = {
+  id: string;
+  name: string;
+  description: string;
+  folder?: string;
+  color: "orange" | "gold" | "violet" | "blue" | "pink";
+  enabled: boolean;
+  trigger: RoutineTrigger;
+  steps: RoutineStep[];
+  cooldownSeconds?: number;
+  maxRuntimeSeconds?: number;
+  dryRunByDefault?: boolean;
+  attachments?: { id: string; name: string; path: string; addedAt: string }[];
+};
 
-Ø[™Y]JNˆÛÛ›ÛX\[™Ö×HOˆÂˆYˆ
-XØ[™Y]H\[ÙˆØ[™Y]HOOH›Øš™XÝŠH™]\›ˆ×NÂˆÛÛœÝ][HHØ[™Y]H\È\X[ÛÛ›ÛX\[™ÏŽÂˆÛÛœÝÚÜÝ]HÛX[•^
-][KœÚÜÝ]
-KÕ\\Ø\ÙJ
-Kœ™\XÙJ×ÊËÙËˆŠNÂˆÛÛœÝ\™Ù]HÛX[•^
-][K\™Ù]N
-KX™[HÛX[•^
-][K›X™[
-NÂˆYˆ
-\ÚÜÝ]]\™Ù][X™[
-H™]\›ˆ×NÂˆ™]\›ˆÞÈYˆÛX[•^
-][KšY
-Kœ™\XÙJÖ×˜K^ŒNKWKÙÚK‹HŠHÜ™X]UŒRY
-›X\[™ÈŠKÚÜÝ]\™Ù]X™[[˜X›Yˆ][K™[˜X›YOOH˜[ÙHWNÂˆJNÂˆ™]\›ˆ™\Ý[›[™ÝÈ™\Ý[ˆY˜][ÛÛ›ÛX\[™ÜÎÂŸNÂ‚™^ÜÛÛœÝ›Ü›X[^™PXÝ]š]HH
-˜[YNˆ[šÛ›ÝÛŠNˆXÝ]š]Q[žV×HOˆÂˆYˆ
-P\œ˜^Kš\Ð\œ˜^J˜[YJJH™]\›ˆ×NÂˆÛÛœÝÛÝ\˜Ù\ÈH™]ÈÙ]
-È“ÔTUÔˆ‹”“ÕUS‘H‹”ÖTÕSH‹‘VS”ÒSÓˆ‹•TUH—JNÂˆÛÛœÝÝ]\Ù\ÈH™]ÈÙ]
-ÈœÝXØÙ\ÜÈ‹˜][[Ûˆ‹œ[›š[™È‹˜Ø[˜Ù[Y—JNÂˆ™]\›ˆ˜[YKœÛXÙJŒ
-K™›]X\
+export type ActivityEntry = {
+  id: string;
+  time: string;
+  source: "OPERATOR" | "ROUTINE" | "SYSTEM" | "EXTENSION" | "UPDATE";
+  title: string;
+  detail: string;
+  status: "success" | "attention" | "running" | "cancelled";
+  reversible?: boolean;
+};
 
-Ø[™Y]JNˆXÝ]š]Q[žV×HOˆÂˆYˆ
-XØ[™Y]H\[ÙˆØ[™Y]HOOH›Øš™XÝŠH™]\›ˆ×NÂˆÛÛœÝ][HHØ[™Y]H\È\X[XÝ]š]Q[žOŽÂˆÛÛœÝ]HHÛX[•^
-][K]K
-K]Z[HÛX[•^
-][K™]Z[
-NÂˆYˆ
-]]JH™]\›ˆ×NÂˆ™]\›ˆÞÂˆYˆÛX[•^
-][KšY
-HÜ™X]UŒRY
-˜XÝ]š]HŠKˆ[YNˆÛX[•^
-][K[YK
-H™]È]J
-KÒTÓÔÝš[™Ê
-KˆÛÝ\˜ÙNˆÛÝ\˜Ù\Ëš\ÊÝš[™Ê][KœÛÝ\˜ÙJJHÈ][KœÛÝ\˜ÙH\ÈXÝ]š]Q[žVÈœÛÝ\˜ÙH—Hˆ”ÖTÕSH‹ˆ]K]Z[ˆÝ]\ÎˆÝ]\Ù\Ëš\ÊÝš[™Ê][KœÝ]\ÊJHÈ][KœÝ]\È\ÈXÝ]š]Q[žVÈœÝ]\È—HˆœÝXØÙ\ÜÈ‹ˆ™]™\œÚX›Nˆ›ÛÛX[Š][Kœ™]™\œÚX›JKˆWNÂˆJNÂŸNÂ‚™^ÜÛÛœÝ›Ý][™S™YYÐÛÛ™š\›X][ÛˆH
-›Ý][™Nˆ›Ý][™JHO‚ˆ›Ý][™KœÝ\ËœÛÛYJ
-Ý\
-HOˆÝ\šÚ[™OOH˜ÛÛ[X[™ˆÝ\šÚ[™OOHœÞ\Ý[HŠNÂ‚™^ÜÛÛœÝ]™[ÚÜÝ]H
-]™[ˆÙ^X›Ø\™]™[
-HOˆÂˆÛÛœÝ\ÎˆÝš[™Ö×HH×NÂˆYˆ
-]™[˜Ý›Ù^JH\Ëœ\Ú
-Õ“ŠNÂˆYˆ
-]™[˜[Ù^JH\Ëœ\Ú
-SŠNÂˆYˆ
-]™[œÚYÙ^JH\Ëœ\Ú
-”ÒQ•ŠNÂˆYˆ
-]™[›Y]RÙ^JH\Ëœ\Ú
-“QUHŠNÂˆÛÛœÝÙ^HH]™[˜ÛÙKœÝ\ÕÚ]
-’Ù^HŠHÈ]™[˜ÛÙKœÛXÙJÊHˆ]™[˜ÛÙKœÝ\ÕÚ]
-‘YÚ]ŠHÈ]™[˜ÛÙKœÛXÙJJHˆ]™[˜ÛÙKœÝ\ÕÚ]
-“[\YŠHÈ•SIÙ]™[˜ÛÙKœÛXÙJŠ_Xˆ]™[šÙ^KÕ\\Ø\ÙJ
-NÂˆYˆ
-VÈÓÓ•“Ó‹S‹”ÒQ•‹“QUH—Kš[˜ÛY\ÊÙ^JJH\Ëœ\Ú
-Ù^JNÂˆ™]\›ˆ\Ëš›Ú[ŠŠÈŠNÂŸNÂ
+export type TrayShortcut = {
+  id: string;
+  kind: "app" | "routine" | "page";
+  target: string;
+  label: string;
+};
+
+export type ControlMapping = {
+  id: string;
+  shortcut: string;
+  target: string;
+  label: string;
+  enabled: boolean;
+};
+
+export type EngineeringProcess = {
+  pid: number;
+  name: string;
+  cpu: number;
+  memory: number;
+  user?: string;
+  state?: string;
+  protected?: boolean;
+};
+
+export type EngineeringSensor = {
+  id: string;
+  name: string;
+  kind: "temperature" | "fan" | "battery" | "ups" | "drive";
+  value: string;
+  status: "ready" | "attention" | "unavailable";
+  detail?: string;
+};
+
+export type EngineeringData = {
+  generated?: number;
+  processes: EngineeringProcess[];
+  sensors: EngineeringSensor[];
+  processControl: boolean;
+  serviceControl?: boolean;
+  notes?: string[];
+};
+
+export type ExtensionCatalogEntry = {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  author: string;
+  capabilities: string[];
+  installed: boolean;
+  bundled?: boolean;
+  manifestUrl?: string;
+  repository?: boolean;
+  updateAvailable?: boolean;
+  installedVersion?: string;
+  minimumLcarsVersion?: string;
+  category?: string;
+  sha256?: string;
+  featured?: boolean;
+  lastUpdated?: string;
+  sourceId?: string;
+  sourceName?: string;
+  official?: boolean;
+  channel?: "stable" | "development";
+  signatureStatus?: "signed" | "verified" | "legacy" | "local" | "bundled" | "invalid";
+  signerKeyId?: string;
+  rollbackAvailable?: boolean;
+  grantedCapabilities?: string[];
+  moduleHealth?: ModuleHealthRecord;
+};
+
+export type ModuleHealthRecord = {
+  id: string;
+  apiVersion: number;
+  apiStatus: "stable" | "compatible" | "legacy";
+  requestedCapabilities: string[];
+  grantedCapabilities: string[];
+  permissionLabels: Record<string,string>;
+  health: "ready" | "isolated" | "attention";
+  failureCount: number;
+  lastFailure?: string;
+  rollbackAvailable: boolean;
+  signed: string;
+  signerKeyId?: string;
+  sourceId: string;
+  bundled: boolean;
+};
+
+export type ModuleRepositorySource = {
+  id: string;
+  name: string;
+  repositoryUrl?: string;
+  catalogUrl: string;
+  enabled: boolean;
+  official: boolean;
+  count?: number;
+  error?: string;
+  status?: "ready" | "attention" | "disabled";
+  channel?: "stable" | "development";
+};
+
+export const v25Pages = [
+  "overview",
+  "terminal",
+  "files",
+  "system",
+  "media",
+  "network",
+  "updates",
+  "settings",
+] as const;
+
+export const defaultTrayShortcuts: TrayShortcut[] = [
+  { id: "tray-network", kind: "page", target: "network", label: "NETWORK" },
+  { id: "tray-media", kind: "page", target: "media", label: "MEDIA & AUDIO" },
+];
+
+export const defaultControlMappings: ControlMapping[] = [
+  { id: "mapping-routines", shortcut: "CTRL+ALT+R", target: "action:routines", label: "OPERATIONS ROUTINES", enabled: true },
+  { id: "mapping-comms", shortcut: "CTRL+ALT+C", target: "action:communications", label: "COMMUNICATIONS CENTER", enabled: true },
+  { id: "mapping-engineering", shortcut: "CTRL+ALT+E", target: "page:system", label: "ENGINEERING CONSOLE", enabled: true },
+];
+
+const cleanText = (value: unknown, limit: number) =>
+  typeof value === "string" ? value.trim().slice(0, limit) : "";
+
+export const createV25Id = (prefix: string) =>
+  `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+
+export const normalizeRoutines = (value: unknown): Routine[] => {
+  if (!Array.isArray(value)) return [];
+  const kinds = new Set<RoutineStepKind>([
+    "page", "app", "workstation", "theme", "dnd", "volume", "audio-device",
+    "media", "system", "command", "prompt", "wait",
+  ]);
+  const triggers = new Set(["manual", "startup", "time", "app", "device", "battery-below", "network", "notice", "media", "station", "interval"]);
+  const colors = new Set(["orange", "gold", "violet", "blue", "pink"]);
+  return value.slice(0, 64).flatMap((candidate): Routine[] => {
+    if (!candidate || typeof candidate !== "object") return [];
+    const item = candidate as Partial<Routine>;
+    const id = cleanText(item.id, 64).replace(/[^a-z0-9-]/gi, "-");
+    const name = cleanText(item.name, 40);
+    if (!id || !name) return [];
+    const trigger = item.trigger && typeof item.trigger === "object" && triggers.has(String(item.trigger.type))
+      ? { type: item.trigger.type as RoutineTrigger["type"], value: cleanText(item.trigger.value, 120) || undefined }
+      : { type: "manual" as const };
+    const steps = Array.isArray(item.steps) ? item.steps.slice(0, 48).flatMap((candidateStep): RoutineStep[] => {
+      if (!candidateStep || typeof candidateStep !== "object") return [];
+      const step = candidateStep as Partial<RoutineStep>;
+      if (!kinds.has(step.kind as RoutineStepKind)) return [];
+      return [{
+        id: cleanText(step.id, 64).replace(/[^a-z0-9-]/gi, "-") || createV25Id("step"),
+        kind: step.kind as RoutineStepKind,
+        target: cleanText(step.target, 512),
+        value: typeof step.value === "string" || typeof step.value === "number" || typeof step.value === "boolean" ? step.value : undefined,
+        condition: step.condition && typeof step.condition === "object" && ["bridge","media","application","device","dnd"].includes(String(step.condition.source)) && ["available","unavailable","equals","not-equals"].includes(String(step.condition.operator)) ? {
+          source: step.condition.source as RoutineCondition["source"],
+          operator: step.condition.operator as RoutineCondition["operator"],
+          value: cleanText(step.condition.value,120)||undefined,
+        } : undefined,
+        delayMs: Math.max(0,Math.min(30000,Number(step.delayMs)||0)),
+        retries: Math.max(0,Math.min(5,Number(step.retries)||0)),
+        onFailure: step.onFailure==="continue"?"continue":"stop",
+        prompt: cleanText(step.prompt,180)||undefined,
+      }];
+    }) : [];
+    return [{
+      id,
+      name,
+      description: cleanText(item.description, 160),
+      folder: cleanText(item.folder,40)||"GENERAL",
+      color: colors.has(String(item.color)) ? item.color as Routine["color"] : "orange",
+      enabled: item.enabled !== false,
+      trigger,
+      steps,
+      cooldownSeconds: Math.max(0,Math.min(86400,Number(item.cooldownSeconds)||0)),
+      maxRuntimeSeconds: Math.max(5,Math.min(3600,Number(item.maxRuntimeSeconds)||120)),
+      dryRunByDefault: Boolean(item.dryRunByDefault),
+      attachments: Array.isArray(item.attachments) ? item.attachments.slice(0, 20).flatMap((attachment) => {
+        if (!attachment || typeof attachment !== "object") return [];
+        const value = attachment as { id?: unknown; name?: unknown; path?: unknown; addedAt?: unknown };
+        const path = cleanText(value.path, 420), name = cleanText(value.name, 120);
+        if (!path || !name) return [];
+        return [{ id: cleanText(value.id, 64) || createV25Id("attachment"), name, path, addedAt: cleanText(value.addedAt, 40) || new Date().toISOString() }];
+      }) : [],
+    }];
+  });
+};
+
+export const normalizeTrayShortcuts = (value: unknown): TrayShortcut[] => {
+  if (!Array.isArray(value)) return defaultTrayShortcuts;
+  const kinds = new Set(["app", "routine", "page"]);
+  const result = value.slice(0, 24).flatMap((candidate): TrayShortcut[] => {
+    if (!candidate || typeof candidate !== "object") return [];
+    const item = candidate as Partial<TrayShortcut>;
+    if (!kinds.has(String(item.kind))) return [];
+    const target = cleanText(item.target, 180), label = cleanText(item.label, 24);
+    if (!target || !label) return [];
+    return [{
+      id: cleanText(item.id, 64).replace(/[^a-z0-9-]/gi, "-") || createV25Id("tray"),
+      kind: item.kind as TrayShortcut["kind"], target, label,
+    }];
+  });
+  return result.length ? result : defaultTrayShortcuts;
+};
+
+export const normalizeControlMappings = (value: unknown): ControlMapping[] => {
+  if (!Array.isArray(value)) return defaultControlMappings;
+  const result = value.slice(0, 24).flatMap((candidate): ControlMapping[] => {
+    if (!candidate || typeof candidate !== "object") return [];
+    const item = candidate as Partial<ControlMapping>;
+    const shortcut = cleanText(item.shortcut, 48).toUpperCase().replace(/\s+/g, "");
+    const target = cleanText(item.target, 180), label = cleanText(item.label, 40);
+    if (!shortcut || !target || !label) return [];
+    return [{ id: cleanText(item.id, 64).replace(/[^a-z0-9-]/gi, "-") || createV25Id("mapping"), shortcut, target, label, enabled: item.enabled !== false }];
+  });
+  return result.length ? result : defaultControlMappings;
+};
+
+export const normalizeActivity = (value: unknown): ActivityEntry[] => {
+  if (!Array.isArray(value)) return [];
+  const sources = new Set(["OPERATOR", "ROUTINE", "SYSTEM", "EXTENSION", "UPDATE"]);
+  const statuses = new Set(["success", "attention", "running", "cancelled"]);
+  return value.slice(0, 200).flatMap((candidate): ActivityEntry[] => {
+    if (!candidate || typeof candidate !== "object") return [];
+    const item = candidate as Partial<ActivityEntry>;
+    const title = cleanText(item.title, 80), detail = cleanText(item.detail, 240);
+    if (!title) return [];
+    return [{
+      id: cleanText(item.id, 80) || createV25Id("activity"),
+      time: cleanText(item.time, 48) || new Date().toISOString(),
+      source: sources.has(String(item.source)) ? item.source as ActivityEntry["source"] : "SYSTEM",
+      title, detail,
+      status: statuses.has(String(item.status)) ? item.status as ActivityEntry["status"] : "success",
+      reversible: Boolean(item.reversible),
+    }];
+  });
+};
+
+export const routineNeedsConfirmation = (routine: Routine) =>
+  routine.steps.some((step) => step.kind === "command" || step.kind === "system");
+
+export const eventShortcut = (event: KeyboardEvent) => {
+  const parts: string[] = [];
+  if (event.ctrlKey) parts.push("CTRL");
+  if (event.altKey) parts.push("ALT");
+  if (event.shiftKey) parts.push("SHIFT");
+  if (event.metaKey) parts.push("META");
+  const key = event.code.startsWith("Key") ? event.code.slice(3) : event.code.startsWith("Digit") ? event.code.slice(5) : event.code.startsWith("Numpad") ? `NUM${event.code.slice(6)}` : event.key.toUpperCase();
+  if (!["CONTROL", "ALT", "SHIFT", "META"].includes(key)) parts.push(key);
+  return parts.join("+");
+};

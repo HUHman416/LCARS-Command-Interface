@@ -1,5 +1,44 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿ}4ãmwß5ïž8âZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéÞ[™\œÚ[ÛHŒKŒˆ[˜ÛÙ[™ÏH]‹NÏ‚[™X\“^[Ý][œÎ˜[™›ÚYHš‹ËÜØÚ[X\Ë˜[™›ÚY˜ÛÛKØ\ËÜ™\ËØ[™›ÚY‚ˆ[™›ÚYšYH
-ÚYÝÚYÙ]Ü›ÛÝ‚ˆ[™›ÚY›^[Ý]ÝÚYH›X]ÚÜ\™[‚ˆ[™›ÚY›^[Ý]ÚZYÚH›X]ÚÜ\™[‚ˆ[™›ÚY˜˜XÚÙÜ›Ý[™H˜]ØX›KÜYÝÚYÙ]Ø˜XÚÙÜ›Ý[™‚ˆ[™›ÚY›ÜšY[][ÛH™\XØ[‚ˆ[™›ÚYœY[™ÏHŒM‚ˆ^šY]Âˆ[™›ÚY›^[Ý]ÝÚYH›X]ÚÜ\™[‚ˆ[™›ÚY›^[Ý]ÚZYÚHÜ˜\ØÛÛ[‚ˆ[™›ÚY^H“ÐT”ÈÌH0­ÈU‘SÔQS•‚ˆ[™›ÚY^ÛÛÜHˆÑ‘ŽNŽ‚ˆ[™›ÚY^Ú^™OHŒL\Ü‚ˆ[™›ÚY^Ý[OH˜›ÛˆÏ‚ˆ^šY]Âˆ[™›ÚYšYH
-ÚYÝÚYÙ]ÜYÙH‚ˆ[™›ÚY›^[Ý]ÝÚYH›X]ÚÜ\™[‚ˆ[™›ÚY›^[Ý]ÚZYÚHŒ‚ˆ[™›ÚY›^[Ý]ÝÙZYÚHŒH‚ˆ[™›ÚY™Ü˜]š]OH˜Ù[\—Ý™\XØ[‚ˆ[™›ÚY^H“S’ÈÕS‘–H‚ˆ[™›ÚY^ÛÛÜHˆÑ‘‘‘‘‘ˆ‚ˆ[™›ÚY^Ú^™OHŒÜ‚ˆ[™›ÚY^Ý[OH˜›ÛˆÏ‚ˆ^šY]Âˆ[™›ÚYšYH
-ÚYÝÚYÙ]ÛYYXH‚ˆ[™›ÚY›^[Ý]ÝÚYH›X]ÚÜ\™[‚ˆ[™›ÚY›^[Ý]ÚZYÚHÜ˜\ØÛÛ[‚ˆ[™›ÚY™[\Ú^™OH™[™‚ˆ[™›ÚY›X^[™\ÏHŒH‚ˆ[™›ÚY^H“ÔSˆHQÈÓÓ“‘PÕ‚ˆ[™›ÚY^ÛÛÜHˆÐÎPÍPÑˆ‚ˆ[™›ÚY^Ú^™OHŒLÜÜˆÏ‚ˆ^šY]Âˆ[™›ÚYšYH
-ÚYÝÚYÙ]Ý›Û[YH‚ˆ[™›ÚY›^[Ý]ÝÚYH›X]ÚÜ\™[‚ˆ[™›ÚY›^[Ý]ÚZYÚHÜ˜\ØÛÛ[‚ˆ[™›ÚY™Ü˜]š]OH™[™‚ˆ[™›ÚY^H“PTÕTˆ	H‚ˆ[™›ÚY^ÛÛÜHˆÎŽPQŒH‚ˆ[™›ÚY^Ú^™OHŒLœÜ‚ˆ[™›ÚY^Ý[OH˜›ÛˆÏ‚Ó[™X\“^[Ý]‚
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/padd_widget_background"
+    android:orientation="vertical"
+    android:padding="14dp">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LCARS 30.5 Â· DEVELOPMENT"
+        android:textColor="#FF9868"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/widget_page"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
+        android:text="LINK STANDBY"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/widget_media"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="OPEN THE PADD TO CONNECT"
+        android:textColor="#C9C5CF"
+        android:textSize="13sp" />
+    <TextView
+        android:id="@+id/widget_volume"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:text="MASTER 0%"
+        android:textColor="#829AF1"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+</LinearLayout>
