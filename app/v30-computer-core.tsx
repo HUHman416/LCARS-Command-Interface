@@ -83,7 +83,7 @@ export function ComputerCoreConsole({
   return <div className="backdrop computer-core-backdrop" onMouseDown={(event) => event.target === event.currentTarget && !running && close()}>
     <section className="computer-core-console" role="dialog" aria-modal="true" aria-label="LCARS Computer Core">
       <header className="computer-core-header">
-        <div><small>LCARS 30.2 DEVELOPMENT · LOCAL-FIRST COMMAND PROCESSOR</small><h2>COMPUTER CORE</h2><p>Translate operator language into visible, permission-aware plans before anything changes.</p></div>
+        <div><small>LCARS 30.3 DEVELOPMENT · LOCAL-FIRST COMMAND PROCESSOR</small><h2>COMPUTER CORE</h2><p>Translate operator language into visible, permission-aware plans before anything changes.</p></div>
         <section><span className={bridge ? "online" : "standby"}><i/>LOCAL CORE {bridge ? "ONLINE" : "STANDBY"}</span><span>{activeTriggers} ACTIVE TRIGGERS</span><span>{protectedProcedures} GUARDED PROCEDURES</span><button onClick={close}>CLOSE ×</button></section>
       </header>
       <nav className="computer-core-tabs" aria-label="Computer Core areas">
@@ -115,7 +115,7 @@ export function ComputerCoreConsole({
         <header><span><small>LOCAL EXECUTION JOURNAL · MAXIMUM 300 RECORDS</small><h3>COMPUTER AUDIT</h3><p>Dry runs, trigger requests, protected commands, failures, successful plans, and undo operations remain attributable.</p></span><nav><button disabled={!undoSnapshot || running} onClick={undo}>{undoSnapshot ? `UNDO · ${undoSnapshot.label}` : "NO UNDO AVAILABLE"}</button><button disabled={!audit.length} onClick={clearAudit}>CLEAR AUDIT</button></nav></header>
         <div>{audit.map((entry, index) => <article className={`audit-${entry.status}`} key={entry.id}><i>{String(index + 1).padStart(3, "0")}</i><span><small>{new Date(entry.time).toLocaleString()} · {entry.source.toUpperCase()}</small><b>{entry.title}</b><p>{entry.detail}</p></span><em className={`risk-${entry.risk}`}>{entry.status.toUpperCase()} · {riskLabel(entry.risk)}{entry.reversible ? " · UNDO" : ""}</em></article>)}{!audit.length && <p className="computer-empty">NO COMPUTER CORE OPERATIONS RECORDED</p>}</div>
       </main>}
-      <footer className="computer-core-footer"><span>LOCAL-FIRST · EXPLICIT AUTHORITY · DRY-RUN CAPABLE · AUDITABLE</span><small>30.2 FEDERATION CORE</small></footer>
+      <footer className="computer-core-footer"><span>LOCAL-FIRST · EXPLICIT AUTHORITY · DRY-RUN CAPABLE · AUDITABLE</span><small>30.3 MODULE PLATFORM</small></footer>
     </section>
   </div>;
 }

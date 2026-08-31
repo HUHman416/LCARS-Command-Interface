@@ -37,8 +37,9 @@ test("packaged startup audio is bootstrapped by Electron and remains testable", 
   assert.match(page, /lcars-startup-audio-result/);
 });
 
-test("Extension API v2 is declarative, permissioned, namespaced, and backward compatible", () => {
-  assert.match(extensionHost, /API_VERSION=2/);
+test("Extension API v3 is declarative, permissioned, namespaced, and backward compatible with v2", () => {
+  assert.match(extensionHost, /API_VERSION=3/);
+  assert.match(extensionHost, /SUPPORTED_API_VERSIONS=\{2,3\}/);
   assert.match(extensionHost, /PLACEMENTS=/);
   assert.match(extensionHost, /PRIMITIVES=/);
   assert.match(extensionHost, /CAPABILITIES=/);

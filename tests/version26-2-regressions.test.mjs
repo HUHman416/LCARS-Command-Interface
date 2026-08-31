@@ -31,13 +31,13 @@ test("Communications Action Center groups repeated messages and exposes safe sta
   for(const token of ["COMMUNICATIONS ACTION CENTER","SHOW ARCHIVED","MARK UNREAD","VIEW PROCESS","OPEN UPDATES","repeats:(match.repeats||1)+1"])assert.ok(page.includes(token),token);
 });
 
-test("Module Repository 2.0 accepts constrained public GitHub sources and generates publisher packages",()=>{
-  for(const token of ["repository_source_operation","prepare_module_publication","public https://github.com/OWNER/REPOSITORY","sourceId","SHA256SUMS.txt","never executes repository code"])assert.ok((extensions+page).includes(token),token);
+test("Module Platform retains constrained public GitHub sources and publisher packages",()=>{
+  for(const token of ["repository_source_operation","prepare_module_publication","public https://github.com/OWNER/REPOSITORY","sourceId","SHA256SUMS.txt","Repository code is never executed"])assert.ok((extensions+page).includes(token),token);
   assert.doesNotMatch(extensions,/github\.com.*token/i);
 });
 
 test("Version 26 release candidates can explicitly transition to the stable major release",()=>{
-  assert.ok(["30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(packageJson.version));
+  assert.ok(["30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(packageJson.version));
   assert.match(page,/CHECK LATEST STABLE RELEASE|CHECK FOR VERSION (?:27|26) STABLE/);
   assert.match(updater,/stableTransition/);
   assert.match(updater,/channel=="stable-release"/);

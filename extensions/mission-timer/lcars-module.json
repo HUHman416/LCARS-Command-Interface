@@ -1,10 +1,11 @@
 {
-  "apiVersion": 2,
+  "apiVersion": 3,
   "id": "mission-timer",
   "name": "Mission Chronometer",
   "version": "1.0.0",
   "description": "A persistent mission timer built only from standard Extension API controls.",
   "author": "LCARS Command Interface Project",
+  "minimumLcarsVersion": "30.3",
   "capabilities": ["time-date"],
   "tickSeconds": 1,
   "settings": [{ "key": "missionName", "type": "text", "label": "Mission label", "description": "Names the active timed operation.", "default": "PRIMARY MISSION" }],

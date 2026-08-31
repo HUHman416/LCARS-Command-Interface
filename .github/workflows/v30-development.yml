@@ -1,4 +1,4 @@
-name: Version 30.2 Federation Development
+name: Version 30.3 Module Platform Development
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
       - run: npm ci
       - name: Build hosted renderer
         run: npm run build
-      - name: Federation, Computer Core, and regression suite
+      - name: Module Platform, Voice Operations, Federation, Computer Core, and regression suite
         run: |
           node --test tests/*.test.mjs
           python3 -m unittest discover -s tests -p 'test_*.py'
@@ -43,7 +43,7 @@ jobs:
           appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
           test -n "$appimage"
           checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          stage="release-assets/LCARS-Universal-Linux-Desktop-v30.2"
+          stage="release-assets/LCARS-Universal-Linux-Desktop-v30.3"
           mkdir -p "$stage/local"
           cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
           cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
@@ -52,17 +52,17 @@ jobs:
           sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
           sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
           chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh"
-          cp "$appimage" release-assets/LCARS-Command-Interface-v30.2-x86_64.AppImage
-          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.2.sh
-          chmod +x release-assets/LCARS-Linux-Integration-v30.2.sh
-          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.2.zip LCARS-Universal-Linux-Desktop-v30.2)
+          cp "$appimage" release-assets/LCARS-Command-Interface-v30.3-x86_64.AppImage
+          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.3.sh
+          chmod +x release-assets/LCARS-Linux-Integration-v30.3.sh
+          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.3.zip LCARS-Universal-Linux-Desktop-v30.3)
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.2-development-linux
+          name: LCARS-v30.3-development-linux
           path: |
-            release-assets/LCARS-Command-Interface-v30.2-x86_64.AppImage
-            release-assets/LCARS-Universal-Linux-Desktop-v30.2.zip
-            release-assets/LCARS-Linux-Integration-v30.2.sh
+            release-assets/LCARS-Command-Interface-v30.3-x86_64.AppImage
+            release-assets/LCARS-Universal-Linux-Desktop-v30.3.zip
+            release-assets/LCARS-Linux-Integration-v30.3.sh
           retention-days: 30
 
   windows:
@@ -74,8 +74,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Federation and Computer Core regression suite
-        run: node --test tests/version30-computer-core.test.mjs tests/version29-launcher.test.mjs tests/accessibility-css.test.mjs
+      - name: Module Platform, Federation, and Computer Core regression suite
+        run: node --test tests/version30-module-platform.test.mjs tests/version30-computer-core.test.mjs tests/version29-launcher.test.mjs tests/accessibility-css.test.mjs
       - name: Validate Windows bridge and desktop process
         run: |
           python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py shared/lcars_federation_crypto.py shared/lcars_padd.py
@@ -90,11 +90,11 @@ jobs:
           New-Item -ItemType Directory -Force release-assets | Out-Null
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.2.exe
+          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.3.exe
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.2-development-windows
-          path: release-assets/LCARS-Windows-Setup-v30.2.exe
+          name: LCARS-v30.3-development-windows
+          path: release-assets/LCARS-Windows-Setup-v30.3.exe
           retention-days: 30
 
   android:
@@ -137,11 +137,11 @@ jobs:
           test -n "$signer"
           "$signer" verify --verbose --print-certs "$apk"
           mkdir -p release-assets
-          cp "$apk" release-assets/LCARS-Mobile-Environment-v30.2-Android.apk
+          cp "$apk" release-assets/LCARS-Mobile-Environment-v30.3-Android.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.2-development-android
-          path: release-assets/LCARS-Mobile-Environment-v30.2-Android.apk
+          name: LCARS-v30.3-development-android
+          path: release-assets/LCARS-Mobile-Environment-v30.3-Android.apk
           retention-days: 30
 
   publish-development-release:
@@ -158,18 +158,18 @@ jobs:
       - name: Create source archive and checksums
         run: |
           set -euo pipefail
-          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.2-Source.zip HEAD
-          (cd release-assets && sha256sum LCARS-Command-Interface-v30.2-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.2.zip LCARS-Linux-Integration-v30.2.sh LCARS-Windows-Setup-v30.2.exe LCARS-Mobile-Environment-v30.2-Android.apk LCARS-Command-Interface-v30.2-Source.zip > SHA256SUMS.txt)
+          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.3-Source.zip HEAD
+          (cd release-assets && sha256sum LCARS-Command-Interface-v30.3-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.3.zip LCARS-Linux-Integration-v30.3.sh LCARS-Windows-Setup-v30.3.exe LCARS-Mobile-Environment-v30.3-Android.apk LCARS-Command-Interface-v30.3-Source.zip > SHA256SUMS.txt)
           (cd release-assets && sha256sum --check SHA256SUMS.txt)
-      - name: Publish Version 30.2 Federation development release
+      - name: Publish Version 30.3 Module Platform development release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          notes='Version 30.2 introduces Federation: durable station identities and fingerprints, automatic local discovery, signed AES-256-GCM native synchronization, per-device sync and notification policies, operational page handoff, priority-notice routing, guarded clipboard and small-file transfer, and bounded offline delivery queues. Voice operation can now run hands-free: disabling push-to-talk automatically enables the Computer wake word, which remains independently optional. Version 30.2 retains the complete Computer Core, Procedures, audit, undo, bundled whisper.cpp, protected vocal authorization, and Version 29 Mobile Command Environment.'
-          if gh release view v30.2 >/dev/null 2>&1; then
-            gh release upload v30.2 release-assets/* --clobber
-            gh release edit v30.2 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.2 Development · Federation" --notes "$notes" --prerelease
+          notes='Version 30.3 Development introduces the LCARS Module Platform. Extension API v3 is now a documented stable host-rendered contract while API v2 and legacy checklist modules remain compatible. Modules declare explicit capabilities that operators approve and may later revoke. Module Forge creates API v3 drafts, previews their identity and permissions, exports signed portable packages, and generates signed Stable and Development GitHub catalogs. Repository and portable packages use SHA-256 plus RSA-SHA256 publisher signatures; downloads remain confined to their declared public repository and executable plug-in code is never accepted. Per-module health records, automatic render isolation, quarantine, one-step rollback, bounded import/export, source channels, and package trust details complete the lifecycle. Version 30.3 also adds optional immediate voice execution while retaining preview-first defaults, Voice Authority, vocal authorization for protected actions, the contained Computer Armed masthead, and accurate wake-word processing status. Version 30.2 Federation, the bundled local whisper.cpp runtime, Procedures, audit, undo, and the Version 29 Mobile Command Environment remain included.'
+          if gh release view v30.3 >/dev/null 2>&1; then
+            gh release upload v30.3 release-assets/* --clobber
+            gh release edit v30.3 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.3 Development · Module Platform" --notes "$notes" --prerelease
           else
-            gh release create v30.2 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.2 Development · Federation" --notes "$notes" --prerelease
+            gh release create v30.3 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.3 Development · Module Platform" --notes "$notes" --prerelease
           fi

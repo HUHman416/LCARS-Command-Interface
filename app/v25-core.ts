@@ -123,6 +123,29 @@ export type ExtensionCatalogEntry = {
   sourceId?: string;
   sourceName?: string;
   official?: boolean;
+  channel?: "stable" | "development";
+  signatureStatus?: "signed" | "verified" | "legacy" | "local" | "bundled" | "invalid";
+  signerKeyId?: string;
+  rollbackAvailable?: boolean;
+  grantedCapabilities?: string[];
+  moduleHealth?: ModuleHealthRecord;
+};
+
+export type ModuleHealthRecord = {
+  id: string;
+  apiVersion: number;
+  apiStatus: "stable" | "compatible" | "legacy";
+  requestedCapabilities: string[];
+  grantedCapabilities: string[];
+  permissionLabels: Record<string,string>;
+  health: "ready" | "isolated" | "attention";
+  failureCount: number;
+  lastFailure?: string;
+  rollbackAvailable: boolean;
+  signed: string;
+  signerKeyId?: string;
+  sourceId: string;
+  bundled: boolean;
 };
 
 export type ModuleRepositorySource = {
@@ -135,6 +158,7 @@ export type ModuleRepositorySource = {
   count?: number;
   error?: string;
   status?: "ready" | "attention" | "disabled";
+  channel?: "stable" | "development";
 };
 
 export const v25Pages = [

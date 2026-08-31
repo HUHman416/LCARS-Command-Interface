@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.2-b69de8" alt="Development Version 30.2">
+  <img src="https://img.shields.io/badge/development-v30.3-b69de8" alt="Development Version 30.3">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -33,6 +33,18 @@
 
 > [!TIP]
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
+
+> [!NOTE]
+> **Version 30.3 Development refines Voice Operations.** Preview-first Computer Core handling remains the default, while an opt-in setting can immediately execute valid recognized commands within the selected Voice Authority. Protected commands only bypass the preview after the configured vocal authorization code is verified. The Computer Armed control now lives in the masthead, and ambient audio checks no longer display Computer Processing before a wake-word command is accepted. Version 29 remains Stable.
+
+## 🧪 Version 30.3 Development — Voice Operations
+
+- Adds an opt-in **Execute recognized voice commands immediately** setting; existing installations remain preview-first by default.
+- Applies the current Voice Authority before any direct execution and transfers invalid, ambiguous, or disallowed commands to Computer Core for review.
+- Requires a verified configured vocal authorization code before protected actions can run without the visible preview; otherwise the confirmation screen opens.
+- Moves the interactive voice state into a width-constrained masthead field beside Federation Operating Environment so it cannot cover page content or spill outside the header.
+- Separates ambient Whisper checks from accepted commands so throat-clearing and unrelated sounds leave the indicator at Computer Armed.
+- Retains the complete Version 30.2 Federation and Version 30.1 Computer Core feature sets.
 
 > [!NOTE]
 > **Version 30.2 Development introduces Federation.** LCARS now supports durable station identities, automatic LAN discovery, signed AES-256-GCM native links, selective per-device synchronization, page handoff, notification routing, guarded clipboard and small-file transfer, and bounded offline delivery queues. Hands-free offline voice is also available: turning push-to-talk off automatically enables the optional “Computer” wake word. Test packages are published at the [Version 30.2 prerelease](https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v30.2); Version 29 remains Stable.

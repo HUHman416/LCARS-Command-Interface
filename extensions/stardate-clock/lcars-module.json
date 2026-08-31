@@ -1,10 +1,11 @@
 {
-  "apiVersion": 2,
+  "apiVersion": 3,
   "id": "stardate-clock",
   "name": "Stardate Clock",
   "version": "1.0.0",
   "description": "Shows a continuously updated Earth-calendar stardate in the LCARS header.",
   "author": "LCARS Command Interface Project",
+  "minimumLcarsVersion": "30.3",
   "capabilities": ["time-date"],
   "tickSeconds": 1,
   "settings": [],

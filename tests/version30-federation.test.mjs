@@ -4,19 +4,19 @@ import test from "node:test";
 
 const source = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
-test("Version 30.2 package and release channel are aligned", async () => {
+test("Version 30.3 package and release channel are aligned", async () => {
   const [pkg, workflow, page, android] = await Promise.all([
     source("../package.json"),
     source("../.github/workflows/v30-development.yml"),
     source("../app/page.tsx"),
     source("../mobile/android/app/build.gradle"),
   ]);
-  assert.equal(JSON.parse(pkg).version, "30.2.0-dev.1");
-  assert.match(workflow, /Version 30\.2 Federation Development/);
-  assert.match(workflow, /gh release (?:view|create) v30\.2/);
-  assert.match(page, /const LCARS_VERSION="30\.2"/);
-  assert.match(android, /versionCode 302001/);
-  assert.match(android, /versionName "30\.2\.0"/);
+  assert.equal(JSON.parse(pkg).version, "30.3.0-dev.1");
+  assert.match(workflow, /Version 30\.3 Module Platform Development/);
+  assert.match(workflow, /gh release (?:view|create) v30\.3/);
+  assert.match(page, /const LCARS_VERSION="30\.3"/);
+  assert.match(android, /versionCode 303001/);
+  assert.match(android, /versionName "30\.3\.0"/);
 });
 
 test("Federation server exposes discovery, durable identity, policy, and encrypted queues", async () => {
@@ -65,4 +65,21 @@ test("hands-free voice retains PTT and makes the Computer wake word optional", a
   assert.match(page, /window\.setInterval\(\(\)=>\{if\(processing\.current/);
   assert.match(page, /\},4500\)/);
   assert.match(page, /COMPUTER ARMED/);
+});
+
+test("Version 30.3 voice execution is opt-in, authority-aware, and header-contained", async () => {
+  const [page, styles] = await Promise.all([
+    source("../app/page.tsx"),
+    source("../app/v30.css"),
+  ]);
+  assert.match(page, /voiceImmediateExecution: false/);
+  assert.match(page, /Execute recognized voice commands immediately/);
+  assert.match(page, /if\(!prefs\.voiceImmediateExecution\)\{previewVoiceComputer/);
+  assert.match(page, /plan\.requiresConfirmation&&!\(prefs\.voiceAuthorizationEnabled&&authorized\)/);
+  assert.match(page, /resolveComputerCommandFor\(command,"voice"\)/);
+  assert.match(page, /commanding\?"COMPUTER PROCESSING"/);
+  assert.doesNotMatch(page, /armed\?\(busy\?"COMPUTER PROCESSING"/);
+  assert.match(page, /title-kicker/);
+  assert.match(styles, /\.voice-control\.voice-control-header\{position:static/);
+  assert.match(styles, /text-overflow:ellipsis;white-space:nowrap/);
 });

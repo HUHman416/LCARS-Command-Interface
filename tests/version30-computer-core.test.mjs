@@ -68,7 +68,7 @@ test("audit and undo storage reject malformed records", () => {
   assert.equal(normalizeComputerUndo({ id: "undo", planId: "plan", volume: 500 })?.volume, 100);
 });
 
-test("desktop voice package remains pinned and verified for 30.2 hands-free capture", async () => {
+test("desktop voice package remains pinned and verified for 30.3 hands-free capture", async () => {
   const [script, linuxBridge, windowsBridge, page, builder, workflow] = await Promise.all([
     readFile(new URL("../scripts/prepare-voice-runtime.sh", import.meta.url), "utf8"),
     readFile(new URL("../local/lcars_bridge.py", import.meta.url), "utf8"),
@@ -89,5 +89,5 @@ test("desktop voice package remains pinned and verified for 30.2 hands-free capt
   assert.match(page, /voiceAuthorizationCredential/);
   assert.match(builder, /voice-runtime\/linux/);
   assert.match(builder, /voice-runtime\/windows/);
-  assert.match(workflow, /gh release (?:view|create) v30\.2/);
+  assert.match(workflow, /gh release (?:view|create) v30\.3/);
 });

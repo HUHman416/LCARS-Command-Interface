@@ -8,12 +8,12 @@ from urllib.parse import parse_qs, urlparse
 
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
 from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
-from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation, repository_source_operation, prepare_module_publication
+from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation, repository_source_operation, prepare_module_publication, module_platform_status, module_platform_operation, module_package_operation, create_module_draft
 from lcars_documents import read_document, write_document
 from lcars_padd import PaddController
 
 PORT=8765
-LCARS_VERSION="30.2"
+LCARS_VERSION="30.3"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -23,6 +23,7 @@ BUILTIN_EXTENSION_DIR=Path(__file__).resolve().parent.parent/"extensions"
 EXTENSION_STATE_DIR=CONFIG_DIR/"extension-state"
 MODULE_SOURCE_FILE=CONFIG_DIR/"module-sources.json"
 MODULE_PUBLISHER_DIR=CONFIG_DIR/"module-publisher"
+MODULE_RUNTIME_DIR=CONFIG_DIR/"module-platform"
 PADD_ASSET_DIR=Path(__file__).resolve().parent.parent/"padd"
 PADD=PaddController(CONFIG_DIR,PADD_ASSET_DIR,LCARS_VERSION,"windows")
 TERMINALS={}
@@ -41,7 +42,7 @@ def network_details():
     online=any(x.get("state")=="connected" for x in interfaces);value={"interfaces":interfaces,"diagnostics":{"gateway":any(bool(x.get("gateway")) for x in interfaces),"dns":online,"internet":online,"latency":None},"bluetooth":bool(shutil.which("fsquirt.exe"))};NETWORK_CACHE.update(at=time.time(),value=value);return value
 
 def extension_manifests():
-    return load_extensions(EXTENSION_DIR,BUILTIN_EXTENSION_DIR)
+    return module_platform_status(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_RUNTIME_DIR)
     # Legacy parser retained below for migration reference; API v2 normalizes v1.
     """Load the non-executable Module API v1 manifest format."""
     EXTENSION_DIR.mkdir(parents=True,exist_ok=True)
@@ -197,13 +198,13 @@ def voice_transcribe(data):
     try:config=json.loads(CONFIG_FILE.read_text())
     except:config={}
     prefs=config.get("shell_prefs",{});status=voice_status();engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or status.get("model") or "")).expanduser();encoded=str(data.get("audio","")).split(",")[-1]
-    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.2 or select custom files in Settings"}
+    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.3 or select custom files in Settings"}
     try:
         with tempfile.TemporaryDirectory(prefix="lcars-voice-") as folder:
             raw=base64.b64decode(encoded,validate=True);source=Path(folder)/"sample.input";wav=Path(folder)/"sample.wav"
             if raw[:4]==b"RIFF" and raw[8:12]==b"WAVE":wav.write_bytes(raw)
             else:
-                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.2 PCM recorder does not"}
+                if not status["ffmpeg"]:return {"ok":False,"message":"This legacy microphone format needs FFmpeg; the 30.3 PCM recorder does not"}
                 source.write_bytes(raw)
                 if subprocess.run([status["ffmpeg"],"-loglevel","error","-y","-i",str(source),"-ar","16000","-ac","1",str(wav)],creationflags=0x08000000).returncode:return {"ok":False,"message":"FFmpeg could not decode the microphone sample"}
             environment={**os.environ,"PATH":str(Path(engine).parent)+os.pathsep+os.environ.get("PATH","")}
@@ -418,7 +419,7 @@ def integration_health():
         "media":{"available":True,"detail":"Windows media keys ready","remedy":"The media application must support Windows media controls."},
         "terminal":{"available":True,"detail":"PowerShell","remedy":"Choose powershell.exe or another installed shell in Settings."},
         "storage":{"available":bool(psutil),"detail":f"{len(storage_data())} volume(s)","remedy":"Repair the optional psutil component from the installer."},
-        "voice":{"available":voice["available"],"detail":voice["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.2 voice resources or select custom whisper.cpp files in Settings."},
+        "voice":{"available":voice["available"],"detail":voice["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.3 voice resources or select custom whisper.cpp files in Settings."},
         "tray":{"available":False,"detail":"Windows cannot safely re-host every third-party notification icon","remedy":"Use LCARS quick controls or the native Windows notification area."},
         "extensions":{"available":not bool(extensions.get("errors")),"detail":f"{len(extensions.get('extensions',[]))} module(s), {len(extensions.get('errors',[]))} rejected","remedy":"Remove or update rejected manifests shown in the extension bay."},
         "configuration":{"available":True,"detail":"Local AppData settings storage ready","remedy":"Repair write access to the LCARS AppData directory."},
@@ -505,7 +506,8 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/health-check":return self.send_json({"health":integration_health()})
         if route=="/api/diagnostics":return self.send_json(diagnostics_report())
         if route=="/api/extensions":return self.send_json(extension_manifests())
-        if route=="/api/extension-catalog":return self.send_json(build_extension_catalog(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_SOURCE_FILE))
+        if route=="/api/extension-catalog":return self.send_json(build_extension_catalog(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_SOURCE_FILE,runtime_dir=MODULE_RUNTIME_DIR))
+        if route=="/api/module-platform":return self.send_json(module_platform_status(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_RUNTIME_DIR))
         if route=="/api/engineering":return self.send_json(engineering_data())
         if route=="/api/extension-state":
             try:return self.send_json({"state":extension_state(EXTENSION_STATE_DIR,parse_qs(parsed.query).get("id",[""])[0])})
@@ -555,13 +557,22 @@ class Handler(BaseHTTPRequestHandler):
             try:return self.send_json({"ok":True,"state":save_extension_state(EXTENSION_STATE_DIR,str(data.get("id","")),data.get("state",{}))})
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/extension-install":
-            try:return self.send_json(extension_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,str(data.get("id","")),str(data.get("operation","install")),MODULE_SOURCE_FILE,str(data.get("sourceId",""))))
+            try:return self.send_json(extension_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,str(data.get("id","")),str(data.get("operation","install")),MODULE_SOURCE_FILE,str(data.get("sourceId","")),MODULE_RUNTIME_DIR,data.get("approvedCapabilities",[])))
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/module-source":
-            try:return self.send_json(repository_source_operation(MODULE_SOURCE_FILE,str(data.get("operation","")),str(data.get("url","")),str(data.get("id",""))))
+            try:return self.send_json(repository_source_operation(MODULE_SOURCE_FILE,str(data.get("operation","")),str(data.get("url","")),str(data.get("id","")),str(data.get("channel","stable"))))
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/module-publisher":
             try:return self.send_json(prepare_module_publication(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_PUBLISHER_DIR,str(data.get("id","")),str(data.get("repository","YOUR-GITHUB-NAME/YOUR-REPOSITORY"))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/module-platform":
+            try:return self.send_json(module_platform_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_RUNTIME_DIR,str(data.get("operation","")),str(data.get("id","")),data.get("capabilities",[]),str(data.get("detail",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/module-package":
+            try:return self.send_json(module_package_operation(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_PUBLISHER_DIR,MODULE_RUNTIME_DIR,str(data.get("operation","")),str(data.get("id","")),str(data.get("path","")),data.get("approvedCapabilities",[])))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/module-forge":
+            try:return self.send_json(create_module_draft(EXTENSION_DIR,data))
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/padd-pairing":
             try:return self.send_json(PADD.manage(data))

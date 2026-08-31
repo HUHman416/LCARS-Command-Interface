@@ -21,9 +21,9 @@ test('26.1 verifies catalog module payloads before installation',()=>{
 });
 
 test('integrated Module Repository is the Updates slot 03 browser',()=>{
-  assert.match(page,/DECLARATIVE MODULE API · OFFICIAL \+ COMMUNITY GITHUB SOURCES/);
-  assert.match(page,/BROWSE MODULES/);
-  assert.match(page,/SEARCH MODULE REPOSITORY/);
+  assert.match(page,/STABLE MODULE API V3 · SIGNED PACKAGES · ISOLATED HOST RENDERER/);
+  assert.match(page,/OPEN PLATFORM/);
+  assert.match(page,/SEARCH MODULE PLATFORM/);
   assert.match(page,/operate\(entry,"update"\)/);
   assert.equal((page.match(/<ExtensionHub openByDefault installed=\{extensions\}/g)||[]).length,1);
 });
@@ -36,6 +36,6 @@ test('desktop renderer loads Version 26.1 styling after Version 25',()=>{
 });
 
 test('newer candidates retain Version 26.1 repository coverage',()=>{
-  assert.ok(['30.2.0-dev.1','30.1.0-dev.2','29.0.0','29.3.0-rc.1','29.2.0-dev.1','28.0.0','28.3.0-rc.1','28.2.0-dev.1','27.2.1-dev.1','27.2.0-dev.1','27.1.1-dev.1','26.3.0-dev.1','26.0.0'].includes(packageJson.version));
-  assert.match(page,/30\.2 DEV|30\.1 DEV|29 STABLE|29\.3 RC 1|29\.2 DEVELOPMENT|28 STABLE|28\.3 RC 1|28\.2 DEV|27\.2(?:\.1)? DEV|27\.1(?:\.1)? DEV|26\.3 RC|26 STABLE/);
+  assert.ok(['30.3.0-dev.1','30.2.0-dev.1','30.1.0-dev.2','29.0.0','29.3.0-rc.1','29.2.0-dev.1','28.0.0','28.3.0-rc.1','28.2.0-dev.1','27.2.1-dev.1','27.2.0-dev.1','27.1.1-dev.1','26.3.0-dev.1','26.0.0'].includes(packageJson.version));
+  assert.match(page,/30\.3 DEV|30\.2 DEV|30\.1 DEV|29 STABLE|29\.3 RC 1|29\.2 DEVELOPMENT|28 STABLE|28\.3 RC 1|28\.2 DEV|27\.2(?:\.1)? DEV|27\.1(?:\.1)? DEV|26\.3 RC|26 STABLE/);
 });
