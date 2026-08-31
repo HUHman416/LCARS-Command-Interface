@@ -1,217 +1,27 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ¾¹ï]5×}¼÷n¶ŞZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µé˜ÛÛœİÈ\œ›İÜÙ\•Ú[™İË›İØÛÛ™]Ú[Ù\ÜÚ[Û‹ØÜ™Y[ˆHH™\]Z\™J™[Xİ›ÛˆŠNÂ˜\˜ÛÛ[X[™[™K˜\[™İÚ]Ú
-˜]]Ü^K\ÛXŞH‹››Ë]\Ù\‹YÙ\İ\™K\™\]Z\™YŠNÂ˜ÛÛœİÈÜ]Û‹Ü]Û”Ş[˜ÈHH™\]Z\™J››ÙN˜Ú[Ü›ØÙ\ÜÈŠNÂ˜ÛÛœİœÈH™\]Z\™J››ÙN™œÈŠNÂ˜ÛÛœİ]H™\]Z\™J››ÙNœ]ŠNÂ˜ÛÛœİH™\]Z\™J››ÙNšŠNÂœ›İØÛÛœ™YÚ\İ\”ØÚ[Y\Ğ\Ôš]š[YÙY
-ŞÜØÚ[YNˆ›Ø\œÈ‹š]š[YÙ\ÎÜİ[™\™YKÙXİ\™NYKİ\Ü™]ÚTNY__WJNÂ›]XZ[•Ú[™İÏ[[œšYÙT›ØÙ\ÜÏ[[Ú[™İÜÏ[™]ÈÙ]
-
-NÂ˜\œÙ]˜[YJ“ĞT”ÈÛÛ[X[™[\™˜XÙHŠNÂšYŠ›ØÙ\ÜËœ]›Ü›OOOHÚ[ŒÌˆŠX\œÙ]\\Ù\“[Ù[Y
-˜ÛÛK›Ø\œË˜ÛÛ[X[™[\™˜XÙHŠNÂšYŠ›ØÙ\ÜËœ]›Ü›OOOH›[^ŠX\˜ÛÛ[X[™[™K˜\[™İÚ]Ú
-˜Û\ÜÈ‹›Ø\œËXÛÛ[X[™Z[\™˜XÙHŠNÂ˜ÛÛœİ›ÛİJ
-OO˜\š\ÔXÚØYÙYÜ›ØÙ\ÜËœ™\Ûİ\˜Ù\Ô]œ]œ™\ÛÛ™J×Ù\›˜[YK‹‹ˆŠNÂ˜ÛÛœİœšYÙOJ
-OO˜\š\ÔXÚØYÙYÜ]š›Ú[Š›ØÙ\ÜËœ™\Ûİ\˜Ù\Ô]˜œšYÙH‹›ØÙ\ÜËœ]›Ü›OOOHÚ[ŒÌˆÈ›Ø\œ×ØœšYÙWİÚ[™İÜËœHˆ›Ø\œ×ØœšYÙWÛ[^œHŠNœ]š›Ú[Š›Ûİ
-
-K›ØÙ\ÜËœ]›Ü›OOOHÚ[ŒÌˆÈÚ[™İÜËÛØ\œ×ØœšYÙWİÚ[™İÜËœHˆ›ØØ[ÛØ\œ×ØœšYÙKœHŠNÂ˜ÛÛœİ™XÛİ™\OJ
-OO˜\š\ÔXÚØYÙYÜ]š›Ú[Š›ØÙ\ÜËœ™\Ûİ\˜Ù\Ô]œ™XÛİ™\H‹›Ø\œË\™XÛİ™\KœÚŠNœ]š›Ú[Š›Ûİ
-
-K›ØØ[ÛØ\œË\™XÛİ™\KœÚŠNÂ™[˜İ[Ûˆ™XÛİ™\Š
-^ÚYŠ›ØÙ\ÜËœ]›Ü›HOOH›[^ŸYœË™^\İÔŞ[˜Ê™XÛİ™\J
-JJ\™]\›İ^ØÛÛœİ\Ü]ÛŠ˜˜\Ú‹Ü™XÛİ™\J
-WKÜİ[ÎˆšYÛ›Ü™H‹]XÚYYK[Ë‹‹œ›ØÙ\ÜË™[‹ĞT”×Ô‘PÓÕ‘T–WÔÒSS•ˆŒHŸ_JNÜ[œ™YŠ
-_XØ]Úß_B™[˜İ[ÛˆÚ[™İÜÔ]ÛØ[™Y]\Ê
-^ØÛÛœİØ[™Y]\ÏVÖÈœH‹È‹LÈ—WKÈœ]Ûˆ‹×WKÈœ]ÛŒÈ‹×WWNØÛÛœİØØ[›ÙÜ˜[\Ï\›ØÙ\ÜË™[‹“ĞĞSTUOÜ]š›Ú[Š›ØÙ\ÜË™[‹“ĞĞSTUK”›ÙÜ˜[\È‹”]ÛˆŠNˆˆÚYŠØØ[›ÙÜ˜[\É‰™œË™^\İÔŞ[˜ÊØØ[›ÙÜ˜[\ÊJ]^Ù›ÜŠÛÛœİ[HÙˆœËœ™XY\”Ş[˜ÊØØ[›ÙÜ˜[\ÊKœÛÜ
-
-Kœ™]™\œÙJ
-J^ØÛÛœİ^O\]š›Ú[ŠØØ[›ÙÜ˜[\Ë[Kœ]Û‹™^HŠNÚYŠœË™^\İÔŞ[˜Ê^JJXØ[™Y]\Ëœ\Ú
-Ù^K×WJ__XØ]Úß\™]\›ˆØ[™Y]\ßB™[˜İ[Ûˆ™\ÛÛ™UÚ[™İÜÔ]ÛŠ
-^Ù›ÜŠÛÛœİØÛÛ[X[™\™Ü×HÙˆÚ[™İÜÔ]ÛØ[™Y]\Ê
-J^İ^ØÛÛœİ›Ø™O\Ü]Û”Ş[˜ÊÛÛ[X[™Ë‹‹˜\™ÜË‹K]™\œÚ[Ûˆ—KÜİ[ÎˆšYÛ›Ü™H‹Ú[™İÜÒYNYK[Y[İ]JNÚYŠ\›Ø™K™\œ›Ü‰‰œ›Ø™Kœİ]\ÏOOL
-\™]\›–ØÛÛ[X[™\™Ü×_XØ]Úß_\™]\›ˆ[B™[˜İ[Ûˆİ\œšYÙJ
-^Û]]ÛHœ]ÛŒÈ‹\™ÜÏV×NÚYŠ›ØÙ\ÜËœ]›Ü›OOOHÚ[ŒÌˆŠ^ØÛÛœİ™\ÛÛ™Y\™\ÛÛ™UÚ[™İÜÔ]ÛŠ
-NÚYŠ\™\ÛÛ™Y
-^ØÛÛœÛÛK™\œ›ÜŠ“ĞT”ÈÚ[™İÜÈœšYÙNˆ›È\ØX›H]Ûˆ[[YHØ\È›İ[™ˆŠNÜ™]\›ˆ˜[Ù_VÜ]Û‹\™Ü×O\™\ÛÛ™Y]^ØœšYÙT›ØÙ\ÜÏ\Ü]ÛŠ]Û‹Ë‹‹˜\™ÜËœšYÙJ
-WKØİÙœ›Ûİ
-
-Kİ[ÎˆšYÛ›Ü™H‹Ú[™İÜÒYNYK[Ë‹‹œ›ØÙ\ÜË™[‹ĞT”×ÑTÒÕÔĞTˆŒH‹ĞT”×ÑVPÕUP“Nœ›ØÙ\ÜË™[‹TSPQÑ_›ØÙ\ÜË™^XÔ]ĞT”×ÔT‘S•ÔQ”İš[™Ê›ØÙ\ÜËœY
-__JNØœšYÙT›ØÙ\ÜË›ÛŠ™\œ›Üˆ‹\œ›ÜO˜ÛÛœÛÛK™\œ›ÜŠ“ĞT”ÈœšYÙH›ØÙ\ÜÈ˜Z[YÈİ\ˆ‹\œ›ÜŠJNÜ™]\›ˆY_XØ]Ú
-\œ›ÜŠ^ØÛÛœÛÛK™\œ›ÜŠ“ĞT”ÈœšYÙH›ØÙ\ÜÈÛİ[›İ™HÜ™X]Yˆ‹\œ›ÜŠNØœšYÙT›ØÙ\ÜÏ[[Ü™]\›ˆ˜[Ù__B™[˜İ[Ûˆ™XYJ][\ÏN
-^Ü™]\›ˆ™]È›ÛZ\ÙJ™\ÛÛ™OOØÛÛœİÚXÚÏ[OØÛÛœİ™\OZ™Ù]
-š‹ËÌLËŒŒŒNÍKØ\KÚX[XÚXÚÈ‹™\ÏOÜ™\Ëœ™\İ[YJ
-NÜ™\ÛÛ™JYJ_JNÜ™\KœÙ][Y[İ]
-L
-
-OOœ™\K™\İ›ŞJ
-JNÜ™\K›ÛŠ™\œ›Üˆ‹
-
-OO›LÜ™\ÛÛ™J˜[ÙJNœÙ][Y[İ]
-
-
-OO˜ÚXÚÊ‹LJKL
-J_NØÚXÚÊ][\Ê_J_B™[˜İ[ÛˆÛÛ™šYİ\™T\›Z\ÜÚ[ÛœÊ
-^ØÛÛœİØ\œÓÜšYÚ[]˜[YOOİ^Ü™]\›ˆ™]ÈT“
-˜[Y_ˆŠKœ›İØÛÛOOH›Ø\œÎˆŸXØ]ÚÜ™]\›ˆ˜[Ù__NÜÙ\ÜÚ[Û‹™Y˜][Ù\ÜÚ[Û‹œÙ]\›Z\ÜÚ[ÛÚXÚÒ[™\Š
-İÙXÛÛ[Ë\›Z\ÜÚ[Û‹™\]Y\İ[™ÓÜšYÚ[‹]Z[ÊOOœ\›Z\ÜÚ[ÛOOH›YYXH‰‰›Ø\œÓÜšYÚ[Š™\]Y\İ[™ÓÜšYÚ[Ÿ]Z[ÏËœ™\]Y\İ[™Õ\›
-JNÜÙ\ÜÚ[Û‹™Y˜][Ù\ÜÚ[Û‹œÙ]\›Z\ÜÚ[Û”™\]Y\İ[™\Š
-İÙXÛÛ[Ë\›Z\ÜÚ[Û‹Ø[˜XÚË]Z[ÊOO˜Ø[˜XÚÊ\›Z\ÜÚ[ÛOOH›YYXH‰‰›Ø\œÓÜšYÚ[Š]Z[ÏËœ™\]Y\İ[™Õ\›
-JJ_B˜ÛÛœİİ\\]Y[Ğ›Ûİİ˜\X
-
-
-OOÚYŠÚ[™İË—×ÛØ\œÔ^Tİ\\Ûİ[™
-\™]\›Û]]Y[Ï[[Øš™Xİ\›IÉË^YYY˜[ÙNİÚ[™İË—×ÛØ\œÔ^Tİ\\Ûİ[™X\Ş[˜Ê›Ü˜ÙOY˜[ÙJOOØÛÛœİ\ÜÙ][™]ÈT“
-	Ø\ÜÙ]ËÜÛİ[™ËÜİÙ\‹]\›\ÉËÚ[™İË›ØØ][Û‹š™YŠKš™Yİ^ÚYŠ^YY	‰ˆY›Ü˜ÙJ\™]\›ÛÚÎYKİ]\Î‰ĞS‘PQHVQQ	ßNØÛÛœİ™YœÏR”ÓÓ‹œ\œÙJØØ[İÜ˜YÙK™Ù]][J	ÛØ\œË\Ú[\™YœÉÊ_	ŞßIÊNÚYŠY›Ü˜ÙI‰œ™YœËœİ\\Ûİ[™OOY˜[ÙJ\™]\›ÛÚÎYKİ]\Î‰ÑTĞP“Q	ßNÚYŠ›Ü˜ÙI‰˜]Y[Ê^Ø]Y[Ëœ]\ÙJ
-NØ]Y[Ë˜İ\œ™[[YOLZYŠX]Y[Ê^ØÛÛœİ™\ÜÛœÙOX]ØZ]™]Ú
-\ÜÙ]ØØXÚN‰Û›Ë\İÜ™IßJNÚYŠ\™\ÜÛœÙK›ÚÊ]›İÈ™]È\œ›ÜŠ	Ğ]Y[È\ÜÙ]™]\›™Y	ÊÜ™\ÜÛœÙKœİ]\ÊNØÛÛœİ›ØX]ØZ]™\ÜÛœÙK˜›ØŠ
-NÚYŠX›Ø‹\Kœİ\ÕÚ]
-	Ø]Y[ËÉÊJ]›İÈ™]È\œ›ÜŠ	Ğ]Y[È\ÜÙ]™]\›™Y	ÊÊ›Ø‹\_	Ø[ˆ[šÛ›İÛˆÛÛ[\IÊJNÛØš™Xİ\›UT“˜Ü™X]SØš™XİT“
-›ØŠNØ]Y[Ï[™]È]Y[ÊØš™Xİ\›
-NØ]Y[Ëœ™[ØYIØ]]ÉÎØ]Y[Ë›Û[YOKŸX]ØZ]]Y[Ëœ^J
-NÜ^YY]YNØÛÛœİ™\İ[^ÛÚÎYKİ]\Î‰ÔVRS‘ÉË\ÜÙ]İ]]˜]Y[ËœÚ[šÒY	ÔÖTÕSHQUS	ßNİÚ[™İË™\Ü]Ú]™[
-™]Èİ\İÛQ]™[
-	ÛØ\œË\İ\\X]Y[Ë\™\İ[	ËÙ]Z[œ™\İ[JJNÜ™]\›ˆ™\İ[XØ]Ú
-\œ›ÜŠ^ØÛÛœİ™\İ[^ÛÚÎ™˜[ÙKİ]\Î‰ÑRSQ	Ë\œ›Ü”İš[™Ê\œ›ÜŠK\ÜÙ]İ]]‰ÔÖTÕSHQUS	ßNİÚ[™İË™\Ü]Ú]™[
-™]Èİ\İÛQ]™[
-	ÛØ\œË\İ\\X]Y[Ë\™\İ[	ËÙ]Z[œ™\İ[JJNÜ™]\›ˆ™\İ[_NİÚ[™İË˜Y]™[\İ[™\Š	İ[›ØY	Ë
-
-OO›Øš™Xİ\›	‰•T“œ™]›ÚÙSØš™XİT“
-Øš™Xİ\›
-KÛÛ˜ÙNY_J_JJ
-XÂ™[˜İ[ÛˆÙXİ\™Q[X™YYœ›İÜÙ\ŠÜİ
-^ØÛÛœİØY™O]\›O‹×ŠÏÎ—×ßX›İ]˜›[šÊKÚK\İ
-\›
-NÚÜİ›ÛŠÚ[X]XÚ]ÙXšY]È‹
-]™[ÙX”™Y™\™[˜Ù\Ë\˜[\ÊOOÙ[]HÙX”™Y™\™[˜Ù\Ëœ™[ØYİÙX”™Y™\™[˜Ù\Ë››ÙR[YÜ˜][ÛY˜[ÙNİÙX”™Y™\™[˜Ù\Ë˜ÛÛ^\ÛÛ][Û]YNİÙX”™Y™\™[˜Ù\ËœØ[™›Ş]YNÚYŠ\ØY™J\˜[\ËœÜ˜ÊJY]™[œ™]™[Y˜][
-
-_JNÚÜİ›ÛŠ™YX]XÚ]ÙXšY]È‹
-Ù]™[İY\İ
-OOÙİY\İœÙ]Ú[™İÓÜ[’[™\Š
-İ\›JOOÚYŠØY™J\›
-J\Ù][Y[İ]
-
-
-OO™İY\İ›ØYT“
-\›
-K˜Ø]Ú
-
-
-OOßJK
-NÜ™]\›ØXİ[Ûˆ™[HŸ_JNÙİY\İ›ÛŠÚ[[˜]šYØ]H‹
-]™[\›
-OOÚYŠ\ØY™J\›
-JY]™[œ™]™[Y˜][
-
-_J_J_B˜\›ÛŠÙX‹XÛÛ[ËXÜ™X]Y‹
-Ù]™[ÛÛ[ÊOOœÙXİ\™Q[X™YYœ›İÜÙ\ŠÛÛ[ÊJNÂ™[˜İ[ÛˆÜ™X]UÚ[™İÊİ\›Z[˜[Y˜[ÙK\Ü^OHˆ‹ÜÚ][ÛHˆ‹ØY™OY˜[ÙKÚ[ÜÚÏY˜[ÙKØ\œÔÙ\ÜÚ[ÛY˜[Ù_O^ßJ^ØÛÛœİXÛÛX\š\ÔXÚØYÙYÜ]š›Ú[Š›ØÙ\ÜËœ™\Ûİ\˜Ù\Ô]šXÛÛœÈ‹›ØÙ\ÜËœ]›Ü›OOOHÚ[ŒÌˆÈ›Ø\œËXÛÛ[X[™Z[\™˜XÙKšXÛÈˆ›Ø\œËXÛÛ[X[™Z[\™˜XÙKœ™ÈŠNœ]š›Ú[Š›Ûİ
-
-K™\ÚİÜÚXÛÛœËÍLLLL‹œ™ÈŠNØÛÛœİÚ[\ÜÚ][Û‹œÜ]
-‹ŠK›X\
-[X™\ŠNØÛÛœİ\™Ù]\Ú[›[™İOOL‰‰œÚ[™]™\J[X™\‹š\Ñš[š]JOÜØÜ™Y[‹™Ù]\Ü^S™X\™\İÚ[
-ŞœÚ[ÌKNœÚ[ÌW_JNœØÜ™Y[‹™Ù][\Ü^\Ê
-K™š[™
-O™›X™[OOY\Ü^_šYOOS[X™\Š\Ü^JJNØÛÛœİÜ[ÛœÏ^İ]N\›Z[˜[È“ĞT”È™[[İH\›Z[˜[ˆ“ĞT”ÈÛÛ[X[™[\™˜XÙH‹˜XÚÙÜ›İ[™ÛÛÜˆˆÌ‹[ØÜ™Y[YK]]ÒYSY[P˜\YKÚİÎ™˜[ÙKXÛÛ‹ÙX”™Y™\™[˜Ù\ÎØÛÛ^\ÛÛ][ÛYK›ÙR[YÜ˜][Û™˜[ÙKØ[™›ŞYKÙXšY]ÕYÎY__NÚYŠ\™Ù]
-[Ü[ÛœË˜›İ[™Ï]\™Ù]˜›İ[™ÎØÛÛœİÚ[[™]Èœ›İÜÙ\•Ú[™İÊÜ[ÛœÊNİÚ[™İÜË˜Y
-Ú[ŠNÚYŠ[XZ[•Ú[™İÊ[XZ[•Ú[™İÏ]Ú[İÚ[‹œ™[[İ™SY[J
-NÚYŠ\™Ù]
-]Ú[‹œÙ]›İ[™Ê\™Ù]˜›İ[™ÊNİÚ[‹ÙXÛÛ[Ë›ÛŠ™YYš[š\Ú[ØY‹
-
-OOÚ[‹ÙXÛÛ[Ë™^Xİ]R˜]˜TØÜš\
-İ\\]Y[Ğ›Ûİİ˜\
-K˜Ø]Ú
-
-
-OOßJJNİÚ[‹›Û˜ÙJœ™XYK]Ë\ÚİÈ‹
-
-OOİÚ[‹œÚİÊ
-NİÚ[‹œÙ][ØÜ™Y[ŠYJNÚYŠ]\›Z[˜[
-\Ù][Y[İ]
-
-
-OOÚ[‹ÙXÛÛ[Ë™^Xİ]R˜]˜TØÜš\
-Ú[™İË—×ÛØ\œÔ^Tİ\\Ûİ[™ËŠ
-HŠK˜Ø]Ú
-
-
-OOßJKL
-_JNİÚ[‹ÙXÛÛ[ËœÙ]Ú[™İÓÜ[’[™\Š
-İ\›JOOÚYŠ\›œİ\ÕÚ]
-›Ø\œÎ‹ËØ\ÈŠJ\™]\›ØXİ[Ûˆ˜[İÈ‹İ™\œšYPœ›İÜÙ\•Ú[™İÓÜ[ÛœÎİ]Nˆ“ĞT”È]XÚYÛÜšÜÜXÙH‹˜XÚÙÜ›İ[™ÛÛÜˆˆÌ‹]]ÒYSY[P˜\YKÚYŒLŒZYÚXÛÛ‹ÙX”™Y™\™[˜Ù\ÎØÛÛ^\ÛÛ][ÛYK›ÙR[YÜ˜][Û™˜[ÙKØ[™›ŞYKÙXšY]ÕYÎY___NÚYŠ×šÏÎ‹ÚK\İ
-\›
-J\Ú[›Ü[‘^\›˜[
-\›
-NÜ™]\›ØXİ[Ûˆ™[HŸ_JNİÚ[‹ÙXÛÛ[Ë›ÛŠÚ[[˜]šYØ]H‹
-K\›
-OOÚYŠ]\›œİ\ÕÚ]
-›Ø\œÎ‹ËØ\ÈŠJYKœ™]™[Y˜][
-
-_JNİÚ[‹ÙXÛÛ[Ë›ÛŠ˜™Y›Ü™KZ[œ]Y]™[‹
-K[œ]
-OOÚYŠ[œ]šÙ^OOOH‘ŒLH‰‰š[œ]\OOOHšÙ^QİÛˆŠ^İÚ[‹œÙ][ØÜ™Y[Š]Ú[‹š\Ñ[ØÜ™Y[Š
-JNÙKœ™]™[Y˜][
-
-__JNİÚ[‹ÙXÛÛ[Ë›ÛŠœ™[™\‹\›ØÙ\ÜËYÛÛ™H‹™XÛİ™\ŠNİÚ[‹›ÛŠ˜ÛÜÙY‹
-
-OOİÚ[™İÜË™[]JÚ[ŠNÚYŠÚ[OO[XZ[•Ú[™İÊ[XZ[•Ú[™İÏ]Ú[™İÜË˜[Y\Ê
-K›™^
-
-K˜[Y_[JNØÛÛœİ]Y\O[™]ÈT“ÙX\˜Ú\˜[\Ê
-NÚYŠ\›Z[˜[
-\]Y\KœÙ]
-œÙXİ[Ûˆ‹\›Z[˜[ŠNÚYŠØY™J\]Y\KœÙ]
-œØY™H‹ŒHŠNÚYŠÚ[ÜÚÊ\]Y\KœÙ]
-šÚ[ÜÚÈ‹ŒHŠNÚYŠØ\œÔÙ\ÜÚ[ÛŠ\]Y\KœÙ]
-›Ø\œË\Ù\ÜÚ[Ûˆ‹ŒHŠNİÚ[‹›ØYT“
-›Ø\œÎ‹ËØ\Ú[™^š[ŠÊ]Y\KœÚ^™OÈÈŠÜ]Y\KÔİš[™Ê
-NˆˆŠJNÜ™]\›ˆÚ[ŸB˜ÛÛœİØ\œÓZ[YO^È‹š[ˆ^Ú[ÈÚ\œÙ]]]‹N‹‹šœÈˆ^Ú˜]˜\ØÜš\ÈÚ\œÙ]]]‹N‹‹˜ÜÜÈˆ^ØÜÜÎÈÚ\œÙ]]]‹N‹‹šœÛÛˆˆ˜\XØ][Û‹ÚœÛÛÈÚ\œÙ]]]‹N‹‹œ™Èˆš[XYÙKÜ™È‹‹šœÈˆš[XYÙKÚœYÈ‹‹šœYÈˆš[XYÙKÚœYÈ‹‹œİ™Èˆš[XYÙKÜİ™ÊŞ[‹‹šXÛÈˆš[XYÙKŞZXÛÛˆ‹‹›\Èˆ˜]Y[ËÛ\YÈ‹‹Ø]ˆˆ˜]Y[ËİØ]ˆ‹‹›ÙÙÈˆ˜]Y[ËÛÙÙÈ‹‹ÛÙ™ˆˆ™›ÛİÛÙ™ˆ‹‹ÛÙ™Œˆˆ™›ÛİÛÙ™ŒˆŸNÂ™[˜İ[Ûˆ›İØÛÛ[™\Š
-^ØÛÛœİ\\]š›Ú[Š\™Ù]\]
-
-K™\ÚİÜY\İŠNÜ›İØÛÛš[™J›Ø\œÈ‹™\]Y\İOØÛÛœİ\›[™]ÈT“
-™\]Y\İ\›
-K™\]Y\İYYXÛÙUT’PÛÛ\Û™[
-\›œ]˜[YOOOH‹ÈÈ‹Ú[™^š[\›œ]˜[YJK™\ÛÛ™Y\]œ™\ÛÛ™J\‹‰Ü™\]Y\İYX
-K™[]]™O\]œ™[]]™J\‹™\ÛÛ™Y
-K[œÚYO\™[]]™I‰ˆ\™[]]™Kœİ\ÕÚ]
-‹‹ˆŠI‰ˆ\]š\ĞXœÛÛ]J™[]]™JNÛ]\™Ù]Z[œÚYI‰™œË™^\İÔŞ[˜Ê™\ÛÛ™Y
-I‰™œËœİ]Ş[˜Ê™\ÛÛ™Y
-Kš\Ñš[J
-OÜ™\ÛÛ™Y›[ÚYŠ]\™Ù]	‰Š\]™^˜[YJ™\]Y\İY
-_]™^˜[YJ™\]Y\İY
-OOOH‹š[ŠJ]\™Ù]\]š›Ú[Š\‹š[™^š[ŠNÚYŠ]\™Ù]
-\™]\›ˆ™]È™\ÜÛœÙJ“ĞT”È\ÜÙ]›İ›İ[™‹Üİ]\ÎXY\œÎÈÛÛ[U\Hˆ^ÜZ[ÈÚ\œÙ]]]‹NŸ_JNÜ™]\›ˆ™]È™\ÜÛœÙJœËœ™XYš[TŞ[˜Ê\™Ù]
-KÜİ]\ÎŒŒXY\œÎÈÛÛ[U\H›Ø\œÓZ[YVÜ]™^˜[YJ\™Ù]
-KÓİÙ\Ø\ÙJ
-W_˜\XØ][Û‹ÛØİ]\İ™X[H‹ØXÚKPÛÛ›Û˜\š\ÔXÚØYÙYÈœX›XËX^XYÙOLÌMLÍŒ[[]]X›Hˆ››ËXØXÚH‹XØÙ\T˜[™Ù\Èˆ˜]\ÈŸ_J_J_B˜ÛÛœİ\œÙS][˜ÚX\™ÜÏOŠİ\›Z[˜[˜\™ÜËš[˜ÛY\Ê‹K[Ø\œË]\›Z[˜[ŠKØY™N˜\™ÜËš[˜ÛY\Ê‹K[Ø\œË\ØY™HŠKÚ[ÜÚÎ˜\™ÜËš[˜ÛY\Ê‹K[Ø\œËZÚ[ÜÚÈŠKØ\œÔÙ\ÜÚ[Û˜\™ÜËš[˜ÛY\Ê‹K[Ø\œË\Ù\ÜÚ[ÛˆŠK\Ü^NŠ\™ÜË™š[™
-Oœİ\ÕÚ]
-‹KY\Ü^OHŠJ_ˆŠKœÛXÙJL
-KÜÚ][ÛŠ\™ÜË™š[™
-Oœİ\ÕÚ]
-‹K\ÜÚ][ÛHŠJ_ˆŠKœÛXÙJLJ_JNØÛÛœİØÚÏX\œ™\]Y\İÚ[™ÛR[œİ[˜ÙSØÚÊ
-NÚYŠ[ØÚÊX\œ]Z]
-
-NÙ[Ù^Ø\›ÛŠœÙXÛÛ™Z[œİ[˜ÙH‹
-Ù]™[\™İŠOOØÛÛœİ™\]Y\İ\\œÙS][˜Ú
-\™İŠNÚYŠ™\]Y\İ\›Z[˜[
-XÜ™X]UÚ[™İÊ™\]Y\İ
-NÙ[ÙHYŠXZ[•Ú[™İÊ^ÚYŠXZ[•Ú[™İËš\ÓZ[š[Z^™Y
-
-J[XZ[•Ú[™İËœ™\İÜ™J
-NÛXZ[•Ú[™İË™›Øİ\Ê
-__JNØ\Ú[”™XYJ
-K[Š\Ş[˜Ê
-OOÜ›İØÛÛ[™\Š
-NØÛÛ™šYİ\™T\›Z\ÜÚ[ÛœÊ
-NØ]ØZ]Ù\ÜÚ[Û‹™Y˜][Ù\ÜÚ[Û‹˜ÛX\ØXÚJ
-NÜ™XÛİ™\Š
-NÜİ\œšYÙJ
-NØ]ØZ]™XYJ
-NØÛÛœİ™\]Y\İ\\œÙS][˜Ú
-›ØÙ\ÜË˜\™İŠNÚYŠ™\]Y\İšÚ[ÜÚÊY™]Ú
-š‹ËÌLËŒŒŒNÍKØ\KØXİ[Ûˆ‹ÛY]Ùˆ”ÔÕ‹XY\œÎÈÛÛ[U\Hˆ˜\XØ][Û‹ÚœÛÛˆŸK›ÙN’”ÓÓ‹œİš[™ÚYJØXİ[ÛˆœÚ[[[ÙK[ÛˆŸJ_JK˜Ø]Ú
-
-
-OOßJNØÜ™X]UÚ[™İÊ™\]Y\İ
-_JNØ\›ÛŠ˜™Y›Ü™K\]Z]‹
-
-OOÜ™XÛİ™\Š
-NÚYŠœšYÙT›ØÙ\ÜÉ‰ˆXœšYÙT›ØÙ\ÜËšÚ[Y
-XœšYÙT›ØÙ\ÜËšÚ[
-”ÒQÕT“HŠ_JNØ\›ÛŠÚ[™İËX[XÛÜÙY‹
-
-OO˜\œ]Z]
-
-J_B
+const { app, BrowserWindow, protocol, net, shell, session, screen } = require("electron");
+app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
+const { spawn, spawnSync } = require("node:child_process");
+const fs = require("node:fs");
+const path = require("node:path");
+const http = require("node:http");
+protocol.registerSchemesAsPrivileged([{scheme:"lcars",privileges:{standard:true,secure:true,supportFetchAPI:true}}]);
+let mainWindow=null,bridgeProcess=null,windows=new Set();
+app.setName("LCARS Command Interface");
+if(process.platform==="win32")app.setAppUserModelId("com.lcars.commandinterface");
+if(process.platform==="linux")app.commandLine.appendSwitch("class","lcars-command-interface");
+const root=()=>app.isPackaged?process.resourcesPath:path.resolve(__dirname,"..");
+const bridge=()=>app.isPackaged?path.join(process.resourcesPath,"bridge",process.platform==="win32"?"lcars_bridge_windows.py":"lcars_bridge_linux.py"):path.join(root(),process.platform==="win32"?"windows/lcars_bridge_windows.py":"local/lcars_bridge.py");
+const recovery=()=>app.isPackaged?path.join(process.resourcesPath,"recovery","lcars-recovery.sh"):path.join(root(),"local/lcars-recovery.sh");
+function recover(){if(process.platform!=="linux"||!fs.existsSync(recovery()))return;try{const p=spawn("bash",[recovery()],{stdio:"ignore",detached:true,env:{...process.env,LCARS_RECOVERY_SILENT:"1"}});p.unref()}catch{}}
+function windowsPythonCandidates(){const candidates=[["py",["-3"]],["python",[]],["python3",[]]];const localPrograms=process.env.LOCALAPPDATA?path.join(process.env.LOCALAPPDATA,"Programs","Python"):"";if(localPrograms&&fs.existsSync(localPrograms))try{for(const entry of fs.readdirSync(localPrograms).sort().reverse()){const exe=path.join(localPrograms,entry,"python.exe");if(fs.existsSync(exe))candidates.push([exe,[]])}}catch{}return candidates}
+function resolveWindowsPython(){for(const [command,args] of windowsPythonCandidates()){try{const probe=spawnSync(command,[...args,"--version"],{stdio:"ignore",windowsHide:true,timeout:4000});if(!probe.error&&probe.status===0)return[command,args]}catch{}}return null}
+function startBridge(){let python="python3",args=[];if(process.platform==="win32"){const resolved=resolveWindowsPython();if(!resolved){console.error("LCARS Windows bridge: no usable Python runtime was found.");return false}[python,args]=resolved}try{bridgeProcess=spawn(python,[...args,bridge()],{cwd:root(),stdio:"ignore",windowsHide:true,env:{...process.env,LCARS_DESKTOP_APP:"1",LCARS_EXECUTABLE:process.env.APPIMAGE||process.execPath,LCARS_PARENT_PID:String(process.pid)}});bridgeProcess.on("error",error=>console.error("LCARS bridge process failed to start:",error));return true}catch(error){console.error("LCARS bridge process could not be created:",error);bridgeProcess=null;return false}}
+function ready(attempts=80){return new Promise(resolve=>{const check=n=>{const req=http.get("http://127.0.0.1:8765/api/health-check",res=>{res.resume();resolve(true)});req.setTimeout(250,()=>req.destroy());req.on("error",()=>n<=0?resolve(false):setTimeout(()=>check(n-1),100))};check(attempts)})}
+function configurePermissions(){const lcarsOrigin=value=>{try{return new URL(value||"").protocol==="lcars:"}catch{return false}};session.defaultSession.setPermissionCheckHandler((_webContents,permission,requestingOrigin,details)=>permission==="media"&&lcarsOrigin(requestingOrigin||details?.requestingUrl));session.defaultSession.setPermissionRequestHandler((_webContents,permission,callback,details)=>callback(permission==="media"&&lcarsOrigin(details?.requestingUrl)))}
+const startupAudioBootstrap=`(()=>{if(window.__lcarsPlayStartupSound)return;let audio=null,objectUrl='',played=false;window.__lcarsPlayStartupSound=async(force=false)=>{const asset=new URL('assets/sounds/power-up.mp3',window.location.href).href;try{if(played&&!force)return{ok:true,status:'ALREADY PLAYED'};const prefs=JSON.parse(localStorage.getItem('lcars-shell-prefs')||'{}');if(!force&&prefs.startupSound===false)return{ok:true,status:'DISABLED'};if(force&&audio){audio.pause();audio.currentTime=0}if(!audio){const response=await fetch(asset,{cache:'no-store'});if(!response.ok)throw new Error('Audio asset returned HTTP '+response.status);const blob=await response.blob();if(!blob.type.startsWith('audio/'))throw new Error('Audio asset returned '+(blob.type||'an unknown content type'));objectUrl=URL.createObjectURL(blob);audio=new Audio(objectUrl);audio.preload='auto';audio.volume=.42}await audio.play();played=true;const result={ok:true,status:'PLAYING',asset,output:audio.sinkId||'SYSTEM DEFAULT'};window.dispatchEvent(new CustomEvent('lcars-startup-audio-result',{detail:result}));return result}catch(error){const result={ok:false,status:'FAILED',error:String(error),asset,output:'SYSTEM DEFAULT'};window.dispatchEvent(new CustomEvent('lcars-startup-audio-result',{detail:result}));return result}};window.addEventListener('unload',()=>objectUrl&&URL.revokeObjectURL(objectUrl),{once:true})})()`;
+function secureEmbeddedBrowser(host){const safe=url=>/^(https?:\/\/|about:blank)/i.test(url);host.on("will-attach-webview",(event,webPreferences,params)=>{delete webPreferences.preload;webPreferences.nodeIntegration=false;webPreferences.contextIsolation=true;webPreferences.sandbox=true;if(!safe(params.src))event.preventDefault()});host.on("did-attach-webview",(_event,guest)=>{guest.setWindowOpenHandler(({url})=>{if(safe(url))setTimeout(()=>guest.loadURL(url).catch(()=>{}),0);return{action:"deny"}});guest.on("will-navigate",(event,url)=>{if(!safe(url))event.preventDefault()})})}
+app.on("web-contents-created",(_event,contents)=>secureEmbeddedBrowser(contents));
+function createWindow({terminal=false,display="",position="",safe=false,kiosk=false,lcarsSession=false}={}){const icon=app.isPackaged?path.join(process.resourcesPath,"icons",process.platform==="win32"?"lcars-command-interface.ico":"lcars-command-interface.png"):path.join(root(),"desktop/icons/512x512.png");const point=position.split(",").map(Number);const target=point.length===2&&point.every(Number.isFinite)?screen.getDisplayNearestPoint({x:point[0],y:point[1]}):screen.getAllDisplays().find(d=>d.label===display||d.id===Number(display));const options={title:terminal?"LCARS Remote Terminal":"LCARS Command Interface",backgroundColor:"#000",fullscreen:true,autoHideMenuBar:true,show:false,icon,webPreferences:{contextIsolation:true,nodeIntegration:false,sandbox:true,webviewTag:true}};if(target)options.bounds=target.bounds;const win=new BrowserWindow(options);windows.add(win);if(!mainWindow)mainWindow=win;win.removeMenu();if(target)win.setBounds(target.bounds);win.webContents.on("did-finish-load",()=>win.webContents.executeJavaScript(startupAudioBootstrap).catch(()=>{}));win.once("ready-to-show",()=>{win.show();win.setFullScreen(true);if(!terminal)setTimeout(()=>win.webContents.executeJavaScript("window.__lcarsPlayStartupSound?.()").catch(()=>{}),450)});win.webContents.setWindowOpenHandler(({url})=>{if(url.startsWith("lcars://app/"))return{action:"allow",overrideBrowserWindowOptions:{title:"LCARS Detached Workspace",backgroundColor:"#000",autoHideMenuBar:true,width:1200,height:800,icon,webPreferences:{contextIsolation:true,nodeIntegration:false,sandbox:true,webviewTag:true}}};if(/^https?:/i.test(url))shell.openExternal(url);return{action:"deny"}});win.webContents.on("will-navigate",(e,url)=>{if(!url.startsWith("lcars://app/"))e.preventDefault()});win.webContents.on("before-input-event",(e,input)=>{if(input.key==="F11"&&input.type==="keyDown"){win.setFullScreen(!win.isFullScreen());e.preventDefault()}});win.webContents.on("render-process-gone",recover);win.on("closed",()=>{windows.delete(win);if(win===mainWindow)mainWindow=windows.values().next().value||null});const query=new URLSearchParams();if(terminal)query.set("section","terminal");if(safe)query.set("safe","1");if(kiosk)query.set("kiosk","1");if(lcarsSession)query.set("lcars-session","1");win.loadURL("lcars://app/index.html"+(query.size?"?"+query.toString():""));return win}
+const lcarsMime={".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".json":"application/json; charset=utf-8",".png":"image/png",".jpg":"image/jpeg",".jpeg":"image/jpeg",".svg":"image/svg+xml",".ico":"image/x-icon",".mp3":"audio/mpeg",".wav":"audio/wav",".ogg":"audio/ogg",".woff":"font/woff",".woff2":"font/woff2"};
+function protocolHandler(){const dir=path.join(app.getAppPath(),"desktop-dist");protocol.handle("lcars",request=>{const url=new URL(request.url),requested=decodeURIComponent(url.pathname==="/"?"/index.html":url.pathname),resolved=path.resolve(dir,`.${requested}`),relative=path.relative(dir,resolved),inside=relative&&!relative.startsWith("..")&&!path.isAbsolute(relative);let target=inside&&fs.existsSync(resolved)&&fs.statSync(resolved).isFile()?resolved:null;if(!target&&(!path.extname(requested)||path.extname(requested)===".html"))target=path.join(dir,"index.html");if(!target)return new Response("LCARS asset not found",{status:404,headers:{"Content-Type":"text/plain; charset=utf-8"}});return new Response(fs.readFileSync(target),{status:200,headers:{"Content-Type":lcarsMime[path.extname(target).toLowerCase()]||"application/octet-stream","Cache-Control":app.isPackaged?"public, max-age=31536000, immutable":"no-cache","Accept-Ranges":"bytes"}})})}
+const parseLaunch=args=>({terminal:args.includes("--lcars-terminal"),safe:args.includes("--lcars-safe"),kiosk:args.includes("--lcars-kiosk"),lcarsSession:args.includes("--lcars-session"),display:(args.find(x=>x.startsWith("--display="))||"").slice(10),position:(args.find(x=>x.startsWith("--position="))||"").slice(11)});const lock=app.requestSingleInstanceLock();if(!lock)app.quit();else{app.on("second-instance",(_event,argv)=>{const request=parseLaunch(argv);if(request.terminal)createWindow(request);else if(mainWindow){if(mainWindow.isMinimized())mainWindow.restore();mainWindow.focus()}});app.whenReady().then(async()=>{protocolHandler();configurePermissions();await session.defaultSession.clearCache();recover();startBridge();await ready();const request=parseLaunch(process.argv);if(request.kiosk)fetch("http://127.0.0.1:8765/api/action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"shell-mode-on"})}).catch(()=>{});createWindow(request)});app.on("before-quit",()=>{recover();if(bridgeProcess&&!bridgeProcess.killed)bridgeProcess.kill("SIGTERM")});app.on("window-all-closed",()=>app.quit())}

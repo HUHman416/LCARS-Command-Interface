@@ -1,55 +1,59 @@
-Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^þËZ®Èb§û²È¨Ÿm;óÍ¼ï¯7Ûž;ÞZ :Ç(uíô’)ÝEæ:yr)^³+-ziž²Æ yšv‰åÉø¥zÌ¬µéš[\Ü\ÜÙ\œ›ÛH››ÙN˜\ÜÙ\ÜÝšXÝŽÂš[\ÜÈ™XYš[HHœ›ÛH››ÙN™œËÜ›ÛZ\Ù\ÈŽÂš[\Ü\Ýœ›ÛH››ÙN\ÝŽÂš[\ÜÈÛ\ÜÚYžSØØ[YYXK]XÝœ›ÝÜÙ\\XØ][ÛœË™XÛÛ[Y[™ÛÛ[][T›ÛHHœ›ÛH‹‹‹Ø\ÝŒÌXÛÛ[][KÈŽÂ‚˜ÛÛœÝÛÝ\˜ÙOJ]
-OOœ™XYš[J™]ÈT“
-][\Ü›Y]K\›
-K]ŽŠNÂ‚\Ý
-˜œ›ÝÜÙ\ˆ\ØÛÝ™\žHš[™ÈÛ›ÝÛˆœ›ÝÜÙ\œÈÚ]Ý]ÛÛ™\Ú[™ÈÜ™[˜\žH\XØ][ÛœÈ‹
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+import { classifyLocalMedia, detectBrowserApplications, recommendContinuumRole } from "../app/v30-continuum.ts";
 
-OOžÂˆÛÛœÝ\ÏVÂˆÚYˆ›Ü™Ë›[Þš[K™š\™Y›Þ™\ÚÝÜ‹˜[YNˆ‘š\™Y›Þ‹ÛÛ[Y[ˆ•ÙXˆœ›ÝÜÙ\ˆŸKˆÚYˆ˜ÛÛK›Ü\˜K“Ü\˜K™\ÚÝÜ‹˜[YNˆ“Ü\˜HÖ‹ÛÛ[Y[ˆœ›ÝÜÙ\ˆŸKˆÚYˆ›Ü™ËšÙK™Û[‹™\ÚÝÜ‹˜[YNˆ‘š[\È‹ÛÛ[Y[ˆ‘š[HX[˜YÙ\ˆŸKˆNÂˆ\ÜÙ\™Y\\]X[
-]XÝœ›ÝÜÙ\\XØ][ÛœÊ\ÊK›X\
+const source=(path)=>readFile(new URL(path,import.meta.url),"utf8");
 
-\
-OO˜\›˜[YJKÈ‘š\™Y›Þ‹“Ü\˜HÖ—JNÂŸJNÂ‚\Ý
-›ØØ[YYXHÛ\ÜÚYšY\ˆÛÝ™\œÈÛÛ[[Ûˆ[™^[™YÜ\˜][™Ë\Þ\Ý[H›Ü›X]È‹
+test("browser discovery finds known browsers without confusing ordinary applications",()=>{
+  const apps=[
+    {id:"org.mozilla.firefox.desktop",name:"Firefox",comment:"Web Browser"},
+    {id:"com.opera.Opera.desktop",name:"Opera GX",comment:"Browser"},
+    {id:"org.kde.dolphin.desktop",name:"Files",comment:"File Manager"},
+  ];
+  assert.deepEqual(detectBrowserApplications(apps).map((app)=>app.name),["Firefox","Opera GX"]);
+});
 
-OOžÂˆ\ÜÙ\™\]X[
-Û\ÜÚYžSØØ[YYXJ›Z\ÜÚ[Û‹›\ÈŠK˜]Y[ÈŠNÂˆ\ÜÙ\™\]X[
-Û\ÜÚYžSØØ[YYXJ›Z\ÜÚ[Û‹™›XÈŠK˜]Y[ÈŠNÂˆ\ÜÙ\™\]X[
-Û\ÜÚYžSØØ[YYXJ˜œšYYš[™Ë›\ŠKšY[ÈŠNÂˆ\ÜÙ\™\]X[
-Û\ÜÚYžSØØ[YYXJ˜œšYYš[™Ë›ZÝˆŠKšY[ÈŠNÂˆ\ÜÙ\™\]X[
-Û\ÜÚYžSØØ[YYXJ[šÛ›ÝÛ‹˜š[ˆŠK[
-NÂˆ\ÜÙ\™\]X[
-Û\ÜÚYžSØØ[YYXJœÝ™X[H‹šY[ËÜ]ZXÚÝ[YHŠKšY[ÈŠNÂŸJNÂ‚\Ý
-ÛÛ[][H™XÛÛ[Y[™][ÛœÈ™XXÝÈÝ][Û‹ÜšY[][Û‹\Ü^K[™ØÚÈÝ]H‹
+test("local media classifier covers common and extended operating-system formats",()=>{
+  assert.equal(classifyLocalMedia("mission.mp3"),"audio");
+  assert.equal(classifyLocalMedia("mission.flac"),"audio");
+  assert.equal(classifyLocalMedia("briefing.mp4"),"video");
+  assert.equal(classifyLocalMedia("briefing.mkv"),"video");
+  assert.equal(classifyLocalMedia("unknown.bin"),null);
+  assert.equal(classifyLocalMedia("stream","video/quicktime"),"video");
+});
 
-OOžÂˆ\ÜÙ\™\]X[
-™XÛÛ[Y[™ÛÛ[][T›ÛJßJKš[™[ZÛYHŠNÂˆ\ÜÙ\™\]X[
-™XÛÛ[Y[™ÛÛ[][T›ÛJÜÝ][ÛÛÛ›™XÝYYK[™ØØ\NY_JK™\ÚÝÜXÛÛ\[š[ÛˆŠNÂˆ\ÜÙ\™\]X[
-™XÛÛ[Y[™ÛÛ[][T›ÛJÜÝ][ÛÛÛ›™XÝYYK^\›˜[\Ü^NY_JKœÞ\Ý[K[[Ûš]ÜˆŠNÂˆ\ÜÙ\™\]X[
-™XÛÛ[Y[™ÛÛ[][T›ÛJÙ^\›˜[\Ü^NYKØÚÙYYK\™ÙTØÜ™Y[ŽY_JK™ØÚÙYXÛÛ[X[™\Ý][ÛˆŠNÂˆ\ÜÙ\™\]X[
-™XÛÛ[Y[™ÛÛ[][T›ÛJÜ™\Ù[[™ÎYKÝ][ÛÛÛ›™XÝYY_JKœ™\Ù[][Û‹XÛÛ›Û\ˆŠNÂŸJNÂ‚\Ý
-•™\œÚ[ÛˆÌŽÛÛ›™XÝÈœ›ÝÜÙ\ˆÝ][Û‹[YÜ˜]Yš[HÝ™X[Z[™Ë[ÛÛ[][H›Û\Ë[™™[X\ÙHXÚØYÚ[™È‹\Þ[˜Ê
-OOžÂˆÛÛœÝÜYÙK\ÚÝÜÝ[\Ë[^Ú[™ÝÜËÛYKÛÛ\[š[Û‹YÛÜšÙ›ÝËÙËÜ˜YWOX]ØZ]›ÛZ\ÙK˜[
-ÂˆÛÝ\˜ÙJ‹‹‹Ø\ÜYÙKÞŠKÛÝ\˜ÙJ‹‹‹Ù\ÚÝÜÛXZ[‹˜ÚœÈŠKÛÝ\˜ÙJ‹‹‹Ø\ÙÛØ˜[Ë˜ÜÜÈŠKÛÝ\˜ÙJ‹‹‹ÛØØ[ÛØ\œ×ØœšYÙKœHŠKÛÝ\˜ÙJ‹‹‹ÝÚ[™ÝÜËÛØ\œ×ØœšYÙWÝÚ[™ÝÜËœHŠKÛÝ\˜ÙJ‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÒÛYPXÝ]š]Kš˜]˜HŠKÛÝ\˜ÙJ‹‹‹Û[Øš[KØ[™›ÚYØ\ÜÜ˜ËÛXZ[‹Ú˜]˜KØÛÛKÛØ\œËÜYÐÛÛ\[š[Û‘ØÚËš˜]˜HŠKÛÝ\˜ÙJ‹‹‹ÜÚ\™YÛØ\œ×ÜYœHŠKÛÝ\˜ÙJ‹‹‹Ë™Ú]X‹ÝÛÜšÙ›ÝÜËÝŒÌY]™[ÜY[ž[[ŠKÛÝ\˜ÙJ‹‹‹ÜXÚØYÙKšœÛÛˆŠKÛÝ\˜ÙJ‹‹‹Û[Øš[KØ[™›ÚYØ\ØZ[™Ü˜YHŠKˆJNÂˆ›ÜŠÛÛœÝÚÙ[ˆÙˆÈ”“ÕÔÑTˆÕUSÓˆ‹˜œ›ÝÜÙ\”ÚYX˜\‘[˜X›Y‹œ™Y™\œ™Yœ›ÝÜÙ\’Y‹ÕTÕÓHVT“S”“ÕÔÑTˆ‹œ\œÚ\Ý›Ø\œËXœ›ÝÜÙ\ˆ‹“ÔSˆSˆVT“S‹›Ü[“YYXO^Êš[KÚ[™
-H‹‹Ø\KÛYYXKYš[H‹”ÖTÕSHVQTˆ—JX\ÜÙ\›ÚÊYÙKš[˜ÛY\ÊÚÙ[ŠKÚÙ[ŠNÂˆ\ÜÙ\›X]Ú
-\ÚÝÜÝÙXšY]ÕYÎYKÊNÂˆ\ÜÙ\›X]Ú
-\ÚÝÜÜÙXÝ\™Q[X™YYœ›ÝÜÙ\‹ÊNÂˆ\ÜÙ\›X]Ú
-Ý[\Ë×œYÙKXœ›ÝÜÙ\—ÛÝ™\™›ÝË^N˜]]ËÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-YÙK×È¸¥áˆ—ÊŽ—ÊˆŒH‹ÊNÂˆ›ÜŠÛÛœÝœšYÙHÙˆÛ[^Ú[™ÝÜ×J^Ø\ÜÙ\›X]Ú
-œšYÙKÙYˆÙ[™ÛYYXWÙš[KÊNØ\ÜÙ\›X]Ú
-œšYÙKÐXØÙ\T˜[™Ù\ËÊNØ\ÜÙ\›X]Ú
-œšYÙKÐÛÛ[T˜[™ÙKÊNßBˆ›ÜŠÛÛœÝ›ÛHÙˆÈš[™[ZÛYH‹™\ÚÝÜXÛÛ\[š[Ûˆ‹›YYXKXÛÛ›Û\ˆ‹˜ÛÛ[][šXØ][ÛœË\[™[‹››ÝYšXØ][Û‹XÛÛœÛÛH‹œÞ\Ý[K[[Ûš]Üˆ‹œ™\Ù[][Û‹XÛÛ›Û\ˆ‹™ØÚÙYXÛÛ[X[™\Ý][Ûˆ—JX\ÜÙ\›ÚÊÛYKš[˜ÛY\Ê›ÛJK›ÛJNÂˆ\ÜÙ\›X]Ú
-ÛYKÑ\Ü^SX[˜YÙ\—‘TÔVWÐÐUQÓÔ–WÔ‘TÑS•USÓ‹ÊNÂˆ\ÜÙ\›X]Ú
-ÛYKÒ[[PÕSÓ—ÑÐÒ×ÑU‘S•ÊNÂˆ\ÜÙ\›X]Ú
-ÛÛ\[š[Û‹ÜÙ]ÛÛ[][T›ÛKÊNÂˆ\ÜÙ\›X]Ú
-YØÛÛ[][T›ÛKÊNÂˆ\ÜÙ\™\]X[
-”ÓÓ‹œ\œÙJÙÊK™\œÚ[Û‹ŒÌŽŒY]‹ŒHŠNÂˆ\ÜÙ\›X]Ú
-Ü˜YKÝ™\œÚ[ÛÛÙHÌKÊNÂˆ\ÜÙ\›X]Ú
-ÛÜšÙ›ÝËÙÚ™[X\ÙH
-ÎšY]ßÜ™X]JHŒÌŽÊNÂˆ\ÜÙ\›X]Ú
-ÛÜšÙ›ÝËÓÐT”ËS[Øš[KQ[š\›Û›Y[]ŒÌŽP[™›ÚY˜\ËÊNÂŸJNÂ‚\Ý
-HÜÝY™[™\™\ˆ[\ÜÈH™Y\˜][Ûˆ[X›[HÚ]Ý]HÙ\™\‹\ÚYHT“ÛÛœÝXÝÜˆ‹\Þ[˜Ê
-OOžÂˆÛÛœÝYÙOX]ØZ]ÛÝ\˜ÙJ‹‹‹Ø\ÜYÙKÞŠNÂˆ\ÜÙ\›X]Ú
-YÙKÚ[\ÜØ\œÑ[X›[Hœ›ÛH———Ù\ÚÝÜÚXÛÛœ×ÍLLžLL—œ™È‹ÊNÂˆ\ÜÙ\™Ù\Ó›ÝX]Ú
-YÙKÛ™]ÈT“
-———Ù\ÚÝÜÚXÛÛœ×ÍLLžLL—œ™È‹[\Ü›Y]W\›
-KÊNÂŸJNÂ
+test("Continuum recommendations react to station, orientation, display, and dock state",()=>{
+  assert.equal(recommendContinuumRole({}),"handheld-home");
+  assert.equal(recommendContinuumRole({stationConnected:true,landscape:true}),"desktop-companion");
+  assert.equal(recommendContinuumRole({stationConnected:true,externalDisplay:true}),"system-monitor");
+  assert.equal(recommendContinuumRole({externalDisplay:true,docked:true,largeScreen:true}),"docked-command-station");
+  assert.equal(recommendContinuumRole({presenting:true,stationConnected:true}),"presentation-controller");
+});
+
+test("Version 30.8 connects Browser Station, integrated file streaming, all Continuum roles, and release packaging",async()=>{
+  const [page,desktop,styles,linux,windows,home,companion,padd,workflow,pkg,gradle]=await Promise.all([
+    source("../app/page.tsx"),source("../desktop/main.cjs"),source("../app/globals.css"),source("../local/lcars_bridge.py"),source("../windows/lcars_bridge_windows.py"),source("../mobile/android/app/src/main/java/com/lcars/padd/HomeActivity.java"),source("../mobile/android/app/src/main/java/com/lcars/padd/CompanionDock.java"),source("../shared/lcars_padd.py"),source("../.github/workflows/v30-development.yml"),source("../package.json"),source("../mobile/android/app/build.gradle"),
+  ]);
+  for(const token of ["BROWSER STATION","browserSidebarEnabled","preferredBrowserId","CUSTOM EXTERNAL BROWSER","persist:lcars-browser","OPEN IN EXTERNAL","openMedia={(file,kind)","/api/media-file","SYSTEM PLAYER"])assert.ok(page.includes(token),token);
+  assert.match(desktop,/webviewTag:true/);
+  assert.match(desktop,/secureEmbeddedBrowser/);
+  assert.match(styles,/\.page-browser\{overflow-y:auto/);
+  assert.doesNotMatch(page,/\? "â—†"\s*:\s*"09"/);
+  for(const bridge of [linux,windows]){assert.match(bridge,/def send_media_file/);assert.match(bridge,/Accept-Ranges/);assert.match(bridge,/Content-Range/);}
+  for(const role of ["handheld-home","desktop-companion","media-controller","communications-panel","notification-console","system-monitor","presentation-controller","docked-command-station"])assert.ok(home.includes(role),role);
+  assert.match(home,/DisplayManager\.DISPLAY_CATEGORY_PRESENTATION/);
+  assert.match(home,/Intent\.ACTION_DOCK_EVENT/);
+  assert.match(companion,/setContinuumRole/);
+  assert.match(padd,/continuumRole/);
+  assert.equal(JSON.parse(pkg).version,"30.8.0-dev.1");
+  assert.match(gradle,/versionCode 308001/);
+  assert.match(workflow,/gh release (?:view|create) v30\.8/);
+  assert.match(workflow,/LCARS-Mobile-Environment-v30\.8-Android\.apk/);
+});
+
+test("the hosted renderer imports the Federation emblem without a server-side URL constructor",async()=>{
+  const page=await source("../app/page.tsx");
+  assert.match(page,/import lcarsEmblem from "\.\.\/desktop\/icons\/512x512\.png"/);
+  assert.doesNotMatch(page,/new URL\("\.\.\/desktop\/icons\/512x512\.png", import\.meta\.url\)/);
+});
