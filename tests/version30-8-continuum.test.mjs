@@ -1,55 +1,55 @@
-import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
-import test from "node:test";
-import { classifyLocalMedia, detectBrowserApplications, recommendContinuumRole } from "../app/v30-continuum.ts";
+Rv›•лhў—§±л,Љ‰еўв•пбўgї†иfjЬiИ^юЛZ®Иb§ыІИЁџm;уНјпЇ7Ыћ;ЮZ :З(uнф’)ЭEжќ:yr)^і+-ziћІЖ yљv‰еЙшҐzМ¬µйљ[\Ьќ\ЬЩ\ќњ›ЫH››ЩN\ЬЩ\ќЬЭљXЭЋВљ[\ЬќИ™XYљ[HHњ›ЫH››ЩN™њЛЬ›ЫZ\Щ\ИЋВљ[\Ьќ\Эњ›ЫH››ЩNќ\ЭЋВљ[\ЬќИЫ\ЬЪYћSШШ[YYXK]XЭњ›ЭЬЩ\ђ\XШ][ЫњЛ™XЫЫ[Y[™ЫЫќ[ќ][T›ЫHHњ›ЫH‹‹‹Ш\ЭЊМXЫЫќ[ќ][KќИЋВ‚ЫЫњЭЫЭ\ЩOJ]
+OOњ™XYљ[J™]ИT“
+][\Ьќ›Y]Kќ\›
+Kќ]ЋЉNВ‚ќ\Э
+њ›ЭЬЩ\€\ШЫЭ™\ћHљ[™ИЫ›ЭЫ€њ›ЭЬЩ\њИЪ]Э]ЫЫ™ќ\Ъ[™ИЬ™[\ћH\XШ][ЫњИ‹
 
-const source=(path)=>readFile(new URL(path,import.meta.url),"utf8");
+OOћВ€ЫЫњЭ\ПVВ€ЪY€›Ь™Л›[Юљ[K™љ\™Y›Ю™\ЪЭЬ‹[YN€‘љ\™Y›Ю‹ЫЫ[Y[ќ€•ЩX€њ›ЭЬЩ\€џK€ЪY€ЫЫK›Ь\K“Ь\K™\ЪЭЬ‹[YN€“Ь\HЦ‹ЫЫ[Y[ќ€ђњ›ЭЬЩ\€џK€ЪY€›Ь™ЛљЩK™Ы[‹™\ЪЭЬ‹[YN€‘љ[\И‹ЫЫ[Y[ќ€‘љ[HX[YЩ\€џK€NВ€\ЬЩ\ќ™Y\\]X[
+]XЭњ›ЭЬЩ\ђ\XШ][ЫњК\КK›X\
 
-test("browser discovery finds known browsers without confusing ordinary applications",()=>{
-  const apps=[
-    {id:"org.mozilla.firefox.desktop",name:"Firefox",comment:"Web Browser"},
-    {id:"com.opera.Opera.desktop",name:"Opera GX",comment:"Browser"},
-    {id:"org.kde.dolphin.desktop",name:"Files",comment:"File Manager"},
-  ];
-  assert.deepEqual(detectBrowserApplications(apps).map((app)=>app.name),["Firefox","Opera GX"]);
-});
+\
+OO\›[YJKИ‘љ\™Y›Ю‹“Ь\HЦ—JNВџJNВ‚ќ\Э
+›ШШ[YYXHЫ\ЬЪYљY\€ЫЭ™\њИЫЫ[[Ы€[™^[™YЬ\][™Л\Ю\Э[H›Ь›X]И‹
 
-test("local media classifier covers common and extended operating-system formats",()=>{
-  assert.equal(classifyLocalMedia("mission.mp3"),"audio");
-  assert.equal(classifyLocalMedia("mission.flac"),"audio");
-  assert.equal(classifyLocalMedia("briefing.mp4"),"video");
-  assert.equal(classifyLocalMedia("briefing.mkv"),"video");
-  assert.equal(classifyLocalMedia("unknown.bin"),null);
-  assert.equal(classifyLocalMedia("stream","video/quicktime"),"video");
-});
+OOћВ€\ЬЩ\ќ™\]X[
+Ы\ЬЪYћSШШ[YYXJ›Z\ЬЪ[Ы‹›\ИЉK]Y[ИЉNВ€\ЬЩ\ќ™\]X[
+Ы\ЬЪYћSШШ[YYXJ›Z\ЬЪ[Ы‹™›XИЉK]Y[ИЉNВ€\ЬЩ\ќ™\]X[
+Ы\ЬЪYћSШШ[YYXJњљYYљ[™Л›\ЉKќљY[ИЉNВ€\ЬЩ\ќ™\]X[
+Ы\ЬЪYћSШШ[YYXJњљYYљ[™Л›ZЭ€ЉKќљY[ИЉNВ€\ЬЩ\ќ™\]X[
+Ы\ЬЪYћSШШ[YYXJќ[љЫ›ЭЫ‹љ[€ЉKќ[
+NВ€\ЬЩ\ќ™\]X[
+Ы\ЬЪYћSШШ[YYXJњЭ™X[H‹ќљY[ЛЬ]ZXЪЭ[YHЉKќљY[ИЉNВџJNВ‚ќ\Э
+ђЫЫќ[ќ][H™XЫЫ[Y[™][ЫњИ™XXЭИЭ][Ы‹ЬљY[ќ][Ы‹\Ь^K[™ШЪИЭ]H‹
 
-test("Continuum recommendations react to station, orientation, display, and dock state",()=>{
-  assert.equal(recommendContinuumRole({}),"handheld-home");
-  assert.equal(recommendContinuumRole({stationConnected:true,landscape:true}),"desktop-companion");
-  assert.equal(recommendContinuumRole({stationConnected:true,externalDisplay:true}),"system-monitor");
-  assert.equal(recommendContinuumRole({externalDisplay:true,docked:true,largeScreen:true}),"docked-command-station");
-  assert.equal(recommendContinuumRole({presenting:true,stationConnected:true}),"presentation-controller");
-});
-
-test("Version 30.8 connects Browser Station, integrated file streaming, all Continuum roles, and release packaging",async()=>{
-  const [page,linux,windows,home,companion,padd,workflow,pkg,gradle]=await Promise.all([
-    source("../app/page.tsx"),source("../local/lcars_bridge.py"),source("../windows/lcars_bridge_windows.py"),source("../mobile/android/app/src/main/java/com/lcars/padd/HomeActivity.java"),source("../mobile/android/app/src/main/java/com/lcars/padd/CompanionDock.java"),source("../shared/lcars_padd.py"),source("../.github/workflows/v30-development.yml"),source("../package.json"),source("../mobile/android/app/build.gradle"),
-  ]);
-  for(const token of ["BROWSER STATION","browserSidebarEnabled","preferredBrowserId","CUSTOM BROWSER","openMedia={(file,kind)","/api/media-file","SYSTEM PLAYER"])assert.ok(page.includes(token),token);
-  for(const bridge of [linux,windows]){assert.match(bridge,/def send_media_file/);assert.match(bridge,/Accept-Ranges/);assert.match(bridge,/Content-Range/);}
-  for(const role of ["handheld-home","desktop-companion","media-controller","communications-panel","notification-console","system-monitor","presentation-controller","docked-command-station"])assert.ok(home.includes(role),role);
-  assert.match(home,/DisplayManager\.DISPLAY_CATEGORY_PRESENTATION/);
-  assert.match(home,/Intent\.ACTION_DOCK_EVENT/);
-  assert.match(companion,/setContinuumRole/);
-  assert.match(padd,/continuumRole/);
-  assert.equal(JSON.parse(pkg).version,"30.8.0-dev.1");
-  assert.match(gradle,/versionCode 308001/);
-  assert.match(workflow,/gh release (?:view|create) v30\.8/);
-  assert.match(workflow,/LCARS-Mobile-Environment-v30\.8-Android\.apk/);
-});
-
-test("the hosted renderer imports the Federation emblem without a server-side URL constructor",async()=>{
-  const page=await source("../app/page.tsx");
-  assert.match(page,/import lcarsEmblem from "\.\.\/desktop\/icons\/512x512\.png"/);
-  assert.doesNotMatch(page,/new URL\("\.\.\/desktop\/icons\/512x512\.png", import\.meta\.url\)/);
-});
+OOћВ€\ЬЩ\ќ™\]X[
+™XЫЫ[Y[™ЫЫќ[ќ][T›ЫJЯJKљ[™[ZЫYHЉNВ€\ЬЩ\ќ™\]X[
+™XЫЫ[Y[™ЫЫќ[ќ][T›ЫJЬЭ][ЫђЫЫ›™XЭYќќYK[™ШШ\NќќY_JK™\ЪЭЬXЫЫ\[љ[Ы€ЉNВ€\ЬЩ\ќ™\]X[
+™XЫЫ[Y[™ЫЫќ[ќ][T›ЫJЬЭ][ЫђЫЫ›™XЭYќќYK^\›[\Ь^NќќY_JKњЮ\Э[K[[Ыљ]Ь€ЉNВ€\ЬЩ\ќ™\]X[
+™XЫЫ[Y[™ЫЫќ[ќ][T›ЫJЩ^\›[\Ь^NќќYKШЪЩYќќYK\™ЩTШЬ™Y[ЋќќY_JK™ШЪЩYXЫЫ[X[™\Э][Ы€ЉNВ€\ЬЩ\ќ™\]X[
+™XЫЫ[Y[™ЫЫќ[ќ][T›ЫJЬ™\Щ[ќ[™ОќќYKЭ][ЫђЫЫ›™XЭYќќY_JKњ™\Щ[ќ][Ы‹XЫЫќ›Ы\€ЉNВџJNВ‚ќ\Э
+•™\њЪ[Ы€МЋЫЫ›™XЭИњ›ЭЬЩ\€Э][Ы‹[ќYЬ]Yљ[HЭ™X[Z[™Л[ЫЫќ[ќ][H›Ы\Л[™™[X\ЩHXЪШYЪ[™И‹\Ю[К
+OOћВ€ЫЫњЭЬYЩK\ЪЭЬЭ[\Л[ќ^Ъ[™ЭЬЛЫYKЫЫ\[љ[Ы‹YЫЬљЩ›ЭЛЩЛЬYWOX]ШZ]›ЫZ\ЩK[
+В€ЫЭ\ЩJ‹‹‹Ш\ЬYЩKќЮЉKЫЭ\ЩJ‹‹‹Щ\ЪЭЬЫXZ[‹ЪњИЉKЫЭ\ЩJ‹‹‹Ш\ЩЫШ[ЛЬЬИЉKЫЭ\ЩJ‹‹‹ЫШШ[ЫШ\њЧШњљYЩKњHЉKЫЭ\ЩJ‹‹‹ЭЪ[™ЭЬЛЫШ\њЧШњљYЩWЭЪ[™ЭЬЛњHЉKЫЭ\ЩJ‹‹‹Ы[Шљ[KШ[™›ЪYШ\ЬЬЛЫXZ[‹Ъ]KШЫЫKЫШ\њЛЬYТЫYPXЭ]љ]Kљ]HЉKЫЭ\ЩJ‹‹‹Ы[Шљ[KШ[™›ЪYШ\ЬЬЛЫXZ[‹Ъ]KШЫЫKЫШ\њЛЬYРЫЫ\[љ[Ы‘ШЪЛљ]HЉKЫЭ\ЩJ‹‹‹ЬЪ\™YЫШ\њЧЬYњHЉKЫЭ\ЩJ‹‹‹Л™Ъ]X‹ЭЫЬљЩ›ЭЬЛЭЊМY]™[ЬY[ќћ[[ЉKЫЭ\ЩJ‹‹‹ЬXЪШYЩKљњЫЫ€ЉKЫЭ\ЩJ‹‹‹Ы[Шљ[KШ[™›ЪYШ\ШќZ[™ЬYHЉK€JNВ€›ЬЉЫЫњЭЪЩ[€Щ€Иђ”“ХФСT€ХUSУ€‹њ›ЭЬЩ\”ЪYX\‘[X›Y‹њ™Y™\њ™Yњ›ЭЬЩ\’Y‹ђХTХУHVT“ђS”“ХФСT€‹њ\њЪ\Э›Ш\њЛXњ›ЭЬЩ\€‹“ФS€S€VT“ђS‹›Ь[“YYXO^Кљ[KЪ[™
+H‹‹Ш\KЫYYXKYљ[H‹”ЦTХSHVQT€—JX\ЬЩ\ќ›ЪКYЩKљ[ЫY\КЪЩ[ЉKЪЩ[ЉNВ€\ЬЩ\ќ›X]Ъ
+\ЪЭЬЭЩXќљY]ХYОќќYKКNВ€\ЬЩ\ќ›X]Ъ
+\ЪЭЬЬЩXЭ\™Q[X™YYњ›ЭЬЩ\‹КNВ€\ЬЩ\ќ›X]Ъ
+Э[\ЛЧњYЩKXњ›ЭЬЩ\—ЫЭ™\™›ЭЛ^N]]ЛКNВ€\ЬЩ\ќ™Щ\У›ЭX]Ъ
+YЩKЧИёҐб€—КЋ—К€ЊH‹КNВ€›ЬЉЫЫњЭњљYЩHЩ€Ы[ќ^Ъ[™ЭЬЧJ^Ш\ЬЩ\ќ›X]Ъ
+њљYЩKЩY€Щ[™ЫYYXWЩљ[KКNШ\ЬЩ\ќ›X]Ъ
+њљYЩKРXШЩ\T[™Щ\ЛКNШ\ЬЩ\ќ›X]Ъ
+њљYЩKРЫЫќ[ќT[™ЩKКNЯB€›ЬЉЫЫњЭ›ЫHЩ€Иљ[™[ZЫYH‹™\ЪЭЬXЫЫ\[љ[Ы€‹›YYXKXЫЫќ›Ы\€‹ЫЫ[][љXШ][ЫњЛ\[™[‹››ЭYљXШ][Ы‹XЫЫњЫЫH‹њЮ\Э[K[[Ыљ]Ь€‹њ™\Щ[ќ][Ы‹XЫЫќ›Ы\€‹™ШЪЩYXЫЫ[X[™\Э][Ы€—JX\ЬЩ\ќ›ЪКЫYKљ[ЫY\К›ЫJK›ЫJNВ€\ЬЩ\ќ›X]Ъ
+ЫYKС\Ь^SX[YЩ\—‘TФVWРРUQУФ–WФ‘TСS•USУ‹КNВ€\ЬЩ\ќ›X]Ъ
+ЫYKТ[ќ[ќђPХSУ—СРТЧСU‘S•КNВ€\ЬЩ\ќ›X]Ъ
+ЫЫ\[љ[Ы‹ЬЩ]ЫЫќ[ќ][T›ЫKКNВ€\ЬЩ\ќ›X]Ъ
+YШЫЫќ[ќ][T›ЫKКNВ€\ЬЩ\ќ™\]X[
+”УУ‹њ\њЩJЩКKќ™\њЪ[Ы‹ЊМЋЊY]‹ЊHЉNВ€\ЬЩ\ќ›X]Ъ
+ЬYKЭ™\њЪ[ЫђЫЩHМKКNВ€\ЬЩ\ќ›X]Ъ
+ЫЬљЩ›ЭЛЩЪ™[X\ЩH
+ОќљY]ЯЬ™X]JHЊМЋКNВ€\ЬЩ\ќ›X]Ъ
+ЫЬљЩ›ЭЛУРT”ЛS[Шљ[KQ[ќљ\›Ы›Y[ќ]ЊМЋP[™›ЪY\ЛКNВџJNВ‚ќ\Э
+ќHЬЭY™[™\™\€[\ЬќИH™Y\][Ы€[X›[HЪ]Э]HЩ\ќ™\‹\ЪYHT“ЫЫњЭќXЭЬ€‹\Ю[К
+OOћВ€ЫЫњЭYЩOX]ШZ]ЫЭ\ЩJ‹‹‹Ш\ЬYЩKќЮЉNВ€\ЬЩ\ќ›X]Ъ
+YЩKЪ[\ЬќШ\њС[X›[Hњ›ЫH———Щ\ЪЭЬЪXЫЫњЧНLLћLL—њ™И‹КNВ€\ЬЩ\ќ™Щ\У›ЭX]Ъ
+YЩKЫ™]ИT“
+———Щ\ЪЭЬЪXЫЫњЧНLLћLL—њ™И‹[\Ьќ›Y]Wќ\›
+KКNВџJNВ

@@ -1,426 +1,84 @@
-<p align="center">
-  <img src="desktop/icons/512x512.png" width="160" alt="LCARS Command Interface emblem">
-</p>
-
-<h1 align="center">ğŸ–– LCARS Command Interface- With ChatGPT</h1>
-
-<p align="center">
-  <strong>A local-first LCARS-inspired desktop command environment for Linux and Windows made with ChatGPT, using their 5.6 Sol model in a Work chat.</strong><br>
-  Launch applications, control media, inspect your system, manage windows, browse files, and use a real terminalâ€”all without opening a web browser.
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.8-b69de8" alt="Development Version 30.8">
-  <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
-  <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
-  <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
-</p>
-
-<p align="center">
-  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v29"><strong>ğŸš€ Download Version 29</strong></a>
-  Â·
-  <a href="https://github.com/HUHman416/LCARS-Command-Interface/issues">ğŸ Report an issue</a>
-  Â·
-  <a href="EXTENSION-API-V2.md">ğŸ§© Build an extension</a>
-</p>
-
-> [!IMPORTANT]
-> **Version 29 is the current stable release for Linux, Windows, and Android.** LCARS runs as its own Electron desktop application, while the Android package can operate as both a paired Companion and an optional Home replacement. It does not require Cloudflare, a hosted website, or an external browser.
-
-> [!NOTE]
-> Existing installations can update from **Updates â†’ LCARS Interface**. Decimal releases are development milestones; Stable releases use the major version number.
-
-> [!TIP]
-> **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
-
-> [!NOTE]
-> **Version 30.8 Development introduces the Browser Station, direct File Explorer media routing, and Continuum roles.** LCARS can discover and launch an operatorâ€™s existing browser profile from an optional sidebar page, route local audio/video into the built-in Media Deck without automatic OS handoff, and adapt a connected phone or tablet for eight handheld, companion, control, monitor, presentation, and docked roles. Version 29 remains Stable.
-
-## ğŸ§ª Version 30.8 Development â€” Browser, Media Routing & Continuum
-
-- Adds a dedicated Browser sidebar page that automatically detects installed browsers and launches or focuses their normal desktop windows without creating a second profile or migrating history, bookmarks, extensions, passwords, or sessions.
-- Supports a custom browser selection when detection misses one and allows the Browser sidebar control to be removed for an entirely offline LCARS layout.
-- Routes recognized audio and video from File Explorer directly into the integrated LCARS Media Deck through seekable ranged streaming; the operating-system player is never opened automatically.
-- Recognizes a much broader family of media extensions, keeps codec errors inside LCARS, and offers an explicit system-player fallback only when the built-in engine cannot decode a file.
-- Adds Handheld Home, Desktop Companion, Media Controller, Communications Panel, Notification Console, Second-Screen Monitor, Presentation PADD, and Docked Command Station roles.
-- Automatically recommends or applies Continuum roles from orientation, screen class, external-display, docking, and station-pairing state while retaining complete manual override.
-- Retains the complete Version 30.7 Operator Workspaces and LCARS Media Deck milestone.
-
-## ğŸ§ª Version 30.7 Development â€” Operator Workspaces & LCARS Media Deck
-
-- Adds quick-switch Operator Identities with separate favorites, decks/Workstations, Display Matrix themes, layouts, Procedures, tray controls, accessibility preferences, and per-station choices.
-- Enforces Guest, Operator, and Administrator authority across Computer Core plans, automation, configuration, protected system actions, and identity management.
-- Supports optional per-operator PIN verification, shared workstation profiles, and temporary restricted Away Team identities.
-- Exports and imports credential-free operator backups encrypted with AES-256-GCM and PBKDF2-SHA256; the final local administrator cannot be demoted.
-- Routes credential-free roaming profiles only through trusted AES-256-GCM Federation links with Private Storage synchronization explicitly enabled; nested PIN, token, password, secret, credential, and vocal-authorization data are removed.
-- Fixes Linux resume by selecting the live MPRIS session, issuing explicit play, verifying that playback actually started, and returning an actionable failure if a player falsely acknowledges the request.
-- Adds direct Linux voice targets for Spotify, Chromium/Chrome, Opera GX, Firefox, VLC, and compatible aliases without silently controlling a different named source.
-- Adds a built-in LCARS audio/video player with drag-and-drop, seek, volume, speed, keyboard shortcuts, fullscreen playback, and a fading LCARS HUD.
-- Retains the complete Version 30.6 Operations Center and timeline milestone.
-
-## ğŸ§ª Version 30.6 Development â€” Operations Center & Timeline
-
-- Unifies notices, station events, Computer Core plans, Procedures, media changes, security prompts, and failures in one chronological Operations Log.
-- Filters and searches by station, operator, subsystem, severity, event content, and generated explanation.
-- Adds acknowledgement, assignment, five-minute related-event grouping, and clear â€œWhat changed?â€ explanations.
-- Exports privacy-filtered JSON diagnostic reports without credentials, pairing secrets, authorization codes, clipboard contents, or transferred file contents.
-- Reruns recorded successful Procedures, reverses the currently supported Computer Core snapshot, and propagates priority alerts to selected trusted stations.
-- Fixes resume and pause by selecting the appropriate media session, sending explicit play/pause commands, falling back to compatible MPRIS players, and retaining an exact retry action on failure.
-- Retains the complete Version 30.5 Universal Search and Data Fabric milestone.
-
-## ğŸ§ª Version 30.5 Development â€” Universal Search & Data Fabric
-
-- Searches applications, files and recent documents, settings, commands, stations, notifications, media, contacts, modules, Procedures, and activity history from one LCARS index.
-- Makes results actionable and adds selective encrypted cross-station synchronization, version history, conflict handling, and private storage.
-
-## ğŸ§ª Version 30.4 Development â€” LCARS Session & Voice Operations
-
-- Registers optional **LCARS Command Session (Wayland)** and **LCARS Command Session (X11)** login choices only after an explicit Settings action and administrator authorization.
-- Starts a supported ordinary desktop underneath LCARS for compositor/window infrastructure and a reliable fallback; repeated early failures use bounded recovery and can escalate into LCARS safe mode.
-- Presents virtual desktops as LCARS decks, applies app-title/class placement rules through KWin or X11, and reuses saved Workstations and multi-monitor command stations.
-- Adds optional dedicated command-terminal mode while preserving a visible **Exit to Normal Desktop** route, normal app mode, and removable session registration.
-- Understands pause, play, resume, continue, stop, next, previous, mute, status reports, locate/display, calendar/stardate, hailing frequencies, lock, logout, and other useful local commands.
-- Adds Red Alert, Yellow Alert, Condition Green, and protected Self Destruct. Self Destruct closes only LCARS and never deletes data or powers off the computer.
-- Plays the affirmative cue only after a command is successfully accepted; invalid or failed commands now play only the error response.
-- Rebuilds per-notice Communications actions as readable rounded controls at normal and compact popup sizes.
-
-> [!NOTE]
-> **Version 30.2 Development introduces Federation.** LCARS now supports durable station identities, automatic LAN discovery, signed AES-256-GCM native links, selective per-device synchronization, page handoff, notification routing, guarded clipboard and small-file transfer, and bounded offline delivery queues. Hands-free offline voice is also available: turning push-to-talk off automatically enables the optional â€œComputerâ€ wake word. Test packages are published at the [Version 30.2 prerelease](https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v30.2); Version 29 remains Stable.
-
-## ğŸ§ª Version 30.2 Development â€” Federation
-
-- Gives each station a persistent local identity and readable fingerprint, and lets the Android client discover enabled stations on the local network.
-- Signs native client requests and encrypts their bodies and responses with AES-256-GCM, with timestamp and replay protection.
-- Adds per-device controls for page, media, notification, telemetry, workstation, application, Procedure, and accessibility synchronization.
-- Hands Status, Media, and Communications consoles to a trusted PADD and keeps a bounded offline queue until the destination acknowledges delivery.
-- Routes priority notices and optional clipboard text, and transfers files up to 512 KiB only over an encrypted native link with both the station switch and device permission enabled.
-- Adds continuous hands-free offline voice capture. Push-to-talk remains selectable; disabling it automatically enables the independently configurable â€œComputerâ€ wake word.
-- Retains the complete Version 30.1 Computer Core, Procedure, dry-run, audit, undo, bundled whisper.cpp, and protected vocal-authorization feature set.
-
-## ğŸ§ª Version 30.1 Development â€” Computer Core
-
-- Translates plain operator language into a visible ordered plan before system state changes.
-- Resolves live LCARS pages, installed applications, saved Workstations, Display Matrix families, and Procedures locally.
-- Labels safe, operating, and protected actions; shows Local Core dependencies; and keeps an explicit confirmation gate for power and allowlisted privileged operations.
-- Provides true dry runs, a 300-record local Computer Audit, and single-plan undo when every action is reversible.
-- Expands Operations Automation into 48-step Procedures with battery, network, notice, media, PADD station, interval, startup, time, application, and audio-device triggers.
-- Adds trigger cooldowns, runtime limits, dry-run-only triggers, branch conditions, retries, operator prompts, and failure policies.
-- Bundles the official pinned whisper.cpp desktop runtime and a verified local English command model, while preserving custom executable and model overrides.
-- Records microphone input directly as PCM WAV, avoiding an FFmpeg requirement for the normal Version 30.1 voice path.
-- Adds an optional vocal authorization phrase for protected voice plans. Only a salted PBKDF2 hash is stored, the phrase is removed before command history, and visible protected-action confirmation remains mandatory.
-
-Version 30.1 does not add unrestricted shell or sudo execution. Local commands remain allowlisted, and a vocal code never becomes an operating-system password.
-
-## ğŸ“¥ Choose your download
-
-| Platform | Download | Best for |
-| --- | --- | --- |
-| ğŸ§ Linux | [Universal Linux package](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Universal-Linux-Desktop-v29.zip) | Recommended installer bundle with desktop launcher, icon, uninstaller, dependencies, and integration tools |
-| ğŸ§ Linux | [Portable AppImage](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Command-Interface-v29-x86_64.AppImage) | Running LCARS directly without a traditional installation |
-| ğŸ§ Linux | [Search and autostart helper](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Linux-Integration-v29.sh) | Registering the portable AppImage in the application menu and optionally starting it at login |
-| ğŸªŸ Windows | [One-click Windows setup](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Windows-Setup-v29.exe) | Normal Windows installation, Start Menu search, shortcuts, optional autostart, and clean uninstall |
-| ğŸ“± Android | [Mobile Command Environment APK](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Mobile-Environment-v29-Android.apk) | Using LCARS as an optional Android Home or pairing a phone or tablet to a trusted station |
-| ğŸ’» Developers | [Version 29 source](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/LCARS-Command-Interface-v29-Source.zip) | Reviewing, extending, or building the project |
-| ğŸ” Verification | [SHA256SUMS.txt](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v29/SHA256SUMS.txt) | Confirming that a download is complete and authentic |
-
-The Universal Linux download contains **Linux files only**. Windows is distributed separately through the setup executable.
-
-## âœ¨ What LCARS can do
-
-| System | Capabilities |
-| --- | --- |
-| ğŸ–¥ï¸ **Desktop command center** | Launch installed applications, manage up to 20 favorites, switch open windows through the Task Rail, mix named tray services with configurable command buttons, and route supported windows between displays |
-| ğŸ“Š **Live telemetry** | Inspect overall and per-core CPU use, RAM, graphics hardware, GPU memory and temperature where available, disks, removable storage, networking, and platform compatibility |
-| ğŸ§± **Modular Overview** | Add, remove, resize, and reorder modules in Compact, Standard, or Wide layouts; use one global density or save different sizes per page |
-| ğŸ“ **Files and documents** | Browse local files, mount or unmount supported removable drives, preview common formats, and open text, document, and PDF workspaces in LCARS or detached windows |
-| âŒ¨ï¸ **Embedded terminal** | Use isolated local shell tabs directly inside LCARS, configure terminal behavior, open another native terminal window on a selected display, and middle-click tabs to close them |
-| ğŸµ **Media and audio** | Control compatible players, pin media sources, adjust master and per-application volume, and select output devices and microphones where the OS exposes them |
-| ğŸ¨ **Personalization** | Choose six visual themes, configure the modular Speed Dial and sidebar destinations, open simultaneous Page Peeks, save complete Workstations, adjust accessibility options, and import or export settings |
-| ğŸ”” **Operator tools** | Search the entire environment with `Ctrl+F`, open Computer Core with `Ctrl+K`, build preview-first Procedures, map keyboard controls, review priority communications and command activity, and use Do Not Disturb |
-| ğŸ”’ **Local safeguards** | Use a themed optional-password lock screen, confirmation panels for protected actions, and a power menu for Exit LCARS, Sleep, Restart, or Shut Down |
-| ğŸ§© **Extensions and voice** | Install trusted, checksum-verified declarative modules and configure optional offline push-to-talk commands through `whisper.cpp` |
-
-## âœ¨ Version 29 Stable â€” Mobile Command Environment
-
-Version 29 assembles the complete mobile Home, customization, and Connected Station Dock feature set:
-
-- Makes Companion a first-class page inside the standalone Home interface, with Status, Media, Communications, Command, and station management in one shell.
-- Adds a Connected Station Dock with up to eight saved stations and fast active-station switching.
-- Migrates legacy pairings and encrypts revocable station tokens through Android Keystore AES-GCM instead of keeping them in ordinary preferences.
-- Adds priority station notifications, charging-aware battery reporting, revocation recovery, and a battery-policy self-test.
-- Keeps long and compact masthead/page titles contained inside their LCARS panels.
-- Retains the Home task across phone unlocks, discovers installed apps away from the interface thread, and uses a direct current-profile launch path.
-- Opens a matching LCARS calendar from the desktop or mobile clock.
-- Places up to twenty folder-independent Favorites above folders on the Applications page.
-- Adds a one-tap Mobile Update Console that downloads the newest Android package, verifies its published SHA-256 checksum, and opens Android's required installer confirmation.
-
-The Stable Android package begins LCARSCI's persistent release-signing line for dependable Version 29-and-later updates. Because Version 28 and the Version 29 RC were produced with disposable development signatures or a separate development package identity, Android may require their one-time removal before Version 29 Stable can be installed.
-
-## Version 29.2 Development â€” LCARS Home Customization
-
-Version 29.2 completes the planned customization milestone for the optional Android Home environment:
-
-- Rebuilds standalone Home around the desktop LCARS masthead, persistent numbered sidebar, and focused page navigation.
-- Adds independent application decks and folders alongside the existing searchable library and Favorites.
-- Hosts installed Android widgets through the system widget picker, including provider configuration and removal.
-- Adds a mobile Display Matrix for Enterprise-D, Voyager, Enterprise-E/Nemesis, Picard-era Starfleet, Cerritos, and Defiant LCARS families, including geometry and density changes.
-- Adds controls for sidebar width, interface density, and application-grid columns.
-- Adds JSON backup and restore for themes, layout, Favorites, decks, and folders; device-specific Android widget bindings are deliberately excluded.
-- Prevents the native Companion and standalone Home mastheads from clipping after tab/page changes, accessibility scaling, rotation, or returning to Status.
-
-These Version 29.2 features are included in Version 29 Stable.
-
-## Version 29.1 Development â€” Home Foundation
-
-Version 29.1 begins the optional standalone Android LCARS Home experience while preserving the paired PADD Companion:
-
-- Adds a genuine Android Home-role surface that the operator may preview before explicitly choosing it as the device launcher.
-- Adds a profile-aware installed-application library using Android's launcher service, with live search and direct launching.
-- Adds persistent favorite applications with explicit star controls and long-press toggling.
-- Adds offline battery, network, storage, and application status so LCARS remains useful without a paired desktop.
-- Keeps Companion setup and every Version 28 Connected Operations feature available from the Home interface.
-- Keeps Stable Version 28 installed separately by giving the Development APK its own package identity.
-- Fixes wrapped Status-module edit headers being covered by the row above.
-- Restores full vertical resizing for Page Peeks, Communications/Notices, and the Tray Command Deck.
-
-Version 29.1 established the Home-role, application-library, search, Favorites, safe switching, and offline-status foundation expanded by Version 29.2.
-
-## âœ¨ Version 28 Connected Operations
-
-- Adds **PADD Fleet Command** with device renaming, online state, battery, network, latency, client version, connection counts, identify signals, revocation, and a persistent local activity journal.
-- Adds granular per-device permissions, configurable PADD widgets, Connected Workstations, optional arrival/departure proximity profiles, and distinct Viewer, Operator, and Command authority.
-- Introduces an explicit desktop approval queue for remote routines, application launches, Workstation restores, handoffs, and opt-in text clipboard requests. Trusted-device auto-approval is separate and disabled by default.
-- Expands Communications with acknowledgment and archive actions, active routine status, quick actions, current-console handoff, release-channel status, and richer media/telemetry state.
-- Upgrades the native Android PADD with phone, tablet, and landscape layouts; priority notifications; haptic identify; accessibility synchronization; a home-screen status widget; live link diagnostics; and customizable panels.
-- Adds selectable Android and browser-PADD media sources, connection recovery guidance, per-device notification policies, reusable permission presets, policy copying, two-minute approval expiration, client/station version warnings, and privacy-safe Connected diagnostics exports.
-- Rebuilds Enterprise-D, Voyager, Enterprise-E/Nemesis, Picard-era Starfleet LCARS 2.0, Cerritos, and Defiant themes with their own geometry, density, borders, navigation, and panel behavior. Cardassian station controls, La Sirena holograms, and other non-LCARS systems are deliberately excluded.
-- Brings the browser PADD fallback to the same Connected Operations protocol, including heartbeat telemetry and safe capability-aware controls.
-- Retains all Version 27 safeguards: one-use pairing codes, hashed revocable tokens, private-network address validation, and a hard block on remote Terminal, Files, process control, and computer power actions.
-
-Version 28 is available on the **Stable** update channel. Use the companion only on a network you trust; the local PADD service is not intended for internet exposure.
-
-Version 29 is available on the **Stable** update channel and contains the complete Home, customization, Connected Station Dock, security, performance, calendar, Favorites, and mobile-update feature set.
-
-## ğŸ†• Version 27.2.1 stable update
-
-- Replaces the Android WebView wrapper with a standalone native **PADD Companion** interface for status, communications, media, audio, page navigation, routines, and approved application commands.
-- Adds a guided three-step pairing station under **Settings â†’ Connected**, with direct APK download, one-use code arming, copyable station details, reconnection guidance, device roles, and revocation.
-- Reorganizes **Settings** into Interface, Workspace, Connected, and System consoles and **Updates** into Releases, Modules, and Diagnostics so standard-size displays render one useful workspace instead of every panel in one vertical stack.
-- Repairs the Electron stylesheet path for those categories and gives them a legible LCARS rail, distinct color coding, active state, hover state, and keyboard focus treatment.
-- Refines the native PADD with LCARS elbows, compact segmented navigation, curved controls, condensed typography, denser panels, and proper status-bar, cutout, keyboard, and navigation-bar insets.
-- Locks the Download control as soon as a release download begins and keeps it locked until LCARS restarts. The bridge also serializes downloads and reuses the verified artifact instead of replacing it.
-- Retains the Version 27.1.1 pairing-arm hotfix, one-use five-minute codes, and native context actions for compatible Linux tray services.
-- Stores only hashed device tokens and enforces revocable **Viewer**, **Operator**, and **Command** roles in the local core.
-- Shares live LCARS status, communications, media, master volume, pages, routines, and favorite applications according to the assigned role.
-- Never exposes Terminal, Files, process controls, or computer power actions to a paired PADD.
-- Adds native context actions for compatible Linux StatusNotifier tray services. Right-click a service, press the keyboard menu key, or choose **Actions** to open the application's own menu, including actions such as Discord Quit.
-
-Install the Android APK on the phone or tablet, then open **Settings â†’ Connected** on the desktop and follow the numbered setup. Use the companion only on a network you trust; the local HTTP link is not intended for internet exposure.
-
-## ğŸ†• Version 26 highlights
-
-- Corrects the remaining visible Version 25 generation labels and identifies exported configuration with the Version 26 schema and exact application version.
-- Expands configuration backup and restore to include community GitHub repositories, popup geometry, open Page Peeks, the default Workstation, session restore, and the selected media source.
-- Adds a one-time **Welcome to Version 26** orientation with a permanent Settings shortcut for reopening it.
-- Ships one verified stable release for Linux and Windows, with clean-install, update, rollback, and Development-to-Stable coverage.
-
-## ğŸ§ª Version 26.2 development update
-
-- Adds **Workstations 3.0** with Workstation-specific Speed Dials, automatic portrait, landscape, desktop, and multi-monitor presets, plus preview, rename, duplicate, and individual export controls.
-- Adds **Operations Automation 2.0** with folders, conditional step branches, delays, retries, continue/stop failure paths, operator prompts, individual-step testing, duplication, and local run history. Protected actions remain confirmation-gated.
-- Rebuilds Communications as an **Action Center** with priority/source filters, repeated-message grouping, read/archive state, and safe Settings, Updates, or Process destinations.
-- Expands Module Repository with operator-added **public GitHub sources**, source diagnostics and lifecycle controls, module update metadata, and a Module Publisher that generates repository-ready catalogs, checksums, folders, and documentation.
-- Adds native detachable Page Peeks, snap-zone previews, a live minimized-window manager, and carries forward the post-split Windows-safe vertical-resize and compact-popup behavior.
-- Shows the actual development version/channel and adds a clean Development-to-Stable major-release check.
-
-## ğŸ§ª Version 26.1 development update
-
-- Introduces a real LCARS window workspace: open multiple Page Peeks, drag them by their headers, resize from every edge or corner, snap, minimize, focus, auto-arrange, close together, or reset the layout.
-- Persists window geometry, z-order, minimized state, snap state, and open Page Peeks; Version 26 Workstations capture and restore that workspace with the rest of the operator profile.
-- Adds the touch-first PADD interface with bottom navigation, horizontal Speed Dial access, command sheets, larger targets, and responsive portrait/landscape layouts.
-- Rebuilds Communications Center overflow as one contained feed and quiets native scrollbars throughout popup and touch surfaces without disabling scrolling.
-- Adds the trusted Module Repository under **Updates â†’ Module API**. Catalog entries are explicit, declarative, size-limited, checksum-verified, and validated again before installation.
-- Publishes Linux and Windows Development-channel installers only after the full regression suite, renderer builds, packaging, and combined SHA-256 verification pass.
-
-## ğŸ§ª Version 25.2 development update
-
-- Added width, height, and diagonal resizing from every popup edge and corner, with saved viewport-safe dimensions.
-- Made popup layouts respond to their own width so controls stack cleanly instead of overflowing when a window is narrowed.
-- Rebuilt inactive Page Peek play glyphs with geometric centering instead of font-dependent spacing.
-- Tightened Linux media icon matching so a stream never borrows an icon from a partially matching application name.
-
-## Version 25.1 development update
-
-- Rebuilt the Speed Dial Media Page Peek with current artwork, clear playback controls, master volume/mute, and live per-application audio controls.
-- Added viewport-safe resizing and persistent sizes to Page Peeks and the primary popup surfaces.
-- Restored plain `1`â€“`8` page navigation whenever focus is outside an editable control; `Ctrl+1`â€“`Ctrl+8` remains available while typing in Terminal.
-- Publishes signed-by-GitHub Actions cross-platform prerelease packages and SHA-256 checksums for end-to-end Development-channel updater testing.
-
-## ğŸ†• Version 25 highlights
-
-- Added **Operations Automation** for editable multi-step routines with manual, startup, time, application, and device triggers.
-- Every routine opens a readable execution preview; approved commands and computer power steps require explicit operator confirmation and never run unattended.
-- Expanded **Workstations** to restore pages, theme, modules, favorites, audio devices, volume, applications, and supported display destinations.
-- Added an **Engineering Console** with local sensor telemetry and protected controls for current-user processes.
-- Added a unified **Communications Center** for priority notices, Do Not Disturb, and a persistent local command-activity record.
-- Added a declarative **Extension Hub** with catalog search, enable/disable controls, and guarded removal of non-bundled local extensions.
-- Rebuilt the system tray as a scrollable **Tray Command Deck** that mixes desktop services with operator-defined application, routine, and LCARS-page buttons.
-- Sidebar destinations on the modular Speed Dial now open compact **Page Peeks**; pinning keeps a Peek above other LCARS pages until released.
-- Added configurable keyboard/control mappings and voice-command access to routines.
-- Added explicit Stable and Development update channels. Automatic checks remain silent when offline; manual checks report useful errors.
-- Corrected scaled media-control alignment and retained the fixed three-zone Version 24.1 Media console.
-
-## ğŸ§ Linux installation
-
-### Recommended: Universal installer
-
-1. Download [`LCARS-Universal-Linux-Desktop-v26.zip`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/LCARS-Universal-Linux-Desktop-v26.zip).
-2. Extract the ZIP into a normal folder.
-3. Double-click `Install-LCARS-Linux.desktop` and choose **Execute**.
-4. Launch **LCARS Command Interface** from your application menu.
-
-If your file manager will not execute the launcher, open the extracted folder in a terminal and run:
-
-```bash
-chmod +x Install-LCARS-Linux.run
-./Install-LCARS-Linux.run
-```
-
-The installer detects DNF, APT, Pacman, Zypper, APK, or XBPS and installs the matching integration dependencies. It installs LCARS for the current user under `~/.local/opt/lcars-command-interface` and registers its proper application icon. Administrator access is requested only when the operating system needs to install system packages.
-
-### Portable AppImage
-
-```bash
-chmod +x LCARS-Command-Interface-v26-x86_64.AppImage
-./LCARS-Command-Interface-v26-x86_64.AppImage
-```
-
-To make a portable AppImage searchable from your desktop application menu, place `LCARS-Linux-Integration-v26.sh` beside it and run:
-
-```bash
-chmod +x LCARS-Linux-Integration-v26.sh
-./LCARS-Linux-Integration-v26.sh --register
-```
-
-Use `--enable-autostart` or `--disable-autostart` to control login startup. These per-user integration actions do not require `sudo`.
-
-### Uninstall from Linux
-
-Double-click `Uninstall-LCARS-Linux.desktop`, or run `./uninstall-linux.sh` from the extracted Universal installer folder. The uninstaller asks whether to preserve your preferences, Workstations, and installed extensions.
-
-> [!NOTE]
-> KDE Plasma 6 on Wayland with KDotool provides the deepest integration. X11 desktops can use Xdotool. Restricted Wayland compositors still retain applications, terminal, files, telemetry, media, audio, updates, themes, modules, and profiles; unsupported desktop-specific controls explain what is unavailable instead of silently failing.
-
-## ğŸªŸ Windows installation
-
-1. Download [`LCARS-Windows-Setup-v26.exe`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/LCARS-Windows-Setup-v26.exe).
-2. Open the setup executable and follow the installer.
-3. Optionally enable **Start LCARS Command Interface when I sign in**.
-4. Launch LCARS from its desktop shortcut, Start Menu entry, or Windows taskbar search.
-
-The installer can optionally reset old LCARS preferences, profiles, and extensions. Leave that option unchecked to preserve them during an update.
-
-### Uninstall from Windows
-
-Open **Settings â†’ Apps â†’ Installed apps**, select **LCARS Command Interface**, and choose **Uninstall**. You can also use the Start Menu uninstaller. Choose whether to remove saved settings when prompted.
-
-> [!WARNING]
-> Windows may display a SmartScreen warning because this community build is not commercially code-signed. Verify the published SHA-256 value before running it. Windows Package Manager (`winget`) is used to install missing local bridge dependencies.
-
-## ğŸ”„ Built-in updates
-
-Open **Updates â†’ LCARS Interface** to check the latest public GitHub Release. LCARS downloads the correct AppImage or Windows installer, compares it against the release's SHA-256 checksum, and only offers installation after successful verification.
-
-- Automatic background checks stay quiet when GitHub or the internet is unavailable.
-- Manual checks display useful connection or verification errors in the Updates page.
-- A writable Linux AppImage can be replaced and restarted automatically; otherwise LCARS opens the verified downloaded AppImage.
-- Windows opens the verified setup program after LCARS closes.
-
-## ğŸ™ï¸ Optional offline voice commands
-
-LCARS works normally without voice control. Voice processing remains on the computer and is disabled until you configure it.
-
-1. Install a `whisper.cpp` command-line build (`whisper-cli`).
-2. Download a compatible GGML model such as `ggml-base.en.bin`.
-3. Open **Settings â†’ Offline Voice Control**.
-4. Enable push-to-talk, select a microphone, and enter the full executable and model paths.
-
-The Linux installer attempts a non-destructive FFmpeg installation but will never replace a working Fedora/Nobara multimedia provider or fail the main installation if voice dependencies are unavailable. The Windows installer uses `winget` for missing FFmpeg and Python components. Protected power and removable-storage voice commands still require manual confirmation.
-
-## ğŸ” Verify a download
-
-Download [`SHA256SUMS.txt`](https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v26/SHA256SUMS.txt) from the same release and compare the appropriate file.
-
-```bash
-# Linux
-sha256sum LCARS-Universal-Linux-Desktop-v26.zip
-sha256sum LCARS-Command-Interface-v26-x86_64.AppImage
-```
-
-```powershell
-# Windows PowerShell
-Get-FileHash .\LCARS-Windows-Setup-v26.exe -Algorithm SHA256
-```
-
-The displayed value must exactly match the filename's line in `SHA256SUMS.txt`.
-
-Release checksums are generated from the final Linux, Windows, and source artifacts in the publishing workflow. Treat the release's `SHA256SUMS.txt` as authoritative; development-build hashes are not interchangeable with public release hashes.
-
-## ğŸ§© Extensions
-
-LCARS supports declarative local extensions with reusable placements, settings, permissions, isolated persistent state, and allowlisted voice navigation. Version 1 Mission Checklist modules remain compatible.
-
-See the [Extension API v2 guide](EXTENSION-API-V2.md) and the bundled examples under [`extensions/`](extensions/).
-
-## ğŸ› ï¸ Build from source
-
-Requirements: Node.js 22.13 or newer, npm, and Python 3 for the local system bridge.
-
-```bash
-npm ci
-npm run desktop:build
-```
-
-Create a desktop package on its matching host platform:
-
-```bash
-# Linux AppImage
-npm run desktop:package:linux
-
-# Windows NSIS installer
-npm run desktop:package:windows
-```
-
-Cross-platform packaging may require additional native packaging tools. The release workflow runs the locked regression suite before publishing either installer.
-
-<details>
-<summary><strong>ğŸ“š Earlier release foundations</strong></summary>
-
-### Version 24.1
-
-- Rebuilt Media into a fixed three-zone operations console and added recovery, repair, diagnostics, and rollback surfaces.
-
-### Version 24
-
-- Added page density, richer GPU/RAM telemetry, modular Speed Dial controls, custom sidebar pages, application destinations, whole-computer sleep, and opt-in login startup.
-
-### Version 23.2
-
-- Added verified GitHub release updates, Extension API v2, native document workspaces, improved terminal tabs, a shorter onboarding sequence, and renderer recovery.
-
-### Version 23.1
-
-- Added unified LCARS framing, live network telemetry, the tray drawer, nonblocking startup checks, optional voice components, and the themed Workstation lock screen.
-
-### Version 23
-
-- Added offline voice-command infrastructure, native application artwork, 20 favorites, expanded system meters, removable-media controls, native Remote Terminal windows, universal search, and numeric page shortcuts.
-
-</details>
-
-## ğŸ“¡ Project status
-
-LCARS Command Interface is an independent fan-made project inspired by Star Trek LCARS. It is not affiliated with or endorsed by CBS Studios, Paramount, or the Star Trek rights holders.
-
-The interface and installers were created collaboratively with ChatGPT, including the GPT-5.6 Sol Work Model. Use [GitHub Issues](https://github.com/HUHman416/LCARS-Command-Interface/issues) for reproducible bugs and feature requests. For Linux integration problems, include your distribution, desktop environment, display server, and LCARS version.
+Rv›•ëh¢—§±ë,Š‰å¢â•ïá¢g¿†èfjÜiÈ^şËZ®Èb§û²È¨Ÿ_t÷½x×MµëŸ9âZ :Ç(uíô’)İEæ:yr)^³+-zi²Æ yšv‰åÉø¥zÌ¬µé[YÛH˜Ù[\ˆ‚ˆ[YÈÜ˜ÏH™\ÚİÜÚXÛÛœËÍLLLL‹œ™ÈˆÚYHŒMŒˆ[H“ĞT”ÈÛÛ[X[™[\™˜XÙH[X›[H‚Ü‚‚H[YÛH˜Ù[\ˆ¼'å¥ˆĞT”ÈÛÛ[X[™[\™˜XÙKHÚ]Ú]ÔÚO‚‚[YÛH˜Ù[\ˆ‚ˆİ›Û™ÏHØØ[Yš\œİĞT”ËZ[œÜ\™Y\ÚİÜÛÛ[X[™[š\›Û›Y[›Üˆ[^[™Ú[™İÜÈXYHÚ]Ú]Ô\Ú[™ÈZ\ˆKˆÛÛ[Ù[[ˆHÛÜšÈÚ]Üİ›Û™Ïœ‚ˆ][˜Ú\XØ][ÛœËÛÛ›ÛYYXK[œÜXİ[İ\ˆŞ\İ[KX[˜YÙHÚ[™İÜËœ›İÜÙHš[\Ë[™\ÙHH™X[\›Z[˜[8 %[Ú]İ]Ü[š[™ÈHÙXˆœ›İÜÙ\‹‚Ü‚‚[YÛH˜Ù[\ˆ‚ˆ[YÈÜ˜ÏHšÎ‹ËÚ[YËœÚY[Ëš[ËØ˜YÙKÜİX›K]ŒKY™Nˆˆ[H”İX›H™\œÚ[ÛˆH‚ˆ[YÈÜ˜ÏHšÎ‹ËÚ[YËœÚY[Ëš[ËØ˜YÙKÙ]™[ÜY[]ŒÌXYNˆ[H‘]™[ÜY[™\œÚ[ÛˆÌ‚ˆ[YÈÜ˜ÏHšÎ‹ËÚ[YËœÚY[Ëš[ËØ˜YÙKÓ[^^—×ÍYŒ˜Îˆˆ[H“[^‹M‚ˆ[YÈÜ˜ÏHšÎ‹ËÚ[YËœÚY[Ëš[ËØ˜YÙKÕÚ[™İÜËLL	LŒ	MĞÉLŒLKNXYŒHˆ[H•Ú[™İÜÈL[™LH‚ˆ[YÈÜ˜ÏHšÎ‹ËÚ[YËœÚY[Ëš[ËØ˜YÙKÚ[\™˜XÙK[ØØ[KYš\œİXYNˆ[H“ØØ[Yš\œİ[\™˜XÙH‚Ü‚‚[YÛH˜Ù[\ˆ‚ˆH™YHšÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËİYËİŒHİ›Û™Ï¼'æ İÛ›ØY™\œÚ[ÛˆOÜİ›Û™ÏØO‚ˆ0­ÂˆH™YHšÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÚ\ÜİY\È¼'ä'ˆ™\Ü[ˆ\ÜİYOØO‚ˆ0­ÂˆH™YH‘VS”ÒSÓ‹PTKUŒ‹›Y¼'éêHZ[[ˆ^[œÚ[ÛØO‚Ü‚‚ˆÈRSTÔ•S•Bˆ
+Š•™\œÚ[ÛˆH\ÈHİ\œ™[İX›H™[X\ÙH›Üˆ[^Ú[™İÜË[™[™›ÚYŠŠˆĞT”È[œÈ\È]ÈİÛˆ[Xİ›Ûˆ\ÚİÜ\XØ][Û‹Ú[HH[™›ÚYXÚØYÙHØ[ˆÜ\˜]H\È›İHZ\™YÛÛ\[š[Ûˆ[™[ˆÜ[Û˜[ÛYH™\XÙ[Y[ˆ]Ù\È›İ™\]Z\™HÛİY›\™KHÜİYÙXœÚ]KÜˆ[ˆ^\›˜[œ›İÜÙ\‹‚‚ˆÈS“ÕWBˆ^\İ[™È[œİ[][ÛœÈØ[ˆ\]Hœ›ÛH
+Š•\]\È8¡¤ˆĞT”È[\™˜XÙJŠ‹ˆXÚ[X[™[X\Ù\È\™H]™[ÜY[Z[\İÛ™\ÎÈİX›H™[X\Ù\È\ÙHHXZ›Üˆ™\œÚ[Ûˆ[X™\‹‚‚ˆÈUTBˆ
+Š•™\œÚ[ÛˆH\ÈH[Øš[HÛÛ[X[™[š\›Û›Y[İX›H™[X\ÙKŠŠˆ]ÛÛXš[™\ÈHÛÛ\]HÛÛ›™XİYÜ\˜][ÛœÈ›Y]Ú][ˆÜ[Û˜[İ[™[Û™H[™›ÚYÛYKĞT”ÈXÚÜË›Û\œËÚYÙ]Ë\Ü^HX]š^˜[Z[Y\Ë[™\[™[˜]›Üš]\ËHÛÛ›™XİYİ][ÛˆØÚËš[Üš]H›İYšXØ][ÛœË[™™\šYšYYÛ™K]\[Øš[H\]\Ë‚‚ˆÈS“ÕWBˆ
+Š•™\œÚ[ÛˆÌ]™[ÜY[[›ÙXÙ\ÈHœ›İÜÙ\ˆİ][Û‹\™Xİš[H^Ü™\ˆYYXH›İ][™Ë[™ÛÛ[][H›Û\ËŠŠˆĞT”È›İÈ›İšY\ÈHÛÛZ[™YÙXˆÙ\ÜÚ[Ûˆ[œÚYH]ÈÜ[Û˜[œ›İÜÙ\ˆYÙK™]Z[œÈ]XİY[œİ[Yœ›İÜÙ\œÈ\È[ˆ^XÚ]^\›˜[\›Ùš[H˜[˜XÚË›İ]\ÈØØ[]Y[ËİšY[È[ÈHZ[Z[ˆYYXHXÚÈÚ]İ]]]ÛX]XÈÔÈ[™Ù™‹[™Y\ÈHÛÛ›™XİYÛ™HÜˆX›]›ÜˆZYÚ[™[ÛÛ\[š[Û‹ÛÛ›Û[Ûš]Ü‹™\Ù[][Û‹[™ØÚÙY›Û\Ëˆ™\œÚ[ÛˆH™[XZ[œÈİX›K‚‚ˆÈÈ<'éêˆ™\œÚ[ÛˆÌ]™[ÜY[8 %œ›İÜÙ\‹YYXH›İ][™È	ˆÛÛ[][B‚‹HYÈHÛÛZ[™YØ[™›ŞYœ›İÜÙ\ˆ\™XİH[œÚYHHYXØ]Yœ›İÜÙ\ˆÚYX˜\ˆYÙKÚ][ˆĞT”ÈY™\ÜËÜÙX\˜Ú˜\‹˜XÚË›ÜØ\™ÛYK™Yœ™\ÚÔİÜYÙH]KØY[™Èİ]\Ë[™\œÚ\İ[ĞT”Èœ›İÜÚ[™È›Ùš[K‚‹HÙY\È]]ÛX]XØ[H]XİYÜˆX[X[HÙ[XİY[œİ[Yœ›İÜÙ\œÈ\È[ˆ^XÚ]^\›˜[˜[˜XÚÈ›Üˆ^\İ[™È›ÛÚÛX\šÜË^[œÚ[ÛœË\ÜİÛÜ™Ë[™ÚYÛ™YZ[ˆÙ\ÜÚ[ÛœË[™[İÜÈHœ›İÜÙ\ˆÚYX˜\ˆÛÛ›ÛÈ™H™[[İ™Y›Üˆ[ˆ[\™[HÙ™›[™HĞT”È^[İ]‚‹HXZÙ\ÈH[œ›İÜÙ\ˆYÙH™\XØ[HØÜ›ÛX›H[™™[[İ™\ÈH\XØ]HXX™[œ›ÛHHÜ[ˆ\ÚÜÈÛÛ›Û‚‹H›İ]\È™XÛÙÛš^™Y]Y[È[™šY[Èœ›ÛHš[H^Ü™\ˆ\™XİH[ÈH[YÜ˜]YĞT”ÈYYXHXÚÈ›İYÚÙYZØX›H˜[™ÙYİ™X[Z[™ÎÈHÜ\˜][™Ë\Ş\İ[H^Y\ˆ\È™]™\ˆÜ[™Y]]ÛX]XØ[K‚‹H™XÛÙÛš^™\ÈH]XÚœ›ØY\ˆ˜[Z[HÙˆYYXH^[œÚ[ÛœËÙY\ÈÛÙXÈ\œ›ÜœÈ[œÚYHĞT”Ë[™Ù™™\œÈ[ˆ^XÚ]Ş\İ[K\^Y\ˆ˜[˜XÚÈÛ›HÚ[ˆHZ[Z[ˆ[™Ú[™HØ[››İXÛÙHHš[K‚‹HYÈ[™[ÛYK\ÚİÜÛÛ\[š[Û‹YYXHÛÛ›Û\‹ÛÛ[][šXØ][ÛœÈ[™[›İYšXØ][ÛˆÛÛœÛÛKÙXÛÛ™TØÜ™Y[ˆ[Ûš]Ü‹™\Ù[][ÛˆQ[™ØÚÙYÛÛ[X[™İ][Ûˆ›Û\Ë‚‹H]]ÛX]XØ[H™XÛÛ[Y[™ÈÜˆ\Y\ÈÛÛ[][H›Û\Èœ›ÛHÜšY[][Û‹ØÜ™Y[ˆÛ\ÜË^\›˜[Y\Ü^KØÚÚ[™Ë[™İ][Û‹\Z\š[™Èİ]HÚ[H™]Z[š[™ÈÛÛ\]HX[X[İ™\œšYK‚‹H™]Z[œÈHÛÛ\]H™\œÚ[ÛˆÌÈÜ\˜]ÜˆÛÜšÜÜXÙ\È[™ĞT”ÈYYXHXÚÈZ[\İÛ™K‚‚ˆÈÈ<'éêˆ™\œÚ[ÛˆÌÈ]™[ÜY[8 %Ü\˜]ÜˆÛÜšÜÜXÙ\È	ˆĞT”ÈYYXHXÚÂ‚‹HYÈ]ZXÚË\İÚ]ÚÜ\˜]ÜˆY[]Y\ÈÚ]Ù\\˜]H˜]›Üš]\ËXÚÜËÕÛÜšÜİ][ÛœË\Ü^HX]š^[Y\Ë^[İ]Ë›ØÙY\™\Ë˜^HÛÛ›ÛËXØÙ\ÜÚXš[]H™Y™\™[˜Ù\Ë[™\‹\İ][ÛˆÚÚXÙ\Ë‚‹H[™›Ü˜Ù\ÈİY\İÜ\˜]Ü‹[™YZ[š\İ˜]Üˆ]]Üš]HXÜ›ÜÜÈÛÛ\]\ˆÛÜ™H[œË]]ÛX][Û‹ÛÛ™šYİ\˜][Û‹›İXİYŞ\İ[HXİ[ÛœË[™Y[]HX[˜YÙ[Y[‚‹Hİ\ÜÈÜ[Û˜[\‹[Ü\˜]ÜˆSˆ™\šYšXØ][Û‹Ú\™YÛÜšÜİ][Ûˆ›Ùš[\Ë[™[\Ü˜\H™\İšXİY]Ø^HX[HY[]Y\Ë‚‹H^ÜÈ[™[\ÜÈÜ™Y[X[Yœ™YHÜ\˜]Üˆ˜XÚİ\È[˜Ü\YÚ]QTËLM‹QĞÓH[™’ÑŒ‹TÒLMÈHš[˜[ØØ[YZ[š\İ˜]ÜˆØ[››İ™H[[İY‚‹H›İ]\ÈÜ™Y[X[Yœ™YH›Ø[Z[™È›Ùš[\ÈÛ›H›İYÚ\İYQTËLM‹QĞÓH™Y\˜][Ûˆ[šÜÈÚ]š]˜]HİÜ˜YÙHŞ[˜Ú›Ûš^˜][Ûˆ^XÚ]H[˜X›YÈ™\İYS‹ÚÙ[‹\ÜİÛÜ™ÙXÜ™]Ü™Y[X[[™›ØØ[X]]Üš^˜][Ûˆ]H\™H™[[İ™Y‚‹Hš^\È[^™\İ[YHHÙ[Xİ[™ÈH]™HT’TÈÙ\ÜÚ[Û‹\ÜİZ[™È^XÚ]^K™\šYZ[™È]^X˜XÚÈXİX[Hİ\Y[™™]\›š[™È[ˆXİ[Û˜X›H˜Z[\™HYˆH^Y\ˆ˜[Ù[HXÚÛ›İÛYÙ\ÈH™\]Y\İ‚‹HYÈ\™Xİ[^›ÚXÙH\™Ù]È›ÜˆÜİYKÚ›ÛZ][KĞÚ›ÛYKÜ\˜HÖš\™Y›Ş“Ë[™ÛÛ\]X›H[X\Ù\ÈÚ]İ]Ú[[HÛÛ›Û[™ÈHY™™\™[˜[YYÛİ\˜ÙK‚‹HYÈHZ[Z[ˆĞT”È]Y[ËİšY[È^Y\ˆÚ]˜YËX[™Y›ÜÙYZË›Û[YKÜYYÙ^X›Ø\™ÚÜİ]Ë[ØÜ™Y[ˆ^X˜XÚË[™H˜Y[™ÈĞT”ÈQ‚‹H™]Z[œÈHÛÛ\]H™\œÚ[ÛˆÌˆÜ\˜][ÛœÈÙ[\ˆ[™[Y[[™HZ[\İÛ™K‚‚ˆÈÈ<'éêˆ™\œÚ[ÛˆÌˆ]™[ÜY[8 %Ü\˜][ÛœÈÙ[\ˆ	ˆ[Y[[™B‚‹H[šYšY\È›İXÙ\Ëİ][Ûˆ]™[ËÛÛ\]\ˆÛÜ™H[œË›ØÙY\™\ËYYXHÚ[™Ù\ËÙXİ\š]H›Û\Ë[™˜Z[\™\È[ˆÛ™HÚ›Û›ÛÙÚXØ[Ü\˜][ÛœÈÙË‚‹Hš[\œÈ[™ÙX\˜Ú\ÈHİ][Û‹Ü\˜]Ü‹İXœŞ\İ[KÙ]™\š]K]™[ÛÛ[[™Ù[™\˜]Y^[˜][Û‹‚‹HYÈXÚÛ›İÛYÙ[Y[\ÜÚYÛ›Y[š]™K[Z[]H™[]YY]™[Ü›İ\[™Ë[™ÛX\ˆ8 'Ú]Ú[™ÙYø 'H^[˜][ÛœË‚‹H^ÜÈš]˜XŞKYš[\™Y”ÓÓˆXYÛ›ÜİXÈ™\ÜÈÚ]İ]Ü™Y[X[ËZ\š[™ÈÙXÜ™]Ë]]Üš^˜][ÛˆÛÙ\ËÛ\›Ø\™ÛÛ[ËÜˆ˜[œÙ™\œ™Yš[HÛÛ[Ë‚‹H™\[œÈ™XÛÜ™YİXØÙ\ÜÙ[›ØÙY\™\Ë™]™\œÙ\ÈHİ\œ™[Hİ\ÜYÛÛ\]\ˆÛÜ™HÛ˜\Úİ[™›ÜYØ]\Èš[Üš]H[\ÈÈÙ[XİY\İYİ][ÛœË‚‹Hš^\È™\İ[YH[™]\ÙHHÙ[Xİ[™ÈH\›ÜšX]HYYXHÙ\ÜÚ[Û‹Ù[™[™È^XÚ]^KÜ]\ÙHÛÛ[X[™Ë˜[[™È˜XÚÈÈÛÛ\]X›HT’TÈ^Y\œË[™™]Z[š[™È[ˆ^Xİ™]HXİ[ÛˆÛˆ˜Z[\™K‚‹H™]Z[œÈHÛÛ\]H™\œÚ[ÛˆÌH[š]™\œØ[ÙX\˜Ú[™]H˜XœšXÈZ[\İÛ™K‚‚ˆÈÈ<'éêˆ™\œÚ[ÛˆÌH]™[ÜY[8 %[š]™\œØ[ÙX\˜Ú	ˆ]H˜XœšXÂ‚‹HÙX\˜Ú\È\XØ][ÛœËš[\È[™™XÙ[Øİ[Y[ËÙ][™ÜËÛÛ[X[™Ëİ][ÛœË›İYšXØ][ÛœËYYXKÛÛXİË[Ù[\Ë›ØÙY\™\Ë[™Xİ]š]H\İÜHœ›ÛHÛ™HĞT”È[™^‚‹HXZÙ\È™\İ[ÈXİ[Û˜X›H[™YÈÙ[Xİ]™H[˜Ü\YÜ›ÜÜË\İ][ÛˆŞ[˜Ú›Ûš^˜][Û‹™\œÚ[Ûˆ\İÜKÛÛ™›Xİ[™[™Ë[™š]˜]HİÜ˜YÙK‚‚ˆÈÈ<'éêˆ™\œÚ[ÛˆÌ]™[ÜY[8 %ĞT”ÈÙ\ÜÚ[Ûˆ	ˆ›ÚXÙHÜ\˜][ÛœÂ‚‹H™YÚ\İ\œÈÜ[Û˜[
+Š“ĞT”ÈÛÛ[X[™Ù\ÜÚ[Ûˆ
+Ø^[[™
+JŠˆ[™
+Š“ĞT”ÈÛÛ[X[™Ù\ÜÚ[Ûˆ
+LJJŠˆÙÚ[ˆÚÚXÙ\ÈÛ›HY\ˆ[ˆ^XÚ]Ù][™ÜÈXİ[Ûˆ[™YZ[š\İ˜]Üˆ]]Üš^˜][Û‹‚‹Hİ\ÈHİ\ÜYÜ™[˜\H\ÚİÜ[™\›™X]ĞT”È›ÜˆÛÛ\ÜÚ]Ü‹İÚ[™İÈ[™œ˜\İXİ\™H[™H™[XX›H˜[˜XÚÎÈ™\X]YX\›H˜Z[\™\È\ÙH›İ[™Y™XÛİ™\H[™Ø[ˆ\ØØ[]H[ÈĞT”ÈØY™H[ÙK‚‹H™\Ù[Èš\X[\ÚİÜÈ\ÈĞT”ÈXÚÜË\Y\È\]]KØÛ\ÜÈXÙ[Y[[\È›İYÚÕÚ[ˆÜˆLK[™™]\Ù\ÈØ]™YÛÜšÜİ][ÛœÈ[™][K[[Ûš]ÜˆÛÛ[X[™İ][ÛœË‚‹HYÈÜ[Û˜[YXØ]YÛÛ[X[™]\›Z[˜[[ÙHÚ[H™\Ù\š[™ÈHš\ÚX›H
+Š‘^]È›Ü›X[\ÚİÜ
+Šˆ›İ]K›Ü›X[\[ÙK[™™[[İ˜X›HÙ\ÜÚ[Ûˆ™YÚ\İ˜][Û‹‚‹H[™\œİ[™È]\ÙK^K™\İ[YKÛÛ[YKİÜ™^™]š[İ\Ë]]Kİ]\È™\ÜËØØ]KÙ\Ü^KØ[[™\‹Üİ\™]KZ[[™Èœ™\]Y[˜ÚY\ËØÚËÙÛİ][™İ\ˆ\ÙY[ØØ[ÛÛ[X[™Ë‚‹HYÈ™Y[\Y[İÈ[\ÛÛ™][ÛˆÜ™Y[‹[™›İXİYÙ[ˆ\İXİˆÙ[ˆ\İXİÛÜÙ\ÈÛ›HĞT”È[™™]™\ˆ[]\È]HÜˆİÙ\œÈÙ™ˆHÛÛ\]\‹‚‹H^\ÈHY™š\›X]]™HİYHÛ›HY\ˆHÛÛ[X[™\ÈİXØÙ\ÜÙ[HXØÙ\YÈ[˜[YÜˆ˜Z[YÛÛ[X[™È›İÈ^HÛ›HH\œ›Üˆ™\ÜÛœÙK‚‹H™XZ[È\‹[›İXÙHÛÛ[][šXØ][ÛœÈXİ[ÛœÈ\È™XYX›H›İ[™YÛÛ›ÛÈ]›Ü›X[[™ÛÛ\XİÜ\Ú^™\Ë‚‚ˆÈS“ÕWBˆ
+Š•™\œÚ[ÛˆÌŒˆ]™[ÜY[[›ÙXÙ\È™Y\˜][Û‹ŠŠˆĞT”È›İÈİ\ÜÈ\˜X›Hİ][ÛˆY[]Y\Ë]]ÛX]XÈSˆ\ØÛİ™\KÚYÛ™YQTËLM‹QĞÓH˜]]™H[šÜËÙ[Xİ]™H\‹Y]šXÙHŞ[˜Ú›Ûš^˜][Û‹YÙH[™Ù™‹›İYšXØ][Ûˆ›İ][™ËİX\™YÛ\›Ø\™[™ÛX[Yš[H˜[œÙ™\‹[™›İ[™YÙ™›[™H[]™\H]Y]Y\Ëˆ[™ËYœ™YHÙ™›[™H›ÚXÙH\È[ÛÈ]˜Z[X›Nˆ\›š[™È\Ú]Ë][ÈÙ™ˆ]]ÛX]XØ[H[˜X›\ÈHÜ[Û˜[8 'ÛÛ\]\¸ 'HØZÙHÛÜ™ˆ\İXÚØYÙ\È\™HX›\ÚY]HÕ™\œÚ[ÛˆÌŒˆ™\™[X\ÙWJÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËİYËİŒÌŒŠNÈ™\œÚ[ÛˆH™[XZ[œÈİX›K‚‚ˆÈÈ<'éêˆ™\œÚ[ÛˆÌŒˆ]™[ÜY[8 %™Y\˜][Û‚‚‹HÚ]™\ÈXXÚİ][ÛˆH\œÚ\İ[ØØ[Y[]H[™™XYX›Hš[™Ù\œš[[™]ÈH[™›ÚYÛY[\ØÛİ™\ˆ[˜X›Yİ][ÛœÈÛˆHØØ[™]ÛÜšË‚‹HÚYÛœÈ˜]]™HÛY[™\]Y\İÈ[™[˜Ü\ÈZ\ˆ›ÙY\È[™™\ÜÛœÙ\ÈÚ]QTËLM‹QĞÓKÚ][Y\İ[\[™™\^H›İXİ[Û‹‚‹HYÈ\‹Y]šXÙHÛÛ›ÛÈ›ÜˆYÙKYYXK›İYšXØ][Û‹[[Y]KÛÜšÜİ][Û‹\XØ][Û‹›ØÙY\™K[™XØÙ\ÜÚXš[]HŞ[˜Ú›Ûš^˜][Û‹‚‹H[™Èİ]\ËYYXK[™ÛÛ[][šXØ][ÛœÈÛÛœÛÛ\ÈÈH\İYQ[™ÙY\ÈH›İ[™YÙ™›[™H]Y]YH[[H\İ[˜][ÛˆXÚÛ›İÛYÙ\È[]™\K‚‹H›İ]\Èš[Üš]H›İXÙ\È[™Ü[Û˜[Û\›Ø\™^[™˜[œÙ™\œÈš[\È\ÈLLˆÚPˆÛ›Hİ™\ˆ[ˆ[˜Ü\Y˜]]™H[šÈÚ]›İHİ][ÛˆİÚ]Ú[™]šXÙH\›Z\ÜÚ[Ûˆ[˜X›Y‚‹HYÈÛÛ[[İ\È[™ËYœ™YHÙ™›[™H›ÚXÙHØ\\™Kˆ\Ú]Ë][È™[XZ[œÈÙ[XİX›NÈ\ØX›[™È]]]ÛX]XØ[H[˜X›\ÈH[™\[™[HÛÛ™šYİ\˜X›H8 'ÛÛ\]\¸ 'HØZÙHÛÜ™‚‹H™]Z[œÈHÛÛ\]H™\œÚ[ÛˆÌŒHÛÛ\]\ˆÛÜ™K›ØÙY\™KK\[‹]Y][™Ë[™YÚ\Ü\‹˜Ü[™›İXİY›ØØ[X]]Üš^˜][Ûˆ™X]\™HÙ]‚‚ˆÈÈ<'éêˆ™\œÚ[ÛˆÌŒH]™[ÜY[8 %ÛÛ\]\ˆÛÜ™B‚‹H˜[œÛ]\ÈZ[ˆÜ\˜]Üˆ[™İXYÙH[ÈHš\ÚX›HÜ™\™Y[ˆ™Y›Ü™HŞ\İ[Hİ]HÚ[™Ù\Ë‚‹H™\ÛÛ™\È]™HĞT”ÈYÙ\Ë[œİ[Y\XØ][ÛœËØ]™YÛÜšÜİ][ÛœË\Ü^HX]š^˜[Z[Y\Ë[™›ØÙY\™\ÈØØ[K‚‹HX™[ÈØY™KÜ\˜][™Ë[™›İXİYXİ[ÛœÎÈÚİÜÈØØ[ÛÜ™H\[™[˜ÚY\ÎÈ[™ÙY\È[ˆ^XÚ]ÛÛ™š\›X][ÛˆØ]H›ÜˆİÙ\ˆ[™[İÛ\İYš]š[YÙYÜ\˜][ÛœË‚‹H›İšY\ÈYHH[œËHÌ\™XÛÜ™ØØ[ÛÛ\]\ˆ]Y][™Ú[™ÛK\[ˆ[™ÈÚ[ˆ]™\HXİ[Ûˆ\È™]™\œÚX›K‚‹H^[™ÈÜ\˜][ÛœÈ]]ÛX][Ûˆ[È\İ\›ØÙY\™\ÈÚ]˜]\K™]ÛÜšË›İXÙKYYXKQİ][Û‹[\˜[İ\\[YK\XØ][Û‹[™]Y[ËY]šXÙHšYÙÙ\œË‚‹HYÈšYÙÙ\ˆÛÛÛİÛœË[[YH[Z]ËK\[‹[Û›HšYÙÙ\œËœ˜[˜ÚÛÛ™][ÛœË™]šY\ËÜ\˜]Üˆ›Û\Ë[™˜Z[\™HÛXÚY\Ë‚‹H[™\ÈHÙ™šXÚX[[›™YÚ\Ü\‹˜Ü\ÚİÜ[[YH[™H™\šYšYYØØ[[™Û\ÚÛÛ[X[™[Ù[Ú[H™\Ù\š[™Èİ\İÛH^Xİ]X›H[™[Ù[İ™\œšY\Ë‚‹H™XÛÜ™ÈZXÜ›ÜÛ™H[œ]\™XİH\ÈÓHĞU‹]›ÚY[™È[ˆ‘›\YÈ™\]Z\™[Y[›ÜˆH›Ü›X[™\œÚ[ÛˆÌŒH›ÚXÙH]‚‹HYÈ[ˆÜ[Û˜[›ØØ[]]Üš^˜][Ûˆ˜\ÙH›Üˆ›İXİY›ÚXÙH[œËˆÛ›HHØ[Y’ÑŒˆ\Ú\ÈİÜ™YH˜\ÙH\È™[[İ™Y™Y›Ü™HÛÛ[X[™\İÜK[™š\ÚX›H›İXİYXXİ[ÛˆÛÛ™š\›X][Ûˆ™[XZ[œÈX[™]ÜK‚‚•™\œÚ[ÛˆÌŒHÙ\È›İY[œ™\İšXİYÚ[ÜˆİYÈ^Xİ][Û‹ˆØØ[ÛÛ[X[™È™[XZ[ˆ[İÛ\İY[™H›ØØ[ÛÙH™]™\ˆ™XÛÛY\È[ˆÜ\˜][™Ë\Ş\İ[H\ÜİÛÜ™‚‚ˆÈÈ<'äéHÚÛÜÙH[İ\ˆİÛ›ØY‚Ÿ]›Ü›HİÛ›ØY™\İ›ÜˆŸKKHKKHKKHŸ<'ä)È[^Õ[š]™\œØ[[^XÚØYÙWJÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËÙİÛ›ØYİŒKÓĞT”ËU[š]™\œØ[S[^Q\ÚİÜ]ŒKš\
+H™XÛÛ[Y[™Y[œİ[\ˆ[™HÚ]\ÚİÜ][˜Ú\‹XÛÛ‹[š[œİ[\‹\[™[˜ÚY\Ë[™[YÜ˜][ÛˆÛÛÈŸ<'ä)È[^ÔÜX›H\[XYÙWJÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËÙİÛ›ØYİŒKÓĞT”ËPÛÛ[X[™R[\™˜XÙK]ŒK^—Í\[XYÙJH[›š[™ÈĞT”È\™XİHÚ]İ]H˜Y][Û˜[[œİ[][ÛˆŸ<'ä)È[^ÔÙX\˜Ú[™]]Üİ\[\—JÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËÙİÛ›ØYİŒKÓĞT”ËS[^R[YÜ˜][Û‹]ŒKœÚ
+H™YÚ\İ\š[™ÈHÜX›H\[XYÙH[ˆH\XØ][ÛˆY[H[™Ü[Û˜[Hİ\[™È]]ÙÚ[ˆŸ<'ê§ÈÚ[™İÜÈÓÛ™KXÛXÚÈÚ[™İÜÈÙ]\JÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËÙİÛ›ØYİŒKÓĞT”ËUÚ[™İÜËTÙ]\]ŒK™^JH›Ü›X[Ú[™İÜÈ[œİ[][Û‹İ\Y[HÙX\˜ÚÚÜİ]ËÜ[Û˜[]]Üİ\[™ÛX[ˆ[š[œİ[Ÿ<'äìH[™›ÚYÓ[Øš[HÛÛ[X[™[š\›Û›Y[T×JÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËÙİÛ›ØYİŒKÓĞT”ËS[Øš[KQ[š\›Û›Y[]ŒKP[™›ÚY˜\ÊH\Ú[™ÈĞT”È\È[ˆÜ[Û˜[[™›ÚYÛYHÜˆZ\š[™ÈHÛ™HÜˆX›]ÈH\İYİ][ÛˆŸ<'ä®È]™[Ü\œÈÕ™\œÚ[ÛˆHÛİ\˜ÙWJÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËÙİÛ›ØYİŒKÓĞT”ËPÛÛ[X[™R[\™˜XÙK]ŒKTÛİ\˜ÙKš\
+H™]šY]Ú[™Ë^[™[™ËÜˆZ[[™ÈH›Ú™XİŸ<'å$™\šYšXØ][ÛˆÔÒLM”ÕSTËJÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËÙİÛ›ØYİŒKÔÒLM”ÕSTË
+HÛÛ™š\›Z[™È]HİÛ›ØY\ÈÛÛ\]H[™]][XÈ‚•H[š]™\œØ[[^İÛ›ØYÛÛZ[œÈ
+Š“[^š[\ÈÛ›JŠ‹ˆÚ[™İÜÈ\È\İšX]YÙ\\˜][H›İYÚHÙ]\^Xİ]X›K‚‚ˆÈÈ8§*Ú]ĞT”ÈØ[ˆÂ‚ŸŞ\İ[HØ\Xš[]Y\ÈŸKKHKKHŸ<'å©{î#È
+Š‘\ÚİÜÛÛ[X[™Ù[\ŠŠˆ][˜Ú[œİ[Y\XØ][ÛœËX[˜YÙH\ÈŒ˜]›Üš]\ËİÚ]ÚÜ[ˆÚ[™İÜÈ›İYÚH\ÚÈ˜Z[Z^˜[YY˜^HÙ\šXÙ\ÈÚ]ÛÛ™šYİ\˜X›HÛÛ[X[™]ÛœË[™›İ]Hİ\ÜYÚ[™İÜÈ™]ÙY[ˆ\Ü^\ÈŸ<'äâˆ
+Š“]™H[[Y]JŠˆ[œÜXİİ™\˜[[™\‹XÛÜ™HÔH\ÙKSKÜ˜\XÜÈ\™Ø\™KÔHY[[ÜH[™[\\˜]\™HÚ\™H]˜Z[X›K\ÚÜË™[[İ˜X›HİÜ˜YÙK™]ÛÜšÚ[™Ë[™]›Ü›HÛÛ\]Xš[]HŸ<'éìH
+Š“[Ù[\ˆİ™\šY]ÊŠˆY™[[İ™K™\Ú^™K[™™[Ü™\ˆ[Ù[\È[ˆÛÛ\Xİİ[™\™ÜˆÚYH^[İ]ÎÈ\ÙHÛ™HÛØ˜[[œÚ]HÜˆØ]™HY™™\™[Ú^™\È\ˆYÙHŸ<'äàH
+Š‘š[\È[™Øİ[Y[ÊŠˆœ›İÜÙHØØ[š[\Ë[İ[Üˆ[›[İ[İ\ÜY™[[İ˜X›Hš]™\Ë™]šY]ÈÛÛ[[Ûˆ›Ü›X]Ë[™Ü[ˆ^Øİ[Y[[™ˆÛÜšÜÜXÙ\È[ˆĞT”ÈÜˆ]XÚYÚ[™İÜÈŸ8£*;î#È
+Š‘[X™YY\›Z[˜[
+Šˆ\ÙH\ÛÛ]YØØ[Ú[XœÈ\™XİH[œÚYHĞT”ËÛÛ™šYİ\™H\›Z[˜[™Z]š[Ü‹Ü[ˆ[›İ\ˆ˜]]™H\›Z[˜[Ú[™İÈÛˆHÙ[XİY\Ü^K[™ZYKXÛXÚÈXœÈÈÛÜÙH[HŸ<'ã­H
+Š“YYXH[™]Y[ÊŠˆÛÛ›ÛÛÛ\]X›H^Y\œË[ˆYYXHÛİ\˜Ù\ËY\İX\İ\ˆ[™\‹X\XØ][Ûˆ›Û[YK[™Ù[Xİİ]]]šXÙ\È[™ZXÜ›ÜÛ™\ÈÚ\™HHÔÈ^ÜÙ\È[HŸ<'ãª
+Š”\œÛÛ˜[^˜][ÛŠŠˆÚÛÜÙHÚ^š\İX[[Y\ËÛÛ™šYİ\™HH[Ù[\ˆÜYYX[[™ÚYX˜\ˆ\İ[˜][ÛœËÜ[ˆÚ[][[™[İ\ÈYÙHYZÜËØ]™HÛÛ\]HÛÜšÜİ][ÛœËY\İXØÙ\ÜÚXš[]HÜ[ÛœË[™[\ÜÜˆ^ÜÙ][™ÜÈŸ<'å%
+Š“Ü\˜]ÜˆÛÛÊŠˆÙX\˜ÚH[\™H[š\›Û›Y[Ú]İ›
+Ñ˜Ü[ˆÛÛ\]\ˆÛÜ™HÚ]İ›
+ÒØZ[™]šY]ËYš\œİ›ØÙY\™\ËX\Ù^X›Ø\™ÛÛ›ÛË™]šY]Èš[Üš]HÛÛ[][šXØ][ÛœÈ[™ÛÛ[X[™Xİ]š]K[™\ÙHÈ›İ\İ\˜ˆŸ<'å$ˆ
+Š“ØØ[ØY™YİX\™ÊŠˆ\ÙHH[YYÜ[Û˜[\\ÜİÛÜ™ØÚÈØÜ™Y[‹ÛÛ™š\›X][Ûˆ[™[È›Üˆ›İXİYXİ[ÛœË[™HİÙ\ˆY[H›Üˆ^]ĞT”ËÛY\™\İ\ÜˆÚ]İÛˆŸ<'éêH
+Š‘^[œÚ[ÛœÈ[™›ÚXÙJŠˆ[œİ[\İYÚXÚÜİ[K]™\šYšYYXÛ\˜]]™H[Ù[\È[™ÛÛ™šYİ\™HÜ[Û˜[Ù™›[™H\Ú]Ë][ÈÛÛ[X[™È›İYÚÚ\Ü\‹˜Ü‚ˆÈÈ8§*™\œÚ[ÛˆHİX›H8 %[Øš[HÛÛ[X[™[š\›Û›Y[‚•™\œÚ[ÛˆH\ÜÙ[X›\ÈHÛÛ\]H[Øš[HÛYKİ\İÛZ^˜][Û‹[™ÛÛ›™XİYİ][ÛˆØÚÈ™X]\™HÙ]‚‚‹HXZÙ\ÈÛÛ\[š[ÛˆHš\œİXÛ\ÜÈYÙH[œÚYHHİ[™[Û™HÛYH[\™˜XÙKÚ]İ]\ËYYXKÛÛ[][šXØ][ÛœËÛÛ[X[™[™İ][ÛˆX[˜YÙ[Y[[ˆÛ™HÚ[‚‹HYÈHÛÛ›™XİYİ][ÛˆØÚÈÚ]\ÈZYÚØ]™Yİ][ÛœÈ[™˜\İXİ]™K\İ][ÛˆİÚ]Ú[™Ë‚‹HZYÜ˜]\ÈYØXŞHZ\š[™ÜÈ[™[˜Ü\È™]›ØØX›Hİ][ÛˆÚÙ[œÈ›İYÚ[™›ÚYÙ^\İÜ™HQTËQĞÓH[œİXYÙˆÙY\[™È[H[ˆÜ™[˜\H™Y™\™[˜Ù\Ë‚‹HYÈš[Üš]Hİ][Ûˆ›İYšXØ][ÛœËÚ\™Ú[™ËX]Ø\™H˜]\H™\Ü[™Ë™]›ØØ][Ûˆ™XÛİ™\K[™H˜]\K\ÛXŞHÙ[‹]\İ‚‹HÙY\ÈÛ™È[™ÛÛ\XİX\İXYÜYÙH]\ÈÛÛZ[™Y[œÚYHZ\ˆĞT”È[™[Ë‚‹H™]Z[œÈHÛYH\ÚÈXÜ›ÜÜÈÛ™H[›ØÚÜË\ØÛİ™\œÈ[œİ[Y\È]Ø^Hœ›ÛHH[\™˜XÙH™XY[™\Ù\ÈH\™Xİİ\œ™[\›Ùš[H][˜Ú]‚‹HÜ[œÈHX]Ú[™ÈĞT”ÈØ[[™\ˆœ›ÛHH\ÚİÜÜˆ[Øš[HÛØÚË‚‹HXÙ\È\ÈÙ[H›Û\‹Z[™\[™[˜]›Üš]\ÈX›İ™H›Û\œÈÛˆH\XØ][ÛœÈYÙK‚‹HYÈHÛ™K]\[Øš[H\]HÛÛœÛÛH]İÛ›ØYÈH™]Ù\İ[™›ÚYXÚØYÙK™\šYšY\È]ÈX›\ÚYÒKLMˆÚXÚÜİ[K[™Ü[œÈ[™›ÚY	ÜÈ™\]Z\™Y[œİ[\ˆÛÛ™š\›X][Û‹‚‚•HİX›H[™›ÚYXÚØYÙH™YÚ[œÈĞT”ĞÒIÜÈ\œÚ\İ[™[X\ÙK\ÚYÛš[™È[™H›Üˆ\[™X›H™\œÚ[ÛˆKX[™[]\ˆ\]\Ëˆ™XØ]\ÙH™\œÚ[Ûˆ[™H™\œÚ[ÛˆHÈÙ\™H›ÙXÙYÚ]\ÜÜØX›H]™[ÜY[ÚYÛ˜]\™\ÈÜˆHÙ\\˜]H]™[ÜY[XÚØYÙHY[]K[™›ÚYX^H™\]Z\™HZ\ˆÛ™K][YH™[[İ˜[™Y›Ü™H™\œÚ[ÛˆHİX›HØ[ˆ™H[œİ[Y‚‚ˆÈÈ™\œÚ[ÛˆKŒˆ]™[ÜY[8 %ĞT”ÈÛYHİ\İÛZ^˜][Û‚‚•™\œÚ[ÛˆKŒˆÛÛ\]\ÈH[›™Yİ\İÛZ^˜][ÛˆZ[\İÛ™H›ÜˆHÜ[Û˜[[™›ÚYÛYH[š\›Û›Y[‚‚‹H™XZ[Èİ[™[Û™HÛYH\›İ[™H\ÚİÜĞT”ÈX\İXY\œÚ\İ[[X™\™YÚYX˜\‹[™›Øİ\ÙYYÙH˜]šYØ][Û‹‚‹HYÈ[™\[™[\XØ][ÛˆXÚÜÈ[™›Û\œÈ[Û™ÜÚYHH^\İ[™ÈÙX\˜ÚX›HXœ˜\H[™˜]›Üš]\Ë‚‹HÜİÈ[œİ[Y[™›ÚYÚYÙ]È›İYÚHŞ\İ[HÚYÙ]XÚÙ\‹[˜ÛY[™È›İšY\ˆÛÛ™šYİ\˜][Ûˆ[™™[[İ˜[‚‹HYÈH[Øš[H\Ü^HX]š^›Üˆ[\œš\ÙKQ›ŞXYÙ\‹[\œš\ÙKQKÓ™[Y\Ú\ËXØ\™Y\˜Hİ\™›Y]Ù\œš]ÜË[™YšX[ĞT”È˜[Z[Y\Ë[˜ÛY[™ÈÙ[ÛY]H[™[œÚ]HÚ[™Ù\Ë‚‹HYÈÛÛ›ÛÈ›ÜˆÚYX˜\ˆÚY[\™˜XÙH[œÚ]K[™\XØ][Û‹YÜšYÛÛ[[œË‚‹HYÈ”ÓÓˆ˜XÚİ\[™™\İÜ™H›Üˆ[Y\Ë^[İ]˜]›Üš]\ËXÚÜË[™›Û\œÎÈ]šXÙK\ÜXÚYšXÈ[™›ÚYÚYÙ]š[™[™ÜÈ\™H[X™\˜][H^ÛYY‚‹H™]™[ÈH˜]]™HÛÛ\[š[Ûˆ[™İ[™[Û™HÛYHX\İXYÈœ›ÛHÛ\[™ÈY\ˆX‹ÜYÙHÚ[™Ù\ËXØÙ\ÜÚXš[]HØØ[[™Ë›İ][Û‹Üˆ™]\›š[™ÈÈİ]\Ë‚‚•\ÙH™\œÚ[ÛˆKŒˆ™X]\™\È\™H[˜ÛYY[ˆ™\œÚ[ÛˆHİX›K‚‚ˆÈÈ™\œÚ[ÛˆKŒH]™[ÜY[8 %ÛYH›İ[™][Û‚‚•™\œÚ[ÛˆKŒH™YÚ[œÈHÜ[Û˜[İ[™[Û™H[™›ÚYĞT”ÈÛYH^\šY[˜ÙHÚ[H™\Ù\š[™ÈHZ\™YQÛÛ\[š[Û‚‚‹HYÈHÙ[Z[™H[™›ÚYÛYK\›ÛHİ\™˜XÙH]HÜ\˜]ÜˆX^H™]šY]È™Y›Ü™H^XÚ]HÚÛÜÚ[™È]\ÈH]šXÙH][˜Ú\‹‚‹HYÈH›Ùš[KX]Ø\™H[œİ[YX\XØ][ÛˆXœ˜\H\Ú[™È[™›ÚY	ÜÈ][˜Ú\ˆÙ\šXÙKÚ]]™HÙX\˜Ú[™\™Xİ][˜Ú[™Ë‚‹HYÈ\œÚ\İ[˜]›Üš]H\XØ][ÛœÈÚ]^XÚ]İ\ˆÛÛ›ÛÈ[™Û™Ë\™\ÜÈÙÙÛ[™Ë‚‹HYÈÙ™›[™H˜]\K™]ÛÜšËİÜ˜YÙK[™\XØ][Ûˆİ]\ÈÛÈĞT”È™[XZ[œÈ\ÙY[Ú]İ]HZ\™Y\ÚİÜ‚‹HÙY\ÈÛÛ\[š[ÛˆÙ]\[™]™\H™\œÚ[ÛˆÛÛ›™XİYÜ\˜][ÛœÈ™X]\™H]˜Z[X›Hœ›ÛHHÛYH[\™˜XÙK‚‹HÙY\ÈİX›H™\œÚ[Ûˆ[œİ[YÙ\\˜][HHÚ]š[™ÈH]™[ÜY[TÈ]ÈİÛˆXÚØYÙHY[]K‚‹Hš^\ÈÜ˜\Yİ]\Ë[[Ù[HY]XY\œÈ™Z[™ÈÛİ™\™YHH›İÈX›İ™K‚‹H™\İÜ™\È[™\XØ[™\Ú^š[™È›ÜˆYÙHYZÜËÛÛ[][šXØ][ÛœËÓ›İXÙ\Ë[™H˜^HÛÛ[X[™XÚË‚‚•™\œÚ[ÛˆKŒH\İX›\ÚYHÛYK\›ÛK\XØ][Û‹[Xœ˜\KÙX\˜Ú˜]›Üš]\ËØY™HİÚ]Ú[™Ë[™Ù™›[™K\İ]\È›İ[™][Ûˆ^[™YH™\œÚ[ÛˆKŒ‹‚‚ˆÈÈ8§*™\œÚ[ÛˆÛÛ›™XİYÜ\˜][ÛœÂ‚‹HYÈ
+Š”Q›Y]ÛÛ[X[™
+ŠˆÚ]]šXÙH™[˜[Z[™ËÛ›[™Hİ]K˜]\K™]ÛÜšË][˜ŞKÛY[™\œÚ[Û‹ÛÛ›™Xİ[ÛˆÛİ[ËY[YHÚYÛ˜[Ë™]›ØØ][Û‹[™H\œÚ\İ[ØØ[Xİ]š]H›İ\›˜[‚‹HYÈÜ˜[[\ˆ\‹Y]šXÙH\›Z\ÜÚ[ÛœËÛÛ™šYİ\˜X›HQÚYÙ]ËÛÛ›™XİYÛÜšÜİ][ÛœËÜ[Û˜[\œš]˜[Ù\\\™H›Ş[Z]H›Ùš[\Ë[™\İ[˜İšY]Ù\‹Ü\˜]Ü‹[™ÛÛ[X[™]]Üš]K‚‹H[›ÙXÙ\È[ˆ^XÚ]\ÚİÜ\›İ˜[]Y]YH›Üˆ™[[İH›İ][™\Ë\XØ][Ûˆ][˜Ú\ËÛÜšÜİ][Ûˆ™\İÜ™\Ë[™Ù™œË[™ÜZ[ˆ^Û\›Ø\™™\]Y\İËˆ\İYY]šXÙH]]ËX\›İ˜[\ÈÙ\\˜]H[™\ØX›YHY˜][‚‹H^[™ÈÛÛ[][šXØ][ÛœÈÚ]XÚÛ›İÛYÛY[[™\˜Ú]™HXİ[ÛœËXİ]™H›İ][™Hİ]\Ë]ZXÚÈXİ[ÛœËİ\œ™[XÛÛœÛÛH[™Ù™‹™[X\ÙKXÚ[›™[İ]\Ë[™šXÚ\ˆYYXKİ[[Y]Hİ]K‚‹H\Ü˜Y\ÈH˜]]™H[™›ÚYQÚ]Û™KX›][™[™ØØ\H^[İ]ÎÈš[Üš]H›İYšXØ][ÛœÎÈ\XÈY[YNÈXØÙ\ÜÚXš[]HŞ[˜Ú›Ûš^˜][ÛÈHÛYK\ØÜ™Y[ˆİ]\ÈÚYÙ]È]™H[šÈXYÛ›ÜİXÜÎÈ[™İ\İÛZ^˜X›H[™[Ë‚‹HYÈÙ[XİX›H[™›ÚY[™œ›İÜÙ\‹TQYYXHÛİ\˜Ù\ËÛÛ›™Xİ[Ûˆ™XÛİ™\HİZY[˜ÙK\‹Y]šXÙH›İYšXØ][ÛˆÛXÚY\Ë™]\ØX›H\›Z\ÜÚ[Ûˆ™\Ù]ËÛXŞHÛÜZ[™ËÛË[Z[]H\›İ˜[^\˜][Û‹ÛY[Üİ][Ûˆ™\œÚ[ÛˆØ\›š[™ÜË[™š]˜XŞK\ØY™HÛÛ›™XİYXYÛ›ÜİXÜÈ^ÜË‚‹H™XZ[È[\œš\ÙKQ›ŞXYÙ\‹[\œš\ÙKQKÓ™[Y\Ú\ËXØ\™Y\˜Hİ\™›Y]ĞT”È‹ŒÙ\œš]ÜË[™YšX[[Y\ÈÚ]Z\ˆİÛˆÙ[ÛY]K[œÚ]K›Ü™\œË˜]šYØ][Û‹[™[™[™Z]š[Ü‹ˆØ\™\ÜÚX[ˆİ][ÛˆÛÛ›ÛËHÚ\™[˜HÛÙÜ˜[\Ë[™İ\ˆ›Û‹SĞT”ÈŞ\İ[\È\™H[X™\˜][H^ÛYY‚‹Hœš[™ÜÈHœ›İÜÙ\ˆQ˜[˜XÚÈÈHØ[YHÛÛ›™XİYÜ\˜][ÛœÈ›İØÛÛ[˜ÛY[™ÈX\™X][[Y]H[™ØY™HØ\Xš[]KX]Ø\™HÛÛ›ÛË‚‹H™]Z[œÈ[™\œÚ[ÛˆÈØY™YİX\™ÎˆÛ™K]\ÙHZ\š[™ÈÛÙ\Ë\ÚY™]›ØØX›HÚÙ[œËš]˜]K[™]ÛÜšÈY™\ÜÈ˜[Y][Û‹[™H\™›ØÚÈÛˆ™[[İH\›Z[˜[š[\Ë›ØÙ\ÜÈÛÛ›Û[™ÛÛ\]\ˆİÙ\ˆXİ[ÛœË‚‚•™\œÚ[Ûˆ\È]˜Z[X›HÛˆH
+Š”İX›JŠˆ\]HÚ[›™[ˆ\ÙHHÛÛ\[š[ÛˆÛ›HÛˆH™]ÛÜšÈ[İH\İÈHØØ[QÙ\šXÙH\È›İ[[™Y›Üˆ[\›™]^Üİ\™K‚‚•™\œÚ[ÛˆH\È]˜Z[X›HÛˆH
+Š”İX›JŠˆ\]HÚ[›™[[™ÛÛZ[œÈHÛÛ\]HÛYKİ\İÛZ^˜][Û‹ÛÛ›™XİYİ][ÛˆØÚËÙXİ\š]K\™›Ü›X[˜ÙKØ[[™\‹˜]›Üš]\Ë[™[Øš[K]\]H™X]\™HÙ]‚‚ˆÈÈ<'á¥H™\œÚ[ÛˆËŒ‹ŒHİX›H\]B‚‹H™\XÙ\ÈH[™›ÚYÙX•šY]ÈÜ˜\\ˆÚ]Hİ[™[Û™H˜]]™H
+Š”QÛÛ\[š[ÛŠŠˆ[\™˜XÙH›Üˆİ]\ËÛÛ[][šXØ][ÛœËYYXK]Y[ËYÙH˜]šYØ][Û‹›İ][™\Ë[™\›İ™Y\XØ][ÛˆÛÛ[X[™Ë‚‹HYÈHİZYY™YK\İ\Z\š[™Èİ][Ûˆ[™\ˆ
+Š”Ù][™ÜÈ8¡¤ˆÛÛ›™XİY
+Š‹Ú]\™XİTÈİÛ›ØYÛ™K]\ÙHÛÙH\›Z[™ËÛÜXX›Hİ][Ûˆ]Z[Ë™XÛÛ›™Xİ[ÛˆİZY[˜ÙK]šXÙH›Û\Ë[™™]›ØØ][Û‹‚‹H™[Ü™Ø[š^™\È
+Š”Ù][™ÜÊŠˆ[È[\™˜XÙKÛÜšÜÜXÙKÛÛ›™XİY[™Ş\İ[HÛÛœÛÛ\È[™
+Š•\]\ÊŠˆ[È™[X\Ù\Ë[Ù[\Ë[™XYÛ›ÜİXÜÈÛÈİ[™\™\Ú^™H\Ü^\È™[™\ˆÛ™H\ÙY[ÛÜšÜÜXÙH[œİXYÙˆ]™\H[™[[ˆÛ™H™\XØ[İXÚË‚‹H™\Z\œÈH[Xİ›Ûˆİ[\ÚY]]›ÜˆÜÙHØ]YÛÜšY\È[™Ú]™\È[HHYÚX›HĞT”È˜Z[\İ[˜İÛÛÜˆÛÙ[™ËXİ]™Hİ]Kİ™\ˆİ]K[™Ù^X›Ø\™›Øİ\È™X]Y[‚‹H™Yš[™\ÈH˜]]™HQÚ]ĞT”È[›İÜËÛÛ\XİÙYÛY[Y˜]šYØ][Û‹İ\™YÛÛ›ÛËÛÛ™[œÙY\ÙÜ˜\K[œÙ\ˆ[™[Ë[™›Ü\ˆİ]\ËX˜\‹İ]İ]Ù^X›Ø\™[™˜]šYØ][Û‹X˜\ˆ[œÙ]Ë‚‹HØÚÜÈHİÛ›ØYÛÛ›Û\ÈÛÛÛˆ\ÈH™[X\ÙHİÛ›ØY™YÚ[œÈ[™ÙY\È]ØÚÙY[[ĞT”È™\İ\ËˆHœšYÙH[ÛÈÙ\šX[^™\ÈİÛ›ØYÈ[™™]\Ù\ÈH™\šYšYY\Y˜Xİ[œİXYÙˆ™\XÚ[™È]‚‹H™]Z[œÈH™\œÚ[ÛˆËŒKŒHZ\š[™ËX\›Hİš^Û™K]\ÙHš]™K[Z[]HÛÙ\Ë[™˜]]™HÛÛ^Xİ[ÛœÈ›ÜˆÛÛ\]X›H[^˜^HÙ\šXÙ\Ë‚‹HİÜ™\ÈÛ›H\ÚY]šXÙHÚÙ[œÈ[™[™›Ü˜Ù\È™]›ØØX›H
+Š•šY]Ù\ŠŠ‹
+Š“Ü\˜]ÜŠŠ‹[™
+ŠÛÛ[X[™
+Šˆ›Û\È[ˆHØØ[ÛÜ™K‚‹HÚ\™\È]™HĞT”Èİ]\ËÛÛ[][šXØ][ÛœËYYXKX\İ\ˆ›Û[YKYÙ\Ë›İ][™\Ë[™˜]›Üš]H\XØ][ÛœÈXØÛÜ™[™ÈÈH\ÜÚYÛ™Y›ÛK‚‹H™]™\ˆ^ÜÙ\È\›Z[˜[š[\Ë›ØÙ\ÜÈÛÛ›ÛËÜˆÛÛ\]\ˆİÙ\ˆXİ[ÛœÈÈHZ\™YQ‚‹HYÈ˜]]™HÛÛ^Xİ[ÛœÈ›ÜˆÛÛ\]X›H[^İ]\Ó›İYšY\ˆ˜^HÙ\šXÙ\ËˆšYÚXÛXÚÈHÙ\šXÙK™\ÜÈHÙ^X›Ø\™Y[HÙ^KÜˆÚÛÜÙH
+ŠXİ[ÛœÊŠˆÈÜ[ˆH\XØ][Û‰ÜÈİÛˆY[K[˜ÛY[™ÈXİ[ÛœÈİXÚ\È\ØÛÜ™]Z]‚‚’[œİ[H[™›ÚYTÈÛˆHÛ™HÜˆX›][ˆÜ[ˆ
+Š”Ù][™ÜÈ8¡¤ˆÛÛ›™XİY
+ŠˆÛˆH\ÚİÜ[™›ÛİÈH[X™\™YÙ]\ˆ\ÙHHÛÛ\[š[ÛˆÛ›HÛˆH™]ÛÜšÈ[İH\İÈHØØ[[šÈ\È›İ[[™Y›Üˆ[\›™]^Üİ\™K‚‚ˆÈÈ<'á¥H™\œÚ[ÛˆˆYÚYÚÂ‚‹HÛÜœ™XİÈH™[XZ[š[™Èš\ÚX›H™\œÚ[ÛˆHÙ[™\˜][ÛˆX™[È[™Y[YšY\È^ÜYÛÛ™šYİ\˜][ÛˆÚ]H™\œÚ[ÛˆˆØÚ[XH[™^Xİ\XØ][Ûˆ™\œÚ[Û‹‚‹H^[™ÈÛÛ™šYİ\˜][Ûˆ˜XÚİ\[™™\İÜ™HÈ[˜ÛYHÛÛ[][š]HÚ]Xˆ™\ÜÚ]ÜšY\ËÜ\Ù[ÛY]KÜ[ˆYÙHYZÜËHY˜][ÛÜšÜİ][Û‹Ù\ÜÚ[Ûˆ™\İÜ™K[™HÙ[XİYYYXHÛİ\˜ÙK‚‹HYÈHÛ™K][YH
+Š•Ù[ÛÛYHÈ™\œÚ[ÛˆŠŠˆÜšY[][ÛˆÚ]H\›X[™[Ù][™ÜÈÚÜİ]›Üˆ™[Ü[š[™È]‚‹HÚ\ÈÛ™H™\šYšYYİX›H™[X\ÙH›Üˆ[^[™Ú[™İÜËÚ]ÛX[‹Z[œİ[\]K›Û˜XÚË[™]™[ÜY[]ËTİX›HÛİ™\˜YÙK‚‚ˆÈÈ<'éêˆ™\œÚ[Ûˆ‹Œˆ]™[ÜY[\]B‚‹HYÈ
+Š•ÛÜšÜİ][ÛœÈËŒ
+ŠˆÚ]ÛÜšÜİ][Û‹\ÜXÚYšXÈÜYYX[Ë]]ÛX]XÈÜ˜Z][™ØØ\K\ÚİÜ[™][K[[Ûš]Üˆ™\Ù]Ë\È™]šY]Ë™[˜[YK\XØ]K[™[™]šYX[^ÜÛÛ›ÛË‚‹HYÈ
+Š“Ü\˜][ÛœÈ]]ÛX][Ûˆ‹Œ
+ŠˆÚ]›Û\œËÛÛ™][Û˜[İ\œ˜[˜Ú\Ë[^\Ë™]šY\ËÛÛ[YKÜİÜ˜Z[\™H]ËÜ\˜]Üˆ›Û\Ë[™]šYX[\İ\\İ[™Ë\XØ][Û‹[™ØØ[[ˆ\İÜKˆ›İXİYXİ[ÛœÈ™[XZ[ˆÛÛ™š\›X][Û‹YØ]Y‚‹H™XZ[ÈÛÛ[][šXØ][ÛœÈ\È[ˆ
+ŠXİ[ÛˆÙ[\ŠŠˆÚ]š[Üš]KÜÛİ\˜ÙHš[\œË™\X]Y[Y\ÜØYÙHÜ›İ\[™Ë™XYØ\˜Ú]™Hİ]K[™ØY™HÙ][™ÜË\]\ËÜˆ›ØÙ\ÜÈ\İ[˜][ÛœË‚‹H^[™È[Ù[H™\ÜÚ]ÜHÚ]Ü\˜]Ü‹XYY
+ŠœX›XÈÚ]XˆÛİ\˜Ù\ÊŠ‹Ûİ\˜ÙHXYÛ›ÜİXÜÈ[™Y™XŞXÛHÛÛ›ÛË[Ù[H\]HY]Y]K[™H[Ù[HX›\Ú\ˆ]Ù[™\˜]\È™\ÜÚ]ÜK\™XYHØ][ÙÜËÚXÚÜİ[\Ë›Û\œË[™Øİ[Y[][Û‹‚‹HYÈ˜]]™H]XÚX›HYÙHYZÜËÛ˜\^›Û™H™]šY]ÜËH]™HZ[š[Z^™Y]Ú[™İÈX[˜YÙ\‹[™Ø\œšY\È›ÜØ\™HÜİ\Ü]Ú[™İÜË\ØY™H™\XØ[\™\Ú^™H[™ÛÛ\Xİ\Ü\™Z]š[Ü‹‚‹HÚİÜÈHXİX[]™[ÜY[™\œÚ[Û‹ØÚ[›™[[™YÈHÛX[ˆ]™[ÜY[]ËTİX›HXZ›Ü‹\™[X\ÙHÚXÚË‚‚ˆÈÈ<'éêˆ™\œÚ[Ûˆ‹ŒH]™[ÜY[\]B‚‹H[›ÙXÙ\ÈH™X[ĞT”ÈÚ[™İÈÛÜšÜÜXÙNˆÜ[ˆ][\HYÙHYZÜË˜YÈ[HHZ\ˆXY\œË™\Ú^™Hœ›ÛH]™\HYÙHÜˆÛÜ›™\‹Û˜\Z[š[Z^™K›Øİ\Ë]]ËX\œ˜[™ÙKÛÜÙHÙÙ]\‹Üˆ™\Ù]H^[İ]‚‹H\œÚ\İÈÚ[™İÈÙ[ÛY]K‹[Ü™\‹Z[š[Z^™Yİ]KÛ˜\İ]K[™Ü[ˆYÙHYZÜÎÈ™\œÚ[ÛˆˆÛÜšÜİ][ÛœÈØ\\™H[™™\İÜ™H]ÛÜšÜÜXÙHÚ]H™\İÙˆHÜ\˜]Üˆ›Ùš[K‚‹HYÈHİXÚYš\œİQ[\™˜XÙHÚ]›İÛH˜]šYØ][Û‹Üš^›Û[ÜYYX[XØÙ\ÜËÛÛ[X[™ÚY]Ë\™Ù\ˆ\™Ù]Ë[™™\ÜÛœÚ]™HÜ˜Z]Û[™ØØ\H^[İ]Ë‚‹H™XZ[ÈÛÛ[][šXØ][ÛœÈÙ[\ˆİ™\™›İÈ\ÈÛ™HÛÛZ[™Y™YY[™]ZY]È˜]]™HØÜ›Û˜\œÈ›İYÚİ]Ü\[™İXÚİ\™˜XÙ\ÈÚ]İ]\ØX›[™ÈØÜ›Û[™Ë‚‹HYÈH\İY[Ù[H™\ÜÚ]ÜH[™\ˆ
+Š•\]\È8¡¤ˆ[Ù[HTJŠ‹ˆØ][ÙÈ[šY\È\™H^XÚ]XÛ\˜]]™KÚ^™K[[Z]YÚXÚÜİ[K]™\šYšYY[™˜[Y]YYØZ[ˆ™Y›Ü™H[œİ[][Û‹‚‹HX›\Ú\È[^[™Ú[™İÜÈ]™[ÜY[XÚ[›™[[œİ[\œÈÛ›HY\ˆH[™YÜ™\ÜÚ[ÛˆİZ]K™[™\™\ˆZ[ËXÚØYÚ[™Ë[™ÛÛXš[™YÒKLMˆ™\šYšXØ][Ûˆ\ÜË‚‚ˆÈÈ<'éêˆ™\œÚ[ÛˆKŒˆ]™[ÜY[\]B‚‹HYYÚYZYÚ[™XYÛÛ˜[™\Ú^š[™Èœ›ÛH]™\HÜ\YÙH[™ÛÜ›™\‹Ú]Ø]™YšY]ÜÜ\ØY™H[Y[œÚ[ÛœË‚‹HXYHÜ\^[İ]È™\ÜÛ™ÈZ\ˆİÛˆÚYÛÈÛÛ›ÛÈİXÚÈÛX[›H[œİXYÙˆİ™\™›İÚ[™ÈÚ[ˆHÚ[™İÈ\È˜\œ›İÙY‚‹H™XZ[[˜Xİ]™HYÙHYZÈ^HÛ\ÈÚ]Ù[ÛY]šXÈÙ[\š[™È[œİXYÙˆ›ÛY\[™[ÜXÚ[™Ë‚‹HYÚ[™Y[^YYXHXÛÛˆX]Ú[™ÈÛÈHİ™X[H™]™\ˆ›Üœ›İÜÈ[ˆXÛÛˆœ›ÛHH\X[HX]Ú[™È\XØ][Ûˆ˜[YK‚‚ˆÈÈ™\œÚ[ÛˆKŒH]™[ÜY[\]B‚‹H™XZ[HÜYYX[YYXHYÙHYZÈÚ]İ\œ™[\ÛÜšËÛX\ˆ^X˜XÚÈÛÛ›ÛËX\İ\ˆ›Û[YKÛ]]K[™]™H\‹X\XØ][Ûˆ]Y[ÈÛÛ›ÛË‚‹HYYšY]ÜÜ\ØY™H™\Ú^š[™È[™\œÚ\İ[Ú^™\ÈÈYÙHYZÜÈ[™Hš[X\HÜ\İ\™˜XÙ\Ë‚‹H™\İÜ™YZ[ˆX8 $ØYÙH˜]šYØ][ÛˆÚ[™]™\ˆ›Øİ\È\Èİ]ÚYH[ˆY]X›HÛÛ›ÛÈİ›
+ÌX8 $Øİ›
+Î™[XZ[œÈ]˜Z[X›HÚ[H\[™È[ˆ\›Z[˜[‚‹HX›\Ú\ÈÚYÛ™YXKQÚ]XˆXİ[ÛœÈÜ›ÜÜË\]›Ü›H™\™[X\ÙHXÚØYÙ\È[™ÒKLMˆÚXÚÜİ[\È›Üˆ[™]ËY[™]™[ÜY[XÚ[›™[\]\ˆ\İ[™Ë‚‚ˆÈÈ<'á¥H™\œÚ[ÛˆHYÚYÚÂ‚‹HYY
+Š“Ü\˜][ÛœÈ]]ÛX][ÛŠŠˆ›ÜˆY]X›H][K\İ\›İ][™\ÈÚ]X[X[İ\\[YK\XØ][Û‹[™]šXÙHšYÙÙ\œË‚‹H]™\H›İ][™HÜ[œÈH™XYX›H^Xİ][Ûˆ™]šY]ÎÈ\›İ™YÛÛ[X[™È[™ÛÛ\]\ˆİÙ\ˆİ\È™\]Z\™H^XÚ]Ü\˜]ÜˆÛÛ™š\›X][Ûˆ[™™]™\ˆ[ˆ[˜][™Y‚‹H^[™Y
+Š•ÛÜšÜİ][ÛœÊŠˆÈ™\İÜ™HYÙ\Ë[YK[Ù[\Ë˜]›Üš]\Ë]Y[È]šXÙ\Ë›Û[YK\XØ][ÛœË[™İ\ÜY\Ü^H\İ[˜][ÛœË‚‹HYY[ˆ
+Š‘[™Ú[™Y\š[™ÈÛÛœÛÛJŠˆÚ]ØØ[Ù[œÛÜˆ[[Y]H[™›İXİYÛÛ›ÛÈ›Üˆİ\œ™[]\Ù\ˆ›ØÙ\ÜÙ\Ë‚‹HYYH[šYšYY
+ŠÛÛ[][šXØ][ÛœÈÙ[\ŠŠˆ›Üˆš[Üš]H›İXÙ\ËÈ›İ\İ\˜‹[™H\œÚ\İ[ØØ[ÛÛ[X[™XXİ]š]H™XÛÜ™‚‹HYYHXÛ\˜]]™H
+Š‘^[œÚ[ÛˆXŠŠˆÚ]Ø][ÙÈÙX\˜Ú[˜X›KÙ\ØX›HÛÛ›ÛË[™İX\™Y™[[İ˜[Ùˆ›Û‹X[™YØØ[^[œÚ[ÛœË‚‹H™XZ[HŞ\İ[H˜^H\ÈHØÜ›ÛX›H
+Š•˜^HÛÛ[X[™XÚÊŠˆ]Z^\È\ÚİÜÙ\šXÙ\ÈÚ]Ü\˜]Ü‹YYš[™Y\XØ][Û‹›İ][™K[™ĞT”Ë\YÙH]ÛœË‚‹HÚYX˜\ˆ\İ[˜][ÛœÈÛˆH[Ù[\ˆÜYYX[›İÈÜ[ˆÛÛ\Xİ
+Š”YÙHYZÜÊŠÈ[›š[™ÈÙY\ÈHYZÈX›İ™Hİ\ˆĞT”ÈYÙ\È[[™[X\ÙY‚‹HYYÛÛ™šYİ\˜X›HÙ^X›Ø\™ØÛÛ›ÛX\[™ÜÈ[™›ÚXÙKXÛÛ[X[™XØÙ\ÜÈÈ›İ][™\Ë‚‹HYY^XÚ]İX›H[™]™[ÜY[\]HÚ[›™[Ëˆ]]ÛX]XÈÚXÚÜÈ™[XZ[ˆÚ[[Ú[ˆÙ™›[™NÈX[X[ÚXÚÜÈ™\Ü\ÙY[\œ›ÜœË‚‹HÛÜœ™XİYØØ[YYYXKXÛÛ›Û[YÛ›Y[[™™]Z[™YHš^Y™YK^›Û™H™\œÚ[ÛˆŒHYYXHÛÛœÛÛK‚‚ˆÈÈ<'ä)È[^[œİ[][Û‚‚ˆÈÈÈ™XÛÛ[Y[™Yˆ[š]™\œØ[[œİ[\‚‚ŒKˆİÛ›ØYØĞT”ËU[š]™\œØ[S[^Q\ÚİÜ]Œ‹š\JÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËÙİÛ›ØYİŒ‹ÓĞT”ËU[š]™\œØ[S[^Q\ÚİÜ]Œ‹š\
+K‚Œ‹ˆ^˜XİH’T[ÈH›Ü›X[›Û\‹‚ŒËˆİX›KXÛXÚÈ[œİ[SĞT”ËS[^™\ÚİÜ[™ÚÛÜÙH
+Š‘^Xİ]JŠ‹‚ˆ][˜Ú
+Š“ĞT”ÈÛÛ[X[™[\™˜XÙJŠˆœ›ÛH[İ\ˆ\XØ][ÛˆY[K‚‚’Yˆ[İ\ˆš[HX[˜YÙ\ˆÚ[›İ^Xİ]HH][˜Ú\‹Ü[ˆH^˜XİY›Û\ˆ[ˆH\›Z[˜[[™[‚‚˜˜\Ú˜Ú[Ù
+Ş[œİ[SĞT”ËS[^œ[‚‹‹Ò[œİ[SĞT”ËS[^œ[‚˜‚•H[œİ[\ˆ]XİÈ‘‹TXÛX[‹\\‹TËÜˆ”È[™[œİ[ÈHX]Ú[™È[YÜ˜][Ûˆ\[™[˜ÚY\Ëˆ][œİ[ÈĞT”È›ÜˆHİ\œ™[\Ù\ˆ[™\ˆ‹Ë›ØØ[ÛÜÛØ\œËXÛÛ[X[™Z[\™˜XÙX[™™YÚ\İ\œÈ]È›Ü\ˆ\XØ][ÛˆXÛÛ‹ˆYZ[š\İ˜]ÜˆXØÙ\ÜÈ\È™\]Y\İYÛ›HÚ[ˆHÜ\˜][™ÈŞ\İ[H™YYÈÈ[œİ[Ş\İ[HXÚØYÙ\Ë‚‚ˆÈÈÈÜX›H\[XYÙB‚˜˜\Ú˜Ú[Ù
+ŞĞT”ËPÛÛ[X[™R[\™˜XÙK]Œ‹^—Í\[XYÙB‹‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙK]Œ‹^—Í\[XYÙB˜‚•ÈXZÙHHÜX›H\[XYÙHÙX\˜ÚX›Hœ›ÛH[İ\ˆ\ÚİÜ\XØ][ÛˆY[KXÙHĞT”ËS[^R[YÜ˜][Û‹]Œ‹œÚ™\ÚYH][™[‚‚˜˜\Ú˜Ú[Ù
+ŞĞT”ËS[^R[YÜ˜][Û‹]Œ‹œÚ‹‹ÓĞT”ËS[^R[YÜ˜][Û‹]Œ‹œÚK\™YÚ\İ\‚˜‚•\ÙHKY[˜X›KX]]Üİ\ÜˆKY\ØX›KX]]Üİ\ÈÛÛ›ÛÙÚ[ˆİ\\ˆ\ÙH\‹]\Ù\ˆ[YÜ˜][ÛˆXİ[ÛœÈÈ›İ™\]Z\™HİYØ‚‚ˆÈÈÈ[š[œİ[œ›ÛH[^‚‘İX›KXÛXÚÈ[š[œİ[SĞT”ËS[^™\ÚİÜÜˆ[ˆ‹İ[š[œİ[[[^œÚœ›ÛHH^˜XİY[š]™\œØ[[œİ[\ˆ›Û\‹ˆH[š[œİ[\ˆ\ÚÜÈÚ]\ˆÈ™\Ù\™H[İ\ˆ™Y™\™[˜Ù\ËÛÜšÜİ][ÛœË[™[œİ[Y^[œÚ[ÛœË‚‚ˆÈS“ÕWBˆÑH\ÛXHˆÛˆØ^[[™Ú]ÑİÛÛ›İšY\ÈHY\\İ[YÜ˜][Û‹ˆLH\ÚİÜÈØ[ˆ\ÙHİÛÛˆ™\İšXİYØ^[[™ÛÛ\ÜÚ]ÜœÈİ[™]Z[ˆ\XØ][ÛœË\›Z[˜[š[\Ë[[Y]KYYXK]Y[Ë\]\Ë[Y\Ë[Ù[\Ë[™›Ùš[\ÎÈ[œİ\ÜY\ÚİÜ\ÜXÚYšXÈÛÛ›ÛÈ^Z[ˆÚ]\È[˜]˜Z[X›H[œİXYÙˆÚ[[H˜Z[[™Ë‚‚ˆÈÈ<'ê§ÈÚ[™İÜÈ[œİ[][Û‚‚ŒKˆİÛ›ØYØĞT”ËUÚ[™İÜËTÙ]\]Œ‹™^XJÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËÙİÛ›ØYİŒ‹ÓĞT”ËUÚ[™İÜËTÙ]\]Œ‹™^JK‚Œ‹ˆÜ[ˆHÙ]\^Xİ]X›H[™›ÛİÈH[œİ[\‹‚ŒËˆÜ[Û˜[H[˜X›H
+Š”İ\ĞT”ÈÛÛ[X[™[\™˜XÙHÚ[ˆHÚYÛˆ[ŠŠ‹‚ˆ][˜ÚĞT”Èœ›ÛH]È\ÚİÜÚÜİ]İ\Y[H[KÜˆÚ[™İÜÈ\ÚØ˜\ˆÙX\˜Ú‚‚•H[œİ[\ˆØ[ˆÜ[Û˜[H™\Ù]ÛĞT”È™Y™\™[˜Ù\Ë›Ùš[\Ë[™^[œÚ[ÛœËˆX]™H]Ü[Ûˆ[˜ÚXÚÙYÈ™\Ù\™H[H\š[™È[ˆ\]K‚‚ˆÈÈÈ[š[œİ[œ›ÛHÚ[™İÜÂ‚“Ü[ˆ
+Š”Ù][™ÜÈ8¡¤ˆ\È8¡¤ˆ[œİ[Y\ÊŠ‹Ù[Xİ
+Š“ĞT”ÈÛÛ[X[™[\™˜XÙJŠ‹[™ÚÛÜÙH
+Š•[š[œİ[
+Š‹ˆ[İHØ[ˆ[ÛÈ\ÙHHİ\Y[H[š[œİ[\‹ˆÚÛÜÙHÚ]\ˆÈ™[[İ™HØ]™YÙ][™ÜÈÚ[ˆ›Û\Y‚‚ˆÈUĞT“’S‘×BˆÚ[™İÜÈX^H\Ü^HHÛX\ØÜ™Y[ˆØ\›š[™È™XØ]\ÙH\ÈÛÛ[][š]HZ[\È›İÛÛ[Y\˜ÚX[HÛÙK\ÚYÛ™Yˆ™\šYHHX›\ÚYÒKLMˆ˜[YH™Y›Ü™H[›š[™È]ˆÚ[™İÜÈXÚØYÙHX[˜YÙ\ˆ
+Ú[™Ù]
+H\È\ÙYÈ[œİ[Z\ÜÚ[™ÈØØ[œšYÙH\[™[˜ÚY\Ë‚‚ˆÈÈ<'å!Z[Z[ˆ\]\Â‚“Ü[ˆ
+Š•\]\È8¡¤ˆĞT”È[\™˜XÙJŠˆÈÚXÚÈH]\İX›XÈÚ]Xˆ™[X\ÙKˆĞT”ÈİÛ›ØYÈHÛÜœ™Xİ\[XYÙHÜˆÚ[™İÜÈ[œİ[\‹ÛÛ\\™\È]YØZ[œİH™[X\ÙIÜÈÒKLMˆÚXÚÜİ[K[™Û›HÙ™™\œÈ[œİ[][ÛˆY\ˆİXØÙ\ÜÙ[™\šYšXØ][Û‹‚‚‹H]]ÛX]XÈ˜XÚÙÜ›İ[™ÚXÚÜÈİ^H]ZY]Ú[ˆÚ]XˆÜˆH[\›™]\È[˜]˜Z[X›K‚‹HX[X[ÚXÚÜÈ\Ü^H\ÙY[ÛÛ›™Xİ[ÛˆÜˆ™\šYšXØ][Ûˆ\œ›ÜœÈ[ˆH\]\ÈYÙK‚‹HHÜš]X›H[^\[XYÙHØ[ˆ™H™\XÙY[™™\İ\Y]]ÛX]XØ[NÈİ\Ú\ÙHĞT”ÈÜ[œÈH™\šYšYYİÛ›ØYY\[XYÙK‚‹HÚ[™İÜÈÜ[œÈH™\šYšYYÙ]\›ÙÜ˜[HY\ˆĞT”ÈÛÜÙ\Ë‚‚ˆÈÈ<'ã¦{î#ÈÜ[Û˜[Ù™›[™H›ÚXÙHÛÛ[X[™Â‚“ĞT”ÈÛÜšÜÈ›Ü›X[HÚ]İ]›ÚXÙHÛÛ›Ûˆ›ÚXÙH›ØÙ\ÜÚ[™È™[XZ[œÈÛˆHÛÛ\]\ˆ[™\È\ØX›Y[[[İHÛÛ™šYİ\™H]‚‚ŒKˆ[œİ[HÚ\Ü\‹˜ÜÛÛ[X[™[[™HZ[
+Ú\Ü\‹XÛX
+K‚Œ‹ˆİÛ›ØYHÛÛ\]X›HÑÓS[Ù[İXÚ\ÈÙÛ[X˜\ÙK™[‹˜š[˜‚ŒËˆÜ[ˆ
+Š”Ù][™ÜÈ8¡¤ˆÙ™›[™H›ÚXÙHÛÛ›Û
+Š‹‚ˆ[˜X›H\Ú]Ë][ËÙ[XİHZXÜ›ÜÛ™K[™[\ˆH[^Xİ]X›H[™[Ù[]Ë‚‚•H[^[œİ[\ˆ][\ÈH›Û‹Y\İXİ]™H‘›\YÈ[œİ[][Ûˆ]Ú[™]™\ˆ™\XÙHHÛÜšÚ[™È™YÜ˜KÓ›Ø˜\˜H][[YYXH›İšY\ˆÜˆ˜Z[HXZ[ˆ[œİ[][ÛˆYˆ›ÚXÙH\[™[˜ÚY\È\™H[˜]˜Z[X›KˆHÚ[™İÜÈ[œİ[\ˆ\Ù\ÈÚ[™Ù]›ÜˆZ\ÜÚ[™È‘›\YÈ[™]ÛˆÛÛ\Û™[Ëˆ›İXİYİÙ\ˆ[™™[[İ˜X›K\İÜ˜YÙH›ÚXÙHÛÛ[X[™Èİ[™\]Z\™HX[X[ÛÛ™š\›X][Û‹‚‚ˆÈÈ<'å$™\šYHHİÛ›ØY‚‘İÛ›ØYØÒLM”ÕSTËJÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÜ™[X\Ù\ËÙİÛ›ØYİŒ‹ÔÒLM”ÕSTË
+Hœ›ÛHHØ[YH™[X\ÙH[™ÛÛ\\™HH\›ÜšX]Hš[K‚‚˜˜\ÚˆÈ[^œÚLMœİ[HĞT”ËU[š]™\œØ[S[^Q\ÚİÜ]Œ‹š\œÚLMœİ[HĞT”ËPÛÛ[X[™R[\™˜XÙK]Œ‹^—Í\[XYÙB˜‚˜İÙ\œÚ[ˆÈÚ[™İÜÈİÙ\”Ú[‘Ù]Qš[R\Ú—ĞT”ËUÚ[™İÜËTÙ]\]Œ‹™^HP[ÛÜš]HÒLM‚˜‚•H\Ü^YY˜[YH]\İ^XİHX]ÚHš[[˜[YIÜÈ[™H[ˆÒLM”ÕSTË‚‚”™[X\ÙHÚXÚÜİ[\È\™HÙ[™\˜]Yœ›ÛHHš[˜[[^Ú[™İÜË[™Ûİ\˜ÙH\Y˜XİÈ[ˆHX›\Ú[™ÈÛÜšÙ›İËˆ™X]H™[X\ÙIÜÈÒLM”ÕSTË\È]]Üš]]]™NÈ]™[ÜY[XZ[\Ú\È\™H›İ[\˜Ú[™ÙXX›HÚ]X›XÈ™[X\ÙH\Ú\Ë‚‚ˆÈÈ<'éêH^[œÚ[ÛœÂ‚“ĞT”Èİ\ÜÈXÛ\˜]]™HØØ[^[œÚ[ÛœÈÚ]™]\ØX›HXÙ[Y[ËÙ][™ÜË\›Z\ÜÚ[ÛœË\ÛÛ]Y\œÚ\İ[İ]K[™[İÛ\İY›ÚXÙH˜]šYØ][Û‹ˆ™\œÚ[ÛˆHZ\ÜÚ[ÛˆÚXÚÛ\İ[Ù[\È™[XZ[ˆÛÛ\]X›K‚‚”ÙYHHÑ^[œÚ[ÛˆTHŒˆİZYWJVS”ÒSÓ‹PTKUŒ‹›Y
+H[™H[™Y^[\\È[™\ˆØ^[œÚ[ÛœËØJ^[œÚ[ÛœËÊK‚‚ˆÈÈ<'æè;î#ÈZ[œ›ÛHÛİ\˜ÙB‚”™\]Z\™[Y[Îˆ›ÙKšœÈŒ‹ŒLÈÜˆ™]Ù\‹œK[™]ÛˆÈ›ÜˆHØØ[Ş\İ[HœšYÙK‚‚˜˜\Ú›œHÚB›œH[ˆ\ÚİÜ˜Z[˜‚Ü™X]HH\ÚİÜXÚØYÙHÛˆ]ÈX]Ú[™ÈÜİ]›Ü›N‚‚˜˜\ÚˆÈ[^\[XYÙB›œH[ˆ\ÚİÜœXÚØYÙN›[^‚ˆÈÚ[™İÜÈ”ÒTÈ[œİ[\‚›œH[ˆ\ÚİÜœXÚØYÙNÚ[™İÜÂ˜‚Ü›ÜÜË\]›Ü›HXÚØYÚ[™ÈX^H™\]Z\™HY][Û˜[˜]]™HXÚØYÚ[™ÈÛÛËˆH™[X\ÙHÛÜšÙ›İÈ[œÈHØÚÙY™YÜ™\ÜÚ[ÛˆİZ]H™Y›Ü™HX›\Ú[™ÈZ]\ˆ[œİ[\‹‚‚]Z[Ï‚İ[[X\Oİ›Û™Ï¼'äæˆX\›Y\ˆ™[X\ÙH›İ[™][ÛœÏÜİ›Û™ÏÜİ[[X\O‚‚ˆÈÈÈ™\œÚ[ÛˆŒB‚‹H™XZ[YYXH[ÈHš^Y™YK^›Û™HÜ\˜][ÛœÈÛÛœÛÛH[™YY™XÛİ™\K™\Z\‹XYÛ›ÜİXÜË[™›Û˜XÚÈİ\™˜XÙ\Ë‚‚ˆÈÈÈ™\œÚ[Ûˆ‚‹HYYYÙH[œÚ]KšXÚ\ˆÔKÔSH[[Y]K[Ù[\ˆÜYYX[ÛÛ›ÛËİ\İÛHÚYX˜\ˆYÙ\Ë\XØ][Ûˆ\İ[˜][ÛœËÚÛKXÛÛ\]\ˆÛY\[™ÜZ[ˆÙÚ[ˆİ\\‚‚ˆÈÈÈ™\œÚ[ÛˆŒËŒ‚‚‹HYY™\šYšYYÚ]Xˆ™[X\ÙH\]\Ë^[œÚ[ÛˆTHŒ‹˜]]™HØİ[Y[ÛÜšÜÜXÙ\Ë[\›İ™Y\›Z[˜[XœËHÚÜ\ˆÛ˜›Ø\™[™ÈÙ\]Y[˜ÙK[™™[™\™\ˆ™XÛİ™\K‚‚ˆÈÈÈ™\œÚ[ÛˆŒËŒB‚‹HYY[šYšYYĞT”Èœ˜[Z[™Ë]™H™]ÛÜšÈ[[Y]KH˜^H˜]Ù\‹›Û˜›ØÚÚ[™Èİ\\ÚXÚÜËÜ[Û˜[›ÚXÙHÛÛ\Û™[Ë[™H[YYÛÜšÜİ][ÛˆØÚÈØÜ™Y[‹‚‚ˆÈÈÈ™\œÚ[ÛˆŒÂ‚‹HYYÙ™›[™H›ÚXÙKXÛÛ[X[™[™œ˜\İXİ\™K˜]]™H\XØ][Ûˆ\ÛÜšËŒ˜]›Üš]\Ë^[™YŞ\İ[HY]\œË™[[İ˜X›K[YYXHÛÛ›ÛË˜]]™H™[[İH\›Z[˜[Ú[™İÜË[š]™\œØ[ÙX\˜Ú[™[Y\šXÈYÙHÚÜİ]Ë‚‚Ù]Z[Ï‚‚ˆÈÈ<'äèH›Ú™Xİİ]\Â‚“ĞT”ÈÛÛ[X[™[\™˜XÙH\È[ˆ[™\[™[˜[‹[XYH›Ú™Xİ[œÜ\™YHİ\ˆ™ZÈĞT”Ëˆ]\È›İY™š[X]YÚ]Üˆ[™ÜœÙYHĞ”ÈİY[ÜË\˜[[İ[ÜˆHİ\ˆ™ZÈšYÚÈÛ\œË‚‚•H[\™˜XÙH[™[œİ[\œÈÙ\™HÜ™X]YÛÛX›Ü˜]]™[HÚ]Ú]Ô[˜ÛY[™ÈHÔMKˆÛÛÛÜšÈ[Ù[ˆ\ÙHÑÚ]Xˆ\ÜİY\×JÎ‹ËÙÚ]X‹˜ÛÛKÒRX[M‹ÓĞT”ËPÛÛ[X[™R[\™˜XÙKÚ\ÜİY\ÊH›Üˆ™\›ÙXÚX›HYÜÈ[™™X]\™H™\]Y\İËˆ›Üˆ[^[YÜ˜][Ûˆ›Ø›[\Ë[˜ÛYH[İ\ˆ\İšX][Û‹\ÚİÜ[š\›Û›Y[\Ü^HÙ\™\‹[™ĞT”È™\œÚ[Û‹‚
