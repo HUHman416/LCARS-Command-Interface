@@ -26,6 +26,7 @@ export type ComputerContext = {
   procedures: ComputerEntity[];
   workstations: ComputerEntity[];
   themes: ComputerEntity[];
+  mediaSources?: ComputerEntity[];
 };
 
 export type ComputerPlanStep = {
@@ -192,11 +193,15 @@ const interpretClause = (rawClause: string, context: ComputerContext) => {
   if (/^(?:mute|silence)(?:\s+(?:the\s+)?(?:audio|sound|music|computer))?$/.test(clause)) return { value: step("set-mute", "Mute master audio", "Mute the default system output", "mute", "safe", true, true, true), confidence: 1 };
   if (/^(?:unmute|restore)(?:\s+(?:the\s+)?(?:audio|sound|music|computer))?$/.test(clause)) return { value: step("set-mute", "Restore master audio", "Unmute the default system output", "unmute", "safe", true, false, true), confidence: 1 };
 
-  if (/^(?:media\s+)?(?:pause|hold)(?:\s+(?:the\s+)?(?:music|audio|song|track|media|playback))?$/.test(clause)) return { value: step("media-control", "Pause media", "Pause the active media session without resuming an already-paused player", "pause", "safe", false, undefined, true), confidence: 1 };
-  if (/^(?:media\s+)?(?:play|resume|continue|unpause)(?:\s+(?:the\s+)?(?:music|audio|song|track|media|playback))?$/.test(clause)) return { value: step("media-control", "Resume media", "Resume the active media session without pausing an already-playing player", "play", "safe", false, undefined, true), confidence: 1 };
-  if (/^(?:media\s+)?(?:next|skip)(?:\s+(?:the\s+)?(?:song|track|media))?$/.test(clause)) return { value: step("media-control", "Next media item", "Advance the active MPRIS media session", "next", "safe", false, undefined, true), confidence: 1 };
-  if (/^(?:media\s+)?(?:previous|back|go back)(?:\s+(?:to\s+)?(?:the\s+)?(?:song|track|media))?$/.test(clause)) return { value: step("media-control", "Previous media item", "Return in the active MPRIS media session", "previous", "safe", false, undefined, true), confidence: 1 };
-  if (/^(?:media\s+)?(?:stop|stop playback)(?:\s+(?:the\s+)?(?:music|audio|song|track|media))?$/.test(clause)) return { value: step("media-control", "Stop media", "Stop the active MPRIS media session", "stop", "safe", false, undefined, true), confidence: 1 };
+  const mediaCommand = clause.match(/^(?:media\s+)?(pause|hold|play|resume|continue|unpause|next|skip|previous|back|go back|stop|stop playback)(?:\s+(?:to\s+)?(?:the\s+)?(?:music|audio|song|track|media|playback|video))?(?:\s+(?:on|from|in|using)\s+(.+)|\s+((?!the$|music$|audio$|song$|track$|media$|playback$|video$)[a-z0-9].+))?$/);
+  if (mediaCommand) {
+    const verb = mediaCommand[1], command = /pause|hold/.test(verb) ? "pause" : /play|resume|continue|unpause/.test(verb) ? "play" : /next|skip/.test(verb) ? "next" : /previous|back/.test(verb) ? "previous" : "stop";
+    const requested = (mediaCommand[2] || mediaCommand[3] || "").trim();
+    const source = requested ? entityMatch(context.mediaSources || [], requested) : null;
+    if (requested && !source) return null;
+    const name = source?.entity.name, label = command === "pause" ? "Pause media" : command === "play" ? "Resume media" : command === "next" ? "Next media item" : command === "previous" ? "Previous media item" : "Stop media";
+    return { value: step("media-control", `${label}${name ? ` on ${name}` : ""}`, `${command === "play" ? "Resume" : command === "pause" ? "Pause" : command === "next" ? "Advance" : command === "previous" ? "Return in" : "Stop"} the ${name || "live-selected"} media session`, command, "safe", false, source?.entity.id, true), confidence: source?.confidence || 1 };
+  }
 
   if (/^(?:computer\s+)?(?:status|status report|report|run diagnostics?|diagnostic report)$/.test(clause)) return { value: step("navigate", "Display Systems Status", "Open LCARS engineering and system diagnostics", "system", "safe", true), confidence: 1 };
   if (/^(?:open\s+)?hailing frequencies$/.test(clause)) return { value: step("open-center", "Open hailing frequencies", "Present the Communications Action Center", "communications", "safe", true), confidence: 1 };

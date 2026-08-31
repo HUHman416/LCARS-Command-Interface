@@ -89,6 +89,29 @@ class PaddPairingTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 controller.queue_action(device, {"action": "media", "value": {"player": "spotify", "command": "delete"}})
 
+    def test_roaming_profile_requires_encryption_and_recursively_removes_credentials(self):
+        with tempfile.TemporaryDirectory() as folder:
+            controller = self.make_controller(folder)
+            armed = controller.manage({"operation": "start"})
+            paired = controller.pair(armed["pairing"]["code"], "Roaming PADD", "192.168.1.15")
+            ident = paired["device"]["id"]
+            controller.manage({"operation": "sync-policy", "id": ident, "sync": {"privateStorage": True}})
+            with self.assertRaises(PermissionError):
+                controller.manage({"operation": "delivery", "id": ident, "kind": "profile", "payload": {"profile": {"id": "captain", "name": "Captain"}}})
+            record = json.loads(controller.device_file.read_text(encoding="utf-8"))
+            record["devices"][0]["secureTransport"] = True
+            controller._save(record)
+            controller.manage({"operation": "delivery", "id": ident, "kind": "profile", "payload": {"profile": {
+                "id": "captain", "name": "Captain", "role": "administrator", "credential": {"hash": "never-send"},
+                "workspace": {"pinnedPlayers": ["spotify"], "prefs": {"voiceAuthorizationCode": "classified", "theme": "voyager"}},
+            }}})
+            signal = controller.state_for(controller.authenticate(paired["token"]))["signal"]
+            profile = signal["payload"]["profile"]
+            self.assertNotIn("credential", profile)
+            self.assertEqual(profile["workspace"]["pinnedPlayers"], ["spotify"])
+            self.assertNotIn("voiceAuthorizationCode", profile["workspace"]["prefs"])
+            self.assertEqual(profile["workspace"]["prefs"]["theme"], "voyager")
+
     def test_granular_permissions_layout_heartbeat_and_identify(self):
         with tempfile.TemporaryDirectory() as folder:
             controller = self.make_controller(folder)

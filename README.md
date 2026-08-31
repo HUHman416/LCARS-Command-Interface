@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.6-b69de8" alt="Development Version 30.6">
+  <img src="https://img.shields.io/badge/development-v30.7-b69de8" alt="Development Version 30.7">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -35,7 +35,19 @@
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
 
 > [!NOTE]
-> **Version 30.6 Development introduces the Operations Center and unified timeline.** Notices, station events, commands, Procedures, media changes, security prompts, and failures now share one searchable Operations Log. Filter by station, operator, subsystem, or severity; acknowledge and assign events; inspect “What changed?” explanations; export privacy-filtered diagnostics; rerun successful Procedures; reverse a currently supported action; and propagate priority alerts to selected trusted stations. Media resume is now explicit and player-aware, and a rejected media notice retries the original command instead of merely rechecking integrations. Version 29 remains Stable.
+> **Version 30.7 Development introduces Operator Identities and the LCARS Media Deck.** Every operator can keep separate favorites, decks, themes, layouts, commands, and station preferences under Guest, Operator, or Administrator authority, with optional PINs, shared profiles, restricted Away Team identities, encrypted backup, and trusted-station roaming. Media resume now verifies the actual player state, understands named Linux sources such as Spotify, Chromium/Chrome, Opera GX, Firefox, and VLC, and local audio/video files can play directly inside LCARS. Version 29 remains Stable.
+
+## 🧪 Version 30.7 Development — Operator Workspaces & LCARS Media Deck
+
+- Adds quick-switch Operator Identities with separate favorites, decks/Workstations, Display Matrix themes, layouts, Procedures, tray controls, accessibility preferences, and per-station choices.
+- Enforces Guest, Operator, and Administrator authority across Computer Core plans, automation, configuration, protected system actions, and identity management.
+- Supports optional per-operator PIN verification, shared workstation profiles, and temporary restricted Away Team identities.
+- Exports and imports credential-free operator backups encrypted with AES-256-GCM and PBKDF2-SHA256; the final local administrator cannot be demoted.
+- Routes credential-free roaming profiles only through trusted AES-256-GCM Federation links with Private Storage synchronization explicitly enabled; nested PIN, token, password, secret, credential, and vocal-authorization data are removed.
+- Fixes Linux resume by selecting the live MPRIS session, issuing explicit play, verifying that playback actually started, and returning an actionable failure if a player falsely acknowledges the request.
+- Adds direct Linux voice targets for Spotify, Chromium/Chrome, Opera GX, Firefox, VLC, and compatible aliases without silently controlling a different named source.
+- Adds a built-in LCARS audio/video player with drag-and-drop, seek, volume, speed, keyboard shortcuts, fullscreen playback, and a fading LCARS HUD.
+- Retains the complete Version 30.6 Operations Center and timeline milestone.
 
 ## 🧪 Version 30.6 Development — Operations Center & Timeline
 

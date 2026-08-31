@@ -85,7 +85,7 @@ export function ConnectedOperationsPanel({status,busy,now,workstations,refresh,o
   const sendFile=(device:PaddDevice,file:File)=>{if(file.size>524288)return window.alert("Federation file transfers are limited to 512 KiB.");const reader=new FileReader();reader.onload=()=>operate("delivery",device,{kind:"file",payload:{name:file.name,mime:file.type||"application/octet-stream",content:String(reader.result).split(",")[1]||""}});reader.readAsDataURL(file);};
   return <section className="connected-operations-panel">
     <header className="connected-operations-head">
-      <span><small>VERSION 30.6 DEVELOPMENT · DATA FABRIC</small><b>FEDERATION OPERATIONS</b><p>One operator, many trusted stations: automatic discovery, durable identities, AES-256-GCM synchronization, selective data routes, operational handoff, and bounded offline delivery queues.</p></span>
+      <span><small>VERSION 30.7 DEVELOPMENT · DATA FABRIC</small><b>FEDERATION OPERATIONS</b><p>One operator, many trusted stations: automatic discovery, durable identities, AES-256-GCM synchronization, selective data routes, operational handoff, and bounded offline delivery queues.</p></span>
       <strong className={status?.enabled&&status.online?"online":""}>{status?.enabled&&status.online?"LINK ONLINE":"LINK STANDBY"}</strong>
     </header>
     <div className="connected-summary">
@@ -117,7 +117,7 @@ export function ConnectedOperationsPanel({status,busy,now,workstations,refresh,o
     {area==="fleet"&&<>
       <section className="padd-pairing-deck">
         <header><span><small>TRUSTED LOCAL NETWORK</small><b>PAIR ANOTHER PADD</b></span><em>{status?.pairing?`${Math.ceil(remaining/60)} MIN REMAINING`:"DISARMED"}</em></header>
-        <div><a className="padd-download-v28" href="https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v30.6/LCARS-Mobile-Environment-v30.6-Android.apk" target="_blank" rel="noreferrer">DOWNLOAD ANDROID 30.6 ↗</a><button disabled={busy==="start"} onClick={()=>operate("start")}>{status?.pairing?"REPLACE CODE":"ARM ONE-USE CODE"}</button><button disabled={!primaryAddress} onClick={copySetup}>{copied?"SETUP COPIED":"COPY STATION + CODE"}</button><button disabled={busy==="refresh"} onClick={refresh}>REFRESH LINK</button><button className="danger" disabled={busy==="disable"||!status?.enabled} onClick={()=>operate("disable")}>DISABLE LINK</button></div>
+        <div><a className="padd-download-v28" href="https://github.com/HUHman416/LCARS-Command-Interface/releases/download/v30.7/LCARS-Mobile-Environment-v30.7-Android.apk" target="_blank" rel="noreferrer">DOWNLOAD ANDROID 30.7 ↗</a><button disabled={busy==="start"} onClick={()=>operate("start")}>{status?.pairing?"REPLACE CODE":"ARM ONE-USE CODE"}</button><button disabled={!primaryAddress} onClick={copySetup}>{copied?"SETUP COPIED":"COPY STATION + CODE"}</button><button disabled={busy==="refresh"} onClick={refresh}>REFRESH LINK</button><button className="danger" disabled={busy==="disable"||!status?.enabled} onClick={()=>operate("disable")}>DISABLE LINK</button></div>
         {status?.pairing?.code&&<p className="padd-code-v28"><small>PAIRING CODE</small><b>{status.pairing.code}</b><em>{Math.floor(remaining/60)}:{String(remaining%60).padStart(2,"0")}</em></p>}
         {status?.addresses.length?<p className="padd-address-v28">{status.addresses.join(" · ")}</p>:<p className="padd-address-v28 warning">NO PRIVATE IPv4 ADDRESS DETECTED</p>}
       </section>

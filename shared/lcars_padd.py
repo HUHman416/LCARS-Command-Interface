@@ -99,6 +99,26 @@ def _clean_clipboard(value, limit=4000):
     return str(value or "").replace("\x00", "")[:limit]
 
 
+def _scrub_profile_value(value, depth=0):
+    """Bound a roaming workspace and remove credentials at every nesting level."""
+    if depth > 8:
+        return None
+    if isinstance(value, dict):
+        result = {}
+        for raw_key, item in list(value.items())[:256]:
+            key = _clean_text(raw_key, 96)
+            compact = "".join(character for character in key.casefold() if character.isalnum())
+            if not key or compact in {"pin", "credential", "password", "secret", "token", "authorization", "authorizationcode", "voiceauthorizationcode"} or compact.endswith(("credential", "password", "secret", "token", "authorizationcode", "pin")):
+                continue
+            result[key] = _scrub_profile_value(item, depth + 1)
+        return result
+    if isinstance(value, list):
+        return [_scrub_profile_value(item, depth + 1) for item in value[:128]]
+    if value is None or isinstance(value, (bool, int, float)):
+        return value
+    return str(value).replace("\x00", "")[:4096]
+
+
 class PaddController:
     """Own pairing, role enforcement, shared state, and the PADD HTTP server."""
 
@@ -479,7 +499,7 @@ class PaddController:
                         device[name] = json.loads(json.dumps(source.get(name, fallback)))
                 elif operation == "delivery":
                     kind = _clean_text(data.get("kind"), 32)
-                    if kind not in {"page", "clipboard", "notice", "file"}:
+                    if kind not in {"page", "clipboard", "notice", "file", "profile"}:
                         raise ValueError("Unknown Federation delivery type")
                     sync = {**DEFAULT_SYNC, **(device.get("sync") or {})}
                     if kind == "clipboard" and not record["clipboardEnabled"]:
@@ -492,7 +512,9 @@ class PaddController:
                         raise PermissionError("Small-file synchronization is disabled for this station")
                     if kind == "file" and not self._capability(device, "file-receive"):
                         raise PermissionError("This station cannot receive files")
-                    if kind in {"clipboard", "file"} and not device.get("secureTransport", False):
+                    if kind == "profile" and not sync["privateStorage"]:
+                        raise PermissionError("Private profile synchronization is disabled for this station")
+                    if kind in {"clipboard", "file", "profile"} and not device.get("secureTransport", False):
                         raise PermissionError("Sensitive transfers require an encrypted native Federation link")
                     payload = data.get("payload", {}) if isinstance(data.get("payload"), dict) else {}
                     if kind == "page":
@@ -504,7 +526,7 @@ class PaddController:
                         payload = {"text": text}
                     elif kind == "notice":
                         payload = {"title": _clean_text(payload.get("title") or "LCARS TRANSMISSION", 96), "text": _clean_text(payload.get("text"), 240), "priority": _clean_text(payload.get("priority") or "priority", 24)}
-                    else:
+                    elif kind == "file":
                         name = _clean_text(payload.get("name") or "lcars-transfer.bin", 96)
                         mime = _clean_text(payload.get("mime") or "application/octet-stream", 96)
                         content = str(payload.get("content") or "")
@@ -515,6 +537,20 @@ class PaddController:
                         if decoded_size <= 0 or decoded_size > 524_288:
                             raise ValueError("Federation file transfers are limited to 512 KiB")
                         payload = {"name": name, "mime": mime, "content": content, "size": decoded_size}
+                    else:
+                        profile = payload.get("profile", {}) if isinstance(payload.get("profile"), dict) else {}
+                        workspace = _scrub_profile_value(profile.get("workspace", {})) if isinstance(profile.get("workspace"), dict) else {}
+                        safe_profile = {
+                            "id": _clean_text(profile.get("id"), 96), "name": _clean_text(profile.get("name"), 48),
+                            "role": str(profile.get("role", "guest")) if str(profile.get("role", "guest")) in {"guest", "operator", "administrator"} else "guest",
+                            "shared": bool(profile.get("shared", False)), "awayTeam": bool(profile.get("awayTeam", False)),
+                            "updatedAt": _clean_text(profile.get("updatedAt"), 48), "stationPreferences": _scrub_profile_value(profile.get("stationPreferences", {})) if isinstance(profile.get("stationPreferences"), dict) else {},
+                            "workspace": workspace,
+                        }
+                        encoded = json.dumps(safe_profile, separators=(",", ":")).encode("utf-8")
+                        if not safe_profile["id"] or not safe_profile["name"] or len(encoded) > 262_144:
+                            raise ValueError("Roaming profile is invalid or exceeds 256 KiB")
+                        payload = {"profile": safe_profile, "version": "30.7", "encryptedTransport": True}
                     queue = self.signals.setdefault(ident, deque(maxlen=32))
                     queue.append({"id": uuid.uuid4().hex, "type": kind, "payload": payload, "createdAt": int(time.time()), "expiresAt": int(time.time()) + 86_400})
                     self._append_activity(record, "delivery-queued", device, status="queued", detail=f"{kind} · {len(queue)} pending")
