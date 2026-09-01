@@ -1,4 +1,4 @@
-name: Version 30.8 Browser, Media Routing, and Continuum Development
+name: Version 30.8.1 Browser, Media Routing, and Continuum Development
 
 on:
   push:
@@ -43,7 +43,7 @@ jobs:
           appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
           test -n "$appimage"
           checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          stage="release-assets/LCARS-Universal-Linux-Desktop-v30.8"
+          stage="release-assets/LCARS-Universal-Linux-Desktop-v30.8.1"
           mkdir -p "$stage/local" "$stage/session"
           cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
           cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
@@ -53,17 +53,17 @@ jobs:
           sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
           sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
           chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh" "$stage/session/lcars-session" "$stage/session/install-session.sh"
-          cp "$appimage" release-assets/LCARS-Command-Interface-v30.8-x86_64.AppImage
-          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.8.sh
-          chmod +x release-assets/LCARS-Linux-Integration-v30.8.sh
-          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.8.zip LCARS-Universal-Linux-Desktop-v30.8)
+          cp "$appimage" release-assets/LCARS-Command-Interface-v30.8.1-x86_64.AppImage
+          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.8.1.sh
+          chmod +x release-assets/LCARS-Linux-Integration-v30.8.1.sh
+          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.8.1.zip LCARS-Universal-Linux-Desktop-v30.8.1)
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.8-development-linux
+          name: LCARS-v30.8.1-development-linux
           path: |
-            release-assets/LCARS-Command-Interface-v30.8-x86_64.AppImage
-            release-assets/LCARS-Universal-Linux-Desktop-v30.8.zip
-            release-assets/LCARS-Linux-Integration-v30.8.sh
+            release-assets/LCARS-Command-Interface-v30.8.1-x86_64.AppImage
+            release-assets/LCARS-Universal-Linux-Desktop-v30.8.1.zip
+            release-assets/LCARS-Linux-Integration-v30.8.1.sh
           retention-days: 30
 
   windows:
@@ -91,11 +91,11 @@ jobs:
           New-Item -ItemType Directory -Force release-assets | Out-Null
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.8.exe
+          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.8.1.exe
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.8-development-windows
-          path: release-assets/LCARS-Windows-Setup-v30.8.exe
+          name: LCARS-v30.8.1-development-windows
+          path: release-assets/LCARS-Windows-Setup-v30.8.1.exe
           retention-days: 30
 
   android:
@@ -138,11 +138,11 @@ jobs:
           test -n "$signer"
           "$signer" verify --verbose --print-certs "$apk"
           mkdir -p release-assets
-          cp "$apk" release-assets/LCARS-Mobile-Environment-v30.8-Android.apk
+          cp "$apk" release-assets/LCARS-Mobile-Environment-v30.8.1-Android.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.8-development-android
-          path: release-assets/LCARS-Mobile-Environment-v30.8-Android.apk
+          name: LCARS-v30.8.1-development-android
+          path: release-assets/LCARS-Mobile-Environment-v30.8.1-Android.apk
           retention-days: 30
 
   publish-development-release:
@@ -159,18 +159,18 @@ jobs:
       - name: Create source archive and checksums
         run: |
           set -euo pipefail
-          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.8-Source.zip HEAD
-          (cd release-assets && sha256sum LCARS-Command-Interface-v30.8-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.8.zip LCARS-Linux-Integration-v30.8.sh LCARS-Windows-Setup-v30.8.exe LCARS-Mobile-Environment-v30.8-Android.apk LCARS-Command-Interface-v30.8-Source.zip > SHA256SUMS.txt)
+          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.8.1-Source.zip HEAD
+          (cd release-assets && sha256sum LCARS-Command-Interface-v30.8.1-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.8.1.zip LCARS-Linux-Integration-v30.8.1.sh LCARS-Windows-Setup-v30.8.1.exe LCARS-Mobile-Environment-v30.8.1-Android.apk LCARS-Command-Interface-v30.8.1-Source.zip > SHA256SUMS.txt)
           (cd release-assets && sha256sum --check SHA256SUMS.txt)
-      - name: Publish Version 30.8 Browser, Media Routing, and Continuum development release
+      - name: Publish Version 30.8.1 Browser, Media Routing, and Continuum development release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          notes='Version 30.8 Development adds a dedicated optional Browser Station with a contained, sandboxed web session inside LCARS, an LCARS address/search bar, navigation controls, page title and load state, and a persistent LCARS browser profile. Installed-browser detection and custom selection remain available as an explicit external-profile fallback for existing bookmarks, extensions, passwords, and sessions. The Browser page now scrolls correctly and Open Tasks no longer duplicates the Browser page number. File Explorer audio and video route directly to the integrated LCARS Media Deck through seekable ranged streaming instead of automatically opening an operating-system player. A wider media-extension family is recognized, codec failures stay inside LCARS, and the system-player fallback is explicit. Android Continuum adds Handheld Home, Desktop Companion, Media Controller, Communications Panel, Notification Console, Second-Screen Monitor, Presentation PADD, and Docked Command Station roles with automatic recommendations based on orientation, screen class, external displays, docking, and paired-station state plus manual override. Version 30.7 Operator Workspaces and Media Deck, Version 30.6 Operations Center, Version 30.5 Universal Search and Data Fabric, Version 30.4 LCARS Session, Version 30.3 Module Platform, Federation, bundled offline whisper.cpp, voice operations, and the Version 29 Mobile Command Environment remain included.'
-          if gh release view v30.8 >/dev/null 2>&1; then
-            gh release upload v30.8 release-assets/* --clobber
-            gh release edit v30.8 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.8 Development · Browser, Media Routing & Continuum" --notes "$notes" --prerelease
+          notes='Version 30.8.1 Development is the updater-visible hotfix for the Version 30.8 milestone, allowing existing 30.8 installations to discover and install the corrected packages normally. It adds a dedicated optional Browser Station with a contained, sandboxed web session inside LCARS, an LCARS address/search bar, navigation controls, page title and load state, and a persistent LCARS browser profile. Installed-browser detection and custom selection remain available as an explicit external-profile fallback for existing bookmarks, extensions, passwords, and sessions. The Browser page now scrolls correctly and Open Tasks no longer duplicates the Browser page number. File Explorer audio and video route directly to the integrated LCARS Media Deck through seekable ranged streaming instead of automatically opening an operating-system player. A wider media-extension family is recognized, codec failures stay inside LCARS, and the system-player fallback is explicit. Android Continuum adds Handheld Home, Desktop Companion, Media Controller, Communications Panel, Notification Console, Second-Screen Monitor, Presentation PADD, and Docked Command Station roles with automatic recommendations based on orientation, screen class, external displays, docking, and paired-station state plus manual override. Version 30.7 Operator Workspaces and Media Deck, Version 30.6 Operations Center, Version 30.5 Universal Search and Data Fabric, Version 30.4 LCARS Session, Version 30.3 Module Platform, Federation, bundled offline whisper.cpp, voice operations, and the Version 29 Mobile Command Environment remain included.'
+          if gh release view v30.8.1 >/dev/null 2>&1; then
+            gh release upload v30.8.1 release-assets/* --clobber
+            gh release edit v30.8.1 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.8.1 Development · Browser, Media Routing & Continuum" --notes "$notes" --prerelease
           else
-            gh release create v30.8 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.8 Development · Browser, Media Routing & Continuum" --notes "$notes" --prerelease
+            gh release create v30.8.1 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.8.1 Development · Browser, Media Routing & Continuum" --notes "$notes" --prerelease
           fi

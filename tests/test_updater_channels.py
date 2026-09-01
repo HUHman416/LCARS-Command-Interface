@@ -50,5 +50,13 @@ class UpdaterChannelTests(unittest.TestCase):
         self.assertTrue(before["available"])
         self.assertFalse(after["available"])
 
+    def test_version_30_8_can_receive_contained_browser_hotfix_once(self):
+        release={"tag_name":"v30.8.1","draft":False,"prerelease":True,"html_url":"https://github.com/example/releases/v30.8.1","assets":[]}
+        with patch.object(updater,"_release_for_channel",return_value=release):
+            before=updater.check_update("30.8","linux","development")
+            after=updater.check_update("30.8.1","linux","development")
+        self.assertTrue(before["available"])
+        self.assertFalse(after["available"])
+
 
 if __name__=="__main__":unittest.main()

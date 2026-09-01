@@ -31,7 +31,7 @@ test("Continuum recommendations react to station, orientation, display, and dock
   assert.equal(recommendContinuumRole({presenting:true,stationConnected:true}),"presentation-controller");
 });
 
-test("Version 30.8 connects Browser Station, integrated file streaming, all Continuum roles, and release packaging",async()=>{
+test("Version 30.8.1 connects Browser Station, integrated file streaming, all Continuum roles, and release packaging",async()=>{
   const [page,desktop,styles,linux,windows,home,companion,padd,workflow,pkg,gradle]=await Promise.all([
     source("../app/page.tsx"),source("../desktop/main.cjs"),source("../app/globals.css"),source("../local/lcars_bridge.py"),source("../windows/lcars_bridge_windows.py"),source("../mobile/android/app/src/main/java/com/lcars/padd/HomeActivity.java"),source("../mobile/android/app/src/main/java/com/lcars/padd/CompanionDock.java"),source("../shared/lcars_padd.py"),source("../.github/workflows/v30-development.yml"),source("../package.json"),source("../mobile/android/app/build.gradle"),
   ]);
@@ -46,10 +46,10 @@ test("Version 30.8 connects Browser Station, integrated file streaming, all Cont
   assert.match(home,/Intent\.ACTION_DOCK_EVENT/);
   assert.match(companion,/setContinuumRole/);
   assert.match(padd,/continuumRole/);
-  assert.equal(JSON.parse(pkg).version,"30.8.0-dev.1");
-  assert.match(gradle,/versionCode 308001/);
-  assert.match(workflow,/gh release (?:view|create) v30\.8/);
-  assert.match(workflow,/LCARS-Mobile-Environment-v30\.8-Android\.apk/);
+  assert.equal(JSON.parse(pkg).version,"30.8.1-dev.1");
+  assert.match(gradle,/versionCode 308002/);
+  assert.match(workflow,/gh release (?:view|create) v30\.8\.1/);
+  assert.match(workflow,/LCARS-Mobile-Environment-v30\.8\.1-Android\.apk/);
 });
 
 test("the hosted renderer imports the Federation emblem without a server-side URL constructor",async()=>{

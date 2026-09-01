@@ -14,7 +14,7 @@ from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 
 PORT=8765
-LCARS_VERSION="30.8"
+LCARS_VERSION="30.8.1"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"

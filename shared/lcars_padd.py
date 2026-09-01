@@ -551,7 +551,7 @@ class PaddController:
                         encoded = json.dumps(safe_profile, separators=(",", ":")).encode("utf-8")
                         if not safe_profile["id"] or not safe_profile["name"] or len(encoded) > 262_144:
                             raise ValueError("Roaming profile is invalid or exceeds 256 KiB")
-                        payload = {"profile": safe_profile, "version": "30.8", "encryptedTransport": True}
+                        payload = {"profile": safe_profile, "version": "30.8.1", "encryptedTransport": True}
                     queue = self.signals.setdefault(ident, deque(maxlen=32))
                     queue.append({"id": uuid.uuid4().hex, "type": kind, "payload": payload, "createdAt": int(time.time()), "expiresAt": int(time.time()) + 86_400})
                     self._append_activity(record, "delivery-queued", device, status="queued", detail=f"{kind} · {len(queue)} pending")

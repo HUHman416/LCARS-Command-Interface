@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.8-b69de8" alt="Development Version 30.8">
+  <img src="https://img.shields.io/badge/development-v30.8.1-b69de8" alt="Development Version 30.8.1">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -35,9 +35,9 @@
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
 
 > [!NOTE]
-> **Version 30.8 Development introduces the Browser Station, direct File Explorer media routing, and Continuum roles.** LCARS now provides a contained web session inside its optional Browser page, retains detected installed browsers as an explicit external-profile fallback, routes local audio/video into the built-in Media Deck without automatic OS handoff, and adapts a connected phone or tablet for eight handheld, companion, control, monitor, presentation, and docked roles. Version 29 remains Stable.
+> **Version 30.8.1 Development is the contained-browser hotfix for the Version 30.8 milestone.** LCARS now provides a contained web session inside its optional Browser page, retains detected installed browsers as an explicit external-profile fallback, routes local audio/video into the built-in Media Deck without automatic OS handoff, and adapts a connected phone or tablet for eight handheld, companion, control, monitor, presentation, and docked roles. The 30.8.1 version bump also lets existing 30.8 installations discover the rebuilt packages through the development updater. Version 29 remains Stable.
 
-## 🧪 Version 30.8 Development — Browser, Media Routing & Continuum
+## 🧪 Version 30.8.1 Development — Browser, Media Routing & Continuum
 
 - Adds a contained, sandboxed browser directly inside the dedicated Browser sidebar page, with an LCARS address/search bar, Back, Forward, Home, Refresh/Stop, page title, loading status, and persistent LCARS browsing profile.
 - Keeps automatically detected or manually selected installed browsers as an explicit external fallback for existing bookmarks, extensions, passwords, and signed-in sessions, and allows the Browser sidebar control to be removed for an entirely offline LCARS layout.
