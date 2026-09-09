@@ -73,7 +73,7 @@ test("background update failures are silent while manual checks report errors", 
 test("system telemetry refreshes and ignores malformed meter payloads", () => {
   assert.match(page, /const getSystem/);
   assert.match(page, /Array\.isArray\(d\.meters\)/);
-  assert.match(page, /setInterval\(getSystem,\s*2000\)/);
+  assert.match(page, /setInterval\(whileVisible\(getSystem\),\s*2000\)/);
   assert.match(page, /clearInterval\(systemTimer\)/);
 });
 

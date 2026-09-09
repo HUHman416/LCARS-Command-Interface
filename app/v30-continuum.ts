@@ -1,17 +1,3 @@
-export type ApplicationDescriptor = {
-  id: string;
-  name: string;
-  comment?: string;
-};
-
-const browserIdentity = /(?:^|[\s._-])(firefox|librewolf|floorp|zen|chromium|chrome|google chrome|opera(?: gx)?|vivaldi|brave|edge|microsoft edge|falkon)(?:$|[\s._-])/i;
-
-export const isBrowserApplication = (application: ApplicationDescriptor) =>
-  browserIdentity.test(`${application.id} ${application.name} ${application.comment || ""}`);
-
-export const detectBrowserApplications = <T extends ApplicationDescriptor>(applications: T[]) =>
-  applications.filter(isBrowserApplication).sort((left, right) => left.name.localeCompare(right.name));
-
 const audioExtensions = new Set([
   "3ga", "8svx", "aa", "aac", "aax", "act", "aiff", "alac", "amr", "ape", "au", "awb", "caf", "dss", "dvf", "flac", "gsm", "iklax", "ivs", "m4a", "m4b", "m4p", "mmf", "movpkg", "mp3", "mpc", "msv", "nmf", "ogg", "oga", "mogg", "opus", "ra", "rm", "raw", "rf64", "sln", "tta", "voc", "vox", "wav", "wma", "wv", "webm",
 ]);

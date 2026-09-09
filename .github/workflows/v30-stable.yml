@@ -1,8 +1,8 @@
-name: Version 30.9 Commissioning and Stable Readiness RC
+name: Version 30 Stable
 
 on:
   push:
-    branches: [30-development]
+    branches: [30-stable]
   workflow_dispatch:
 
 permissions:
@@ -18,32 +18,29 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Build hosted renderer
-        run: npm run build
-      - name: Commissioning, resilience, Continuum, media routing, and regression suite
+      - name: Full stable regression suite
         run: |
+          npm run build
           node --test tests/*.test.mjs
           python3 -m unittest discover -s tests -p 'test_*.py'
-      - name: Bridge and packaging validation
-        run: |
           python3 -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/*.py
           bash -n scripts/prepare-voice-runtime.sh install.sh install-autostart.sh uninstall-linux.sh start-local.sh local/lcars-recovery.sh session/lcars-session session/install-session.sh
           node --check desktop/main.cjs
       - name: Build Linux AppImage with verified offline voice runtime
         run: npm run desktop:package:linux -- --publish never
-      - name: Verify bundled Computer Core voice resources
+      - name: Verify Computer Core voice resources
         run: |
           set -euo pipefail
           test -x voice-runtime/linux/whisper-cli
           test -s voice-runtime/linux/ggml-tiny.en-q5_1.bin
           voice-runtime/linux/whisper-cli --version
-      - name: Assemble Linux development package
+      - name: Assemble Linux stable package
         run: |
           set -euo pipefail
           appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
           test -n "$appimage"
           checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          stage="release-assets/LCARS-Universal-Linux-Desktop-v30.9"
+          stage="release-assets/LCARS-Universal-Linux-Desktop-v30"
           mkdir -p "$stage/local" "$stage/session"
           cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
           cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
@@ -53,18 +50,17 @@ jobs:
           sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
           sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
           chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh" "$stage/session/lcars-session" "$stage/session/install-session.sh"
-          cp "$appimage" release-assets/LCARS-Command-Interface-v30.9-x86_64.AppImage
-          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.9.sh
-          chmod +x release-assets/LCARS-Linux-Integration-v30.9.sh
-          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.9.zip LCARS-Universal-Linux-Desktop-v30.9)
+          cp "$appimage" release-assets/LCARS-Command-Interface-v30-x86_64.AppImage
+          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.sh
+          chmod +x release-assets/LCARS-Linux-Integration-v30.sh
+          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.zip LCARS-Universal-Linux-Desktop-v30)
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.9-development-linux
+          name: LCARS-v30-stable-linux
           path: |
-            release-assets/LCARS-Command-Interface-v30.9-x86_64.AppImage
-            release-assets/LCARS-Universal-Linux-Desktop-v30.9.zip
-            release-assets/LCARS-Linux-Integration-v30.9.sh
-          retention-days: 30
+            release-assets/LCARS-Command-Interface-v30-x86_64.AppImage
+            release-assets/LCARS-Universal-Linux-Desktop-v30.zip
+            release-assets/LCARS-Linux-Integration-v30.sh
 
   windows:
     runs-on: windows-latest
@@ -75,15 +71,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Commissioning, Continuum, Media Deck, Operations Center, and Computer Core regression suite
-        run: node --test tests/version30-9-commissioning.test.mjs tests/version30-8-continuum.test.mjs tests/version30-7-operator-media.test.mjs tests/version30-6-operations-center.test.mjs tests/version30-5-search-fabric.test.mjs tests/version30-module-platform.test.mjs tests/version30-computer-core.test.mjs tests/version29-launcher.test.mjs tests/accessibility-css.test.mjs
-      - name: Validate Windows bridge and desktop process
+      - name: Windows stable regression suite
         run: |
+          node --test tests/*.test.mjs
           python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py shared/lcars_federation_crypto.py shared/lcars_padd.py shared/lcars_data_fabric.py
           node --check desktop/main.cjs
       - name: Build Windows installer with verified offline voice runtime
         run: npm run desktop:package:windows -- --publish never
-      - name: Verify and prepare Windows development installer
+      - name: Verify and prepare Windows installer
         shell: pwsh
         run: |
           if (-not (Test-Path voice-runtime/windows/whisper-cli.exe)) { throw 'whisper.cpp executable is missing' }
@@ -91,12 +86,11 @@ jobs:
           New-Item -ItemType Directory -Force release-assets | Out-Null
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.9.exe
+          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.exe
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.9-development-windows
-          path: release-assets/LCARS-Windows-Setup-v30.9.exe
-          retention-days: 30
+          name: LCARS-v30-stable-windows
+          path: release-assets/LCARS-Windows-Setup-v30.exe
 
   android:
     runs-on: ubuntu-latest
@@ -114,38 +108,37 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
-      - name: Validate station address and battery guards
+      - name: Validate mobile guards
         run: |
           mkdir -p mobile/android/build/address-test
           javac -d mobile/android/build/address-test mobile/android/app/src/main/java/com/lcars/padd/StationAddress.java mobile/android/app/src/main/java/com/lcars/padd/BatteryStatus.java mobile/android/tools/StationAddressSelfTest.java mobile/android/tools/BatteryStatusSelfTest.java
           java -cp mobile/android/build/address-test com.lcars.padd.StationAddressSelfTest
           java -cp mobile/android/build/address-test com.lcars.padd.BatteryStatusSelfTest
-      - name: Restore persistent Android development identity
+      - name: Restore persistent Android release identity
         run: |
           set -euo pipefail
           test -n "$ANDROID_SIGNING_KEY_BASE64"
           printf '%s' "$ANDROID_SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/lcars-release.jks"
           test -s "$RUNNER_TEMP/lcars-release.jks"
-      - name: Build signed Android development APK
+      - name: Build signed Android stable APK
         env:
           ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/lcars-release.jks
-        run: gradle -p mobile/android --no-daemon :app:assembleDebug
-      - name: Verify Android signature and prepare Mobile Environment
+        run: gradle -p mobile/android --no-daemon :app:assembleRelease
+      - name: Verify Android signature
         run: |
           set -euo pipefail
-          apk="mobile/android/app/build/outputs/apk/debug/app-debug.apk"
+          apk="mobile/android/app/build/outputs/apk/release/app-release.apk"
           signer="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
           test -n "$signer"
           "$signer" verify --verbose --print-certs "$apk"
           mkdir -p release-assets
-          cp "$apk" release-assets/LCARS-Mobile-Environment-v30.9-Android.apk
+          cp "$apk" release-assets/LCARS-Mobile-Environment-v30-Android.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.9-development-android
-          path: release-assets/LCARS-Mobile-Environment-v30.9-Android.apk
-          retention-days: 30
+          name: LCARS-v30-stable-android
+          path: release-assets/LCARS-Mobile-Environment-v30-Android.apk
 
-  publish-development-release:
+  publish:
     needs: [linux, windows, android]
     runs-on: ubuntu-latest
     permissions:
@@ -159,18 +152,18 @@ jobs:
       - name: Create source archive and checksums
         run: |
           set -euo pipefail
-          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.9-Source.zip HEAD
-          (cd release-assets && sha256sum LCARS-Command-Interface-v30.9-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.9.zip LCARS-Linux-Integration-v30.9.sh LCARS-Windows-Setup-v30.9.exe LCARS-Mobile-Environment-v30.9-Android.apk LCARS-Command-Interface-v30.9-Source.zip > SHA256SUMS.txt)
+          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30-Source.zip HEAD
+          (cd release-assets && sha256sum LCARS-Command-Interface-v30-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.zip LCARS-Linux-Integration-v30.sh LCARS-Windows-Setup-v30.exe LCARS-Mobile-Environment-v30-Android.apk LCARS-Command-Interface-v30-Source.zip > SHA256SUMS.txt)
           (cd release-assets && sha256sum --check SHA256SUMS.txt)
-      - name: Publish Version 30.9 Commissioning and Stable Readiness release candidate
+      - name: Publish Version 30 Stable
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          notes='Version 30.9 Release Candidate completes the Version 30 development line with a unified Commissioning and Trust Center, an offline searchable Computer command reference, bounded long-run storage policies, reduced hidden-window polling, and automatic refresh after focus, resume, or network return. Every built-in page, custom page, Tasks control, and Power control now receives one continuous matching sidebar number. The Browser Station experiment, its sidebar page, detection logic, preferences, embedded webview privilege, styling, and release references have been retired. Integrated local media playback, Android Continuum, Version 30.7 Operator Workspaces, Version 30.6 Operations Center, Version 30.5 Universal Search and Data Fabric, Version 30.4 LCARS Session, Version 30.3 Module Platform, Version 30.2 Federation, bundled offline whisper.cpp, voice operations, and the Version 29 Mobile Command Environment remain included.'
-          if gh release view v30.9 >/dev/null 2>&1; then
-            gh release upload v30.9 release-assets/* --clobber
-            gh release edit v30.9 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.9 RC · Commissioning & Stable Readiness" --notes "$notes" --prerelease
+          notes='Version 30 Stable combines Computer Core, bundled offline voice, Federation, the Module Platform, the optional Linux LCARS Session, Universal Search and Data Fabric, the Operations Center, Operator Workspaces, integrated media, Android Continuum, and the final Commissioning and Trust Center. Every rail control has a continuous matching number, Browser Station has been retired, and Linux, Windows, and Android packages are verified with SHA-256 checksums.'
+          if gh release view v30 >/dev/null 2>&1; then
+            gh release upload v30 release-assets/* --clobber
+            gh release edit v30 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30" --notes "$notes" --latest --prerelease=false
           else
-            gh release create v30.9 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.9 RC · Commissioning & Stable Readiness" --notes "$notes" --prerelease
+            gh release create v30 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30" --notes "$notes" --latest
           fi

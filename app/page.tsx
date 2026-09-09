@@ -1,5 +1,5 @@
 "use client";
-import { Component, createElement, useEffect, useMemo, useRef, useState } from "react";
+import { Component, useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import lcarsEmblem from "../desktop/icons/512x512.png";
 import {
@@ -39,6 +39,8 @@ import type { PagePeekState, PopupGeometry, PopupLayoutMap, PopupSnap } from "./
 import { ConnectedOperationsPanel } from "./v28-connected";
 import type { PaddDevice, PaddOperation, PaddStatus } from "./v28-connected";
 import { ComputerCoreConsole } from "./v30-computer-core";
+import { CommissioningCenter } from "./v30-commissioning";
+import type { CommissioningTarget } from "./v30-commissioning";
 import { UniversalSearch } from "./v30-search";
 import type { FabricStatus } from "./v30-search";
 import { rankUniversalResults } from "./v30-search-core";
@@ -48,7 +50,7 @@ import type { OperationsAction, OperationsEvent, OperationsFilters, OperationsMe
 import { mediaSourceAliases, preferredMediaSource } from "./v30-media-core";
 import { decryptOperatorBackup, encryptOperatorBackup, normalizeOperatorIdentities, normalizeOperatorWorkspace, operatorCan } from "./v30-operator-core";
 import type { OperatorIdentity, OperatorRole, OperatorWorkspace } from "./v30-operator-core";
-import { classifyLocalMedia, detectBrowserApplications } from "./v30-continuum";
+import { classifyLocalMedia } from "./v30-continuum";
 import type { LocalMediaKind } from "./v30-continuum";
 import {
   computerProcedureReversible,
@@ -61,7 +63,7 @@ import {
 import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, ComputerPlan, ComputerPlanStep, ComputerUndoSnapshot } from "./v30-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="30.8.1";
+const LCARS_VERSION="30.9";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -215,8 +217,6 @@ type ShellPrefs = {
   lockOnLaunch: boolean;
   quickBootWithoutPassword: boolean;
   trayPresentation: "rail" | "header";
-  browserSidebarEnabled: boolean;
-  preferredBrowserId: string;
   speedDial: SpeedDialItem[];
   updateChannel: "stable" | "development";
 };
@@ -364,7 +364,7 @@ const nav = [
   ["network", "06", "NETWORK"],
   ["updates", "07", "UPDATES"],
   ["settings", "08", "SETTINGS"],
-  ["browser", "09", "BROWSER"],
+  ["commissioning", "09", "COMMISSION"],
 ];
 const speedDialChoices: { id: SpeedDialItem; label: string; description: string }[] = [
   { id:"page:network", label:"NETWORK", description:"Open a compact Network Page Peek" },
@@ -388,7 +388,7 @@ const speedDialChoices: { id: SpeedDialItem; label: string; description: string 
   { id:"action:tray", label:"TRAY", description:"Open the desktop system tray" },
   { id:"action:routines", label:"ROUTINES", description:"Open Operations Automation" },
   { id:"action:communications", label:"COMMS", description:"Open Communications Center" },
-  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.8 Computer Core" },
+  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.9 Computer Core" },
 ];
 const defaultPrefs: ShellPrefs = {
   taskHover: true,
@@ -424,19 +424,18 @@ const defaultPrefs: ShellPrefs = {
   lockOnLaunch: true,
   quickBootWithoutPassword: false,
   trayPresentation: "rail",
-  browserSidebarEnabled: true,
-  preferredBrowserId: "",
   speedDial: ["page:network","page:media","action:dnd","action:notices","action:displays"],
   updateChannel: "stable",
 };
 const normalizePrefs = (value: unknown): ShellPrefs => {
-  const source=value&&typeof value==="object"?value as Partial<ShellPrefs>:{};
+  const source=value&&typeof value==="object"?value as Partial<ShellPrefs>&Record<string,unknown>:{};
+  const currentSource=Object.fromEntries(Object.entries(source).filter(([key])=>key!=="browserSidebarEnabled"&&key!=="preferredBrowserId")) as Partial<ShellPrefs>;
   const pageDensity:PageDensity=source.pageDensity==="compact"||source.pageDensity==="wide"?source.pageDensity:"standard";
   const pageDensities=source.pageDensities&&typeof source.pageDensities==="object"?Object.fromEntries(Object.entries(source.pageDensities).filter(([,density])=>density==="compact"||density==="standard"||density==="wide")) as Record<string,PageDensity>:{};
   const allowedSpeedDial=new Set(speedDialChoices.map((choice)=>choice.id));
   const speedDial=Array.isArray(source.speedDial)?source.speedDial.filter((item):item is SpeedDialItem=>typeof item==="string"&&(allowedSpeedDial.has(item as SpeedDialItem)||/^module:ext:[a-z0-9-]+$/i.test(item)||/^page:custom:[a-z0-9-]+$/i.test(item)||/^routine:[a-z0-9-]+$/i.test(item))).slice(0,8):defaultPrefs.speedDial;
   const voiceCredential=source.voiceAuthorizationCredential&&typeof source.voiceAuthorizationCredential==="object"&&typeof source.voiceAuthorizationCredential.hash==="string"&&typeof source.voiceAuthorizationCredential.salt==="string"?source.voiceAuthorizationCredential:null;
-  return {...defaultPrefs,...source,voiceImmediateExecution:Boolean(source.voiceImmediateExecution),pageDensity,pageDensities,pageDensityScope:source.pageDensityScope==="per-page"?"per-page":"global",updateChannel:source.updateChannel==="development"?"development":"stable",speedDial:speedDial.length>=2?speedDial:defaultPrefs.speedDial,voiceAuthorizationCredential:voiceCredential,voiceAuthorizationEnabled:Boolean(source.voiceAuthorizationEnabled&&voiceCredential)};
+  return {...defaultPrefs,...currentSource,voiceImmediateExecution:Boolean(source.voiceImmediateExecution),pageDensity,pageDensities,pageDensityScope:source.pageDensityScope==="per-page"?"per-page":"global",updateChannel:source.updateChannel==="development"?"development":"stable",speedDial:speedDial.length>=2?speedDial:defaultPrefs.speedDial,voiceAuthorizationCredential:voiceCredential,voiceAuthorizationEnabled:Boolean(source.voiceAuthorizationEnabled&&voiceCredential)};
 };
 const normalizeCustomPages = (value: unknown): CustomPage[] => Array.isArray(value) ? value.filter((item):item is CustomPage=>Boolean(item)&&typeof item==="object"&&typeof item.id==="string"&&typeof item.name==="string"&&typeof item.target==="string"&&["app","module","extension"].includes(String(item.kind))).slice(0,6).map((item)=>({...item,id:item.id.replace(/[^a-z0-9-]/gi,"-").slice(0,48),name:item.name.trim().slice(0,24)||"CUSTOM PAGE",target:item.target.slice(0,180)})) : [];
 const normalizeAppDestinations = (value: unknown): Record<string,ApplicationDestination> => value&&typeof value==="object"?Object.fromEntries(Object.entries(value).filter((entry):entry is [string,ApplicationDestination]=>entry[1]==="embedded"||entry[1]==="native").slice(0,512)):{};
@@ -673,6 +672,7 @@ export default function Home() {
       },
     ]);
   const [health, setHealth] = useState<Health>({});
+  const [commissioningBusy,setCommissioningBusy]=useState(false);
   const [trayItems, setTrayItems] = useState<TrayItem[]>([]),
     [trayOpen, setTrayOpen] = useState(false),
     [drives, setDrives] = useState<Drive[]>([]),
@@ -749,8 +749,9 @@ export default function Home() {
     [extensionCatalog,setExtensionCatalog]=useState<ExtensionCatalogEntry[]>([]),
     [extensionSources,setExtensionSources]=useState<ModuleRepositorySource[]>([]),
     [disabledExtensions,setDisabledExtensions]=useState<string[]>([]);
-  const visibleNav=useMemo(()=>prefs.browserSidebarEnabled?nav:nav.filter((item)=>item[0]!=="browser"),[prefs.browserSidebarEnabled]);
-  const detectedBrowsers=useMemo(()=>detectBrowserApplications(apps),[apps]);
+  const visibleNav=nav;
+  const taskRailNumber=String(visibleNav.length+customPages.length+1).padStart(2,"0");
+  const powerNumber=String(visibleNav.length+customPages.length+2).padStart(2,"0");
   const routineTriggerGuard=useRef<Set<string>>(new Set()),routineLastRun=useRef<Map<string,number>>(new Map()),workstationRestoreGuard=useRef(false);
   useEffect(()=>{const update=(event:Event)=>setWorkspaceWindows((event as CustomEvent<{active?:string[]}>).detail?.active||[]);window.addEventListener(workspaceStateEvent,update);return()=>window.removeEventListener(workspaceStateEvent,update);},[]);
   useEffect(()=>{
@@ -774,8 +775,10 @@ export default function Home() {
     const restore = !safeBoot && localStorage.getItem("lcars-session-restore") !== "false";
     queueMicrotask(()=>{setSafeMode(safeBoot);setQuarantinedExtensions(restoredQuarantine);setSessionRestore(restore);});
     if (requested && (nav.some((n) => n[0] === requested)||requested.startsWith("custom:"))) setSection(requested);
-    else if (restore && localStorage.getItem("lcars-last-section"))
-      setSection(localStorage.getItem("lcars-last-section") || "overview");
+    else if (restore && localStorage.getItem("lcars-last-section")) {
+      const restoredSection=localStorage.getItem("lcars-last-section") || "overview";
+      setSection(restoredSection==="browser"?"commissioning":restoredSection);
+    }
     const t = safeBoot?null:localStorage.getItem("lcars-theme"),
       f = safeBoot?null:localStorage.getItem("lcars-favorites"),
       w = safeBoot?null:localStorage.getItem("lcars-overview-widgets"),
@@ -877,7 +880,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-8"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-9"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1018,12 +1021,18 @@ export default function Home() {
     window.addEventListener("lcars-startup-audio", power);
     window.addEventListener("lcars-startup-audio-result",reportAudio);
     window.addEventListener("pointerdown", power, { once: true });
+    const whileVisible=(operation:()=>void)=>()=>{if(!document.hidden)operation();};
+    const refreshAfterResume=()=>{if(document.hidden)return;getSystem();getMedia();getDesktop();getEngineering();void getExtensions();fetch("http://127.0.0.1:8765/api/padd-pairing").then((response)=>response.json()).then((result)=>result.ok&&setPaddStatus(result)).catch(()=>{});fetch("http://127.0.0.1:8765/api/data-fabric").then((response)=>response.json()).then((result)=>result.ok&&setFabric(result)).catch(()=>{});};
     const timer = setInterval(() => setClock(new Date()), 1000),
-      systemTimer = setInterval(getSystem, 2000),
-      mediaTimer = setInterval(getMedia, 3000),
-      desktopTimer = setInterval(getDesktop, 1800),
-      engineeringTimer = setInterval(getEngineering, 6000),
-      extensionTimer = setInterval(getExtensions, 5000);
+      systemTimer = setInterval(whileVisible(getSystem), 2000),
+      mediaTimer = setInterval(whileVisible(getMedia), 3000),
+      desktopTimer = setInterval(whileVisible(getDesktop), 1800),
+      engineeringTimer = setInterval(whileVisible(getEngineering), 6000),
+      extensionTimer = setInterval(whileVisible(()=>void getExtensions()), 5000);
+    document.addEventListener("visibilitychange",refreshAfterResume);
+    window.addEventListener("focus",refreshAfterResume);
+    window.addEventListener("pageshow",refreshAfterResume);
+    window.addEventListener("online",refreshAfterResume);
     const startupTimer=setTimeout(()=>setStartupVisible(false),4200);
     const stableTimer=setTimeout(()=>{if(!safeBoot)window.dispatchEvent(new CustomEvent("lcars-runtime-stable",{detail:readRecoveryConfig()}));},6500);
     return () => {
@@ -1038,6 +1047,10 @@ export default function Home() {
       window.removeEventListener("lcars-startup-audio", power);
       window.removeEventListener("lcars-startup-audio-result",reportAudio);
       window.removeEventListener("pointerdown", power);
+      document.removeEventListener("visibilitychange",refreshAfterResume);
+      window.removeEventListener("focus",refreshAfterResume);
+      window.removeEventListener("pageshow",refreshAfterResume);
+      window.removeEventListener("online",refreshAfterResume);
     };
   }, []);
   useEffect(() => {
@@ -1061,9 +1074,6 @@ export default function Home() {
   useEffect(() => {
     if (sessionRestore) localStorage.setItem("lcars-last-section", section);
   }, [section, sessionRestore]);
-  useEffect(()=>{
-    if(!prefs.browserSidebarEnabled&&section==="browser")setSection("overview");
-  },[prefs.browserSidebarEnabled,section]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
       const digit=e.code.match(/^(?:Digit|Numpad)([1-9])$/)?.[1];
@@ -1893,7 +1903,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"29",development:"30.8.1",channel:prefs.updateChannel},
+      release:{stable:"29",development:"30.9",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2257,6 +2267,28 @@ export default function Home() {
     const results=await Promise.allSettled(deviceIds.map(async(id)=>{const response=await fetch("http://127.0.0.1:8765/api/padd-pairing",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation:"delivery",id,kind:"notice",payload:{title:event.title,text:event.detail||event.explanation,priority:event.severity}})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Station rejected the alert");return result;}));
     const delivered=results.filter((result)=>result.status==="fulfilled").length,failed=results.length-delivered;if(delivered)notify(`Priority alert routed to ${delivered} station${delivered===1?"":"s"}`,"info",true,"OPERATIONS CENTER","priority");if(failed)notify(`${failed} station${failed===1?"":"s"} could not receive the alert`,"error",true,"OPERATIONS CENTER");recordActivity("Priority alert propagated",`${event.title} · ${delivered} routed · ${failed} failed`,failed?"attention":"success","OPERATOR",false,{subsystem:"STATIONS",severity:failed?"warning":"priority",group:`propagation:${event.id}`,explanation:"The selected Operations event was queued for delivery to trusted Federation stations."});void refreshPadd();
   };
+  const runCommissioningCheck=async()=>{
+    if(commissioningBusy)return;
+    setCommissioningBusy(true);
+    const json=async(path:string)=>{const response=await fetch(`http://127.0.0.1:8765${path}`);const result=await response.json();if(!response.ok)throw new Error(result.error||`${path} failed`);return result;};
+    const results=await Promise.allSettled([json("/api/health-check"),json("/api/padd-pairing"),json("/api/data-fabric"),json(`/api/lcars-update?channel=${encodeURIComponent(prefs.updateChannel)}`)]);
+    const [healthResult,paddResult,fabricResult,updateResult]=results;
+    if(healthResult.status==="fulfilled"){setHealth(healthResult.value.health||{});setBridge(true);}
+    if(paddResult.status==="fulfilled")setPaddStatus(paddResult.value as PaddStatus);
+    if(fabricResult.status==="fulfilled")setFabric(fabricResult.value as FabricStatus);
+    if(updateResult.status==="fulfilled")setLcarsUpdate(updateResult.value as UpdateInfo);
+    const passed=results.filter((result)=>result.status==="fulfilled").length;
+    notify(passed===results.length?"Commissioning check complete · all local services answered":`Commissioning check complete · ${passed}/${results.length} service groups answered`,passed===results.length?"info":"error",passed!==results.length,"COMMISSIONING CENTER");
+    recordActivity("Commissioning check",`${passed}/${results.length} service groups answered`,passed===results.length?"success":"attention","SYSTEM",false,{subsystem:"SYSTEM",group:"commissioning:check",explanation:"Version 30.9 refreshed local integration, Federation, Data Fabric, and release-channel readiness together."});
+    setCommissioningBusy(false);
+  };
+  const exportCommissioningDiagnostics=async()=>{try{const response=await fetch("http://127.0.0.1:8765/api/diagnostics-export",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}),result=await response.json();if(!response.ok)throw new Error(result.error||"Diagnostic export failed");notify(result.message||"Privacy-safe diagnostics exported","info",true,"COMMISSIONING CENTER");}catch(error){notify(error instanceof Error?error.message:"Diagnostic export failed","error",true,"COMMISSIONING CENTER");}};
+  const openCommissioningTarget=(target:CommissioningTarget)=>{
+    if(target==="media"){setSection("media");return;}
+    if(target==="updates"||target==="modules"){setSection("updates");return;}
+    if(target==="operators"){setOperatorCenterOpen(true);return;}
+    setSettingsArea(target==="connected"?"connected":target==="accessibility"?"interface":"system");setSection("settings");
+  };
   const restrictionForSection = compat?.restrictions.filter(
     (r) =>
       (section === "media" &&
@@ -2479,13 +2511,13 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>30.8.1 DEV</small>
+          <small>30.9 RC</small>
         </button>
         <div className="title">
           <div className="title-copy">
             <div className={`title-kicker${prefs.voiceEnabled?" voice-active":""}`}>
               <small>FEDERATION OPERATING ENVIRONMENT</small>
-              <button className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30.8 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></button>
+              <button className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30.9 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></button>
               {prefs.voiceEnabled&&<VoiceControl prefs={prefs} computer={dispatchVoiceComputer} notify={notify} />}
             </div>
             <h1>
@@ -2539,7 +2571,7 @@ export default function Home() {
               <span>{n[2]}</span>
             </button>
           ))}
-          {customPages.map((page,index)=><button title={`${page.kind.toUpperCase()} · ${page.name}`} key={page.id} className={`nav custom-nav n${(index+2)%6}${section===`custom:${page.id}`?" active":""}`} onClick={()=>{beep();setSection(`custom:${page.id}`);}}><i>C{index+1}</i><span>{page.name}</span></button>)}
+          {customPages.map((page,index)=><button title={`${page.kind.toUpperCase()} · ${page.name}`} key={page.id} className={`nav custom-nav n${(index+2)%6}${section===`custom:${page.id}`?" active":""}`} onClick={()=>{beep();setSection(`custom:${page.id}`);}}><i>{String(visibleNav.length+index+1).padStart(2,"0")}</i><span>{page.name}</span></button>)}
           <div
             className={
               "task-zone " +
@@ -2551,13 +2583,7 @@ export default function Home() {
           >
             {prefs.trayPresentation==="rail"&&<button className="tray-strip-trigger" aria-label="Open system tray" title="Tray Command Deck" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><span aria-hidden="true"><i/><i/><i/></span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small><b aria-hidden="true">›</b></button>}
             <button className="task-trigger" onClick={toggleTaskLock}>
-              <i aria-hidden="true">
-                {compat?.capabilities?.windowControl === false
-                  ? "!"
-                  : taskLocked || prefs.taskPinned
-                    ? "◆"
-                    : ""}
-              </i>
+              <i aria-hidden="true">{taskRailNumber}</i>
               <span>
                 {compat?.capabilities?.windowControl === false
                   ? "TASKS LIMITED"
@@ -2595,7 +2621,7 @@ export default function Home() {
               setPowerOpen(true);
             }}
           >
-            <i>10</i>
+            <i>{powerNumber}</i>
             <span>POWER</span>
           </button>
           <div className="foot-elbow" />
@@ -2724,19 +2750,13 @@ export default function Home() {
               </div>
             </>
           )}
-          {section === "browser" && prefs.browserSidebarEnabled && (
-            <BrowserDock
-              bridge={bridge}
-              apps={apps}
-              detected={detectedBrowsers}
-              preferredId={prefs.preferredBrowserId}
-              tasks={tasks}
-              choose={(id)=>savePrefs({...prefs,preferredBrowserId:id})}
-              launch={launch}
-              focus={(id)=>windowAction(id,"activate")}
-              refresh={refreshApps}
-            />
-          )}
+          {section === "commissioning" && <CommissioningCenter
+            context={{bridge,health,voiceEnabled:prefs.voiceEnabled,voiceHealthy:Boolean(health.voice?.available),operatorName:activeOperator?.name||userName,operatorRole:activeOperator?.role||"guest",operatorProtected:Boolean(activeOperator?.credential||lockCredential),pairedStations:paddStatus?.devices.length||0,onlineStations:paddStatus?.devices.filter((device)=>device.online).length||0,encryptedStations:paddStatus?.devices.filter((device)=>device.transport==="aes-256-gcm").length||0,fabricReady:Boolean(fabric?.ok),enabledFabricRoutes:Object.values(fabric?.categories||{}).filter(Boolean).length,installedModules:extensions.length,isolatedModules:extensions.filter((item)=>item.moduleHealth?.health==="isolated").length,updateChannel:prefs.updateChannel,updateAvailable:Boolean(lcarsUpdate?.available),sessionRestore}}
+            refreshing={commissioningBusy}
+            refresh={()=>void runCommissioningCheck()}
+            open={openCommissioningTarget}
+            exportDiagnostics={()=>void exportCommissioningDiagnostics()}
+          />}
           {section === "terminal" && (
             <Terminal bridge={bridge} notify={notify} prefs={prefs} />
           )}
@@ -2962,8 +2982,8 @@ export default function Home() {
                   <small>LEARN THE LCARS DESKTOP CONTROLS</small>
                 </button>
                 <button onClick={()=>setWhatsNewOpen(true)}>
-                  <b>WHAT&apos;S NEW IN VERSION 30.8</b>
-                  <small>BROWSER STATION · MEDIA ROUTING · CONTINUUM</small>
+                  <b>WHAT&apos;S NEW IN VERSION 30.9</b>
+                  <small>COMMISSIONING · TRUST REVIEW · STABLE READINESS</small>
                 </button>
                 <button onClick={() => coreAction("shell-mode-off")}>
                   <b>RECOVERY CONTROL</b>
@@ -3053,7 +3073,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-8","1");setWhatsNewOpen(false);}} openBrowser={()=>{localStorage.setItem("lcars-whats-new-v30-8","1");setWhatsNewOpen(false);setSection("browser");}}/>}
+      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-9","1");setWhatsNewOpen(false);}} openCommissioning={()=>{localStorage.setItem("lcars-whats-new-v30-9","1");setWhatsNewOpen(false);setSection("commissioning");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -3123,58 +3143,6 @@ export default function Home() {
       />
     </main>
   );
-}
-
-type EmbeddedBrowserElement=HTMLElement&{
-  loadURL:(url:string)=>Promise<void>;
-  goBack:()=>void;
-  goForward:()=>void;
-  reload:()=>void;
-  stop:()=>void;
-  canGoBack:()=>boolean;
-  canGoForward:()=>boolean;
-  getURL:()=>string;
-};
-type EmbeddedBrowserEvent=Event&{url?:string;title?:string;errorDescription?:string};
-const browserHome="https://www.google.com/";
-const embeddedBrowserView=()=>typeof document==="undefined"?null:document.getElementById("lcars-contained-browser") as EmbeddedBrowserElement|null;
-function browserDestination(value:string){
-  const destination=value.trim();
-  if(!destination)return browserHome;
-  if(/^https?:\/\//i.test(destination))return destination;
-  if(!/\s/.test(destination)&&destination.includes("."))return `https://${destination}`;
-  return `https://www.google.com/search?q=${encodeURIComponent(destination)}`;
-}
-function BrowserDock({bridge,apps,detected,preferredId,tasks,choose,launch,focus,refresh}:{bridge:boolean;apps:App[];detected:App[];preferredId:string;tasks:WindowTask[];choose:(id:string)=>void;launch:(app:App)=>void;focus:(id:string)=>void;refresh:()=>void}){
-  const preferred=apps.find((app)=>app.id===preferredId)||detected[0]||null;
-  const running=tasks.filter((task)=>detectBrowserApplications([{id:task.app||task.id,name:task.name,comment:task.app||""}]).length>0);
-  const [embedded,setEmbedded]=useState(false),[address,setAddress]=useState(browserHome),[browserTitle,setBrowserTitle]=useState("LCARS START PAGE"),[loading,setLoading]=useState(false),[browserError,setBrowserError]=useState(""),[history,setHistory]=useState({back:false,forward:false});
-  useEffect(()=>setEmbedded(/Electron/i.test(navigator.userAgent)),[]);
-  useEffect(()=>{
-    const view=embeddedBrowserView();if(!embedded||!view)return;
-    const status=()=>setHistory({back:view.canGoBack(),forward:view.canGoForward()});
-    const started=()=>{setLoading(true);setBrowserError("");};
-    const stopped=()=>{setLoading(false);setAddress(view.getURL()||browserHome);status();};
-    const navigated=(event:Event)=>{const detail=event as EmbeddedBrowserEvent;setAddress(detail.url||view.getURL()||browserHome);status();};
-    const titled=(event:Event)=>setBrowserTitle((event as EmbeddedBrowserEvent).title||"LCARS BROWSER");
-    const failed=(event:Event)=>{const detail=event as EmbeddedBrowserEvent;if(detail.errorDescription&&detail.errorDescription!=="ERR_ABORTED")setBrowserError(detail.errorDescription);setLoading(false);};
-    view.addEventListener("did-start-loading",started);view.addEventListener("did-stop-loading",stopped);view.addEventListener("did-navigate",navigated);view.addEventListener("did-navigate-in-page",navigated);view.addEventListener("page-title-updated",titled);view.addEventListener("did-fail-load",failed);
-    return()=>{view.removeEventListener("did-start-loading",started);view.removeEventListener("did-stop-loading",stopped);view.removeEventListener("did-navigate",navigated);view.removeEventListener("did-navigate-in-page",navigated);view.removeEventListener("page-title-updated",titled);view.removeEventListener("did-fail-load",failed);};
-  },[embedded]);
-  const navigate=(value:string)=>{const destination=browserDestination(value);setAddress(destination);setBrowserError("");embeddedBrowserView()?.loadURL(destination).catch(()=>setBrowserError("THE REQUESTED PAGE COULD NOT BE LOADED"));};
-  const embeddedFrame=embedded?createElement("webview",{id:"lcars-contained-browser",src:browserHome,partition:"persist:lcars-browser",webpreferences:"contextIsolation=yes, sandbox=yes, nodeIntegration=no",className:"browser-webview",title:"LCARS contained browser"}):null;
-  return <section className="detail-view browser-dock">
-    <h3>LCARS BROWSER STATION</h3>
-    <section className="browser-contained">
-      <header><span><small>CONTAINED WEB SESSION</small><b>{browserTitle}</b></span><em className={loading?"loading":""}>{loading?"RECEIVING":"ONLINE"}</em></header>
-      <form className="browser-address" onSubmit={(event)=>{event.preventDefault();navigate(address);}}><button type="button" disabled={!history.back} onClick={()=>embeddedBrowserView()?.goBack()} aria-label="Back">◀</button><button type="button" disabled={!history.forward} onClick={()=>embeddedBrowserView()?.goForward()} aria-label="Forward">▶</button><button type="button" onClick={()=>loading?embeddedBrowserView()?.stop():embeddedBrowserView()?.reload()}>{loading?"STOP":"REFRESH"}</button><button type="button" onClick={()=>navigate(browserHome)}>HOME</button><input aria-label="Web address or search" value={address} onChange={(event)=>setAddress(event.target.value)} spellCheck={false}/><button type="submit">ENGAGE</button></form>
-      <div className="browser-viewport">{embeddedFrame||<div className="browser-dock-offline"><b>CONTAINED BROWSER AVAILABLE IN THE INSTALLED DESKTOP EDITION</b><small>The hosted demonstration cannot embed unrestricted websites. Install or open LCARS desktop to browse inside this panel.</small></div>}{browserError&&<div className="browser-error"><b>PAGE LOAD FAILED</b><span>{browserError}</span><button onClick={()=>navigate(address)}>RETRY</button></div>}</div>
-      <footer>THIS WEB SESSION STAYS INSIDE THE LCARS BROWSER PAGE AND USES A SEPARATE, SANDBOXED LCARS PROFILE.</footer>
-    </section>
-    <section className="browser-selection"><header><b>EXTERNAL BROWSER FALLBACK</b><small>{detected.length} RECOGNIZED</small></header><p>Open your existing browser only when you need its current profile, bookmarks, extensions, passwords, or signed-in sessions.</p>{bridge&&<div className="browser-dock-actions"><button disabled={!preferred} onClick={()=>preferred&&launch(preferred)}>OPEN IN EXTERNAL {preferred?.name.toUpperCase()||"BROWSER"}</button><button onClick={refresh}>RESCAN APPLICATIONS</button></div>}<div className="browser-detected-list">{detected.map((app)=><button className={preferred?.id===app.id?"selected":""} key={app.id} onClick={()=>choose(app.id)}><b>{app.name}</b><small>{app.comment||app.id}</small><em>{preferred?.id===app.id?"SELECTED":"USE EXTERNALLY"}</em></button>)}{!detected.length&&<p>NO KNOWN BROWSER WAS DETECTED. SELECT IT MANUALLY BELOW.</p>}</div><label>CUSTOM EXTERNAL BROWSER<small>Choose any installed application when automatic detection misses a browser.</small><select value={preferredId&&apps.some((app)=>app.id===preferredId)?preferredId:""} onChange={(event)=>choose(event.target.value)}><option value="">AUTOMATIC DETECTION</option>{apps.map((app)=><option value={app.id} key={app.id}>{app.name} · {app.comment||app.id}</option>)}</select></label></section>
-    {bridge&&<section className="browser-running"><header><b>ACTIVE EXTERNAL BROWSER WINDOWS</b><small>{running.length} DETECTED</small></header>{running.length?running.map((task)=><button key={task.id} onClick={()=>focus(task.id)}><i>●</i><span><b>{task.name}</b><small>{task.monitor||"CURRENT DISPLAY"}{task.minimized?" · MINIMIZED":" · ACTIVE WINDOW"}</small></span><em>FOCUS</em></button>):<p>NO EXTERNAL BROWSER WINDOW IS CURRENTLY ACTIVE</p>}</section>}
-    <footer>THE BROWSER SIDEBAR CONTROL CAN BE REMOVED AT SETTINGS → SYSTEM → DESKTOP SHELL CONTROL FOR AN ENTIRELY OFFLINE LCARS LAYOUT.</footer>
-  </section>;
 }
 
 type FileKind="folder"|"application"|"pdf"|"document"|"image"|"audio"|"video"|"archive"|"file";
@@ -3764,7 +3732,7 @@ function ExtensionHub({installed,catalog,sources,setCatalog,setSources,disabled,
       {packageOpen&&<section className="module-package-bay"><header><span><small>SIGNED PORTABLE PACKAGES</small><b>IMPORT / EXPORT</b></span><strong>.LCARS-MODULE</strong></header><div><label>EXPORT INSTALLED MODULE<select value={packageModule} onChange={(event)=>setPackageModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><button disabled={!packageModule||busy==="export"} onClick={exportPackage}>{busy==="export"?"SIGNING…":"EXPORT SIGNED PACKAGE"}</button><label>IMPORT PACKAGE PATH<input value={importPath} placeholder="/path/to/module.lcars-module" onChange={(event)=>setImportPath(event.target.value)}/></label><button disabled={!importPath||busy==="import"} onClick={importPackage}>{busy==="import"?"VERIFYING…":"VERIFY + IMPORT"}</button></div>{packageResult&&<aside><b>PACKAGE OPERATION COMPLETE</b><span>{packageResult.path}</span>{packageResult.sha256&&<small>SHA-256 {packageResult.sha256.toUpperCase()}</small>}{packageResult.signerKeyId&&<em>SIGNER {packageResult.signerKeyId.toUpperCase()}</em>}</aside>}</section>}
       {publisherOpen&&<section className="module-publisher"><header><span><small>RSA-SHA256 · STABLE + DEVELOPMENT CATALOGS</small><b>SIGNED MODULE PUBLISHER</b></span><a href="https://github.com/new" target="_blank" rel="noreferrer">CREATE GITHUB REPOSITORY ↗</a></header><p>LCARS validates the stable API contract, signs the package metadata with your local publisher identity, and generates both repository channels. The private signing key never leaves the local Module Forge folder.</p><div><label>MODULE<select value={publisherModule} onChange={(event)=>setPublisherModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><label>GITHUB OWNER / REPOSITORY<input value={publisherRepository} onChange={(event)=>setPublisherRepository(event.target.value)} placeholder="OWNER/REPOSITORY"/></label><button disabled={!publisherModule||busy==="publisher"} onClick={preparePublisher}>{busy==="publisher"?"SIGNING…":"GENERATE SIGNED REPOSITORY"}</button></div>{publisherResult&&<aside><b>SIGNED PACKAGE READY</b><span>{publisherResult.path}</span><small>SHA-256 {publisherResult.sha256?.toUpperCase()}</small><em>SIGNER {publisherResult.signerKeyId?.toUpperCase()} · {publisherResult.files?.join(" · ")}</em></aside>}</section>}
       <div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id),remote=entry,health=manifest?.moduleHealth||entry.moduleHealth,requested=manifest?.capabilities||entry.capabilities,granted=manifest?.grantedCapabilities||entry.grantedCapabilities||[],showDetails=details===entry.id;return <article className={`${disabledNow?"disabled":""} ${remote.repository?"repository-module":"local-module"} module-health-${health?.health||"ready"}`} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{remote.repository?`${remote.official?"OFFICIAL":"COMMUNITY"} · ${(remote.channel||"stable").toUpperCase()} · ${remote.sourceName||"MODULE REPOSITORY"}`:entry.bundled?"BUNDLED MODULE":"LOCAL MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · API {manifest?.apiVersion||health?.apiVersion||"?"} {health?.apiStatus?.toUpperCase()||""} · V{entry.version}{installedNow?` / INSTALLED V${manifest?.version||remote.installedVersion||entry.version}`:""} · {health?.health?.toUpperCase()||"READY"}</em>{showDetails&&<><div className="module-detail-strip"><span><b>PACKAGE TRUST</b>{(remote.signatureStatus||health?.signed||"local").toUpperCase()}</span><span><b>SIGNER</b>{remote.signerKeyId||health?.signerKeyId||"LOCAL / BUNDLED"}</span><span><b>MINIMUM LCARS</b>{remote.minimumLcarsVersion||manifest?.minimumLcarsVersion||"COMPATIBLE"}</span><span><b>HEALTH</b>{health?.failureCount?`${health.failureCount} FAILURE(S) · ${health.lastFailure||"RECORDED"}`:"READY · NO RECORDED FAILURES"}</span><span><b>ROLLBACK</b>{health?.rollbackAvailable||remote.rollbackAvailable?"PREVIOUS VERSION AVAILABLE":"NO PREVIOUS VERSION"}</span><span><b>SOURCE</b>{remote.official?"LCARS OFFICIAL":remote.sourceName||health?.sourceId||"LOCAL"}</span></div>{installedNow&&requested.length>0&&<div className="module-permission-matrix"><b>CAPABILITY PERMISSIONS</b>{requested.map((capability)=><button className={granted.includes(capability)?"granted":"revoked"} key={capability} onClick={()=>platformOperation("permissions",entry,granted.includes(capability)?granted.filter((item)=>item!==capability):[...granted,capability])}>{granted.includes(capability)?"✓ GRANTED":"○ REVOKED"}<small>{capabilityLabels[capability]||capability}</small></button>)}</div>}</>}</span><nav><button onClick={()=>setDetails(showDetails?"":entry.id)}>{showDetails?"LESS":"DETAILS"}</button>{installedNow?<><button onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</button>{(health?.rollbackAvailable||remote.rollbackAvailable)&&<button disabled={busy===`rollback:${entry.id}`} onClick={()=>platformOperation("rollback",entry)}>ROLL BACK</button>}{remote.updateAvailable&&<button className="update" disabled={busy===entry.id} onClick={()=>operate(entry,"update")}>{busy===entry.id?"VERIFYING…":"UPDATE"}</button>}{!entry.bundled&&<button className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</button>}</>:remote.repository?<button className="install" disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"VERIFYING…":"INSTALL"}</button>:null}</nav></article>;})}{!inventory.length&&<p className="extension-empty">NO MATCHING MODULES ON THE {catalogChannel.toUpperCase()} CHANNEL</p>}</div>
-      <footer><b>VERSION 30.8 MODULE SAFETY</b> · Signed API v3 packages, explicit capability grants, per-module health records, automatic render isolation, two-version rollback, bounded portable imports, and channel-aware repositories. Repository code is never executed.</footer>
+      <footer><b>VERSION 30.9 MODULE SAFETY</b> · Signed API v3 packages, explicit capability grants, per-module health records, automatic render isolation, two-version rollback, bounded portable imports, and channel-aware repositories. Repository code is never executed.</footer>
     </>}
   </section>;
 }
@@ -4476,14 +4444,14 @@ function LcarsSessionControl({bridge,platform,notify}:{bridge:boolean;platform:s
   const configure=(config:LcarsSessionStatus["config"])=>operate("configure",config);
   const updateConfig=(change:Partial<LcarsSessionStatus["config"]>)=>status&&setStatus({...status,config:{...status.config,...change}});
   const addRule=()=>{if(!status||!ruleMatch.trim())return;const rules=[...status.config.windowRules,{match:ruleMatch.trim(),deck:ruleDeck}].slice(0,20);setRuleMatch("");updateConfig({windowRules:rules});void configure({...status.config,windowRules:rules});};
-  if(!platform.includes("LINUX"))return <section className="lcars-session-control unavailable"><header><span><small>VERSION 30.8 COMPUTER ENVIRONMENT</small><b>LINUX LCARS SESSION</b></span><em>LINUX ONLY</em></header><p>The selectable LCARS login session is a Linux desktop feature. Normal Windows and Android operation is unchanged.</p></section>;
+  if(!platform.includes("LINUX"))return <section className="lcars-session-control unavailable"><header><span><small>VERSION 30.9 COMPUTER ENVIRONMENT</small><b>LINUX LCARS SESSION</b></span><em>LINUX ONLY</em></header><p>The selectable LCARS login session is a Linux desktop feature. Normal Windows and Android operation is unchanged.</p></section>;
   return <section className={`lcars-session-control ${status?.active?"active":""}`}>
-    <header><span><small>VERSION 30.8 COMPUTER ENVIRONMENT · EXPLICIT OPT-IN</small><b>LINUX LCARS LOGIN SESSION</b></span><em>{status?.active?"ACTIVE SESSION":status?.installed?"INSTALLED / OPTIONAL":"APPLICATION MODE"}</em></header>
+    <header><span><small>VERSION 30.9 COMPUTER ENVIRONMENT · EXPLICIT OPT-IN</small><b>LINUX LCARS LOGIN SESSION</b></span><em>{status?.active?"ACTIVE SESSION":status?.installed?"INSTALLED / OPTIONAL":"APPLICATION MODE"}</em></header>
     <p>Register LCARS as a selectable Wayland or X11 login session while retaining the current desktop underneath for window management and emergency recovery. Installing this does not make LCARS the default.</p>
     <div className="lcars-session-readiness">
       {(["loginSession","windowTasking","multiMonitor","windowRules","crashRecovery","safeMode","normalDesktopFallback","kiosk"] as const).map((name)=><span className={status?.capabilities?.[name]?"ready":"limited"} key={name}><i>{status?.capabilities?.[name]?"✓":"!"}</i>{name.replace(/([A-Z])/g," $1").toUpperCase()}</span>)}
     </div>
-    {!bridge?<div className="lcars-session-offline"><b>LOCAL CORE REQUIRED</b><small>Install and open the native Linux desktop build to register a login session.</small></div>:!status?<div className="lcars-session-offline"><b>SESSION ADAPTER UNAVAILABLE</b><small>Reinstall Version 30.8 to add the optional session resources.</small></div>:<>
+    {!bridge?<div className="lcars-session-offline"><b>LOCAL CORE REQUIRED</b><small>Install and open the native Linux desktop build to register a login session.</small></div>:!status?<div className="lcars-session-offline"><b>SESSION ADAPTER UNAVAILABLE</b><small>Reinstall Version 30.9 to add the optional session resources.</small></div>:<>
       <div className="lcars-session-actions"><button disabled={Boolean(busy)} onClick={()=>operate(status.installed?"uninstall":"install")}>{busy==="install"||busy==="uninstall"?"WAITING FOR AUTHORIZATION…":status.installed?"REMOVE LOGIN SESSION":"INSTALL LCARS LOGIN SESSION"}</button><button onClick={refresh}>REFRESH STATUS</button>{status.active&&<button className="escape" disabled={Boolean(busy)} onClick={()=>operate("escape")}>EXIT TO NORMAL DESKTOP</button>}</div>
       <small className="lcars-session-note">Administrator authorization is requested only when adding or removing display-manager session entries. Settings and the LCARS application remain in your account.</small>
       <div className="lcars-session-grid">
@@ -4542,7 +4510,7 @@ function ShellSettings({
           <div className="page-density-settings">
             <label>PAGE SIZE CONTROL<small>Uses one layout size everywhere or remembers a separate Compact, Standard, or Wide layout for each major page.</small><select value={prefs.pageDensityScope} onChange={(event)=>set("pageDensityScope",event.target.value as ShellPrefs["pageDensityScope"])}><option value="global">ONE SIZE FOR ALL PAGES</option><option value="per-page">CHOOSE EACH PAGE</option></select></label>
             <label>DEFAULT PAGE SIZE<small>Compact shows more controls, Standard balances space, and Wide gives panels more breathing room.</small><select value={prefs.pageDensity} onChange={(event)=>set("pageDensity",event.target.value as PageDensity)}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></select></label>
-            {prefs.pageDensityScope==="per-page"&&<div className="page-density-matrix">{nav.filter((item)=>item[0]!=="browser"||prefs.browserSidebarEnabled).map((item)=><label key={item[0]}><span>{item[1]} {item[2]}</span><select value={prefs.pageDensities[item[0]]||prefs.pageDensity} onChange={(event)=>set("pageDensities",{...prefs.pageDensities,[item[0]]:event.target.value as PageDensity})}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></select></label>)}</div>}
+            {prefs.pageDensityScope==="per-page"&&<div className="page-density-matrix">{nav.map((item)=><label key={item[0]}><span>{item[1]} {item[2]}</span><select value={prefs.pageDensities[item[0]]||prefs.pageDensity} onChange={(event)=>set("pageDensities",{...prefs.pageDensities,[item[0]]:event.target.value as PageDensity})}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></select></label>)}</div>}
           </div>
           <Toggle label="Play startup power sequence" description="Plays the bundled LCARS power-up sound when the desktop app opens. It never delays the interface." checked={prefs.startupSound} change={(v) => set("startupSound", v)} />
           <div className="startup-audio-diagnostic"><button onClick={testStartupAudio}>TEST POWER-UP AUDIO</button><small>{startupAudioStatus}</small><em>ASSET: LCARS BUNDLED MP3 · OUTPUT: OPERATING-SYSTEM DEFAULT</em></div>
@@ -4550,7 +4518,6 @@ function ShellSettings({
           <label>SYSTEM TRAY PRESENTATION<small>Places the same tray drawer trigger in the side rail or the compact SYS 47 header position.</small><select value={prefs.trayPresentation} onChange={(event)=>set("trayPresentation",event.target.value as ShellPrefs["trayPresentation"])}><option value="rail">SIDE RAIL</option><option value="header">HEADER / SYS 47</option></select></label>
           <SpeedDialEditor items={prefs.speedDial} extensions={extensions} customPages={customPages} routines={routines} change={(items)=>set("speedDial",items)} />
           <label>LCARS UPDATE CHANNEL<small>Stable receives whole-number public releases. Development opts into dot-number test builds for the next major release.</small><select value={prefs.updateChannel} onChange={(event)=>set("updateChannel",event.target.value as ShellPrefs["updateChannel"])}><option value="stable">STABLE · WHOLE-NUMBER RELEASES</option><option value="development">DEVELOPMENT · TEST BUILDS</option></select></label>
-          <Toggle label="Show Browser sidebar page" description="Discovers and launches your existing browser profile as an LCARS-managed desktop window. Disable this to remove the Browser control from an entirely offline layout." checked={prefs.browserSidebarEnabled} change={(v) => set("browserSidebarEnabled", v)} />
           <Toggle label="Show lock screen on startup" description="Opens normal LCARS windows at the themed authorization screen. Remote Terminal windows always bypass it." checked={prefs.lockOnLaunch} change={(v) => set("lockOnLaunch", v)} />
           {prefs.lockOnLaunch && <div className="subordinate-setting"><Toggle label="Quick boot when no password is set" description="Enters LCARS directly only when no local lock password exists." checked={prefs.quickBootWithoutPassword} change={(v) => set("quickBootWithoutPassword", v)} /></div>}
           <Toggle
@@ -4608,8 +4575,8 @@ function ShellSettings({
           <Toggle label="Enable offline voice commands" description="Audio stays on this station and is processed by the bundled whisper.cpp Computer Core." checked={prefs.voiceEnabled} change={(v) => set("voiceEnabled", v)} />
           <Toggle label="Use push-to-talk" description="When disabled, LCARS keeps a local hands-free microphone watch active. Switching to hands-free automatically enables the Computer wake word." checked={prefs.voicePushToTalk} change={(v) => {const old=prefs;setPrefs({...old,voicePushToTalk:v,voiceWakePhrase:v?old.voiceWakePhrase:true});}} />
           <Toggle label="Require 'Computer' wake word" description={prefs.voicePushToTalk?"Optional in push-to-talk mode. Commands without Computer are ignored when enabled.":"Recommended for hands-free operation. Disable this only if every recognized phrase should be treated as a command."} checked={prefs.voiceWakePhrase} change={(v) => set("voiceWakePhrase", v)} />
-          <Toggle label="Execute recognized voice commands immediately" description="Opt-in Version 30.8 mode. Valid commands within the selected Voice Authority skip the Computer Core preview. Protected actions only run immediately after the configured vocal authorization code is verified; otherwise the confirmation screen opens." checked={prefs.voiceImmediateExecution} change={(v) => set("voiceImmediateExecution", v)} />
-          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30.8 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
+          <Toggle label="Execute recognized voice commands immediately" description="Opt-in Version 30.9 mode. Valid commands within the selected Voice Authority skip the Computer Core preview. Protected actions only run immediately after the configured vocal authorization code is verified; otherwise the confirmation screen opens." checked={prefs.voiceImmediateExecution} change={(v) => set("voiceImmediateExecution", v)} />
+          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
           <label>LOCAL MODEL FILE · OPTIONAL OVERRIDE<small>The bundled English command model works out of the box. A custom GGML model remains entirely local.</small><input value={prefs.voiceModel} placeholder="BUNDLED TINY.EN MODEL (AUTOMATIC)" onChange={(e) => set("voiceModel", e.target.value)} /></label>
           <VoiceDeviceSelect value={prefs.voiceDevice} change={(value) => set("voiceDevice", value)} />
           <label>VOICE AUTHORITY<small>Higher levels permit more command categories; power and unmount commands always require confirmation.</small><select value={prefs.voiceSecurity} onChange={(e) => set("voiceSecurity", e.target.value as ShellPrefs["voiceSecurity"])}><option value="navigation">NAVIGATION ONLY</option><option value="applications">NAVIGATION + APPLICATIONS</option><option value="system">SYSTEM CONTROL</option></select></label>
@@ -4801,7 +4768,7 @@ function ProcedureCenter({routines,apps,profiles,devices,players,running,history
   const triggerPlaceholder=procedure?.trigger.type==="app"?"APPLICATION NAME":procedure?.trigger.type==="device"?"AUDIO DEVICE":procedure?.trigger.type==="battery-below"?"BATTERY PERCENT":procedure?.trigger.type==="network"?"NETWORK NAME OR BLANK":procedure?.trigger.type==="notice"?"NOTICE TEXT OR SOURCE":procedure?.trigger.type==="media"?"PLAYER, ARTIST, OR TITLE":procedure?.trigger.type==="station"?"PADD NAME OR BLANK":procedure?.trigger.type==="interval"?"MINUTES":"TRIGGER VALUE";
   return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
     <section className="routine-center procedure-center" role="dialog" aria-modal="true" aria-label="Computer Core Procedure Builder">
-      <header><div><small>VERSION 30.8 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
+      <header><div><small>VERSION 30.9 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
       <div className="routine-center-layout">
         <aside><button onClick={add}>+ NEW PROCEDURE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO PROCEDURES CONFIGURED</p>}</aside>
         {showHistory?<main className="routine-run-history"><header><small>COMPUTER CORE EXECUTION JOURNAL</small><h3>PROCEDURE HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO PROCEDURE EXECUTIONS RECORDED</p>}</main>:procedure?<main>
@@ -4959,7 +4926,7 @@ function OperatorCenter({operators,activeId,devices,canManage,close,switchOperat
   useEffect(()=>{if(!operators.some((item)=>item.id===selectedId))setSelectedId(activeId||operators[0]?.id||"");},[operators,selectedId,activeId]);
   const activate=async(identity:OperatorIdentity)=>{setBusy(`switch:${identity.id}`);const accepted=await switchOperator(identity.id,pins[identity.id]||"");setBusy("");if(accepted){setPins((old)=>({...old,[identity.id]:""}));close();}};
   return <div className="backdrop operator-center-backdrop" onMouseDown={(change)=>change.target===change.currentTarget&&close()}><ResizablePopup popupKey="operator-center" className="operator-center" ariaModal={true} minWidth={760} minHeight={560}>
-    <header><div><small>VERSION 30.8 · INDIVIDUAL COMMAND ENVIRONMENTS</small><h2>OPERATOR IDENTITIES</h2><p>Switch complete favorites, decks, Display Matrix, layouts, commands, and station preferences without mixing operator configurations.</p></div><button onClick={close}>CLOSE ×</button></header>
+    <header><div><small>VERSION 30.9 · INDIVIDUAL COMMAND ENVIRONMENTS</small><h2>OPERATOR IDENTITIES</h2><p>Switch complete favorites, decks, Display Matrix, layouts, commands, and station preferences without mixing operator configurations.</p></div><button onClick={close}>CLOSE ×</button></header>
     <section className="operator-center-layout"><aside><header><b>QUICK OPERATOR SWITCH</b><small>{operators.length}/24 IDENTITIES</small></header>{operators.map((identity,index)=><article className={`${identity.id===selected?.id?"selected":""} ${identity.id===activeId?"active":""}`} key={identity.id}><button onClick={()=>setSelectedId(identity.id)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{identity.name}</b><small>{identity.awayTeam?"AWAY TEAM":identity.role.toUpperCase()} · {identity.shared?"SHARED":"PERSONAL"}</small></span><em>{identity.id===activeId?"ACTIVE":identity.credential?"PIN":"OPEN"}</em></button>{identity.id!==activeId&&<div>{identity.credential&&<input type="password" inputMode="numeric" autoComplete="off" placeholder="OPERATOR PIN" value={pins[identity.id]||""} onChange={(change)=>setPins((old)=>({...old,[identity.id]:change.target.value.slice(0,64)}))}/>}<button disabled={busy===`switch:${identity.id}`} onClick={()=>void activate(identity)}>{busy===`switch:${identity.id}`?"VERIFYING…":"ACTIVATE"}</button></div>}</article>)}</aside>
       {selected&&<main><section className="operator-identity-card"><header><i>{selected.awayTeam?"AT":selected.role==="administrator"?"A":selected.role==="operator"?"O":"G"}</i><span><small>{selected.shared?"SHARED WORKSTATION PROFILE":"INDIVIDUAL OPERATOR PROFILE"}</small><h3>{selected.name}</h3><p>{selected.awayTeam?"Temporary restricted access for field operation and borrowed stations.":selected.role==="administrator"?"Full identity, configuration, automation, and protected-system authority.":selected.role==="operator"?"Daily operation, automation, and roaming without protected-system authority.":"Navigation, applications, media, and personal workspace access only."}</p></span><strong>{selected.id===activeId?"ON DUTY":"STANDBY"}</strong></header><div className="operator-profile-stats"><span><b>{selected.workspace.favoriteIds.length}</b> FAVORITES</span><span><b>{selected.workspace.workstations.length}</b> DECKS</span><span><b>{selected.workspace.routines.length}</b> COMMANDS</span><span><b>{Object.keys(selected.stationPreferences).length}</b> STATIONS</span></div></section>
         <section className="operator-configuration"><header><b>IDENTITY & AUTHORITY</b><small>{canManage?"ADMINISTRATOR CONTROLS AVAILABLE":"READ ONLY FOR THIS OPERATOR"}</small></header><div><label>OPERATOR NAME<input disabled={!canManage} maxLength={48} value={selected.name} onChange={(change)=>updateOperator(selected.id,{name:change.target.value})}/></label><label>ROLE<select disabled={!canManage||selected.awayTeam} value={selected.role} onChange={(change)=>updateOperator(selected.id,{role:change.target.value as OperatorRole})}><option value="guest">GUEST</option><option value="operator">OPERATOR</option><option value="administrator">ADMINISTRATOR</option></select></label><label className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.shared} onChange={(change)=>updateOperator(selected.id,{shared:change.target.checked})}/><span><b>SHARED WORKSTATION PROFILE</b><small>Use this identity as a common household or command-terminal workspace.</small></span></label><label className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.awayTeam} onChange={(change)=>updateOperator(selected.id,{awayTeam:change.target.checked})}/><span><b>AWAY TEAM PROFILE</b><small>Force temporary Guest authority and block automation, configuration, and protected actions.</small></span></label></div><nav><input disabled={!canManage} type="password" inputMode="numeric" autoComplete="new-password" placeholder={selected.credential?"REPLACE OPERATOR PIN":"OPTIONAL NEW PIN"} value={newPin} onChange={(change)=>setNewPin(change.target.value.slice(0,64))}/><button disabled={!canManage||!newPin} onClick={()=>{void setPin(selected.id,newPin);setNewPin("");}}>{selected.credential?"REPLACE PIN":"SET PIN"}</button><button disabled={!canManage||!selected.credential} onClick={()=>void setPin(selected.id,"")}>REMOVE PIN</button><button className="danger" disabled={!canManage||selected.id===activeId||operators.length<=1} onClick={()=>deleteOperator(selected.id)}>REMOVE IDENTITY</button></nav></section>
@@ -5088,7 +5055,8 @@ function FirstRun({
     { code:"03", title:"MODULAR OVERVIEW", text:"Choose Configure Overview to add, remove, resize, and reorder built-in or extension modules.", ok:true },
     { code:"04", title:"TASKS & VOICE", text:"The Task Rail manages desktop windows. Optional push-to-talk voice control stays local when whisper.cpp is configured.", ok:true },
     { code:"05", title:"FILES & DETACHABLE TOOLS", text:"Files and supported documents open inside LCARS. Use the compact detach control when you want a separate native window.", ok:true },
-    { code:"06", title:"LOCAL AUTHORIZATION", text:"Optionally protect the themed lock screen with a local password. Only a salted PBKDF2 hash is stored on this PC.", ok:true },
+    { code:"06", title:"COMMISSIONING", text:"Use sidebar page 09 to run one combined readiness check, search the offline command reference, and review station trust, privacy, and recovery.", ok:true },
+    { code:"07", title:"LOCAL AUTHORIZATION", text:"Optionally protect the themed lock screen with a local password. Only a salted PBKDF2 hash is stored on this PC.", ok:true },
   ];
   const item = cards[step];
   return (
@@ -5114,7 +5082,7 @@ function FirstRun({
             <small>SYSTEM CHECK</small>
             <h3>{item.title}</h3>
             <p>{item.text}</p>
-            {item.code === "06" && <div className="setup-password"><input type="password" autoComplete="new-password" placeholder="OPTIONAL PASSWORD" value={setupPassword} onChange={(event)=>setSetupPassword(event.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={setupConfirm} onChange={(event)=>setSetupConfirm(event.target.value)}/><small>Leave both fields blank to use direct local access. You can enable this later in Settings.</small>{setupError&&<em>{setupError}</em>}</div>}
+            {item.code === "07" && <div className="setup-password"><input type="password" autoComplete="new-password" placeholder="OPTIONAL PASSWORD" value={setupPassword} onChange={(event)=>setSetupPassword(event.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={setupConfirm} onChange={(event)=>setSetupConfirm(event.target.value)}/><small>Leave both fields blank to use direct local access. You can enable this later in Settings.</small>{setupError&&<em>{setupError}</em>}</div>}
             <b className={item.ok ? "check-ok" : "check-wait"}>
               {item.ok ? "● READY" : "○ LOCAL CHECK PENDING"}
             </b>
@@ -5150,16 +5118,16 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
   </section></div>;
 }
 
-function Version30Welcome({close,openBrowser}:{close:()=>void;openBrowser:()=>void}){
+function Version30Welcome({close,openCommissioning}:{close:()=>void;openCommissioning:()=>void}){
   const features=[
-    {code:"01",title:"LCARS BROWSER STATION",text:"Discover an installed browser, preserve its existing profile, and launch or focus its window from a dedicated LCARS sidebar page."},
-    {code:"02",title:"PRIVATE OFFLINE LAYOUT",text:"Choose any installed application as a custom browser or remove the Browser control entirely when this station must remain offline."},
-    {code:"03",title:"INTEGRATED FILE PLAYBACK",text:"Open audio and video from Files directly in the LCARS Media Deck with ranged streaming, seeking, fullscreen, and no automatic OS handoff."},
-    {code:"04",title:"BROAD FORMAT ROUTING",text:"Recognize a much wider family of operating-system media extensions and offer an explicit system-player fallback only when the built-in decoder cannot play the codec."},
-    {code:"05",title:"CONTINUUM ROLE ENGINE",text:"Adapt phones and tablets for handheld, companion, media, communications, notification, monitor, presentation, and docked command-station duty."},
-    {code:"06",title:"AUTOMATIC ENVIRONMENT SENSING",text:"Recommend or apply a role when orientation, display, dock, screen class, or connected-station state changes—while retaining manual overrides."},
+    {code:"01",title:"COMMISSIONING CENTER",text:"Validate the Local Core, operating-system adapters, voice runtime, trusted stations, modules, updates, and recovery from one numbered page."},
+    {code:"02",title:"OFFLINE COMMAND REFERENCE",text:"Search supported Computer phrases and natural alternatives without a network connection."},
+    {code:"03",title:"TRUST & PRIVACY REVIEW",text:"Inspect active operator authority, vocal authorization, Federation encryption, Data Fabric routes, and module permissions together."},
+    {code:"04",title:"LONG-RUN RESILIENCE",text:"Bound local histories, reduce background polling when hidden, and refresh station state after focus, resume, or network return."},
+    {code:"05",title:"CONTINUOUS NAVIGATION",text:"Every built-in page, custom page, Tasks control, and Power control now receives one correct sequential sidebar number."},
+    {code:"06",title:"STABLE MIGRATION READY",text:"Version 30 settings migrate safely, retired Browser Station preferences are discarded, and release checks prepare the next whole-number stable build."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.8 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.8 · CONTINUUM</h2><p>Keep browser, media, and connected-device roles inside one coherent command environment.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openBrowser}>OPEN BROWSER STATION</button><button autoFocus onClick={close}>BEGIN 30.8 DEVELOPMENT</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.9 Release Candidate"><header><span><small>FEDERATION OPERATING ENVIRONMENT · RELEASE CANDIDATE</small><h2>VERSION 30.9 · COMMISSIONING</h2><p>Bring the complete Version 30 environment through one final readiness, trust, resilience, and usability pass.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openCommissioning}>OPEN COMMISSIONING</button><button autoFocus onClick={close}>BEGIN 30.9 RC</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

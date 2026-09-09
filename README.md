@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.8.1-b69de8" alt="Development Version 30.8.1">
+  <img src="https://img.shields.io/badge/development-v30.9%20RC-b69de8" alt="Development Version 30.9 Release Candidate">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -35,18 +35,24 @@
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
 
 > [!NOTE]
-> **Version 30.8.1 Development is the contained-browser hotfix for the Version 30.8 milestone.** LCARS now provides a contained web session inside its optional Browser page, retains detected installed browsers as an explicit external-profile fallback, routes local audio/video into the built-in Media Deck without automatic OS handoff, and adapts a connected phone or tablet for eight handheld, companion, control, monitor, presentation, and docked roles. The 30.8.1 version bump also lets existing 30.8 installations discover the rebuilt packages through the development updater. Version 29 remains Stable.
+> **Version 30.9 Release Candidate is the final commissioning pass before Version 30 Stable.** It adds one readiness, trust, privacy, command-help, and resilience center; makes every desktop sidebar number continuous through custom pages, Tasks, and Power; and retires the Browser Station experiment completely. Version 29 remains Stable.
 
-## 🧪 Version 30.8.1 Development — Browser, Media Routing & Continuum
+## 🧪 Version 30.9 RC — Commissioning & Stable Readiness
 
-- Adds a contained, sandboxed browser directly inside the dedicated Browser sidebar page, with an LCARS address/search bar, Back, Forward, Home, Refresh/Stop, page title, loading status, and persistent LCARS browsing profile.
-- Keeps automatically detected or manually selected installed browsers as an explicit external fallback for existing bookmarks, extensions, passwords, and signed-in sessions, and allows the Browser sidebar control to be removed for an entirely offline LCARS layout.
-- Makes the full Browser page vertically scrollable and removes the duplicate `09` label from the Open Tasks control.
+- Adds a dedicated Commissioning sidebar page with combined Local Core, integration, voice, Federation, Data Fabric, module, operator, release-channel, and recovery checks.
+- Adds a searchable offline Computer command reference covering navigation, media, alerts, applications, Procedures, workspaces, and protected system operations.
+- Adds a unified trust and privacy review for active operator authority, local voice processing, encrypted stations, Data Fabric routes, and module isolation.
+- Documents and exposes bounded retention limits for operations, activity, notices, Computer audit, recovery snapshots, and encrypted record versions.
+- Reduces background polling while LCARS is hidden and immediately refreshes local state after focus, visibility return, page restore, or network return.
+- Numbers every built-in page, custom page, Tasks control, and Power control as one continuous sequence; Tasks now always has its own visible number.
+- Retires Browser Station completely, including its page, detection, saved preferences, embedded-webview privilege, styling, and release packaging references.
+- Keeps integrated local media playback, Android Continuum, Operator Workspaces, Operations Center, Universal Search and Data Fabric, optional LCARS Session, Module Platform, Federation, and offline Computer voice intact.
+
+## 🧪 Version 30.8 Development — Media Routing & Continuum
+
 - Routes recognized audio and video from File Explorer directly into the integrated LCARS Media Deck through seekable ranged streaming; the operating-system player is never opened automatically.
-- Recognizes a much broader family of media extensions, keeps codec errors inside LCARS, and offers an explicit system-player fallback only when the built-in engine cannot decode a file.
-- Adds Handheld Home, Desktop Companion, Media Controller, Communications Panel, Notification Console, Second-Screen Monitor, Presentation PADD, and Docked Command Station roles.
-- Automatically recommends or applies Continuum roles from orientation, screen class, external-display, docking, and station-pairing state while retaining complete manual override.
-- Retains the complete Version 30.7 Operator Workspaces and LCARS Media Deck milestone.
+- Recognizes a broad family of media extensions, keeps codec errors inside LCARS, and offers an explicit system-player fallback only when the built-in engine cannot decode a file.
+- Adds eight adaptive Android Continuum roles with manual override. The experimental Browser Station from this milestone was retired in Version 30.9.
 
 ## 🧪 Version 30.7 Development — Operator Workspaces & LCARS Media Deck
 
