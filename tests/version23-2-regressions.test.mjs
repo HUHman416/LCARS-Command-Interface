@@ -17,10 +17,11 @@ test("a missing Windows compatibility endpoint cannot black-screen the renderer"
   assert.match(renderer, /api\/compat/);
 });
 
-test("document workspace embeds safe formats and detaches into a native window", () => {
+test("document workspace embeds safe formats, detaches, and contains viewer failures", () => {
   assert.match(page, /function DocumentWorkspace/);
   assert.match(page, /DETACH ↗/);
-  assert.match(page, /OPEN WITH SYSTEM DEFAULT/);
+  assert.match(page, /READ-ONLY LCARS VIEW/);
+  assert.doesNotMatch(page, /OPEN WITH SYSTEM DEFAULT/);
   assert.match(documents, /\.docx/);
   assert.match(documents, /\.odt/);
   assert.match(documents, /application\/pdf/);

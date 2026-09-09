@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.10-b69de8" alt="Development Version 30.10">
+  <img src="https://img.shields.io/badge/development-v30.11-b69de8" alt="Development Version 30.11">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -35,7 +35,16 @@
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
 
 > [!NOTE]
-> **Version 30.10 Development begins the authoritative-session phase of Version 30.** It extends the existing optional Linux login session with opt-in shell ownership, an actual emergency escape shortcut, deck-aware task routing, continuous window placement, and corrected deliberate-exit versus crash recovery. Version 29 remains Stable.
+> **Version 30.11 Development replaces routine host control-panel handoffs with native LCARS controls.** Wi-Fi, Bluetooth, audio, displays, software, processes, storage, modules, and media can now be managed without leaving the command environment. Version 29 remains Stable.
+
+## 🧪 Version 30.11 Development — Native System Controls
+
+- Adds one responsive **LCARS System Control Matrix** for network interfaces, Wi-Fi, Bluetooth, audio, displays, software, processes, storage, modules, and media.
+- Reroutes every existing system monitor, storage, process, media player, audio, network, Wi-Fi, Bluetooth, software center, update, display, identification, and extension-folder action into the native matrix.
+- Supports in-LCARS Wi-Fi discovery and credentials, Linux Bluetooth control, Windows Bluetooth inventory, output/input and application audio routing, Linux output controls, safe Windows display topologies, update inventories, protected process control, and removable-drive actions.
+- Keeps file, document, and unsupported-codec handling inside LCARS instead of falling back to a host file viewer or media player.
+- Preserves only security- and recovery-critical platform surfaces: operating-system authorization prompts, Android default-Home and package-install permission screens, and the explicit emergency route back to the recovery desktop.
+- Retains the full Version 30.10 Authoritative Session and every earlier Version 30 milestone.
 
 ## 🧪 Version 30.10 Development — Authoritative LCARS Session
 

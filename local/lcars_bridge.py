@@ -14,7 +14,7 @@ from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 
 PORT=8765
-LCARS_VERSION="30.10"
+LCARS_VERSION="30.11"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -38,6 +38,8 @@ ICON_INDEX=None
 MEDIA_ICON_CACHE={}
 MEDIA_ART_PATHS={}
 NETWORK_CACHE={"at":0,"value":None}
+CONNECTIVITY_CACHE={"at":0,"value":None}
+SOFTWARE_CACHE={"at":0,"value":None}
 TRAY_CACHE={"at":0,"value":None}
 GRAPHICS_CACHE={"at":0,"value":None}
 CPU_TIME_CACHE={}
@@ -70,6 +72,124 @@ def network_details():
     except Exception:dns=False
     value={"interfaces":interfaces,"diagnostics":{"gateway":bool(gateway),"dns":dns,"internet":dns and any(x["state"]=="connected" for x in interfaces),"latency":None},"bluetooth":Path("/sys/class/bluetooth").exists() or bool(shutil.which("bluetoothctl"))}
     NETWORK_CACHE.update(at=time.time(),value=value);return value
+
+def _split_escaped(value,separator=":"):
+    fields=[];current=[];escaped=False
+    for char in value:
+        if escaped:current.append(char);escaped=False
+        elif char=="\\":escaped=True
+        elif char==separator:fields.append("".join(current));current=[]
+        else:current.append(char)
+    fields.append("".join(current));return fields
+
+def connectivity_data(force=False):
+    if not force and CONNECTIVITY_CACHE["value"] and time.time()-CONNECTIVITY_CACHE["at"]<12:return CONNECTIVITY_CACHE["value"]
+    wifi={"available":False,"enabled":False,"active":"","interface":"","networks":[],"control":False,"reason":"NetworkManager command controls are unavailable"}
+    if shutil.which("nmcli"):
+        wifi.update(available=True,control=True,reason="")
+        try:wifi["enabled"]=subprocess.run(["nmcli","-t","-f","WIFI","general"],capture_output=True,text=True,timeout=4).stdout.strip().casefold()=="enabled"
+        except Exception:pass
+        try:
+            devices=subprocess.run(["nmcli","-t","-f","DEVICE,TYPE,STATE,CONNECTION","device"],capture_output=True,text=True,timeout=5).stdout
+            for line in devices.splitlines():
+                fields=_split_escaped(line)
+                if len(fields)>=4 and fields[1]=="wifi":
+                    wifi["interface"]=fields[0]
+                    if fields[2] in ("connected","connecting"):wifi["active"]=fields[3]
+                    break
+        except Exception:pass
+        try:
+            listed=subprocess.run(["nmcli","-t","-f","IN-USE,SSID,SIGNAL,SECURITY,UUID","device","wifi","list","--rescan","no"],capture_output=True,text=True,timeout=8).stdout
+            found={}
+            for line in listed.splitlines():
+                fields=_split_escaped(line)
+                if len(fields)<5 or not fields[1].strip():continue
+                active,ssid,signal,security,ident=fields[:5];strength=int(signal or 0)
+                item={"id":ident or ssid,"name":ssid[:96],"signal":max(0,min(100,strength)),"security":security or "OPEN","connected":active.strip()=="*","saved":bool(ident)}
+                previous=found.get(ssid)
+                if not previous or item["connected"] or item["signal"]>previous["signal"]:found[ssid]=item
+            wifi["networks"]=sorted(found.values(),key=lambda item:(not item["connected"],-item["signal"],item["name"].casefold()))[:50]
+        except Exception:pass
+    bluetooth={"available":False,"enabled":False,"devices":[],"control":False,"reason":"BlueZ command controls are unavailable"}
+    if shutil.which("bluetoothctl"):
+        bluetooth.update(available=True,control=True,reason="")
+        try:
+            shown=subprocess.run(["bluetoothctl","show"],capture_output=True,text=True,timeout=4).stdout
+            bluetooth["enabled"]=bool(re.search(r"(?im)^\s*Powered:\s*yes",shown))
+        except Exception:pass
+        try:
+            devices=[]
+            raw=subprocess.run(["bluetoothctl","devices"],capture_output=True,text=True,timeout=5).stdout
+            paired_raw=subprocess.run(["bluetoothctl","devices","Paired"],capture_output=True,text=True,timeout=4).stdout
+            connected_raw=subprocess.run(["bluetoothctl","devices","Connected"],capture_output=True,text=True,timeout=4).stdout
+            trusted_raw=subprocess.run(["bluetoothctl","devices","Trusted"],capture_output=True,text=True,timeout=4).stdout
+            paired={match.group(1).upper() for match in re.finditer(r"Device\s+([0-9A-F:]{17})",paired_raw,re.I)}
+            connected={match.group(1).upper() for match in re.finditer(r"Device\s+([0-9A-F:]{17})",connected_raw,re.I)}
+            trusted={match.group(1).upper() for match in re.finditer(r"Device\s+([0-9A-F:]{17})",trusted_raw,re.I)}
+            for line in raw.splitlines()[:24]:
+                match=re.match(r"Device\s+([0-9A-F:]{17})\s+(.+)",line.strip(),re.I)
+                if not match:continue
+                address,name=match.groups();address=address.upper()
+                devices.append({"id":address,"name":name[:96],"paired":address in paired,"connected":address in connected,"trusted":address in trusted})
+            bluetooth["devices"]=sorted(devices,key=lambda item:(not item["connected"],not item["paired"],item["name"].casefold()))
+        except Exception:pass
+    value={"ok":True,"platform":"linux","wifi":wifi,"bluetooth":bluetooth}
+    CONNECTIVITY_CACHE.update(at=time.time(),value=value);return value
+
+def connectivity_action(category,action,ident="",secret=""):
+    if category not in ("wifi","bluetooth"):raise ValueError("unsupported connectivity category")
+    if action not in ("scan","enable","disable","connect","disconnect","pair","remove","trust"):raise ValueError("unsupported connectivity action")
+    if len(secret)>128:raise ValueError("network credential is too long")
+    if category=="wifi":
+        if not shutil.which("nmcli"):raise RuntimeError("NetworkManager controls are unavailable")
+        state=connectivity_data();network=next((item for item in state["wifi"]["networks"] if item["id"]==ident or item["name"]==ident),None)
+        if action=="scan":command=["nmcli","device","wifi","rescan"]
+        elif action in ("enable","disable"):command=["nmcli","radio","wifi","on" if action=="enable" else "off"]
+        elif action=="connect":
+            if not network:raise ValueError("wireless network was not found")
+            command=["nmcli","device","wifi","connect",network["name"]]
+            if secret:command.extend(["password",secret])
+        elif action=="disconnect":
+            if network and network.get("id") and network["id"]!=network["name"]:command=["nmcli","connection","down","uuid",network["id"]]
+            else:command=["nmcli","device","disconnect",state["wifi"].get("interface") or ident]
+        else:raise ValueError("unsupported Wi-Fi action")
+        result=subprocess.run(command,capture_output=True,text=True,timeout=20)
+    else:
+        if not shutil.which("bluetoothctl"):raise RuntimeError("BlueZ controls are unavailable")
+        if action in ("enable","disable"):command=["bluetoothctl","power","on" if action=="enable" else "off"]
+        elif action=="scan":command=["bluetoothctl","--timeout","7","scan","on"]
+        else:
+            if not re.fullmatch(r"[0-9A-F:]{17}",ident,re.I):raise ValueError("Bluetooth device address is invalid")
+            command=["bluetoothctl",{"connect":"connect","disconnect":"disconnect","pair":"pair","remove":"remove","trust":"trust"}[action],ident]
+        result=subprocess.run(command,capture_output=True,text=True,timeout=25)
+    if result.returncode!=0:raise RuntimeError((result.stderr or result.stdout or "Connectivity command was rejected").strip()[:240])
+    CONNECTIVITY_CACHE.update(at=0,value=None);NETWORK_CACHE.update(at=0,value=None)
+    return {"ok":True,"message":f"{category.title()} {action} command completed","state":connectivity_data(True)}
+
+def software_data(force=False):
+    if not force and SOFTWARE_CACHE["value"] and time.time()-SOFTWARE_CACHE["at"]<120:return SOFTWARE_CACHE["value"]
+    manager=next((name for name in ("apt","dnf","pacman","zypper","apk","xbps-install") if shutil.which(name)),"")
+    commands={"apt":["apt","list","--upgradable"],"dnf":["dnf","-q","check-update"],"pacman":["pacman","-Qu"],"zypper":["zypper","--non-interactive","list-updates"],"apk":["apk","version","-l","<"],"xbps-install":["xbps-install","-Mun"]}
+    upgrade={"apt":"sudo apt update && sudo apt upgrade","dnf":"sudo dnf upgrade --refresh","pacman":"sudo pacman -Syu","zypper":"sudo zypper update","apk":"sudo apk upgrade","xbps-install":"sudo xbps-install -Su"}.get(manager,"")
+    updates=[];detail="No supported distribution package manager was detected"
+    if manager and not force:return {"ok":True,"manager":manager,"available":True,"updates":[],"count":0,"command":upgrade,"detail":f"{manager.upper()} ready · select SCAN PACKAGES to refresh"}
+    if manager:
+        try:
+            env={**os.environ,"LC_ALL":"C","LANG":"C"};result=subprocess.run(commands[manager],capture_output=True,text=True,timeout=25,env=env);lines=(result.stdout or "").splitlines()
+            for line in lines:
+                value=line.strip()
+                if not value or value.lower().startswith(("listing","last metadata","loading","repository","s |","name","available upgrades")) or set(value)<=set("-+| "):continue
+                if manager=="apt" and "/" in value:
+                    name=value.split("/",1)[0];parts=value.split();available=parts[1] if len(parts)>1 else "AVAILABLE";current=re.search(r"upgradable from: ([^\]]+)",value);updates.append({"name":name,"current":current.group(1) if current else "INSTALLED","available":available})
+                elif manager in ("pacman","apk","xbps-install"):
+                    parts=value.split();updates.append({"name":parts[0],"current":parts[1] if len(parts)>2 else "INSTALLED","available":parts[-1] if len(parts)>1 else "AVAILABLE"})
+                elif len(value)<240:updates.append({"name":value.split()[0],"current":"INSTALLED","available":"UPDATE AVAILABLE"})
+                if len(updates)>=100:break
+            detail=f"{manager.upper()} package inventory ready"
+        except subprocess.TimeoutExpired:detail=f"{manager.upper()} scan timed out; existing LCARS controls remain available"
+        except Exception as exc:detail=f"{manager.upper()} scan unavailable: {type(exc).__name__}"
+    value={"ok":True,"manager":manager or "NONE","available":bool(manager),"updates":updates,"count":len(updates),"command":upgrade,"detail":detail}
+    SOFTWARE_CACHE.update(at=time.time(),value=value);return value
 
 def extension_manifests():
     """Load the non-executable Module API v1 manifest format."""
@@ -120,7 +240,7 @@ def linux_environment():
         else: reasons.append({"feature":"Task Rail window controls","reason":f"No compatible window-control adapter was found for {desktop} on {session}.","remedy":"Use KDE Plasma Wayland with KDotool, or an X11 session with xdotool."})
     if not display_control: reasons.append({"feature":"Display routing","reason":f"No supported display controller was found for {desktop} on {session}.","remedy":"Install KScreen on KDE, xrandr on X11, or wlr-randr on compatible wlroots desktops."})
     if not shell_control: reasons.append({"feature":"LCARS Shell Mode","reason":"Safe panel hiding and desktop recovery are currently implemented only for KDE Plasma.","remedy":"LCARS can still run full-screen and at login; your normal desktop panels remain available."})
-    if not shutil.which("wpctl"): reasons.append({"feature":"Audio routing","reason":"WirePlumber/wpctl is not available.","remedy":"Install WirePlumber or use your desktop audio settings."})
+    if not shutil.which("wpctl"): reasons.append({"feature":"Audio routing","reason":"WirePlumber/wpctl is not available.","remedy":"Install WirePlumber to enable native LCARS audio control."})
     if not shutil.which("playerctl"): reasons.append({"feature":"Media controls","reason":"playerctl is not available.","remedy":"Install playerctl to connect MPRIS-compatible players."})
     return {"distro":os_release.get("PRETTY_NAME",os_release.get("NAME","Linux")),"id":os_release.get("ID","linux"),"desktop":desktop,"session":session,"capabilities":{"windowControl":window_control,"displayControl":display_control,"shellControl":shell_control,"audio":bool(shutil.which("wpctl")),"media":bool(shutil.which("playerctl")),"updates":any(shutil.which(x) for x in ("dnf","apt","pacman","zypper","apk","xbps-install"))},"restrictions":reasons}
 
@@ -467,6 +587,22 @@ def display_action(action,display):
         except Exception:return "Unable to open a second native LCARS window"
     return "Unknown display command"
 
+def display_config_action(action,ident,name=""):
+    displays=displays_data();target=next((item for item in displays if item["id"]==str(ident) or item["name"]==name),None)
+    if not target:raise ValueError("display output was not found")
+    if action=="disable" and target.get("enabled") and sum(1 for item in displays if item.get("enabled"))<=1:raise ValueError("LCARS will not disable the final active display")
+    if action not in ("enable","disable","primary","rotate-normal","rotate-left","rotate-right","rotate-inverted"):raise ValueError("unsupported display configuration action")
+    result=None
+    if shutil.which("kscreen-doctor") and str(target["id"]).isdigit():
+        setting={"enable":"enable","disable":"disable","primary":"priority.1","rotate-normal":"rotation.normal","rotate-left":"rotation.left","rotate-right":"rotation.right","rotate-inverted":"rotation.inverted"}[action]
+        result=subprocess.run(["kscreen-doctor",f"output.{target['id']}.{setting}"],capture_output=True,text=True,timeout=12)
+    elif shutil.which("xrandr"):
+        output=target["name"];arguments={"enable":["--auto"],"disable":["--off"],"primary":["--primary"],"rotate-normal":["--rotate","normal"],"rotate-left":["--rotate","left"],"rotate-right":["--rotate","right"],"rotate-inverted":["--rotate","inverted"]}[action]
+        result=subprocess.run(["xrandr","--output",output,*arguments],capture_output=True,text=True,timeout=12)
+    else:raise RuntimeError("LCARS display configuration requires KScreen or XRandR on this session")
+    if result.returncode!=0:raise RuntimeError((result.stderr or result.stdout or "Display command was rejected").strip()[:240])
+    return {"ok":True,"message":f"{target['name']} {action.replace('-',' ')} completed","displays":displays_data()}
+
 def applications():
     found={}
     for folder in APP_DIRS:
@@ -696,7 +832,7 @@ def tray_action(ident,action="activate",x=0,y=0):
 
 def voice_transcribe(data):
     status=voice_status();prefs=load_config().get("shell_prefs",{});engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or status.get("model") or "")).expanduser()
-    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.10 or select custom files in Settings"}
+    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.11 or select custom files in Settings"}
     encoded=str(data.get("audio","")).split(",")[-1]
     if len(encoded)>28_000_000:return {"ok":False,"message":"Voice sample is too large"}
     try:
@@ -812,7 +948,7 @@ def media_data():
                     group=re.sub(r"(?i)\b(input|output)_(FL|FR|FC|LFE|RL|RR|MONO)\b","",clean)
                     group=re.sub(r"(?i)[:._ -]*(monitor|capture|playback)[._ -]*(FL|FR|FC|LFE|RL|RR|MONO)?$","",group)
                     group=re.sub(r"\s+"," ",group).strip(" .:_-") or clean
-                    streams.append({"id":ident,"name":clean,"group":group,"advanced":advanced,"volume":value,"muted":muted,"icon":application_icon_for(group),"routeAvailable":bool(shutil.which("pavucontrol"))})
+                    streams.append({"id":ident,"name":clean,"group":group,"advanced":advanced,"volume":value,"muted":muted,"icon":application_icon_for(group),"routeAvailable":True})
     return {"players":list(players_by_name.values()),"streams":streams}
 
 def media_player_aliases(player):
@@ -894,7 +1030,7 @@ def integration_health():
         "media":{"available":bool(shutil.which("playerctl")),"detail":"MPRIS controls ready" if shutil.which("playerctl") else "playerctl missing","remedy":"Install playerctl to control MPRIS-compatible players."},
         "terminal":{"available":Path(os.environ.get("SHELL","/bin/bash")).is_file(),"detail":os.environ.get("SHELL","/bin/bash"),"remedy":"Choose an installed shell in Settings → Embedded Terminal."},
         "storage":{"available":bool(shutil.which("udisksctl")),"detail":f'{len(storage_data())} block device(s); UDisks2 '+("ready" if shutil.which("udisksctl") else "missing"),"remedy":"Install UDisks2 for safe removable-drive mount controls."},
-        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.10 voice resources or select custom whisper.cpp files in Settings."},
+        "voice":{"available":voice_status()["available"],"detail":voice_status()["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.11 voice resources or select custom whisper.cpp files in Settings."},
         "tray":{"available":tray_data()["supported"],"detail":tray_data()["reason"] or f'{len(tray_data()["items"])} StatusNotifier service(s)',"remedy":"Use a KDE StatusNotifier-compatible desktop session for re-hosted tray items."},
         "extensions":{"available":not bool(extension_result.get("errors")),"detail":f'{len(extension_result.get("extensions",[]))} module(s), {len(extension_result.get("errors",[]))} rejected',"remedy":"Remove or update rejected manifests shown in the extension bay."},
         "configuration":{"available":config_ready,"detail":"Local settings storage ready" if config_ready else "Settings directory is not writable","remedy":"Restore write access to the LCARS configuration directory."},
@@ -974,19 +1110,8 @@ def export_diagnostics():
     return {"ok":True,"message":"Privacy-safe diagnostics report exported to Downloads","path":str(destination)}
 
 def protected_action(action):
-    mappings={
-        "system-monitor":[["plasma-systemmonitor"],["gnome-system-monitor"]],
-        "storage":[["filelight"],["baobab"]],
-        "processes":[["plasma-systemmonitor"],["gnome-system-monitor"]],
-        "media-player":[["elisa"],["vlc"]],
-        "audio-settings":[["systemsettings","kcm_pulseaudio"],["pavucontrol"]],
-        "network-settings":[["systemsettings","kcm_networkmanagement"],["nm-connection-editor"]],
-        "wifi":[["systemsettings","kcm_networkmanagement"],["nm-connection-editor"]],
-        "bluetooth":[["systemsettings","kcm_bluetooth"],["blueman-manager"]],
-        "software-center":[["plasma-discover"],["gnome-software"]],
-        "check-updates":[["plasma-discover","--mode","Update"],["gnome-software","--mode","updates"]],
-        "display-settings":[["systemsettings","kcm_kscreen"]],
-    }
+    lcars_controls={"system-monitor":"SYSTEM MONITOR","storage":"STORAGE MATRIX","processes":"PROCESS CONTROL","media-player":"MEDIA DECK","audio-settings":"AUDIO ROUTING","network-settings":"NETWORK CONTROL","wifi":"WI-FI CONTROL","bluetooth":"BLUETOOTH CONTROL","software-center":"SOFTWARE LOGISTICS","check-updates":"SOFTWARE LOGISTICS","display-settings":"DISPLAY CONTROL","identify-displays":"DISPLAY IDENTIFICATION","extension-folder":"MODULE PLATFORM"}
+    if action in lcars_controls:return f"{lcars_controls[action]} is available inside the LCARS System Control Matrix"
     if action=="close-bay-app":
         return "Application removed from bay; its native Wayland window remains under desktop control"
     if action=="minimize-bay-app":
@@ -1002,7 +1127,7 @@ def protected_action(action):
         if session_id and shutil.which("loginctl"):
             subprocess.Popen(["loginctl","terminate-session",session_id],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True);return "Desktop session logout requested"
         if start_first([["qdbus6","org.kde.Shutdown","/Shutdown","logout"],["qdbus","org.kde.Shutdown","/Shutdown","logout"],["gnome-session-quit","--logout","--no-prompt"]]):return "Desktop session logout requested"
-        return "Desktop logout control is unavailable; use the normal desktop session menu"
+        return "Desktop logout control is unavailable in this session"
     if action=="shell-mode-off":
         running=shutil.which("pgrep") and subprocess.run(["pgrep","-x","plasmashell"],capture_output=True).stdout
         if not running:
@@ -1017,9 +1142,6 @@ def protected_action(action):
         elif shutil.which("pkill"):
             subprocess.run(["pkill","-x","plasmashell"],capture_output=True,text=True,timeout=3)
         return "LCARS kiosk command terminal active · normal desktop recovery remains available"
-    if action=="identify-displays":
-        if start_first([["systemsettings","kcm_kscreen"],["gnome-control-center","display"],["cinnamon-settings","display"],["xfce4-display-settings"],["lxqt-config-monitor"]]): return "Display identification opened"
-        return "Display settings are not installed"
     if action=="integration-recheck":
         health=integration_health(); ready=sum(1 for item in health.values() if item["available"])
         return f"Integration check complete — {ready}/{len(health)} systems ready"
@@ -1039,17 +1161,7 @@ def protected_action(action):
         EXTENSION_DIR.mkdir(parents=True,exist_ok=True)
         count=len(list(EXTENSION_DIR.glob("*/lcars-module.json")))+len(list(EXTENSION_DIR.glob("*.lcars-module.json")))
         return f"Extension scan complete — {count} compatible module manifest(s) found"
-    if action=="extension-folder":
-        EXTENSION_DIR.mkdir(parents=True,exist_ok=True)
-        if start_first([["xdg-open",str(EXTENSION_DIR)],["dolphin",str(EXTENSION_DIR)]]): return "LCARS extensions folder opened"
-        return f"Extensions folder: {EXTENSION_DIR}"
     if action in ("refresh-system","network-refresh"): return "System information refreshed"
-    if action=="check-updates":
-        candidates=[["plasma-discover","--mode","Update"],["gnome-software","--mode","updates"]]
-        if start_first(candidates): return "Software update control opened"
-        manager=next((x for x in ("dnf","apt","pacman","zypper","apk","xbps-install") if shutil.which(x)),None)
-        return f"No graphical updater is installed — use {manager or 'your distribution package manager'} in Terminal"
-    if action in mappings and start_first(mappings[action]): return action.replace("-"," ").title()+" opened"
     return "Required system application is not installed"
 
 class Handler(BaseHTTPRequestHandler):
@@ -1102,6 +1214,9 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/system-details": self.send_json(system_details())
         elif route=="/api/storage": self.send_json({"drives":storage_data()})
         elif route=="/api/network-details": self.send_json(network_details())
+        elif route=="/api/connectivity": self.send_json(connectivity_data())
+        elif route=="/api/software": self.send_json(software_data(parse_qs(urlparse(self.path).query).get("refresh",["0"])[0]=="1"))
+        elif route=="/api/system-locations": self.send_json({"extensions":str(EXTENSION_DIR),"configuration":str(CONFIG_DIR),"updates":str(UPDATE_DIR)})
         elif route=="/api/tray": self.send_json(tray_data())
         elif route=="/api/padd-pairing": self.send_json(PADD.status(True))
         elif route=="/api/padd-commands": self.send_json({"commands":PADD.pop_commands()})
@@ -1257,6 +1372,12 @@ class Handler(BaseHTTPRequestHandler):
                 subprocess.run(["wpctl","set-volume","@DEFAULT_AUDIO_SINK@",f"{volume}%"],timeout=3)
                 return self.send_json({"volume":volume})
             if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action",""))))
+            if route=="/api/connectivity-action":
+                try:return self.send_json(connectivity_action(str(data.get("category","")),str(data.get("action","")),str(data.get("id","")),str(data.get("secret",""))))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/display-config":
+                try:return self.send_json(display_config_action(str(data.get("action","")),str(data.get("id","")),str(data.get("name",""))))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
             if route=="/api/tray-action":return self.send_json(tray_action(str(data.get("id","")),str(data.get("action","activate")),data.get("x",0),data.get("y",0)))
             if route=="/api/voice-transcribe":return self.send_json(voice_transcribe(data))
             if route=="/api/audio-device":

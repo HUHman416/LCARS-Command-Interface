@@ -14,7 +14,7 @@ from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 
 PORT=8765
-LCARS_VERSION="30.10"
+LCARS_VERSION="30.11"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -33,6 +33,8 @@ TERMINAL_LOCK=threading.Lock()
 APP_CACHE={}
 WINDOWS_ICON_CACHE={}
 NETWORK_CACHE={"at":0,"value":None}
+CONNECTIVITY_CACHE={"at":0,"value":None}
+SOFTWARE_CACHE={"at":0,"value":None}
 
 def network_details():
     if NETWORK_CACHE["value"] and time.time()-NETWORK_CACHE["at"]<6:return NETWORK_CACHE["value"]
@@ -42,6 +44,87 @@ def network_details():
         for row in rows:interfaces.append({**row,"kind":"wireless" if "wireless" in str(row.get("kind","")).lower() or "wi-fi" in str(row.get("name","")).lower() else "ethernet","state":"connected" if str(row.get("state","")).lower()=="up" else str(row.get("state","unknown")).lower(),"dns":"SYSTEM RESOLVER"})
     except Exception:pass
     online=any(x.get("state")=="connected" for x in interfaces);value={"interfaces":interfaces,"diagnostics":{"gateway":any(bool(x.get("gateway")) for x in interfaces),"dns":online,"internet":online,"latency":None},"bluetooth":bool(shutil.which("fsquirt.exe"))};NETWORK_CACHE.update(at=time.time(),value=value);return value
+
+def connectivity_data(force=False):
+    if not force and CONNECTIVITY_CACHE["value"] and time.time()-CONNECTIVITY_CACHE["at"]<12:return CONNECTIVITY_CACHE["value"]
+    wifi={"available":False,"enabled":False,"active":"","interface":"","networks":[],"control":False,"reason":"Windows WLAN controls are unavailable"}
+    if shutil.which("netsh.exe") or shutil.which("netsh"):
+        try:
+            flags=0x08000000
+            interfaces=subprocess.run(["netsh","wlan","show","interfaces"],capture_output=True,text=True,timeout=8,creationflags=flags).stdout
+            interface=re.search(r"(?im)^\s*Name\s*:\s*(.+)$",interfaces);state=re.search(r"(?im)^\s*State\s*:\s*(.+)$",interfaces);active=re.search(r"(?im)^\s*SSID\s*:\s*(.+)$",interfaces)
+            wifi.update(available=bool(interface),enabled=bool(interface and (not state or state.group(1).strip().casefold()!="disabled")),active=active.group(1).strip() if active else "",interface=interface.group(1).strip() if interface else "",control=bool(interface),reason="" if interface else "No Windows WLAN adapter was detected")
+            profiles=subprocess.run(["netsh","wlan","show","profiles"],capture_output=True,text=True,timeout=8,creationflags=flags).stdout
+            saved={match.group(1).strip() for match in re.finditer(r"(?im)^\s*(?:All User Profile|Current User Profile)\s*:\s*(.+)$",profiles)}
+            listed=subprocess.run(["netsh","wlan","show","networks","mode=bssid"],capture_output=True,text=True,timeout=12,creationflags=flags).stdout
+            blocks=re.split(r"(?im)(?=^SSID\s+\d+\s*:\s*)",listed);networks=[]
+            for block in blocks:
+                name_match=re.search(r"(?im)^SSID\s+\d+\s*:\s*(.*)$",block)
+                if not name_match or not name_match.group(1).strip():continue
+                name=name_match.group(1).strip();signal=re.search(r"(?im)^\s*Signal\s*:\s*(\d+)%",block);security=re.search(r"(?im)^\s*Authentication\s*:\s*(.+)$",block)
+                networks.append({"id":name,"name":name[:96],"signal":int(signal.group(1)) if signal else 0,"security":security.group(1).strip() if security else "UNKNOWN","connected":name==wifi["active"],"saved":name in saved})
+            wifi["networks"]=sorted(networks,key=lambda item:(not item["connected"],-item["signal"],item["name"].casefold()))[:50]
+        except Exception as exc:wifi["reason"]="Windows WLAN inventory failed: "+type(exc).__name__
+    bluetooth={"available":False,"enabled":False,"devices":[],"control":False,"reason":"Windows does not provide a stable non-dialog pairing command; inventory remains visible in LCARS"}
+    try:
+        script="Get-PnpDevice -Class Bluetooth -PresentOnly -ErrorAction SilentlyContinue | Where-Object FriendlyName | Select-Object InstanceId,FriendlyName,Status | ConvertTo-Json -Compress"
+        raw=subprocess.run(["powershell.exe","-NoLogo","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",script],capture_output=True,text=True,timeout=10,creationflags=0x08000000).stdout
+        rows=json.loads(raw or "[]");rows=[rows] if isinstance(rows,dict) else rows
+        devices=[{"id":str(row.get("InstanceId",""))[:240],"name":str(row.get("FriendlyName","Bluetooth device"))[:96],"paired":str(row.get("Status","")).casefold()=="ok","connected":False,"trusted":True} for row in rows[:40]]
+        bluetooth.update(available=bool(rows),enabled=any(item["paired"] for item in devices),devices=devices)
+    except Exception:pass
+    value={"ok":True,"platform":"windows","wifi":wifi,"bluetooth":bluetooth};CONNECTIVITY_CACHE.update(at=time.time(),value=value);return value
+
+def _windows_wifi_profile(name,secret):
+    from xml.sax.saxutils import escape
+    escaped_name=escape(name);escaped_secret=escape(secret)
+    return f'''<?xml version="1.0"?><WLANProfile xmlns="http://www.microsoft.com/networking/WLAN/profile/v1"><name>{escaped_name}</name><SSIDConfig><SSID><name>{escaped_name}</name></SSID></SSIDConfig><connectionType>ESS</connectionType><connectionMode>auto</connectionMode><MSM><security><authEncryption><authentication>WPA2PSK</authentication><encryption>AES</encryption><useOneX>false</useOneX></authEncryption><sharedKey><keyType>passPhrase</keyType><protected>false</protected><keyMaterial>{escaped_secret}</keyMaterial></sharedKey></security></MSM></WLANProfile>'''
+
+def connectivity_action(category,action,ident="",secret=""):
+    if category!="wifi":raise RuntimeError("Windows Bluetooth pairing cannot be performed safely without a platform authorization dialog; LCARS keeps the device inventory visible")
+    if action not in ("scan","enable","disable","connect","disconnect"):raise ValueError("unsupported Wi-Fi action")
+    if len(secret)>128:raise ValueError("network credential is too long")
+    state=connectivity_data();interface=state["wifi"].get("interface","");network=next((item for item in state["wifi"]["networks"] if item["id"]==ident or item["name"]==ident),None);flags=0x08000000
+    if not interface:raise RuntimeError("No Windows WLAN adapter was detected")
+    if action=="scan":command=["netsh","wlan","show","networks","mode=bssid"]
+    elif action in ("enable","disable"):command=["netsh","interface","set","interface",f"name={interface}",f"admin={'enabled' if action=='enable' else 'disabled'}"]
+    elif action=="disconnect":command=["netsh","wlan","disconnect",f"interface={interface}"]
+    else:
+        if not network:raise ValueError("wireless network was not found")
+        if not network.get("saved"):
+            if not secret and "open" not in network.get("security","").casefold():raise ValueError("This secured network needs its password in the LCARS credential field")
+            if secret:
+                with tempfile.NamedTemporaryFile("w",suffix=".xml",delete=False,encoding="utf-8") as profile:profile.write(_windows_wifi_profile(network["name"],secret));profile_path=profile.name
+                try:
+                    added=subprocess.run(["netsh","wlan","add","profile",f"filename={profile_path}","user=current"],capture_output=True,text=True,timeout=12,creationflags=flags)
+                    if added.returncode!=0:raise RuntimeError((added.stderr or added.stdout or "Windows rejected the wireless profile").strip()[:240])
+                finally:
+                    try:Path(profile_path).unlink()
+                    except Exception:pass
+        command=["netsh","wlan","connect",f"name={network['name']}",f"ssid={network['name']}",f"interface={interface}"]
+    result=subprocess.run(command,capture_output=True,text=True,timeout=20,creationflags=flags)
+    if result.returncode!=0:raise RuntimeError((result.stderr or result.stdout or "Windows rejected the Wi-Fi command").strip()[:240])
+    CONNECTIVITY_CACHE.update(at=0,value=None);NETWORK_CACHE.update(at=0,value=None)
+    return {"ok":True,"message":f"Wi-Fi {action} command completed","state":connectivity_data(True)}
+
+def software_data(force=False):
+    if not force and SOFTWARE_CACHE["value"] and time.time()-SOFTWARE_CACHE["at"]<120:return SOFTWARE_CACHE["value"]
+    available=bool(shutil.which("winget.exe") or shutil.which("winget"));updates=[];detail="Windows Package Manager is unavailable"
+    if available and not force:return {"ok":True,"manager":"WINGET","available":True,"updates":[],"count":0,"command":"winget upgrade --all --include-unknown --accept-source-agreements --accept-package-agreements","detail":"WINGET ready · select SCAN PACKAGES to refresh"}
+    if available:
+        try:
+            result=subprocess.run(["winget","upgrade","--accept-source-agreements","--disable-interactivity"],capture_output=True,text=True,timeout=30,creationflags=0x08000000)
+            for line in result.stdout.splitlines():
+                value=line.strip()
+                if not value or value.startswith(("Name ","---")) or "upgrades available" in value.casefold():continue
+                parts=re.split(r"\s{2,}",value)
+                if len(parts)>=4 and re.search(r"\d",parts[-2]):updates.append({"name":parts[0][:120],"current":parts[-3],"available":parts[-2]})
+                if len(updates)>=100:break
+            detail="WINGET application inventory ready"
+        except subprocess.TimeoutExpired:detail="WINGET scan timed out; existing LCARS controls remain available"
+        except Exception as exc:detail="WINGET scan unavailable: "+type(exc).__name__
+    value={"ok":True,"manager":"WINGET" if available else "NONE","available":available,"updates":updates,"count":len(updates),"command":"winget upgrade --all --include-unknown --accept-source-agreements --accept-package-agreements","detail":detail}
+    SOFTWARE_CACHE.update(at=time.time(),value=value);return value
 
 def extension_manifests():
     return module_platform_status(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_RUNTIME_DIR)
@@ -200,7 +283,7 @@ def voice_transcribe(data):
     try:config=json.loads(CONFIG_FILE.read_text())
     except:config={}
     prefs=config.get("shell_prefs",{});status=voice_status();engine=str(prefs.get("voiceEngine") or status["engine"]);model=Path(str(prefs.get("voiceModel") or status.get("model") or "")).expanduser();encoded=str(data.get("audio","")).split(",")[-1]
-    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.10 or select custom files in Settings"}
+    if not engine or not Path(engine).is_file() or not model.is_file():return {"ok":False,"message":"The local whisper.cpp voice runtime is unavailable; reinstall 30.11 or select custom files in Settings"}
     try:
         with tempfile.TemporaryDirectory(prefix="lcars-voice-") as folder:
             raw=base64.b64decode(encoded,validate=True);source=Path(folder)/"sample.input";wav=Path(folder)/"sample.wav"
@@ -279,6 +362,13 @@ def display_action(action,display):
         subprocess.Popen([executable,"--lcars-terminal",f"--display={display}",f"--position={position}"],creationflags=0x08000000);return f"Native LCARS Terminal requested for {display}"
     if action=="move-lcars":return "Use the Task Rail to move the LCARS browser window to the selected display"
     return "Display command sent"
+
+def display_config_action(action,ident="",name=""):
+    modes={"topology-internal":"/internal","topology-clone":"/clone","topology-extend":"/extend","topology-external":"/external"}
+    if action not in modes:raise RuntimeError("Windows only exposes safe non-dialog topology switching to LCARS; individual output controls remain read-only")
+    result=subprocess.run(["DisplaySwitch.exe",modes[action]],capture_output=True,text=True,timeout=15,creationflags=0x08000000)
+    if result.returncode!=0:raise RuntimeError("Windows rejected the requested display topology")
+    return {"ok":True,"message":action.replace("topology-","").title()+" display topology applied","displays":displays_data()}
 
 def terminal_create(name="Main",shell="",directory="~",**_):
     ident=uuid.uuid4().hex[:12];chosen=shell if shell and Path(shell).exists() else "powershell.exe";cwd=Path(directory).expanduser()
@@ -382,16 +472,14 @@ def files_data(path):
     return {"path":str(target),"parent":str(target.parent) if target.parent!=target else "","items":sorted(items,key=lambda x:(not x["directory"],x["name"].lower()))}
 
 def protected_action(action):
-    commands={"system-monitor":["taskmgr.exe"],"processes":["taskmgr.exe"],"storage":["explorer.exe","shell:MyComputerFolder"],"audio-settings":["ms-settings:apps-volume"],"network-settings":["ms-settings:network-status"],"wifi":["ms-settings:network-wifi"],"bluetooth":["ms-settings:bluetooth"],"software-center":["ms-windows-store://downloadsandupdates"],"check-updates":["ms-settings:windowsupdate"],"display-settings":["ms-settings:display"]}
-    if action in commands:
-        subprocess.Popen(commands[action],shell=True);return action.replace("-"," ").title()+" opened"
+    lcars_controls={"system-monitor":"SYSTEM MONITOR","storage":"STORAGE MATRIX","processes":"PROCESS CONTROL","media-player":"MEDIA DECK","audio-settings":"AUDIO ROUTING","network-settings":"NETWORK CONTROL","wifi":"WI-FI CONTROL","bluetooth":"BLUETOOTH CONTROL","software-center":"SOFTWARE LOGISTICS","check-updates":"SOFTWARE LOGISTICS","display-settings":"DISPLAY CONTROL","identify-displays":"DISPLAY IDENTIFICATION","extension-folder":"MODULE PLATFORM"}
+    if action in lcars_controls:return f"{lcars_controls[action]} is available inside the LCARS System Control Matrix"
     if action=="poweroff":subprocess.Popen(["shutdown.exe","/s","/t","0"],creationflags=0x08000000);return "Computer shutdown requested"
     if action=="reboot":subprocess.Popen(["shutdown.exe","/r","/t","0"],creationflags=0x08000000);return "Computer restart requested"
     if action=="sleep":
         script="Add-Type -AssemblyName System.Windows.Forms;[System.Windows.Forms.Application]::SetSuspendState([System.Windows.Forms.PowerState]::Suspend,$false,$false)"
         subprocess.Popen(["powershell.exe","-NoProfile","-NonInteractive","-ExecutionPolicy","Bypass","-Command",script],creationflags=0x08000000)
         return "Computer sleep requested"
-    if action=="identify-displays":subprocess.Popen(["DisplaySwitch.exe"]);return "Windows display routing opened"
     if action=="shell-mode-on":return "Windows immersive mode uses full screen and automatic taskbar hiding; Explorer remains available for recovery"
     if action=="shell-mode-off":subprocess.Popen(["explorer.exe"]);return "Windows Explorer restored"
     if action in ("startup-console-on","startup-console-off"):return "Windows launches LCARS without a separate console"
@@ -406,7 +494,6 @@ def protected_action(action):
     if action=="lcars-update-check":return "Use Updates → LCARS Interface to check the verified GitHub release channel"
     if action=="lcars-rollback":return "No previous Windows release has been archived yet"
     if action=="extension-scan":EXTENSION_DIR.mkdir(parents=True,exist_ok=True);return f"Extension scan complete — {len(list(EXTENSION_DIR.glob('**/lcars-module.json')))} manifest(s) found"
-    if action=="extension-folder":EXTENSION_DIR.mkdir(parents=True,exist_ok=True);os.startfile(EXTENSION_DIR);return "Extensions folder opened"
     if action in ("refresh-system","network-refresh","close-bay-app","minimize-bay-app"):return action.replace("-"," ").title()
     return "This Windows integration is not available yet"
 
@@ -416,13 +503,13 @@ def integration_health():
     voice=voice_status();devices=audio_devices()
     return {
         "window_control":{"available":True,"detail":"Win32 bridge ready","remedy":"Restart LCARS to restart its local Win32 bridge."},
-        "displays":{"available":True,"detail":f"{len(displays_data())} display(s)","remedy":"Open Windows Display Settings and select Detect."},
+        "displays":{"available":True,"detail":f"{len(displays_data())} display(s)","remedy":"Reconnect the display, then refresh the LCARS Display Matrix."},
         "audio":{"available":bool(devices),"detail":"Windows Core Audio" if devices else "No Core Audio devices reported","remedy":"Reconnect the device or restart Windows Audio."},
         "media":{"available":True,"detail":"Windows media keys ready","remedy":"The media application must support Windows media controls."},
         "terminal":{"available":True,"detail":"PowerShell","remedy":"Choose powershell.exe or another installed shell in Settings."},
         "storage":{"available":bool(psutil),"detail":f"{len(storage_data())} volume(s)","remedy":"Repair the optional psutil component from the installer."},
-        "voice":{"available":voice["available"],"detail":voice["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.10 voice resources or select custom whisper.cpp files in Settings."},
-        "tray":{"available":False,"detail":"Windows cannot safely re-host every third-party notification icon","remedy":"Use LCARS quick controls or the native Windows notification area."},
+        "voice":{"available":voice["available"],"detail":voice["reason"] or "Bundled offline whisper.cpp and English command model ready","remedy":"Reinstall Version 30.11 voice resources or select custom whisper.cpp files in Settings."},
+        "tray":{"available":False,"detail":"Windows cannot safely re-host every third-party notification icon","remedy":"Use LCARS quick controls; unsupported third-party tray actions remain unavailable."},
         "extensions":{"available":not bool(extensions.get("errors")),"detail":f"{len(extensions.get('extensions',[]))} module(s), {len(extensions.get('errors',[]))} rejected","remedy":"Remove or update rejected manifests shown in the extension bay."},
         "configuration":{"available":True,"detail":"Local AppData settings storage ready","remedy":"Repair write access to the LCARS AppData directory."},
         "updater":{"available":True,"detail":"Verified GitHub release channel configured","remedy":"Connect to GitHub and use the manual update check for detailed errors."},
@@ -521,6 +608,9 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/system-details":return self.send_json(system_details())
         if route=="/api/storage":return self.send_json({"drives":storage_data()})
         if route=="/api/network-details":return self.send_json(network_details())
+        if route=="/api/connectivity":return self.send_json(connectivity_data())
+        if route=="/api/software":return self.send_json(software_data(parse_qs(parsed.query).get("refresh",["0"])[0]=="1"))
+        if route=="/api/system-locations":return self.send_json({"extensions":str(EXTENSION_DIR),"configuration":str(CONFIG_DIR),"updates":str(UPDATE_DIR)})
         if route=="/api/tray":return self.send_json({"items":[],"supported":False,"reason":"Windows does not expose a supported API for re-hosting every third-party notification icon; LCARS quick controls remain available"})
         if route=="/api/padd-pairing":return self.send_json(PADD.status(True))
         if route=="/api/padd-commands":return self.send_json({"commands":PADD.pop_commands()})
@@ -655,6 +745,12 @@ class Handler(BaseHTTPRequestHandler):
             if not path:return self.send_json({"error":"Application is not in the Windows launcher inventory"},403)
             os.startfile(path);return self.send_json({"ok":True})
         if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action",""))))
+        if route=="/api/connectivity-action":
+            try:return self.send_json(connectivity_action(str(data.get("category","")),str(data.get("action","")),str(data.get("id","")),str(data.get("secret",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/display-config":
+            try:return self.send_json(display_config_action(str(data.get("action","")),str(data.get("id","")),str(data.get("name",""))))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/voice-transcribe":return self.send_json(voice_transcribe(data))
         if route=="/api/action":return self.send_json({"message":protected_action(str(data.get("action","")))})
         if route=="/api/window-action":return self.send_json({"message":window_action(str(data.get("id","")),str(data.get("action","")),str(data.get("display","")))})

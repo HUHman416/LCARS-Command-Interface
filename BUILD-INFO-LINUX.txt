@@ -1,8 +1,8 @@
-LCARS Universal Linux Desktop v30.10 Development
-Application version: 30.10.0-dev.1
+LCARS Universal Linux Desktop v30.11 Development
+Application version: 30.11.0-dev.1
 AppImage SHA-256: GENERATED-DURING-PACKAGING
 
 The installer verifies this checksum before replacing the installed application.
 The optional LCARS login session is installed only from Settings with explicit authorization. It retains a normal-desktop escape route.
-Version 30.10 adds explicit authoritative-session ownership, real emergency recovery, deck-aware task routing, continuous window placement, and corrected clean-exit versus crash behavior.
+Version 30.11 replaces routine host settings and utility windows with the native LCARS System Control Matrix while retaining Version 30.10 authoritative-session ownership and emergency recovery.
 Run install-autostart.sh to register a portable AppImage in application search and optionally enable login startup without sudo.

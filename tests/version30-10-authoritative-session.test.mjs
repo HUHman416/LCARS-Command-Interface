@@ -42,12 +42,12 @@ test("session authority, continuous placement, and deck task routing are exposed
   assert.match(styles,/\.task-context-decks/);
 });
 
-test("Version 30.10 development package and release workflow align",async()=>{
+test("Version 30.11 development package and release workflow align",async()=>{
   const [pkg,gradle,workflow]=await Promise.all([source("../package.json"),source("../mobile/android/app/build.gradle"),source("../.github/workflows/v30-development.yml")]);
-  assert.equal(JSON.parse(pkg).version,"30.10.0-dev.1");
-  assert.match(gradle,/versionCode 3010001/);
-  assert.match(gradle,/versionName "30\.10\.0"/);
-  assert.match(workflow,/gh release (?:view|create) v30\.10/);
-  assert.match(workflow,/Version 30\.10 Authoritative Session Development/);
+  assert.equal(JSON.parse(pkg).version,"30.11.0-dev.1");
+  assert.match(gradle,/versionCode 3011001/);
+  assert.match(gradle,/versionName "30\.11\.0"/);
+  assert.match(workflow,/gh release (?:view|create) v30\.11/);
+  assert.match(workflow,/Version 30\.11 Native System Controls Development/);
   assert.match(workflow,/--prerelease/);
 });
