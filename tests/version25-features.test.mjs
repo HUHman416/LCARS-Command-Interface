@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const read=(path)=>readFileSync(new URL(path,import.meta.url),"utf8");
 const page=read("../app/page.tsx");
+const systemMatrix=read("../app/v30-system-control.tsx");
 const core=read("../app/v25-core.ts");
 const css=read("../app/v25.css");
 const linux=read("../local/lcars_bridge.py");
@@ -49,8 +50,9 @@ test("Engineering is cross-platform and protects elevated or LCARS processes",()
     assert.match(bridge,/\/api\/process-action/);
     assert.match(bridge,/current user/);
   }
-  assert.match(page,/function EngineeringConsole/);
-  assert.match(page,/Unsaved work in that application may be lost/);
+  assert.match(systemMatrix,/PROCESS CONTROL/);
+  assert.match(systemMatrix,/CONFIRM END/);
+  assert.match(systemMatrix,/process\.protected/);
 });
 
 test("Communications combines notice priorities with persistent command activity",()=>{
@@ -80,9 +82,9 @@ test("Stable and development update channels are explicit and stay silent in the
 });
 
 test("Version metadata advances for Version 26 while desktop recovery retains Version 25 state",()=>{
-  assert.ok(["30.11.0-dev.1","30.10.0-dev.1","30.8.1-dev.1","30.7.0-dev.1","30.6.0-dev.1","30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(pkg.version));
-  assert.match(linux,/LCARS_VERSION="(?:30\.11|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(windows,/LCARS_VERSION="(?:30\.11|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.ok(["30.12.0-dev.1","30.10.0-dev.1","30.8.1-dev.1","30.7.0-dev.1","30.6.0-dev.1","30.4.0-dev.1","30.3.0-dev.1","30.2.0-dev.1","30.1.0-dev.2","29.0.0","29.3.0-rc.1","29.2.0-dev.1","28.0.0","28.3.0-rc.1","28.2.0-dev.1","27.2.1-dev.1","27.2.0-dev.1","27.1.1-dev.1","26.3.0-dev.1","26.0.0"].includes(pkg.version));
+  assert.match(linux,/LCARS_VERSION="(?:30\.12|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(windows,/LCARS_VERSION="(?:30\.12|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
   assert.match(renderer,/lcars-routines/);
   assert.match(renderer,/lcars-tray-shortcuts/);
 });

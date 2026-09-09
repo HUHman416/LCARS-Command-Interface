@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.11-b69de8" alt="Development Version 30.11">
+  <img src="https://img.shields.io/badge/development-v30.12-b69de8" alt="Development Version 30.12">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -35,14 +35,14 @@
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
 
 > [!NOTE]
-> **Version 30.11 Development replaces routine host control-panel handoffs with native LCARS controls.** Wi-Fi, Bluetooth, audio, displays, software, processes, storage, modules, and media can now be managed without leaving the command environment. Version 29 remains Stable.
+> **Version 30.12 Development turns Systems into one unified LCARS command station.** Telemetry, hardware details, storage, engineering, and the complete native-control matrix now share the Systems page with no separate diagnostic or control overlays. Version 29 remains Stable.
 
-## 🧪 Version 30.11 Development — Native System Controls
+## 🧪 Version 30.12 Development — Unified Systems Command
 
-- Adds one responsive **LCARS System Control Matrix** for network interfaces, Wi-Fi, Bluetooth, audio, displays, software, processes, storage, modules, and media.
-- Reroutes every existing system monitor, storage, process, media player, audio, network, Wi-Fi, Bluetooth, software center, update, display, identification, and extension-folder action into the native matrix.
-- Supports in-LCARS Wi-Fi discovery and credentials, Linux Bluetooth control, Windows Bluetooth inventory, output/input and application audio routing, Linux output controls, safe Windows display topologies, update inventories, protected process control, and removable-drive actions.
-- Keeps file, document, and unsupported-codec handling inside LCARS instead of falling back to a host file viewer or media player.
+- Embeds the complete **LCARS System Control Matrix** directly in the Systems sidebar page; it no longer opens as a separate window or overlay.
+- Rebuilds Telemetry as the first matrix station, combining live CPU, GPU, memory, disk, per-core, memory-module, graphics-driver, video-memory, temperature, display-mode, storage, and engineering-sensor data.
+- Removes the duplicate Systems Diagnostic, Expanded Hardware Matrix, Storage Matrix, Engineering Console, and hardware-detail pop-ups while retaining their unique information in the unified page.
+- Keeps the Version 30.11 native network, Wi-Fi, Bluetooth, audio, display, software, process, storage, module, media, file, and document controls inside LCARS.
 - Preserves only security- and recovery-critical platform surfaces: operating-system authorization prompts, Android default-Home and package-install permission screens, and the explicit emergency route back to the recovery desktop.
 - Retains the full Version 30.10 Authoritative Session and every earlier Version 30 milestone.
 

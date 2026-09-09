@@ -65,7 +65,7 @@ import {
 import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, ComputerPlan, ComputerPlanStep, ComputerUndoSnapshot } from "./v30-core";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="30.11";
+const LCARS_VERSION="30.12";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -391,7 +391,7 @@ const speedDialChoices: { id: SpeedDialItem; label: string; description: string 
   { id:"action:tray", label:"TRAY", description:"Open the desktop system tray" },
   { id:"action:routines", label:"ROUTINES", description:"Open Operations Automation" },
   { id:"action:communications", label:"COMMS", description:"Open Communications Center" },
-  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.11 Computer Core" },
+  { id:"action:computer", label:"COMPUTER", description:"Open Version 30.12 Computer Core" },
 ];
 const defaultPrefs: ShellPrefs = {
   taskHover: true,
@@ -678,16 +678,14 @@ export default function Home() {
   const [commissioningBusy,setCommissioningBusy]=useState(false);
   const [trayItems, setTrayItems] = useState<TrayItem[]>([]),
     [trayOpen, setTrayOpen] = useState(false),
-    [drives, setDrives] = useState<Drive[]>([]),
     [systemDetails, setSystemDetails] = useState<SystemDetails>({}),
-    [detailOpen, setDetailOpen] = useState<string | null>(null),
     [speedDialModule,setSpeedDialModule]=useState<WidgetId|null>(null),
     [speedDialPages,setSpeedDialPages]=useState<PagePeekState[]>([]),
     [mobileSheet,setMobileSheet]=useState<"commands"|"more"|null>(null),
     [workspaceWindows,setWorkspaceWindows]=useState<string[]>([]);
   const [networkInfo, setNetworkInfo] = useState<NetworkInfo>({ interfaces: [], diagnostics: { gateway: false, dns: false, internet: false, latency: null }, bluetooth: false }),
     [startupVisible, setStartupVisible] = useState(true);
-  const [systemControlArea,setSystemControlArea]=useState<SystemControlArea|null>(null),[fileBrowseTarget,setFileBrowseTarget]=useState(""),[terminalSeed,setTerminalSeed]=useState("");
+  const [systemControlArea,setSystemControlArea]=useState<SystemControlArea>("telemetry"),[fileBrowseTarget,setFileBrowseTarget]=useState(""),[terminalSeed,setTerminalSeed]=useState("");
   const [extensions, setExtensions] = useState<ExtensionManifest[]>([]);
   const [quarantinedExtensions,setQuarantinedExtensions]=useState<string[]>([]);
   const [customPages,setCustomPages]=useState<CustomPage[]>([]),
@@ -1002,7 +1000,6 @@ export default function Home() {
         .then((d) => setHealth(d.health || {}))
         .catch(() => {});
       fetch("http://127.0.0.1:8765/api/tray").then((r) => r.json()).then((d) => setTrayItems(d.items || [])).catch(() => {});
-      fetch("http://127.0.0.1:8765/api/storage").then((r) => r.json()).then((d) => setDrives(d.drives || [])).catch(() => {});
       fetch("http://127.0.0.1:8765/api/system-details").then((r) => r.json()).then(setSystemDetails).catch(() => {});
       fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => {});
     };
@@ -1260,7 +1257,7 @@ export default function Home() {
   const clearNotices=()=>{setNotices([]);localStorage.removeItem("lcars-notification-history");recordActivity("Communications history cleared","Operator removed stored LCARS notices","success","OPERATOR");};
   const coreAction = (action: string) => {
     const lcarsControl:Record<string,SystemControlArea>={"system-monitor":"processes","storage":"storage","processes":"processes","media-player":"media","audio-settings":"audio","network-settings":"network","wifi":"wifi","bluetooth":"bluetooth","software-center":"software","check-updates":"software","display-settings":"displays","identify-displays":"displays","extension-folder":"modules"};
-    if(lcarsControl[action]){beep(true);setSystemControlArea(lcarsControl[action]);recordActivity("LCARS control opened",`${action.toUpperCase()} · SYSTEM CONTROL MATRIX`,`success`,"SYSTEM");return;}
+    if(lcarsControl[action]){beep(true);setSystemControlArea(lcarsControl[action]);setSection("system");recordActivity("LCARS control opened",`${action.toUpperCase()} · SYSTEMS PAGE`,`success`,"SYSTEM");return;}
     if(/^(?:sleep|poweroff|reboot|logout|shell-mode-|session-|repair-|process-)/.test(action)&&!operatorCan(activeOperator,"protected")){notify("Administrator authority is required for this system action","error");recordActivity("System command denied",`${action.toUpperCase()} · OPERATOR AUTHORITY LIMIT`,"attention","SYSTEM",false,{subsystem:"SECURITY",severity:"warning",operator:activeOperator?.name.toUpperCase()||userName});return;}
     beep(true);
     if (bridge)
@@ -1493,10 +1490,6 @@ export default function Home() {
         notify(`${d.displays?.length || 0} display outputs detected`);
       })
       .catch(() => notify("Unable to refresh display outputs", "error"));
-  const refreshEngineering=()=>fetch("http://127.0.0.1:8765/api/engineering").then((response)=>response.json()).then((data)=>{setEngineering({processes:Array.isArray(data.processes)?data.processes:[],sensors:Array.isArray(data.sensors)?data.sensors:[],processControl:Boolean(data.processControl),serviceControl:Boolean(data.serviceControl),notes:Array.isArray(data.notes)?data.notes:[]});}).catch(()=>notify("Engineering telemetry is unavailable","error"));
-  const processAction=async(pid:number,action:"terminate"|"suspend"|"resume")=>{
-    try{const response=await fetch("http://127.0.0.1:8765/api/process-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({pid,action})}),result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Process control failed");notify(result.message||`Process ${action} command accepted`);recordActivity("Engineering process control",`PID ${pid} · ${action.toUpperCase()}`,"success","SYSTEM",true);window.setTimeout(refreshEngineering,500);}catch(error){const detail=error instanceof Error?error.message:"Process control failed";notify(detail,"error");recordActivity("Engineering process control",`PID ${pid} · ${detail}`,"attention","SYSTEM");}
-  };
   const saveLockPassword = async (password: string) => {
     const credential = await createLockCredential(password);
     setLockCredential(credential);
@@ -1909,7 +1902,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"29",development:"30.11",channel:prefs.updateChannel},
+      release:{stable:"29",development:"30.12",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2285,7 +2278,7 @@ export default function Home() {
     if(updateResult.status==="fulfilled")setLcarsUpdate(updateResult.value as UpdateInfo);
     const passed=results.filter((result)=>result.status==="fulfilled").length;
     notify(passed===results.length?"Commissioning check complete · all local services answered":`Commissioning check complete · ${passed}/${results.length} service groups answered`,passed===results.length?"info":"error",passed!==results.length,"COMMISSIONING CENTER");
-    recordActivity("Commissioning check",`${passed}/${results.length} service groups answered`,passed===results.length?"success":"attention","SYSTEM",false,{subsystem:"SYSTEM",group:"commissioning:check",explanation:"Version 30.11 refreshed local integration, Federation, Data Fabric, native controls, and release-channel readiness together."});
+    recordActivity("Commissioning check",`${passed}/${results.length} service groups answered`,passed===results.length?"success":"attention","SYSTEM",false,{subsystem:"SYSTEM",group:"commissioning:check",explanation:"Version 30.12 refreshed local integration, Federation, Data Fabric, native controls, and release-channel readiness together."});
     setCommissioningBusy(false);
   };
   const exportCommissioningDiagnostics=async()=>{try{const response=await fetch("http://127.0.0.1:8765/api/diagnostics-export",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"}),result=await response.json();if(!response.ok)throw new Error(result.error||"Diagnostic export failed");notify(result.message||"Privacy-safe diagnostics exported","info",true,"COMMISSIONING CENTER");}catch(error){notify(error instanceof Error?error.message:"Diagnostic export failed","error",true,"COMMISSIONING CENTER");}};
@@ -2338,7 +2331,7 @@ export default function Home() {
           </h3>
           <div className="meters">
             {meters.map((m, i) => (
-              <article key={String(m[0])} role="button" tabIndex={0} onClick={() => setDetailOpen(String(m[0]))} onKeyDown={(e) => e.key === "Enter" && setDetailOpen(String(m[0]))}>
+              <article key={String(m[0])} role="button" tabIndex={0} onClick={() => {setSystemControlArea("telemetry");setSection("system");}} onKeyDown={(e) => {if(e.key === "Enter"){setSystemControlArea("telemetry");setSection("system");}}}>
                 <header>
                   <span>
                     0{i + 1} / {m[0]}
@@ -2517,13 +2510,13 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>30.11 DEV</small>
+          <small>30.12 DEV</small>
         </button>
         <div className="title">
           <div className="title-copy">
             <div className={`title-kicker${prefs.voiceEnabled?" voice-active":""}`}>
               <small>FEDERATION OPERATING ENVIRONMENT</small>
-              <button className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30.11 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></button>
+              <button className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30.12 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></button>
               {prefs.voiceEnabled&&<VoiceControl prefs={prefs} computer={dispatchVoiceComputer} notify={notify} />}
             </div>
             <h1>
@@ -2788,41 +2781,8 @@ export default function Home() {
             />
           )}
           {section === "system" && (
-            <section className="detail-view">
-              <h3>SYSTEMS DIAGNOSTIC</h3>
-              <div className="meters">
-                {meters.map((m, i) => (
-                  <article key={String(m[0])} role="button" tabIndex={0} onClick={() => setDetailOpen(String(m[0]))} onKeyDown={(e) => e.key === "Enter" && setDetailOpen(String(m[0]))}>
-                    <header>
-                      <span>
-                        0{i + 1} / {m[0]}
-                      </span>
-                      <strong>{m[1]}%</strong>
-                    </header>
-                    <div>
-                      <i style={{ width: m[1] + "%" }} />
-                    </div>
-                    <small>{m[2]}</small>
-                  </article>
-                ))}
-              </div>
-              <div className="action-grid">
-                <button onClick={() => coreAction("system-monitor")}>
-                  OPEN SYSTEM MONITOR
-                </button>
-                <button onClick={() => coreAction("storage")}>
-                  STORAGE ANALYSIS
-                </button>
-                <button onClick={() => coreAction("processes")}>
-                  PROCESS CONTROL
-                </button>
-                <button onClick={() => coreAction("refresh-system")}>
-                  REFRESH TELEMETRY
-                </button>
-              </div>
-              <HardwareTelemetry details={systemDetails} open={setDetailOpen}/>
-              <StorageMatrix drives={drives} notify={notify} refresh={() => fetch("http://127.0.0.1:8765/api/storage").then((r) => r.json()).then((d) => setDrives(d.drives || []))} />
-              <EngineeringConsole data={engineering} refresh={refreshEngineering} processAction={processAction}/>
+            <section className="detail-view systems-command-page">
+              <SystemControlCenter key={systemControlArea} initialArea={systemControlArea} platform={platform} embedded notify={notify} openPage={setSection} openApplications={()=>setAllOpen(true)} openFiles={(path)=>{setFileBrowseTarget(path);setSection("files");}} prepareTerminal={(command)=>{setTerminalSeed(command);setSection("terminal");}}/>
             </section>
           )}
           {section === "media" && (
@@ -2988,7 +2948,7 @@ export default function Home() {
                   <small>LEARN THE LCARS DESKTOP CONTROLS</small>
                 </button>
                 <button onClick={()=>setWhatsNewOpen(true)}>
-                  <b>WHAT&apos;S NEW IN VERSION 30.11</b>
+                  <b>WHAT&apos;S NEW IN VERSION 30.12</b>
                   <small>NATIVE SYSTEM CONTROLS · NO HOST SETTINGS WINDOWS</small>
                 </button>
                 <button onClick={() => coreAction("shell-mode-off")}>
@@ -3065,7 +3025,6 @@ export default function Home() {
       />}
       {pendingRoutine&&<ProcedurePreview routine={pendingRoutine} describe={describeRoutineStep} running={runningRoutine===pendingRoutine.id} cancel={()=>setPendingRoutine(null)} dryRun={()=>void executeRoutine(pendingRoutine,pendingRoutine.steps,false,true)} run={()=>void executeRoutine(pendingRoutine)}/>}
       {startupVisible && prefs.startupSequence && <StartupTelemetry bridge={bridge} reduced={access.reducedMotion} />}
-      {detailOpen && <SystemDetail kind={detailOpen} details={systemDetails} close={() => setDetailOpen(null)} />}
       {firstRun && (
         <FirstRun
           step={setupStep}
@@ -3079,7 +3038,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-11","1");setWhatsNewOpen(false);}} openCommissioning={()=>{localStorage.setItem("lcars-whats-new-v30-11","1");setWhatsNewOpen(false);setSystemControlArea("network");}}/>}
+      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-11","1");setWhatsNewOpen(false);}} openCommissioning={()=>{localStorage.setItem("lcars-whats-new-v30-11","1");setWhatsNewOpen(false);setSystemControlArea("network");setSection("system");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -3117,7 +3076,6 @@ export default function Home() {
           resolveConflict={(id,resolution)=>void fabricOperation({operation:"resolve-conflict",id,resolution},"Data Fabric conflict resolved")}
         />
       )}
-      {systemControlArea&&<SystemControlCenter initialArea={systemControlArea} platform={platform} close={()=>setSystemControlArea(null)} notify={notify} openPage={setSection} openApplications={()=>{setSystemControlArea(null);setAllOpen(true);}} openFiles={(path)=>{setSystemControlArea(null);setFileBrowseTarget(path);setSection("files");}} prepareTerminal={(command)=>{setSystemControlArea(null);setTerminalSeed(command);setSection("terminal");}}/>}
       {locked && (
         <LockScreen userName={userName} credential={lockCredential} profiles={profiles} activeProfile={activeProfile} defaultWorkstation={defaultWorkstation} chooseProfile={applyProfile} setDefaultWorkstation={chooseDefaultWorkstation} power={() => setPowerOpen(true)} unlock={() => setLocked(false)} />
       )}
@@ -3410,33 +3368,7 @@ function TrayDrawer({open,items,shortcuts,close,execute}:{open:boolean;items:Tra
 
 function StartupTelemetry({bridge,reduced}:{bridge:boolean;reduced:boolean}) { return <aside className={'startup-telemetry '+(reduced?'instant':'')} aria-live="polite"><i /><span><small>LCARS INITIALIZATION</small><b>{bridge?'LOCAL CORE SYNCHRONIZED':'LOCAL CORE LINK PENDING'}</b></span><em>SYS 47 · DISPLAY MATRIX · AUDIO BUS</em></aside>; }
 
-function StorageMatrix({ drives, notify, refresh }: { drives: Drive[]; notify: (text: string, kind?: "info" | "error") => void; refresh: () => void }) {
-  const operate = async (drive: Drive) => {
-    try {
-      const response = await fetch("http://127.0.0.1:8765/api/storage-action", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: drive.id, action: drive.mounted ? "unmount" : "mount" }) });
-      const result = await response.json();notify(result.message, result.ok ? "info" : "error");refresh();
-    } catch { notify("Storage controller did not respond", "error"); }
-  };
-  return <section className="storage-matrix"><header><div><small>PHYSICAL STORAGE MATRIX</small><h4>DRIVES & REMOVABLE MEDIA</h4></div><button onClick={refresh}>RESCAN</button></header><div>{drives.map((drive) => <article key={drive.id}><i>{drive.removable ? "REM" : "DRV"}</i><span><b>{drive.name}</b><small>{(drive.size / 1073741824).toFixed(1)} GB · {drive.filesystem || drive.type.toUpperCase()} · {drive.mounted ? drive.mountpoints.join(", ") : "NOT MOUNTED"}</small></span>{drive.removable && drive.type !== "disk" && <button onClick={() => operate(drive)}>{drive.mounted ? "UNMOUNT" : "MOUNT"}</button>}</article>)}</div></section>;
-}
-
 const formatBytes=(value:number)=>value>=1099511627776?(value/1099511627776).toFixed(1)+" TB":value>=1073741824?(value/1073741824).toFixed(1)+" GB":value>=1048576?(value/1048576).toFixed(0)+" MB":value?Math.round(value/1024)+" KB":"NOT REPORTED";
-function HardwareTelemetry({details,open}:{details:SystemDetails;open:(kind:string)=>void}){
-  const memory=details.memory,graphics=details.graphics||[];
-  return <section className="hardware-telemetry"><header><div><small>EXPANDED HARDWARE MATRIX</small><h4>GRAPHICS & MEMORY</h4></div><b>{graphics.length.toString().padStart(2,"0")} GPU</b></header><div className="memory-telemetry" role="button" tabIndex={0} onClick={()=>open("MEM")} onKeyDown={(event)=>event.key==="Enter"&&open("MEM")}><i>MEM</i><span><small>PHYSICAL MEMORY</small><b>{formatBytes(memory?.used||0)} / {formatBytes(memory?.total||0)}</b><em>{formatBytes(memory?.available||0)} AVAILABLE · SWAP {formatBytes(memory?.swapUsed||0)} / {formatBytes(memory?.swapTotal||0)}</em></span><strong>{memory?.percent||0}%</strong></div><div className="graphics-telemetry">{graphics.length?graphics.map((adapter,index)=><article role="button" tabIndex={0} onClick={()=>open("GPU")} onKeyDown={(event)=>event.key==="Enter"&&open("GPU")} key={`${adapter.name}:${index}`}><i>{String(index+1).padStart(2,"0")}</i><span><small>{adapter.vendor||"GRAPHICS ADAPTER"}</small><b>{adapter.name}</b><em>{adapter.driver?`DRIVER ${adapter.driver}`:"DRIVER NOT REPORTED"}{adapter.resolution?` · ${adapter.resolution}`:""}</em></span><strong>{adapter.usage??0}%</strong></article>):<p>NO DETAILED GRAPHICS TELEMETRY REPORTED BY THIS PLATFORM</p>}</div></section>;
-}
-
-function SystemDetail({ kind, details, close }: { kind: string; details: SystemDetails; close: () => void }) {
-  const memory=details.memory,graphics=details.graphics||[];
-  return <div className="backdrop"><section className="system-detail" role="dialog" aria-modal="true"><header><div><small>EXPANDED TELEMETRY</small><h2>{kind} DIAGNOSTIC</h2></div><button onClick={close}>CLOSE ×</button></header>{kind === "CPU" && <><p>{details.cpu?.logical || 0} LOGICAL PROCESSORS · LOAD {details.cpu?.load?.join(" / ") || "UNKNOWN"}</p><div className="core-grid">{details.cpu?.cores?.map((core) => <article key={core.name}><span><b>{core.name}</b><strong>{core.usage}%</strong></span><i><em style={{ width: core.usage + "%" }} /></i></article>)}</div></>}{kind === "MEM"&&<div className="memory-detail"><div><span><small>TOTAL</small><b>{formatBytes(memory?.total||0)}</b></span><span><small>IN USE</small><b>{formatBytes(memory?.used||0)}</b></span><span><small>AVAILABLE</small><b>{formatBytes(memory?.available||0)}</b></span><span><small>SWAP IN USE</small><b>{formatBytes(memory?.swapUsed||0)}</b></span></div>{memory?.modules?.length?<section>{memory.modules.map((module,index)=><article key={`${module.bank}:${index}`}><i>{String(index+1).padStart(2,"0")}</i><span><b>{module.bank||`MEMORY MODULE ${index+1}`}</b><small>{formatBytes(module.capacity)} · {module.speed?module.speed+" MT/S · ":""}{module.manufacturer||"MANUFACTURER UNKNOWN"} {module.part||""}</small></span></article>)}</section>:<p>Individual memory-module information is not exposed by this platform without elevated hardware access.</p>}</div>}{kind === "GPU"&&<div className="graphics-detail">{graphics.length?graphics.map((adapter,index)=><article key={`${adapter.name}:${index}`}><i>{String(index+1).padStart(2,"0")}</i><header><small>{adapter.vendor||"GRAPHICS"}</small><b>{adapter.name}</b></header><p><span>UTILIZATION <b>{adapter.usage??0}%</b></span><span>VIDEO MEMORY <b>{formatBytes(adapter.memoryUsed||0)} / {formatBytes(adapter.memoryTotal||0)}</b></span><span>TEMPERATURE <b>{adapter.temperature==null?"NOT REPORTED":adapter.temperature+"°C"}</b></span><span>DRIVER <b>{adapter.driver||"NOT REPORTED"}</b></span><span>DISPLAY MODE <b>{adapter.resolution||"DESKTOP MANAGED"}</b></span></p></article>):<p>Detailed graphics telemetry is unavailable from the current platform adapter.</p>}</div>}{kind === "DISK" && <div className="detail-drives">{details.storage?.map((drive) => <p key={drive.id}><b>{drive.name}</b><small>{(drive.size / 1073741824).toFixed(1)} GB · {drive.mounted ? drive.mountpoints.join(", ") : "NOT MOUNTED"}</small></p>)}</div>}<footer>KERNEL {details.kernel || "PLATFORM MANAGED"}</footer></section></div>;
-}
-
-function EngineeringConsole({data,refresh,processAction}:{data:EngineeringData;refresh:()=>void;processAction:(pid:number,action:"terminate"|"suspend"|"resume")=>void}){
-  const [query,setQuery]=useState(""),[expanded,setExpanded]=useState(true);
-  const processes=data.processes.filter((process)=>`${process.name} ${process.pid} ${process.user||""}`.toLowerCase().includes(query.toLowerCase())).slice(0,40);
-  const command=(process:EngineeringData["processes"][number],action:"terminate"|"suspend"|"resume")=>{if(action==="terminate"&&!window.confirm(`Terminate ${process.name} (PID ${process.pid})? Unsaved work in that application may be lost.`))return;processAction(process.pid,action);};
-  return <section className="engineering-console"><header><div><small>VERSION 29 ENGINEERING OPERATIONS</small><h4>ENGINEERING CONSOLE</h4><p>Hardware health, power sources, storage status, and guarded process control remain local to this computer.</p></div><strong>{String(data.sensors.filter((sensor)=>sensor.status==="ready").length).padStart(2,"0")}<small> SYSTEMS READY</small></strong></header><div className="engineering-sensors">{data.sensors.length?data.sensors.map((sensor)=><article className={sensor.status} key={sensor.id}><i>{sensor.kind.slice(0,3).toUpperCase()}</i><span><b>{sensor.name}</b><small>{sensor.detail||sensor.kind.toUpperCase()}</small></span><strong>{sensor.value}</strong></article>):<p>NO OPTIONAL SENSOR ADAPTERS REPORTED · CORE TELEMETRY REMAINS AVAILABLE ABOVE</p>}</div><nav><button onClick={refresh}>REFRESH ENGINEERING</button><button onClick={()=>setExpanded(!expanded)}>{expanded?"HIDE PROCESS MATRIX":"SHOW PROCESS MATRIX"}</button><input aria-label="Search engineering processes" placeholder="SEARCH PROCESSES…" value={query} onChange={(event)=>setQuery(event.target.value)}/></nav>{expanded&&<div className="engineering-processes"><header><span>PROCESS</span><span>CPU</span><span>MEMORY</span><span>CONTROL</span></header>{processes.map((process)=><article key={process.pid}><span><b>{process.name}</b><small>PID {process.pid}{process.user?` · ${process.user}`:""}</small></span><strong>{process.cpu.toFixed(1)}%</strong><strong>{process.memory.toFixed(1)}%</strong><nav>{process.protected||!data.processControl?<small>PROTECTED</small>:<><button onClick={()=>command(process,process.state==="stopped"?"resume":"suspend")}>{process.state==="stopped"?"RESUME":"PAUSE"}</button><button className="danger" onClick={()=>command(process,"terminate")}>END</button></>}</nav></article>)}{!processes.length&&<p>NO MATCHING USER PROCESSES</p>}</div>}{data.notes?.length?<footer>{data.notes.join(" · ")}</footer>:null}</section>;
-}
 
 function TaskRail({
   tasks,
@@ -3746,7 +3678,7 @@ function ExtensionHub({installed,catalog,sources,setCatalog,setSources,disabled,
       {packageOpen&&<section className="module-package-bay"><header><span><small>SIGNED PORTABLE PACKAGES</small><b>IMPORT / EXPORT</b></span><strong>.LCARS-MODULE</strong></header><div><label>EXPORT INSTALLED MODULE<select value={packageModule} onChange={(event)=>setPackageModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><button disabled={!packageModule||busy==="export"} onClick={exportPackage}>{busy==="export"?"SIGNING…":"EXPORT SIGNED PACKAGE"}</button><label>IMPORT PACKAGE PATH<input value={importPath} placeholder="/path/to/module.lcars-module" onChange={(event)=>setImportPath(event.target.value)}/></label><button disabled={!importPath||busy==="import"} onClick={importPackage}>{busy==="import"?"VERIFYING…":"VERIFY + IMPORT"}</button></div>{packageResult&&<aside><b>PACKAGE OPERATION COMPLETE</b><span>{packageResult.path}</span>{packageResult.sha256&&<small>SHA-256 {packageResult.sha256.toUpperCase()}</small>}{packageResult.signerKeyId&&<em>SIGNER {packageResult.signerKeyId.toUpperCase()}</em>}</aside>}</section>}
       {publisherOpen&&<section className="module-publisher"><header><span><small>RSA-SHA256 · STABLE + DEVELOPMENT CATALOGS</small><b>SIGNED MODULE PUBLISHER</b></span><a href="https://github.com/new" target="_blank" rel="noreferrer">CREATE GITHUB REPOSITORY ↗</a></header><p>LCARS validates the stable API contract, signs the package metadata with your local publisher identity, and generates both repository channels. The private signing key never leaves the local Module Forge folder.</p><div><label>MODULE<select value={publisherModule} onChange={(event)=>setPublisherModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><label>GITHUB OWNER / REPOSITORY<input value={publisherRepository} onChange={(event)=>setPublisherRepository(event.target.value)} placeholder="OWNER/REPOSITORY"/></label><button disabled={!publisherModule||busy==="publisher"} onClick={preparePublisher}>{busy==="publisher"?"SIGNING…":"GENERATE SIGNED REPOSITORY"}</button></div>{publisherResult&&<aside><b>SIGNED PACKAGE READY</b><span>{publisherResult.path}</span><small>SHA-256 {publisherResult.sha256?.toUpperCase()}</small><em>SIGNER {publisherResult.signerKeyId?.toUpperCase()} · {publisherResult.files?.join(" · ")}</em></aside>}</section>}
       <div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id),remote=entry,health=manifest?.moduleHealth||entry.moduleHealth,requested=manifest?.capabilities||entry.capabilities,granted=manifest?.grantedCapabilities||entry.grantedCapabilities||[],showDetails=details===entry.id;return <article className={`${disabledNow?"disabled":""} ${remote.repository?"repository-module":"local-module"} module-health-${health?.health||"ready"}`} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{remote.repository?`${remote.official?"OFFICIAL":"COMMUNITY"} · ${(remote.channel||"stable").toUpperCase()} · ${remote.sourceName||"MODULE REPOSITORY"}`:entry.bundled?"BUNDLED MODULE":"LOCAL MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · API {manifest?.apiVersion||health?.apiVersion||"?"} {health?.apiStatus?.toUpperCase()||""} · V{entry.version}{installedNow?` / INSTALLED V${manifest?.version||remote.installedVersion||entry.version}`:""} · {health?.health?.toUpperCase()||"READY"}</em>{showDetails&&<><div className="module-detail-strip"><span><b>PACKAGE TRUST</b>{(remote.signatureStatus||health?.signed||"local").toUpperCase()}</span><span><b>SIGNER</b>{remote.signerKeyId||health?.signerKeyId||"LOCAL / BUNDLED"}</span><span><b>MINIMUM LCARS</b>{remote.minimumLcarsVersion||manifest?.minimumLcarsVersion||"COMPATIBLE"}</span><span><b>HEALTH</b>{health?.failureCount?`${health.failureCount} FAILURE(S) · ${health.lastFailure||"RECORDED"}`:"READY · NO RECORDED FAILURES"}</span><span><b>ROLLBACK</b>{health?.rollbackAvailable||remote.rollbackAvailable?"PREVIOUS VERSION AVAILABLE":"NO PREVIOUS VERSION"}</span><span><b>SOURCE</b>{remote.official?"LCARS OFFICIAL":remote.sourceName||health?.sourceId||"LOCAL"}</span></div>{installedNow&&requested.length>0&&<div className="module-permission-matrix"><b>CAPABILITY PERMISSIONS</b>{requested.map((capability)=><button className={granted.includes(capability)?"granted":"revoked"} key={capability} onClick={()=>platformOperation("permissions",entry,granted.includes(capability)?granted.filter((item)=>item!==capability):[...granted,capability])}>{granted.includes(capability)?"✓ GRANTED":"○ REVOKED"}<small>{capabilityLabels[capability]||capability}</small></button>)}</div>}</>}</span><nav><button onClick={()=>setDetails(showDetails?"":entry.id)}>{showDetails?"LESS":"DETAILS"}</button>{installedNow?<><button onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</button>{(health?.rollbackAvailable||remote.rollbackAvailable)&&<button disabled={busy===`rollback:${entry.id}`} onClick={()=>platformOperation("rollback",entry)}>ROLL BACK</button>}{remote.updateAvailable&&<button className="update" disabled={busy===entry.id} onClick={()=>operate(entry,"update")}>{busy===entry.id?"VERIFYING…":"UPDATE"}</button>}{!entry.bundled&&<button className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</button>}</>:remote.repository?<button className="install" disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"VERIFYING…":"INSTALL"}</button>:null}</nav></article>;})}{!inventory.length&&<p className="extension-empty">NO MATCHING MODULES ON THE {catalogChannel.toUpperCase()} CHANNEL</p>}</div>
-      <footer><b>VERSION 30.11 MODULE SAFETY</b> · Signed API v3 packages, explicit capability grants, per-module health records, automatic render isolation, two-version rollback, bounded portable imports, and channel-aware repositories. Repository code is never executed.</footer>
+      <footer><b>VERSION 30.12 MODULE SAFETY</b> · Signed API v3 packages, explicit capability grants, per-module health records, automatic render isolation, two-version rollback, bounded portable imports, and channel-aware repositories. Repository code is never executed.</footer>
     </>}
   </section>;
 }
@@ -4783,7 +4715,7 @@ function ProcedureCenter({routines,apps,profiles,devices,players,running,history
   const triggerPlaceholder=procedure?.trigger.type==="app"?"APPLICATION NAME":procedure?.trigger.type==="device"?"AUDIO DEVICE":procedure?.trigger.type==="battery-below"?"BATTERY PERCENT":procedure?.trigger.type==="network"?"NETWORK NAME OR BLANK":procedure?.trigger.type==="notice"?"NOTICE TEXT OR SOURCE":procedure?.trigger.type==="media"?"PLAYER, ARTIST, OR TITLE":procedure?.trigger.type==="station"?"PADD NAME OR BLANK":procedure?.trigger.type==="interval"?"MINUTES":"TRIGGER VALUE";
   return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
     <section className="routine-center procedure-center" role="dialog" aria-modal="true" aria-label="Computer Core Procedure Builder">
-      <header><div><small>VERSION 30.11 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
+      <header><div><small>VERSION 30.12 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
       <div className="routine-center-layout">
         <aside><button onClick={add}>+ NEW PROCEDURE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO PROCEDURES CONFIGURED</p>}</aside>
         {showHistory?<main className="routine-run-history"><header><small>COMPUTER CORE EXECUTION JOURNAL</small><h3>PROCEDURE HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO PROCEDURE EXECUTIONS RECORDED</p>}</main>:procedure?<main>
@@ -4941,7 +4873,7 @@ function OperatorCenter({operators,activeId,devices,canManage,close,switchOperat
   useEffect(()=>{if(!operators.some((item)=>item.id===selectedId))setSelectedId(activeId||operators[0]?.id||"");},[operators,selectedId,activeId]);
   const activate=async(identity:OperatorIdentity)=>{setBusy(`switch:${identity.id}`);const accepted=await switchOperator(identity.id,pins[identity.id]||"");setBusy("");if(accepted){setPins((old)=>({...old,[identity.id]:""}));close();}};
   return <div className="backdrop operator-center-backdrop" onMouseDown={(change)=>change.target===change.currentTarget&&close()}><ResizablePopup popupKey="operator-center" className="operator-center" ariaModal={true} minWidth={760} minHeight={560}>
-    <header><div><small>VERSION 30.11 · INDIVIDUAL COMMAND ENVIRONMENTS</small><h2>OPERATOR IDENTITIES</h2><p>Switch complete favorites, decks, Display Matrix, layouts, commands, and station preferences without mixing operator configurations.</p></div><button onClick={close}>CLOSE ×</button></header>
+    <header><div><small>VERSION 30.12 · INDIVIDUAL COMMAND ENVIRONMENTS</small><h2>OPERATOR IDENTITIES</h2><p>Switch complete favorites, decks, Display Matrix, layouts, commands, and station preferences without mixing operator configurations.</p></div><button onClick={close}>CLOSE ×</button></header>
     <section className="operator-center-layout"><aside><header><b>QUICK OPERATOR SWITCH</b><small>{operators.length}/24 IDENTITIES</small></header>{operators.map((identity,index)=><article className={`${identity.id===selected?.id?"selected":""} ${identity.id===activeId?"active":""}`} key={identity.id}><button onClick={()=>setSelectedId(identity.id)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{identity.name}</b><small>{identity.awayTeam?"AWAY TEAM":identity.role.toUpperCase()} · {identity.shared?"SHARED":"PERSONAL"}</small></span><em>{identity.id===activeId?"ACTIVE":identity.credential?"PIN":"OPEN"}</em></button>{identity.id!==activeId&&<div>{identity.credential&&<input type="password" inputMode="numeric" autoComplete="off" placeholder="OPERATOR PIN" value={pins[identity.id]||""} onChange={(change)=>setPins((old)=>({...old,[identity.id]:change.target.value.slice(0,64)}))}/>}<button disabled={busy===`switch:${identity.id}`} onClick={()=>void activate(identity)}>{busy===`switch:${identity.id}`?"VERIFYING…":"ACTIVATE"}</button></div>}</article>)}</aside>
       {selected&&<main><section className="operator-identity-card"><header><i>{selected.awayTeam?"AT":selected.role==="administrator"?"A":selected.role==="operator"?"O":"G"}</i><span><small>{selected.shared?"SHARED WORKSTATION PROFILE":"INDIVIDUAL OPERATOR PROFILE"}</small><h3>{selected.name}</h3><p>{selected.awayTeam?"Temporary restricted access for field operation and borrowed stations.":selected.role==="administrator"?"Full identity, configuration, automation, and protected-system authority.":selected.role==="operator"?"Daily operation, automation, and roaming without protected-system authority.":"Navigation, applications, media, and personal workspace access only."}</p></span><strong>{selected.id===activeId?"ON DUTY":"STANDBY"}</strong></header><div className="operator-profile-stats"><span><b>{selected.workspace.favoriteIds.length}</b> FAVORITES</span><span><b>{selected.workspace.workstations.length}</b> DECKS</span><span><b>{selected.workspace.routines.length}</b> COMMANDS</span><span><b>{Object.keys(selected.stationPreferences).length}</b> STATIONS</span></div></section>
         <section className="operator-configuration"><header><b>IDENTITY & AUTHORITY</b><small>{canManage?"ADMINISTRATOR CONTROLS AVAILABLE":"READ ONLY FOR THIS OPERATOR"}</small></header><div><label>OPERATOR NAME<input disabled={!canManage} maxLength={48} value={selected.name} onChange={(change)=>updateOperator(selected.id,{name:change.target.value})}/></label><label>ROLE<select disabled={!canManage||selected.awayTeam} value={selected.role} onChange={(change)=>updateOperator(selected.id,{role:change.target.value as OperatorRole})}><option value="guest">GUEST</option><option value="operator">OPERATOR</option><option value="administrator">ADMINISTRATOR</option></select></label><label className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.shared} onChange={(change)=>updateOperator(selected.id,{shared:change.target.checked})}/><span><b>SHARED WORKSTATION PROFILE</b><small>Use this identity as a common household or command-terminal workspace.</small></span></label><label className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.awayTeam} onChange={(change)=>updateOperator(selected.id,{awayTeam:change.target.checked})}/><span><b>AWAY TEAM PROFILE</b><small>Force temporary Guest authority and block automation, configuration, and protected actions.</small></span></label></div><nav><input disabled={!canManage} type="password" inputMode="numeric" autoComplete="new-password" placeholder={selected.credential?"REPLACE OPERATOR PIN":"OPTIONAL NEW PIN"} value={newPin} onChange={(change)=>setNewPin(change.target.value.slice(0,64))}/><button disabled={!canManage||!newPin} onClick={()=>{void setPin(selected.id,newPin);setNewPin("");}}>{selected.credential?"REPLACE PIN":"SET PIN"}</button><button disabled={!canManage||!selected.credential} onClick={()=>void setPin(selected.id,"")}>REMOVE PIN</button><button className="danger" disabled={!canManage||selected.id===activeId||operators.length<=1} onClick={()=>deleteOperator(selected.id)}>REMOVE IDENTITY</button></nav></section>
@@ -5135,14 +5067,14 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
 
 function Version30Welcome({close,openCommissioning}:{close:()=>void;openCommissioning:()=>void}){
   const features=[
-    {code:"01",title:"SYSTEM CONTROL MATRIX",text:"Every routine system-control button now opens one consistent LCARS console instead of KDE, GNOME, Windows Settings, Task Manager, or another host utility."},
-    {code:"02",title:"WI-FI OPERATIONS",text:"Scan, enable, disable, connect, and disconnect from wireless networks with credentials kept in the active LCARS control field only."},
-    {code:"03",title:"BLUETOOTH OPERATIONS",text:"Inspect radios and devices, then pair, trust, connect, disconnect, or remove them where the platform exposes safe command controls."},
-    {code:"04",title:"NATIVE AUDIO + DISPLAYS",text:"Route audio devices and application streams, identify displays, rotate Linux outputs, or change Windows display topology without opening host settings."},
-    {code:"05",title:"SOFTWARE + ENGINEERING",text:"Review package updates, applications, processes, storage, and modules in LCARS. Protected upgrades are prepared in the embedded LCARS Terminal."},
-    {code:"06",title:"NO SILENT HANDOFFS",text:"Media selection now starts in LCARS Files, codec errors remain in the LCARS player, and module storage opens in the LCARS file workspace."},
+    {code:"01",title:"SYSTEMS IS THE MATRIX",text:"The Systems sidebar destination now opens the complete control matrix directly in the page instead of creating a separate overlay."},
+    {code:"02",title:"UNIFIED TELEMETRY",text:"CPU, GPU, memory, disk, hardware, storage, and engineering sensor data now share one responsive LCARS telemetry station."},
+    {code:"03",title:"COMPLETE HARDWARE DETAIL",text:"Per-core load, physical memory modules, GPU drivers, video memory, temperature, and display modes remain available without separate pop-ups."},
+    {code:"04",title:"ONE CONTROL SURFACE",text:"Wi-Fi, Bluetooth, audio, displays, software, processes, storage, modules, and media remain beside Telemetry in the same Systems page."},
+    {code:"05",title:"REDUNDANCY REMOVED",text:"The old Systems Diagnostic, Expanded Hardware Matrix, Storage Matrix, Engineering Console, and hardware dialogs no longer compete for space."},
+    {code:"06",title:"NATIVE ROUTING RETAINED",text:"Every Version 30.11 system-control action still stays inside LCARS, with security and emergency recovery boundaries preserved."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.11 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.11 · NATIVE SYSTEM CONTROLS</h2><p>Keep routine workstation administration inside LCARS instead of opening operating-system control panels.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openCommissioning}>OPEN SYSTEM CONTROLS</button><button autoFocus onClick={close}>BEGIN 30.11 DEVELOPMENT</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30.12 Development"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 30.12 · UNIFIED SYSTEMS COMMAND</h2><p>Telemetry and workstation control now operate as one continuous LCARS page.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openCommissioning}>OPEN SYSTEMS PAGE</button><button autoFocus onClick={close}>BEGIN 30.12 DEVELOPMENT</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

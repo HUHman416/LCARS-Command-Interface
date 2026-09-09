@@ -10,8 +10,8 @@ android {
         applicationId "com.lcars.padd"
         minSdk 26
         targetSdk 35
-        versionCode 3011001
-        versionName "30.11.0"
+        versionCode 3012001
+        versionName "30.12.0"
     }
 
     signingConfigs {

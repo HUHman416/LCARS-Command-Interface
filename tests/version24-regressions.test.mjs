@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const main=readFileSync(new URL("../desktop/main.cjs",import.meta.url),"utf8");
 const page=readFileSync(new URL("../app/page.tsx",import.meta.url),"utf8");
+const systemMatrix=readFileSync(new URL("../app/v30-system-control.tsx",import.meta.url),"utf8");
 const computerCore=readFileSync(new URL("../app/v30-core.ts",import.meta.url),"utf8");
 const css=readFileSync(new URL("../app/v24.css",import.meta.url),"utf8");
 const linux=readFileSync(new URL("../local/lcars_bridge.py",import.meta.url),"utf8");
@@ -50,9 +51,10 @@ test("Linux and Windows expose normalized graphics and memory details",()=>{
     assert.match(bridge,/"memoryTotal"/);
     assert.match(bridge,/"memoryUsed"/);
   }
-  assert.match(page,/HardwareTelemetry/);
-  assert.match(page,/memory-detail/);
-  assert.match(page,/graphics-detail/);
+  assert.match(systemMatrix,/MEMORY ARCHITECTURE/);
+  assert.match(systemMatrix,/GRAPHICS MATRIX/);
+  assert.match(systemMatrix,/memoryTotal/);
+  assert.match(systemMatrix,/temperature/);
 });
 
 test("power control suspends the whole computer on Linux and Windows",()=>{
@@ -98,6 +100,6 @@ test("portable Linux registration and Windows installer autostart are opt-in",()
 test("Current metadata and protected sleep voice intent stay aligned",()=>{
   assert.match(page,/V\$\{update\?\.current\|\|LCARS_VERSION\} · \$\{prefs\.updateChannel\.toUpperCase\(\)\}/);
   assert.match(page+computerCore,/sleep\|suspend/);
-  assert.match(linux,/LCARS_VERSION="(?:30\.11|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(windows,/LCARS_VERSION="(?:30\.11|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(linux,/LCARS_VERSION="(?:30\.12|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(windows,/LCARS_VERSION="(?:30\.12|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
 });

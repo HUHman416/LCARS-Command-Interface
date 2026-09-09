@@ -1,4 +1,4 @@
-name: Version 30.11 Native System Controls Development
+name: Version 30.12 Unified Systems Command Development
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
       - run: npm ci
       - name: Build hosted renderer
         run: npm run build
-      - name: Native controls, authoritative session, commissioning, Continuum, and regression suite
+      - name: Unified Systems, native controls, authoritative session, commissioning, Continuum, and regression suite
         run: |
           node --test tests/*.test.mjs
           python3 -m unittest discover -s tests -p 'test_*.py'
@@ -43,7 +43,7 @@ jobs:
           appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
           test -n "$appimage"
           checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          stage="release-assets/LCARS-Universal-Linux-Desktop-v30.11"
+          stage="release-assets/LCARS-Universal-Linux-Desktop-v30.12"
           mkdir -p "$stage/local" "$stage/session"
           cp "$appimage" "$stage/LCARS-Command-Interface.AppImage"
           cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run "$stage/"
@@ -53,17 +53,17 @@ jobs:
           sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" "$stage/install.sh"
           sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" "$stage/BUILD-INFO-LINUX.txt"
           chmod +x "$stage/LCARS-Command-Interface.AppImage" "$stage"/*.sh "$stage"/*.run "$stage"/*.desktop "$stage/local/lcars-recovery.sh" "$stage/session/lcars-session" "$stage/session/install-session.sh"
-          cp "$appimage" release-assets/LCARS-Command-Interface-v30.11-x86_64.AppImage
-          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.11.sh
-          chmod +x release-assets/LCARS-Linux-Integration-v30.11.sh
-          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.11.zip LCARS-Universal-Linux-Desktop-v30.11)
+          cp "$appimage" release-assets/LCARS-Command-Interface-v30.12-x86_64.AppImage
+          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v30.12.sh
+          chmod +x release-assets/LCARS-Linux-Integration-v30.12.sh
+          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v30.12.zip LCARS-Universal-Linux-Desktop-v30.12)
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.11-development-linux
+          name: LCARS-v30.12-development-linux
           path: |
-            release-assets/LCARS-Command-Interface-v30.11-x86_64.AppImage
-            release-assets/LCARS-Universal-Linux-Desktop-v30.11.zip
-            release-assets/LCARS-Linux-Integration-v30.11.sh
+            release-assets/LCARS-Command-Interface-v30.12-x86_64.AppImage
+            release-assets/LCARS-Universal-Linux-Desktop-v30.12.zip
+            release-assets/LCARS-Linux-Integration-v30.12.sh
           retention-days: 30
 
   windows:
@@ -75,8 +75,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Native Controls, Authoritative Session, Commissioning, Continuum, Media Deck, Operations Center, and Computer Core regression suite
-        run: node --test tests/version30-11-native-controls.test.mjs tests/version30-10-authoritative-session.test.mjs tests/version30-9-commissioning.test.mjs tests/version30-8-continuum.test.mjs tests/version30-7-operator-media.test.mjs tests/version30-6-operations-center.test.mjs tests/version30-5-search-fabric.test.mjs tests/version30-module-platform.test.mjs tests/version30-computer-core.test.mjs tests/version29-launcher.test.mjs tests/accessibility-css.test.mjs
+      - name: Unified Systems, Native Controls, Authoritative Session, Commissioning, Continuum, Media Deck, Operations Center, and Computer Core regression suite
+        run: node --test tests/version30-12-unified-systems.test.mjs tests/version30-11-native-controls.test.mjs tests/version30-10-authoritative-session.test.mjs tests/version30-9-commissioning.test.mjs tests/version30-8-continuum.test.mjs tests/version30-7-operator-media.test.mjs tests/version30-6-operations-center.test.mjs tests/version30-5-search-fabric.test.mjs tests/version30-module-platform.test.mjs tests/version30-computer-core.test.mjs tests/version29-launcher.test.mjs tests/accessibility-css.test.mjs
       - name: Validate Windows bridge and desktop process
         run: |
           python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_updater.py shared/lcars_extensions.py shared/lcars_documents.py shared/lcars_federation_crypto.py shared/lcars_padd.py shared/lcars_data_fabric.py
@@ -91,11 +91,11 @@ jobs:
           New-Item -ItemType Directory -Force release-assets | Out-Null
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.11.exe
+          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v30.12.exe
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.11-development-windows
-          path: release-assets/LCARS-Windows-Setup-v30.11.exe
+          name: LCARS-v30.12-development-windows
+          path: release-assets/LCARS-Windows-Setup-v30.12.exe
           retention-days: 30
 
   android:
@@ -138,11 +138,11 @@ jobs:
           test -n "$signer"
           "$signer" verify --verbose --print-certs "$apk"
           mkdir -p release-assets
-          cp "$apk" release-assets/LCARS-Mobile-Environment-v30.11-Android.apk
+          cp "$apk" release-assets/LCARS-Mobile-Environment-v30.12-Android.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v30.11-development-android
-          path: release-assets/LCARS-Mobile-Environment-v30.11-Android.apk
+          name: LCARS-v30.12-development-android
+          path: release-assets/LCARS-Mobile-Environment-v30.12-Android.apk
           retention-days: 30
 
   publish-development-release:
@@ -159,18 +159,18 @@ jobs:
       - name: Create source archive and checksums
         run: |
           set -euo pipefail
-          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.11-Source.zip HEAD
-          (cd release-assets && sha256sum LCARS-Command-Interface-v30.11-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.11.zip LCARS-Linux-Integration-v30.11.sh LCARS-Windows-Setup-v30.11.exe LCARS-Mobile-Environment-v30.11-Android.apk LCARS-Command-Interface-v30.11-Source.zip > SHA256SUMS.txt)
+          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v30.12-Source.zip HEAD
+          (cd release-assets && sha256sum LCARS-Command-Interface-v30.12-x86_64.AppImage LCARS-Universal-Linux-Desktop-v30.12.zip LCARS-Linux-Integration-v30.12.sh LCARS-Windows-Setup-v30.12.exe LCARS-Mobile-Environment-v30.12-Android.apk LCARS-Command-Interface-v30.12-Source.zip > SHA256SUMS.txt)
           (cd release-assets && sha256sum --check SHA256SUMS.txt)
-      - name: Publish Version 30.11 Native System Controls development release
+      - name: Publish Version 30.12 Unified Systems Command development release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          notes='Version 30.11 Development replaces routine host settings and utility windows with one native LCARS System Control Matrix. Existing Wi-Fi, network, Bluetooth, audio, display, software-update, process, storage, module-folder, system-monitor, and media-player buttons now stay inside LCARS. The matrix provides Wi-Fi scanning and credentials, Bluetooth inventory and supported Linux pairing controls, audio devices and application streams, safe display topology and rotation controls, package inventory, process control, drive mount controls, and internal routes to LCARS Files, Terminal, Applications, Modules, and Media. File and media error paths no longer fall back to a host player or document application. Platform-mandated security prompts, Android default-Home permission screens, and the deliberate emergency route back to the recovery desktop remain because bypassing them would reduce security or recoverability. Version 30.10 Authoritative Session, Version 30.9 Commissioning, Version 30.8 Continuum, Version 30.7 Operator Workspaces and Media Deck, Version 30.6 Operations Center, Version 30.5 Search and Data Fabric, Version 30.4 LCARS Session, Version 30.3 Module Platform, Version 30.2 Federation, and the Computer Core remain included. Version 29 remains Stable.'
-          if gh release view v30.11 >/dev/null 2>&1; then
-            gh release upload v30.11 release-assets/* --clobber
-            gh release edit v30.11 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.11 Development · Native System Controls" --notes "$notes" --prerelease
+          notes='Version 30.12 Development makes Systems one unified in-page LCARS command station. Selecting Systems now opens the embedded System Control Matrix directly instead of creating a separate overlay. A new Telemetry station replaces the former Systems Diagnostic, Expanded Hardware Matrix, Storage Matrix, Engineering Console, and CPU, memory, GPU, and disk pop-ups with one responsive page. It combines live CPU, GPU, memory, disk, per-core, physical-memory-module, graphics-driver, video-memory, temperature, display-mode, storage-topology, and engineering-sensor data while keeping Wi-Fi, network, Bluetooth, audio, display, software, process, storage, module, and media controls beside it. Duplicate storage and process surfaces were removed; the unique hardware details were retained inside Telemetry. Every Version 30.11 native-control route still lands inside this Systems page, with platform security prompts and the emergency recovery desktop preserved as explicit security and recovery boundaries. Version 30.10 Authoritative Session, Version 30.9 Commissioning, Version 30.8 Continuum, Version 30.7 Operator Workspaces and Media Deck, Version 30.6 Operations Center, Version 30.5 Search and Data Fabric, Version 30.4 LCARS Session, Version 30.3 Module Platform, Version 30.2 Federation, and the Computer Core remain included. Version 29 remains Stable.'
+          if gh release view v30.12 >/dev/null 2>&1; then
+            gh release upload v30.12 release-assets/* --clobber
+            gh release edit v30.12 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.12 Development · Unified Systems Command" --notes "$notes" --prerelease
           else
-            gh release create v30.11 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.11 Development · Native System Controls" --notes "$notes" --prerelease
+            gh release create v30.12 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 30.12 Development · Unified Systems Command" --notes "$notes" --prerelease
           fi
