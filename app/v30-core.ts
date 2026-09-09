@@ -206,7 +206,7 @@ const interpretClause = (rawClause: string, context: ComputerContext) => {
   }
 
   if (/^(?:computer\s+)?(?:status|status report|report|run diagnostics?|diagnostic report)$/.test(clause)) return { value: step("navigate", "Display Systems Status", "Open LCARS engineering and system diagnostics", "system", "safe", true), confidence: 1 };
-  if (/^(?:what can i say|command help|computer help|help with commands)\??$/.test(clause)) return { value: step("navigate", "Open command reference", "Open the offline Version 30.9 Computer command reference", "commissioning", "safe", true), confidence: 1 };
+  if (/^(?:what can i say|command help|computer help|help with commands)\??$/.test(clause)) return { value: step("navigate", "Open command reference", "Open the offline Version 30 Computer command reference", "commissioning", "safe", true), confidence: 1 };
   if (/^(?:open\s+)?hailing frequencies$/.test(clause)) return { value: step("open-center", "Open hailing frequencies", "Present the Communications Action Center", "communications", "safe", true), confidence: 1 };
   if (/^(?:what(?:'s| is)\s+)?(?:the\s+)?(?:time|date|stardate)$|^(?:display|show)\s+(?:the\s+)?(?:time|date|stardate)$/.test(clause)) return { value: step("open-center", "Display time and calendar", "Open the LCARS calendar and local date display", "calendar", "safe", true), confidence: 1 };
   if (/^(?:main\s+)?viewer(?:\s+on)?$|^(?:display|show)\s+(?:the\s+)?main viewer$/.test(clause)) return { value: step("navigate", "Activate main viewer", "Return to the LCARS Status overview", "overview", "safe", true), confidence: 1 };

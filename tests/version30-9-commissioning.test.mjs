@@ -23,7 +23,7 @@ test("offline command help is searchable and the Computer can open it",async()=>
   assert.equal(plan.steps[0].target,"commissioning");
 });
 
-test("Version 30.9 removes Browser Station and continuously numbers the full desktop rail",async()=>{
+test("Version 30.10 removes Browser Station and continuously numbers the full desktop rail",async()=>{
   const [page,desktop,styles,continuum]=await Promise.all([source("../app/page.tsx"),source("../desktop/main.cjs"),source("../app/globals.css"),source("../app/v30-continuum.ts")]);
   assert.match(page,/\["commissioning", "09", "COMMISSION"\]/);
   assert.match(page,/taskRailNumber=String\(visibleNav\.length\+customPages\.length\+1\)/);
@@ -50,9 +50,9 @@ test("Commissioning integrates trust, diagnostics, bounded retention, and resume
 
 test("development and stable workflows are separately versioned and signed",async()=>{
   const [development,stable,pkg,gradle]=await Promise.all([source("../.github/workflows/v30-development.yml"),source("../.github/workflows/v30-stable.yml"),source("../package.json"),source("../mobile/android/app/build.gradle")]);
-  assert.equal(JSON.parse(pkg).version,"30.9.0-rc.1");
-  assert.match(gradle,/versionCode 309001/);
-  assert.match(development,/gh release (?:view|create) v30\.9/);
+  assert.equal(JSON.parse(pkg).version,"30.10.0-dev.1");
+  assert.match(gradle,/versionCode 3010001/);
+  assert.match(development,/gh release (?:view|create) v30\.10/);
   assert.match(development,/--prerelease/);
   assert.match(stable,/branches: \[30-stable\]/);
   assert.match(stable,/:app:assembleRelease/);

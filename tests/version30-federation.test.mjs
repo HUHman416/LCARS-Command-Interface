@@ -4,19 +4,19 @@ import test from "node:test";
 
 const source = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
-test("Version 30.9 package and release channel are aligned", async () => {
+test("Version 30.10 package and release channel are aligned", async () => {
   const [pkg, workflow, page, android] = await Promise.all([
     source("../package.json"),
     source("../.github/workflows/v30-development.yml"),
     source("../app/page.tsx"),
     source("../mobile/android/app/build.gradle"),
   ]);
-  assert.equal(JSON.parse(pkg).version, "30.9.0-rc.1");
-  assert.match(workflow, /Version 30\.9 Commissioning and Stable Readiness RC/);
-  assert.match(workflow, /gh release (?:view|create) v30\.9/);
-  assert.match(page, /const LCARS_VERSION="30\.9"/);
-  assert.match(android, /versionCode 309001/);
-  assert.match(android, /versionName "30\.9\.0"/);
+  assert.equal(JSON.parse(pkg).version, "30.10.0-dev.1");
+  assert.match(workflow, /Version 30\.10 Authoritative Session Development/);
+  assert.match(workflow, /gh release (?:view|create) v30\.10/);
+  assert.match(page, /const LCARS_VERSION="30\.10"/);
+  assert.match(android, /versionCode 3010001/);
+  assert.match(android, /versionName "30\.10\.0"/);
 });
 
 test("Federation server exposes discovery, durable identity, policy, and encrypted queues", async () => {

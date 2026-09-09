@@ -59,10 +59,10 @@ class UpdaterChannelTests(unittest.TestCase):
         self.assertFalse(after["available"])
 
     def test_version_30_8_1_can_receive_version_30_9_release_candidate(self):
-        release={"tag_name":"v30.9","draft":False,"prerelease":True,"html_url":"https://github.com/example/releases/v30.9","assets":[]}
+        release={"tag_name":"v30.10","draft":False,"prerelease":True,"html_url":"https://github.com/example/releases/v30.10","assets":[]}
         with patch.object(updater,"_release_for_channel",return_value=release):
             before=updater.check_update("30.8.1","linux","development")
-            after=updater.check_update("30.9","linux","development")
+            after=updater.check_update("30.10","linux","development")
         self.assertTrue(before["available"])
         self.assertFalse(after["available"])
 

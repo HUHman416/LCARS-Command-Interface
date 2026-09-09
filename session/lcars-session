@@ -21,10 +21,21 @@ PY
 }
 
 base_desktop="$(read_setting baseDesktop auto)"
-kiosk="$(read_setting kiosk false)"
+legacy_kiosk="$(read_setting kiosk false)"
+authoritative="$(read_setting authoritative "$legacy_kiosk")"
 crash_recovery="$(read_setting crashRecovery true)"
 safe_after_failure="$(read_setting safeModeOnFailure true)"
 appimage="${LCARS_EXECUTABLE:-$HOME/.local/opt/lcars-command-interface/LCARS-Command-Interface.AppImage}"
+
+restore_shell() {
+  [[ "$authoritative" == 1 ]] || return 0
+  if command -v plasmashell >/dev/null 2>&1 && ! pgrep -x plasmashell >/dev/null 2>&1; then
+    if ! command -v systemctl >/dev/null 2>&1 || ! systemctl --user start plasma-plasmashell.service >/dev/null 2>&1; then
+      nohup plasmashell >/dev/null 2>&1 &
+    fi
+  fi
+}
+trap restore_shell EXIT
 
 choose_desktop() {
   local wanted="$base_desktop"
@@ -59,13 +70,15 @@ fi
 
 export LCARS_SESSION=1
 export LCARS_SESSION_KIND="${session_kind#--}"
-export LCARS_SESSION_KIOSK="$kiosk"
+export LCARS_SESSION_AUTHORITATIVE="$authoritative"
+export LCARS_SESSION_KIOSK="$authoritative"
 "$desktop_command" &
 desktop_pid=$!
 
 # The ordinary desktop is intentionally started underneath LCARS. It provides
 # Wayland/X11, window management, panels for the escape route, and a usable
-# fallback if LCARS cannot start. Kiosk mode asks LCARS to hide those panels.
+# fallback if LCARS cannot start. Authoritative mode asks LCARS to own the
+# visible shell while keeping that desktop available for emergency recovery.
 for _ in $(seq 1 80); do
   kill -0 "$desktop_pid" 2>/dev/null || exit 1
   [[ -n "${WAYLAND_DISPLAY:-}${DISPLAY:-}" ]] && break
@@ -76,13 +89,16 @@ attempt=0
 safe=0
 while kill -0 "$desktop_pid" 2>/dev/null; do
   args=(--lcars-session)
-  [[ "$kiosk" == 1 ]] && args+=(--lcars-kiosk)
+  [[ "$authoritative" == 1 ]] && args+=(--lcars-authoritative)
   [[ "$safe" == 1 ]] && args+=(--lcars-safe)
   started=$(date +%s)
-  "$appimage" "${args[@]}" || true
+  set +e
+  "$appimage" "${args[@]}"
+  lcars_status=$?
+  set -e
   ended=$(date +%s)
   [[ -f "$escape_file" ]] && break
-  [[ "$kiosk" == 1 ]] && break
+  [[ "$lcars_status" == 0 ]] && break
   (( attempt += 1 ))
   if (( ended - started > 45 )); then attempt=0; fi
   if [[ "$crash_recovery" != 1 || "$attempt" -ge 3 ]]; then break; fi
@@ -90,6 +106,7 @@ while kill -0 "$desktop_pid" 2>/dev/null; do
   sleep 1
 done
 
-# Never strand the operator. Leaving or repeatedly crashing LCARS reveals the
-# already-running normal desktop; ending that desktop ends the login session.
+# Never strand the operator. A deliberate exit, emergency escape, or exhausted
+# crash-recovery budget reveals the already-running normal desktop.
+restore_shell
 wait "$desktop_pid"

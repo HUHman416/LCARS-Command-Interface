@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.9%20RC-b69de8" alt="Development Version 30.9 Release Candidate">
+  <img src="https://img.shields.io/badge/development-v30.10-b69de8" alt="Development Version 30.10">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -35,7 +35,17 @@
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
 
 > [!NOTE]
-> **Version 30.9 Release Candidate is the final commissioning pass before Version 30 Stable.** It adds one readiness, trust, privacy, command-help, and resilience center; makes every desktop sidebar number continuous through custom pages, Tasks, and Power; and retires the Browser Station experiment completely. Version 29 remains Stable.
+> **Version 30.10 Development begins the authoritative-session phase of Version 30.** It extends the existing optional Linux login session with opt-in shell ownership, an actual emergency escape shortcut, deck-aware task routing, continuous window placement, and corrected deliberate-exit versus crash recovery. Version 29 remains Stable.
+
+## 🧪 Version 30.10 Development — Authoritative LCARS Session
+
+- Audits the proposed self-sufficient desktop work against the existing implementation before adding code; the detailed findings are in [the Version 30.10 session audit](docs/VERSION-30.10-SESSION-AUDIT.md).
+- Keeps the existing login-session installer, Task Rail, application launcher, lock and power controls, LCARS decks, saved Workstations, multi-monitor tools, safe mode, crash recovery, and normal-desktop fallback.
+- Adds an explicit **Authoritative LCARS session** option that hides the supported host shell while leaving the compositor and applications available underneath.
+- Adds a real **Meta+Shift+Escape** emergency route from the desktop process to the LCARS recovery bridge.
+- Distinguishes a deliberate clean exit from an unexpected process failure, so clean exits reveal the recovery desktop while crashes use the bounded restart and safe-mode sequence.
+- Adds direct Task Rail routing to numbered LCARS decks and optional continuous enforcement of title/application-class placement rules.
+- Clearly leaves desktop notification and security portals as later work rather than claiming LCARS already replaces them.
 
 ## 🧪 Version 30.9 RC — Commissioning & Stable Readiness
 

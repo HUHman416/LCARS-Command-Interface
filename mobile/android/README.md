@@ -59,6 +59,10 @@ Version 30.2 adds the native Federation transport while retaining the complete V
 
 Version 30.8 adds the Continuum role engine. Operators can select Handheld Home, Desktop Companion, Media Controller, Communications Panel, Notification Console, Second-Screen Monitor, Presentation PADD, or Docked Command Station, or let Automatic mode recommend a role from orientation, screen class, an external display, docking state, and the active station link. Manual choices remain in effect until Automatic mode is restored, and the role currently in use is reported to the trusted desktop station.
 
+## Version 30.10 Development
+
+Version 30.10 keeps the complete signed Android Home, Companion, Federation, roaming-profile, one-tap-update, and Continuum feature set while the desktop begins its authoritative Linux session phase. No duplicate Android launcher or Companion system is introduced in this milestone.
+
 ## Version 30.9 Release Candidate
 
 Version 30.9 is the final commissioning pass before Version 30 Stable. The Android package keeps the complete signed Version 29 Home environment, secure Federation, roaming operator workspaces, one-tap verified updates, and every Version 30.8 Continuum role. The desktop station now provides one Commissioning and Trust Center for integration readiness, offline command help, privacy and authority review, recovery, and bounded long-run storage. The experimental Browser Station has been retired; existing system browsers and profiles are left untouched.

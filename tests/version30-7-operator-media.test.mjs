@@ -62,7 +62,7 @@ test("Version 30.8 retains the operator center, integrated player, and secure ro
   assert.match(padd,/_scrub_profile_value/);
   assert.match(padd,/kind not in \{"page", "clipboard", "notice", "file", "profile"\}/);
   assert.match(android,/roaming-profile-v30-7/);
-  assert.equal(JSON.parse(pkg).version,"30.9.0-rc.1");
-  assert.match(gradle,/versionCode 309001/);
-  assert.match(workflow,/gh release (?:view|create) v30\.9/);
+  assert.equal(JSON.parse(pkg).version,"30.10.0-dev.1");
+  assert.match(gradle,/versionCode 3010001/);
+  assert.match(workflow,/gh release (?:view|create) v30\.10/);
 });
