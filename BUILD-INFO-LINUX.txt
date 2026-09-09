@@ -1,8 +1,8 @@
-LCARS Universal Linux Desktop v30.13 Development
-Application version: 30.13.0-dev.1
+LCARS Universal Linux Desktop v30.14 Development
+Application version: 30.14.0-dev.1
 AppImage SHA-256: GENERATED-DURING-PACKAGING
 
 The installer verifies this checksum before replacing the installed application.
 The optional LCARS login session is installed only from Settings with explicit authorization. It retains a normal-desktop escape route.
-Version 30.13 keeps every System Control Matrix section on a compact horizontal rail, adds reliable overflow navigation, and reduces Telemetry page height while retaining Version 30.12 unified systems, Version 30.11 native controls, and emergency recovery.
+Version 30.14 completes the Systems layout audit with a cleaner single-label rail, safe page overflow, compact horizontal records across all eleven sections, and focused fixes for Telemetry, Processes, and Storage while retaining all earlier Version 30 capabilities.
 Run install-autostart.sh to register a portable AppImage in application search and optionally enable login startup without sudo.

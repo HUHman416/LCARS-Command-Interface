@@ -3284,9 +3284,11 @@ body {
   box-shadow: 0 0 0 1px var(--pink);
 }
 .page-media,
-.page-settings {
+.page-settings,
+.page-system {
   overflow-y: auto !important;
-  padding-bottom: 44px;
+  padding-bottom: 72px;
+  overscroll-behavior-y: contain;
   scrollbar-color: var(--accent) #17131a;
   scrollbar-width: thin;
 }
@@ -3371,7 +3373,8 @@ body {
     grid-template-columns: 1fr !important;
   }
   .page-media,
-  .page-settings {
+  .page-settings,
+  .page-system {
     padding-bottom: 70px;
   }
 }

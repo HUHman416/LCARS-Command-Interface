@@ -10,7 +10,7 @@ test("Systems sections occupy one horizontal control deck",async()=>{
   assert.match(matrix,/className="system-control-tabs"/);
   assert.match(css,/grid-template-columns:repeat\(11,minmax\(52px,1fr\)\)/);
   assert.match(css,/overflow-x:auto/);
-  const current=css.split("/* Version 30.13 · horizontal Systems navigation")[1].split("/* Version 30.6 · Universal")[0];
+  const current=css.split("/* Version 30.13 · horizontal Systems navigation")[1].split("/* Version 30.14 · complete Systems layout and fit audit")[0];
   assert.doesNotMatch(current,/system-control-tabs\{[^}]*grid-template-columns:repeat\(6/);
 });
 
@@ -40,16 +40,16 @@ test("Telemetry uses horizontal space before increasing page height",async()=>{
   assert.match(css,/@media\(max-width:900px\)[\s\S]*telemetry-detail-grid\{grid-template-columns:1fr\}/);
 });
 
-test("Version 30.13 development packages use a new updater-visible identity",async()=>{
+test("Version 30.14 development packages use a new updater-visible identity",async()=>{
   const [pkg,gradle,workflow,page,padd]=await Promise.all([source("../package.json"),source("../mobile/android/app/build.gradle"),source("../.github/workflows/v30-development.yml"),source("../app/page.tsx"),source("../padd/app.js")]);
-  assert.equal(JSON.parse(pkg).version,"30.13.0-dev.1");
-  assert.match(gradle,/versionCode 3013001/);
-  assert.match(gradle,/versionName "30\.13\.0"/);
-  assert.match(page,/const LCARS_VERSION="30\.13"/);
-  assert.match(padd,/VERSION 30\.13 DEVELOPMENT/);
-  assert.match(workflow,/Version 30\.13 Horizontal Systems Navigation Development/);
-  for(const asset of ["LCARS-Command-Interface-v30.13-x86_64.AppImage","LCARS-Universal-Linux-Desktop-v30.13.zip","LCARS-Linux-Integration-v30.13.sh","LCARS-Windows-Setup-v30.13.exe","LCARS-Mobile-Environment-v30.13-Android.apk","LCARS-Command-Interface-v30.13-Source.zip"]){
+  assert.equal(JSON.parse(pkg).version,"30.14.0-dev.1");
+  assert.match(gradle,/versionCode 3014001/);
+  assert.match(gradle,/versionName "30\.14\.0"/);
+  assert.match(page,/const LCARS_VERSION="30\.14"/);
+  assert.match(padd,/VERSION 30\.14 DEVELOPMENT/);
+  assert.match(workflow,/Version 30\.14 Systems Layout Audit Development/);
+  for(const asset of ["LCARS-Command-Interface-v30.14-x86_64.AppImage","LCARS-Universal-Linux-Desktop-v30.14.zip","LCARS-Linux-Integration-v30.14.sh","LCARS-Windows-Setup-v30.14.exe","LCARS-Mobile-Environment-v30.14-Android.apk","LCARS-Command-Interface-v30.14-Source.zip"]){
     assert.ok(workflow.includes(asset),asset);
   }
-  assert.match(workflow,/gh release (?:view|create) v30\.13/);
+  assert.match(workflow,/gh release (?:view|create) v30\.14/);
 });

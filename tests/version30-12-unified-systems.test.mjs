@@ -49,14 +49,14 @@ test("unified Systems geometry is responsive and distinctly LCARS",async()=>{
 
 test("unified Systems remains included in the current development identity",async()=>{
   const [pkg,gradle,workflow,page,padd]=await Promise.all([source("../package.json"),source("../mobile/android/app/build.gradle"),source("../.github/workflows/v30-development.yml"),source("../app/page.tsx"),source("../padd/app.js")]);
-  assert.equal(JSON.parse(pkg).version,"30.13.0-dev.1");
-  assert.match(gradle,/versionCode 3013001/);
-  assert.match(gradle,/versionName "30\.13\.0"/);
-  assert.match(page,/const LCARS_VERSION="30\.13"/);
-  assert.match(padd,/VERSION 30\.13 DEVELOPMENT/);
-  assert.match(workflow,/Version 30\.13 Horizontal Systems Navigation Development/);
-  for(const asset of ["LCARS-Command-Interface-v30.13-x86_64.AppImage","LCARS-Universal-Linux-Desktop-v30.13.zip","LCARS-Linux-Integration-v30.13.sh","LCARS-Windows-Setup-v30.13.exe","LCARS-Mobile-Environment-v30.13-Android.apk","LCARS-Command-Interface-v30.13-Source.zip"]){
+  assert.equal(JSON.parse(pkg).version,"30.14.0-dev.1");
+  assert.match(gradle,/versionCode 3014001/);
+  assert.match(gradle,/versionName "30\.14\.0"/);
+  assert.match(page,/const LCARS_VERSION="30\.14"/);
+  assert.match(padd,/VERSION 30\.14 DEVELOPMENT/);
+  assert.match(workflow,/Version 30\.14 Systems Layout Audit Development/);
+  for(const asset of ["LCARS-Command-Interface-v30.14-x86_64.AppImage","LCARS-Universal-Linux-Desktop-v30.14.zip","LCARS-Linux-Integration-v30.14.sh","LCARS-Windows-Setup-v30.14.exe","LCARS-Mobile-Environment-v30.14-Android.apk","LCARS-Command-Interface-v30.14-Source.zip"]){
     assert.ok(workflow.includes(asset),asset);
   }
-  assert.match(workflow,/gh release (?:view|create) v30\.13/);
+  assert.match(workflow,/gh release (?:view|create) v30\.14/);
 });

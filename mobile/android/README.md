@@ -59,9 +59,9 @@ Version 30.2 adds the native Federation transport while retaining the complete V
 
 Version 30.8 adds the Continuum role engine. Operators can select Handheld Home, Desktop Companion, Media Controller, Communications Panel, Notification Console, Second-Screen Monitor, Presentation PADD, or Docked Command Station, or let Automatic mode recommend a role from orientation, screen class, an external display, docking state, and the active station link. Manual choices remain in effect until Automatic mode is restored, and the role currently in use is reported to the trusted desktop station.
 
-## Version 30.13 Development
+## Version 30.14 Development
 
-Version 30.13 keeps the complete signed Android Home, Companion, Federation, roaming-profile, one-tap-update, and Continuum feature set while the desktop Systems page unifies the native control matrix with complete hardware telemetry. Android default-Home selection, unknown-source permission, and package installation remain operating-system security surfaces by design; no duplicate launcher or Companion system is introduced.
+Version 30.14 keeps the complete signed Android Home, Companion, Federation, roaming-profile, one-tap-update, and Continuum feature set while the desktop Systems page unifies the native control matrix with complete hardware telemetry. Android default-Home selection, unknown-source permission, and package installation remain operating-system security surfaces by design; no duplicate launcher or Companion system is introduced.
 
 ## Version 30.9 Release Candidate
 

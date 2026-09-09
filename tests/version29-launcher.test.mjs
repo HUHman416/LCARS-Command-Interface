@@ -21,11 +21,11 @@ const workflow=read("../.github/workflows/v29-development.yml");
 const stableWorkflow=read("../.github/workflows/v29-stable.yml");
 
 test("current development identity advances without changing the Android package",()=>{
-  assert.equal(packageJson.version,"30.13.0-dev.1");
-  assert.match(page,/LCARS_VERSION="30\.13"/);
-  assert.match(page,/30\.13 DEV/);
-  assert.match(gradle,/versionCode 3013001/);
-  assert.match(gradle,/versionName "30\.13\.0"/);
+  assert.equal(packageJson.version,"30.14.0-dev.1");
+  assert.match(page,/LCARS_VERSION="30\.14"/);
+  assert.match(page,/30\.14 DEV/);
+  assert.match(gradle,/versionCode 3014001/);
+  assert.match(gradle,/versionName "30\.14\.0"/);
   assert.match(gradle,/applicationIdSuffix "\.dev"/);
   assert.match(gradle,/versionNameSuffix "-development"/);
   assert.match(gradle,/signingConfig signingConfigs\.release/);

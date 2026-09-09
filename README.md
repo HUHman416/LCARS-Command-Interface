@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.13-b69de8" alt="Development Version 30.13">
+  <img src="https://img.shields.io/badge/development-v30.14-b69de8" alt="Development Version 30.14">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -35,14 +35,15 @@
 > **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
 
 > [!NOTE]
-> **Version 30.13 Development makes the unified Systems station faster to navigate.** Its eleven sections remain on one horizontal LCARS rail, compact windows use abbreviated labels instead of stacked rows, and dense telemetry uses the available width before extending the page. Version 29 remains Stable.
+> **Version 30.14 Development completes the unified Systems layout audit.** Its eleven sections use a cleaner single-label horizontal rail, every panel is allowed to extend safely instead of being clipped, and dense records use responsive columns to minimize scrolling. Version 29 remains Stable.
 
-## 🧪 Version 30.13 Development — Horizontal Systems Navigation
+## 🧪 Version 30.14 Development — Systems Layout Audit
 
-- Keeps all eleven System Control Matrix tabs in one horizontal strip instead of stacking them into vertical rows.
-- Fits the complete strip across ordinary desktop widths, then uses compact codes and a scrollable rail only when the window is genuinely too narrow.
+- Rebuilds all eleven System Control Matrix tabs as clean LCARS segments that show one label at a time: full names at desktop widths and compact codes only when space is limited.
+- Replaces the awkward curved masthead corner with a square LCARS junction and gives the previous/next controls matching end-cap geometry.
 - Adds visible previous/next controls, keyboard arrow navigation, touch/pointer scrolling, and automatic active-tab reveal so no section can become unreachable.
-- Shortens the Systems masthead and toolbar, keeps Telemetry two-column at common compact widths, and distributes core, memory, graphics, sensor, and storage records horizontally to reduce page scrolling.
+- Makes the Systems page itself safely scrollable beneath the fixed desktop shell, with clearance for the command tray, so Telemetry, Processes, Storage, and long inventories cannot be cut off.
+- Audits every Systems panel for horizontal fit: network, wireless, Bluetooth, audio, displays, processes, storage, and modules use responsive record columns; Software uses paired inventory columns; Telemetry packs more processor cores into each row.
 - Embeds the complete **LCARS System Control Matrix** directly in the Systems sidebar page; it no longer opens as a separate window or overlay.
 - Rebuilds Telemetry as the first matrix station, combining live CPU, GPU, memory, disk, per-core, memory-module, graphics-driver, video-memory, temperature, display-mode, storage, and engineering-sensor data.
 - Removes the duplicate Systems Diagnostic, Expanded Hardware Matrix, Storage Matrix, Engineering Console, and hardware-detail pop-ups while retaining their unique information in the unified page.
