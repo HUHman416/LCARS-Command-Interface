@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export type SystemControlArea = "telemetry" | "network" | "wifi" | "bluetooth" | "audio" | "displays" | "software" | "processes" | "storage" | "modules" | "media";
 
@@ -31,6 +31,7 @@ const bytes=(value:number)=>value>=1099511627776?(value/1099511627776).toFixed(1
 
 export function SystemControlCenter({initialArea,platform,close=()=>{},embedded=false,notify,openPage,openApplications,openFiles,prepareTerminal}:{initialArea:SystemControlArea;platform:string;close?:()=>void;embedded?:boolean;notify:(text:string,kind?:"info"|"error")=>void;openPage:(page:string)=>void;openApplications:()=>void;openFiles:(path:string)=>void;prepareTerminal:(command:string)=>void}){
   const [area,setArea]=useState<SystemControlArea>(initialArea),[busy,setBusy]=useState(""),[connectivity,setConnectivity]=useState<Connectivity>(emptyConnectivity),[displays,setDisplays]=useState<Display[]>([]),[devices,setDevices]=useState<AudioDevice[]>([]),[streams,setStreams]=useState<Stream[]>([]),[master,setMaster]=useState({volume:0,muted:false}),[processes,setProcesses]=useState<Process[]>([]),[drives,setDrives]=useState<Drive[]>([]),[software,setSoftware]=useState<Software|null>(null),[apps,setApps]=useState<AppEntry[]>([]),[modules,setModules]=useState<ModuleEntry[]>([]),[locations,setLocations]=useState<Record<string,string>>({}),[selectedWifi,setSelectedWifi]=useState(""),[wifiSecret,setWifiSecret]=useState(""),[query,setQuery]=useState(""),[armedProcess,setArmedProcess]=useState(0),[meters,setMeters]=useState<Meter[]>([]),[details,setDetails]=useState<SystemDetails>({}),[sensors,setSensors]=useState<Sensor[]>([]),[telemetryStamp,setTelemetryStamp]=useState("");
+  const tabRail=useRef<HTMLElement|null>(null);
   const get=async(path:string)=>{const response=await fetch("http://127.0.0.1:8765"+path),result=await response.json();if(!response.ok||result.error)throw new Error(result.error||"Local Core request failed");return result;};
   const post=async(path:string,data:Record<string,unknown>)=>{const response=await fetch("http://127.0.0.1:8765"+path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)}),result=await response.json();if(!response.ok||result.ok===false||result.error)throw new Error(result.error||result.message||"Local Core command failed");return result;};
   const refresh=async(forceSoftware=false)=>{setBusy("refresh");const results=await Promise.allSettled([get("/api/connectivity"),get("/api/displays"),get("/api/audio-devices"),get("/api/audio"),get("/api/media"),get("/api/engineering"),get("/api/storage"),get("/api/software"+(forceSoftware?"?refresh=1":"")),get("/api/apps"),get("/api/extensions"),get("/api/system-locations"),get("/api/system"),get("/api/system-details")]);
@@ -38,6 +39,7 @@ export function SystemControlCenter({initialArea,platform,close=()=>{},embedded=
   // The matrix is mounted fresh for each open action; its initial inventory is intentionally requested once.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(()=>{const timer=window.setTimeout(()=>void refresh(),0);return()=>window.clearTimeout(timer);},[]);
+  useEffect(()=>{tabRail.current?.querySelector<HTMLElement>(`[data-system-area="${area}"]`)?.scrollIntoView({behavior:"smooth",block:"nearest",inline:"nearest"});},[area]);
   const connectivityCommand=async(category:"wifi"|"bluetooth",action:string,id="")=>{setBusy(`${category}:${action}:${id}`);try{const result=await post("/api/connectivity-action",{category,action,id,secret:category==="wifi"?wifiSecret:""});if(result.state)setConnectivity(result.state);else setConnectivity(await get("/api/connectivity"));setWifiSecret("");notify(result.message||`${category} ${action} completed`);}catch(error){notify(error instanceof Error?error.message:"Connectivity command failed","error");}finally{setBusy("");}};
   const displayCommand=async(action:string,display?:Display)=>{setBusy(`display:${action}:${display?.id||""}`);try{const result=await post("/api/display-config",{action,id:display?.id||"",name:display?.name||""});setDisplays(result.displays||await get("/api/displays").then(value=>value.displays||[]));notify(result.message||"Display configuration changed");}catch(error){notify(error instanceof Error?error.message:"Display command failed","error");}finally{setBusy("");}};
   const simpleCommand=async(path:string,data:Record<string,unknown>,message:string,after:()=>Promise<void>)=>{setBusy(message);try{const result=await post(path,data);notify(result.message||message);await after();}catch(error){notify(error instanceof Error?error.message:message,"error");}finally{setBusy("");}};
@@ -45,10 +47,16 @@ export function SystemControlCenter({initialArea,platform,close=()=>{},embedded=
   const visibleApps=useMemo(()=>apps.filter(item=>(item.name+" "+item.comment).toLowerCase().includes(query.toLowerCase())).slice(0,80),[apps,query]);
   const visibleProcesses=useMemo(()=>processes.filter(item=>item.name.toLowerCase().includes(query.toLowerCase())).slice(0,80),[processes,query]);
   const memory=details.memory,graphics=details.graphics||[],cores=details.cpu?.cores||[];
+  const selectArea=(next:SystemControlArea)=>{setArea(next);setQuery("");};
+  const stepArea=(direction:-1|1)=>{const current=areas.findIndex(item=>item[0]===area),next=(current+direction+areas.length)%areas.length;selectArea(areas[next][0]);};
   return <div className={embedded?"system-control-page":"system-control-backdrop"} role="presentation">
     <section className={`system-control-center${embedded?" embedded":""}`} role={embedded?"region":"dialog"} aria-modal={embedded?undefined:true} aria-label="LCARS System Control Matrix">
-      <header><div><small>VERSION 30.12 · UNIFIED SYSTEMS STATION</small><h2>LCARS SYSTEMS COMMAND</h2><p>Live telemetry, hardware inventory, and workstation controls in one LCARS page.</p></div>{!embedded&&<button onClick={close}>CLOSE ×</button>}</header>
-      <nav className="system-control-tabs">{areas.map(([id,code,label],index)=><button className={area===id?"active":""} onClick={()=>{setArea(id);setQuery("");}} key={id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{code}</small><b>{label}</b></span></button>)}</nav>
+      <header><div><small>VERSION 30.13 · HORIZONTAL SYSTEMS NAVIGATION</small><h2>LCARS SYSTEMS COMMAND</h2><p>Live telemetry, hardware inventory, and workstation controls in one compact LCARS page.</p></div>{!embedded&&<button onClick={close}>CLOSE ×</button>}</header>
+      <div className="system-control-tab-deck">
+        <button className="system-control-tab-step previous" aria-label="Previous Systems section" title="Previous Systems section" onClick={()=>stepArea(-1)}>‹</button>
+        <nav ref={tabRail} className="system-control-tabs" aria-label="Systems sections" onKeyDown={event=>{if(event.key==="ArrowLeft"){event.preventDefault();stepArea(-1);}if(event.key==="ArrowRight"){event.preventDefault();stepArea(1);}}}>{areas.map(([id,code,label],index)=><button type="button" data-system-area={id} aria-current={area===id?"page":undefined} aria-label={`${String(index+1).padStart(2,"0")} ${label}`} title={label} className={area===id?"active":""} onClick={()=>selectArea(id)} key={id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{code}</small><b>{label}</b></span></button>)}</nav>
+        <button className="system-control-tab-step next" aria-label="Next Systems section" title="Next Systems section" onClick={()=>stepArea(1)}>›</button>
+      </div>
       <div className="system-control-toolbar"><b>{areas.find(item=>item[0]===area)?.[2]}</b><span>{platform}</span><button disabled={Boolean(busy)} onClick={()=>void refresh(area==="software")}>{busy?"PROCESSING…":"REFRESH MATRIX"}</button></div>
       <div className="system-control-body">
         {area==="telemetry"&&<section className="control-telemetry">

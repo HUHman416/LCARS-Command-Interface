@@ -49,12 +49,12 @@ test("Linux and Windows bridges expose native controls without desktop-settings 
   assert.match(audit,/Windows Bluetooth is intentionally inventory-only/);
 });
 
-test("Version 30.12 development identities retain Version 30.11 native controls",async()=>{
+test("Version 30.13 development identities retain Version 30.11 native controls",async()=>{
   const [pkg,gradle,workflow,padd]=await Promise.all([source("../package.json"),source("../mobile/android/app/build.gradle"),source("../.github/workflows/v30-development.yml"),source("../padd/app.js")]);
-  assert.equal(JSON.parse(pkg).version,"30.12.0-dev.1");
-  assert.match(gradle,/versionCode 3012001/);
-  assert.match(gradle,/versionName "30\.12\.0"/);
-  assert.match(workflow,/v30\.12/);
-  assert.match(workflow,/Unified Systems Command Development/);
-  assert.match(padd,/VERSION 30\.12 DEVELOPMENT/);
+  assert.equal(JSON.parse(pkg).version,"30.13.0-dev.1");
+  assert.match(gradle,/versionCode 3013001/);
+  assert.match(gradle,/versionName "30\.13\.0"/);
+  assert.match(workflow,/v30\.13/);
+  assert.match(workflow,/Horizontal Systems Navigation Development/);
+  assert.match(padd,/VERSION 30\.13 DEVELOPMENT/);
 });
