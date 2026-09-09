@@ -10,15 +10,14 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/stable-v29-ff9866" alt="Stable Version 29">
-  <img src="https://img.shields.io/badge/development-v30.14-b69de8" alt="Development Version 30.14">
+  <img src="https://img.shields.io/badge/stable-v30-ff9866" alt="Stable Version 30">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
 </p>
 
 <p align="center">
-  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v29"><strong>🚀 Download Version 29</strong></a>
+  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v30"><strong>🚀 Download Version 30</strong></a>
   ·
   <a href="https://github.com/HUHman416/LCARS-Command-Interface/issues">🐞 Report an issue</a>
   ·
@@ -26,18 +25,31 @@
 </p>
 
 > [!IMPORTANT]
-> **Version 29 is the current stable release for Linux, Windows, and Android.** LCARS runs as its own Electron desktop application, while the Android package can operate as both a paired Companion and an optional Home replacement. It does not require Cloudflare, a hosted website, or an external browser.
+> **Version 30 is the current stable release for Linux, Windows, and Android.** LCARS runs as its own Electron desktop application, while the Android package can operate as both a paired Companion and an optional Home replacement. It does not require Cloudflare, a hosted website, or an external browser.
 
 > [!NOTE]
 > Existing installations can update from **Updates → LCARS Interface**. Decimal releases are development milestones; Stable releases use the major version number.
 
 > [!TIP]
-> **Version 29 is the Mobile Command Environment stable release.** It combines the complete Connected Operations fleet with an optional standalone Android Home, LCARS decks, folders, widgets, Display Matrix families, independent Favorites, a Connected Station Dock, priority notifications, and verified one-tap mobile updates.
+> **Version 30 is the Computer Core and Federation stable release.** It combines local offline voice, trusted multi-station operations, a native System Control Matrix, an optional Linux LCARS session, universal search and data handoff, operator workspaces, integrated media, Android Continuum, and the final complete viewport-fit audit.
 
 > [!NOTE]
-> **Version 30.14 Development completes the unified Systems layout audit.** Its eleven sections use a cleaner single-label horizontal rail, every panel is allowed to extend safely instead of being clipped, and dense records use responsive columns to minimize scrolling. Version 29 remains Stable.
+> **The Stable fit pass checks every numbered page and major window.** Terminal controls, Systems panels, Page Peeks, notices, the system tray, and handheld portrait/landscape layouts remain readable and reachable inside the live display.
 
-## 🧪 Version 30.14 Development — Systems Layout Audit
+## 🚀 Version 30 Stable — Computer Core, Federation, and an Authoritative LCARS Environment
+
+- Adds the local-first Computer Core with bundled offline whisper.cpp voice recognition, optional “Computer” wake word, configurable vocal authorization, direct execution mode, alert commands, media commands, and clear spoken or compact audio acknowledgement.
+- Adds encrypted Federation discovery and trust, cross-station page and data handoff, multi-station controls, Android Companion/Home roles, and eight adaptive Continuum layouts.
+- Adds the signed declarative Module Platform, Universal Search and Data Fabric, one chronological Operations Center, and protected Operator Workspaces with guest, operator, administrator, and Away Team roles.
+- Adds an opt-in Linux LCARS login session with decks, window rules, multi-monitor Workstations, kiosk mode, crash recovery, safe mode, and a normal-desktop escape route.
+- Keeps routine Wi-Fi, Bluetooth, audio, display, software, process, storage, module, and media operations inside the native LCARS System Control Matrix.
+- Plays local audio and video inside LCARS with seek, volume, speed, keyboard controls, fullscreen playback, and a fading LCARS HUD.
+- Completes the eleven-panel horizontal Systems layout and a release-wide viewport audit covering desktop, compact, phone portrait, phone landscape, dialogs, Page Peeks, notices, the system tray, and Terminal.
+- Ships signed Linux, Windows, and Android packages plus SHA-256 checksums. Android keeps the persistent signing identity and one-tap verified update flow.
+
+See [Version 30 Stable release notes](docs/VERSION-30-STABLE.md) for the complete release and verification summary.
+
+## Version 30.14 Development — Systems Layout Audit
 
 - Rebuilds all eleven System Control Matrix tabs as clean LCARS segments that show one label at a time: full names at desktop widths and compact codes only when space is limited.
 - Replaces the awkward curved masthead corner with a square LCARS junction and gives the previous/next controls matching end-cap geometry.

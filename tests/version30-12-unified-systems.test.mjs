@@ -47,16 +47,16 @@ test("unified Systems geometry is responsive and distinctly LCARS",async()=>{
   assert.match(css,/@media\(max-width:720px\)/);
 });
 
-test("unified Systems remains included in the current development identity",async()=>{
-  const [pkg,gradle,workflow,page,padd]=await Promise.all([source("../package.json"),source("../mobile/android/app/build.gradle"),source("../.github/workflows/v30-development.yml"),source("../app/page.tsx"),source("../padd/app.js")]);
-  assert.equal(JSON.parse(pkg).version,"30.14.0-dev.1");
-  assert.match(gradle,/versionCode 3014001/);
-  assert.match(gradle,/versionName "30\.14\.0"/);
-  assert.match(page,/const LCARS_VERSION="30\.14"/);
-  assert.match(padd,/VERSION 30\.14 DEVELOPMENT/);
-  assert.match(workflow,/Version 30\.14 Systems Layout Audit Development/);
-  for(const asset of ["LCARS-Command-Interface-v30.14-x86_64.AppImage","LCARS-Universal-Linux-Desktop-v30.14.zip","LCARS-Linux-Integration-v30.14.sh","LCARS-Windows-Setup-v30.14.exe","LCARS-Mobile-Environment-v30.14-Android.apk","LCARS-Command-Interface-v30.14-Source.zip"]){
+test("unified Systems remains included in the current Stable identity",async()=>{
+  const [pkg,gradle,workflow,page,padd]=await Promise.all([source("../package.json"),source("../mobile/android/app/build.gradle"),source("../.github/workflows/v30-stable.yml"),source("../app/page.tsx"),source("../padd/app.js")]);
+  assert.equal(JSON.parse(pkg).version,"30.0.0");
+  assert.match(gradle,/versionCode 3099001/);
+  assert.match(gradle,/versionName "30\.0\.0"/);
+  assert.match(page,/const LCARS_VERSION="30"/);
+  assert.match(padd,/VERSION 30 STABLE/);
+  assert.match(workflow,/Version 30 Stable/);
+  for(const asset of ["LCARS-Command-Interface-v30-x86_64.AppImage","LCARS-Universal-Linux-Desktop-v30.zip","LCARS-Linux-Integration-v30.sh","LCARS-Windows-Setup-v30.exe","LCARS-Mobile-Environment-v30-Android.apk","LCARS-Command-Interface-v30-Source.zip"]){
     assert.ok(workflow.includes(asset),asset);
   }
-  assert.match(workflow,/gh release (?:view|create) v30\.14/);
+  assert.match(workflow,/gh release (?:view|create) v30/);
 });
