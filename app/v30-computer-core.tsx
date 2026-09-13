@@ -84,7 +84,7 @@ export function ComputerCoreConsole({
   return <div className="backdrop computer-core-backdrop" onMouseDown={(event) => event.target === event.currentTarget && !running && close()}>
     <section className="computer-core-console" role="dialog" aria-modal="true" aria-label="LCARS Computer Core">
       <header className="computer-core-header">
-        <div><small>LCARS 30 STABLE · LOCAL-FIRST COMMAND PROCESSOR</small><h2>COMPUTER CORE</h2><p>Translate operator language into visible, permission-aware plans before anything changes.</p></div>
+        <div><small>LCARS 31.1 DEVELOPMENT · LOCAL-FIRST COMMAND PROCESSOR</small><h2>COMPUTER CORE</h2><p>Translate operator language into visible, permission-aware plans before anything changes.</p></div>
         <section><span className={bridge ? "online" : "standby"}><i/>LOCAL CORE {bridge ? "ONLINE" : "STANDBY"}</span><span>{activeTriggers} ACTIVE TRIGGERS</span><span>{protectedProcedures} GUARDED PROCEDURES</span><button onClick={close}>CLOSE ×</button></section>
       </header>
       <nav className="computer-core-tabs" aria-label="Computer Core areas">
@@ -106,7 +106,7 @@ export function ComputerCoreConsole({
             <span>{voiceGate ? "Protected voice plan held: repeat the command with “authorization” followed by the configured vocal code. Manual confirmation remains required." : plan.requiresConfirmation ? voiceAuthorizationSatisfied&&plan.source==="voice"?"Vocal authorization verified. The visible protected-action confirmation is still required.":"This plan contains protected operations. EXECUTE is the explicit operator confirmation." : plan.reversible ? "Every step in this plan can be reverted from the Audit panel." : "The plan is visible before execution; irreversible steps are clearly identified."}</span>
             <nav><button disabled={!plan.valid || Boolean(transmitting) || running} onClick={() => void run(true)}>{transmitting === "dry-run" ? "SIMULATING…" : "DRY RUN"}</button><button className={plan.requiresConfirmation ? "protected" : "execute"} disabled={!plan.valid || Boolean(transmitting) || running || voiceGate} onClick={() => void run(false)}>{voiceGate?"VOCAL CODE REQUIRED":transmitting === "execute" || running ? "EXECUTING…" : plan.requiresConfirmation ? "CONFIRM & EXECUTE" : "EXECUTE PLAN"}</button></nav>
           </footer>
-        </section> : <section className="computer-core-idle"><i>30</i><span><b>COMMAND PROCESSOR READY</b><p>Use plain operator language or chain actions with “then.” The Computer Core resolves pages, applications, procedures, Workstations, media, Display Matrix themes, system controls, and guarded local commands.</p></span></section>}
+        </section> : <section className="computer-core-idle"><i>31</i><span><b>COMMAND PROCESSOR READY</b><p>Use plain operator language or chain actions with “then.” The Computer Core resolves pages, applications, procedures, Workstations, media, Display Matrix themes, system controls, and guarded local commands.</p></span></section>}
       </main>}
       {area === "procedures" && <main className="computer-procedure-matrix">
         <header><span><small>VERSIONED MULTI-STEP OPERATIONS</small><h3>PROCEDURE LIBRARY</h3><p>Procedures retain conditions, timing, retries, failure paths, triggers, and protected-action gates.</p></span><button onClick={openBuilder}>OPEN PROCEDURE BUILDER</button></header>
@@ -116,7 +116,7 @@ export function ComputerCoreConsole({
         <header><span><small>LOCAL EXECUTION JOURNAL · MAXIMUM 300 RECORDS</small><h3>COMPUTER AUDIT</h3><p>Dry runs, trigger requests, protected commands, failures, successful plans, and undo operations remain attributable.</p></span><nav><button disabled={!undoSnapshot || running} onClick={undo}>{undoSnapshot ? `UNDO · ${undoSnapshot.label}` : "NO UNDO AVAILABLE"}</button><button disabled={!audit.length} onClick={clearAudit}>CLEAR AUDIT</button></nav></header>
         <div>{audit.map((entry, index) => <article className={`audit-${entry.status}`} key={entry.id}><i>{String(index + 1).padStart(3, "0")}</i><span><small>{new Date(entry.time).toLocaleString()} · {entry.source.toUpperCase()}</small><b>{entry.title}</b><p>{entry.detail}</p></span><em className={`risk-${entry.risk}`}>{entry.status.toUpperCase()} · {riskLabel(entry.risk)}{entry.reversible ? " · UNDO" : ""}</em></article>)}{!audit.length && <p className="computer-empty">NO COMPUTER CORE OPERATIONS RECORDED</p>}</div>
       </main>}
-      <footer className="computer-core-footer"><span>LOCAL-FIRST · EXPLICIT AUTHORITY · DRY-RUN CAPABLE · AUDITABLE</span><small>30 OPERATOR AUTHORITY</small></footer>
+      <footer className="computer-core-footer"><span>LOCAL-FIRST · EXPLICIT AUTHORITY · DRY-RUN CAPABLE · AUDITABLE</span><small>31.1 OPERATOR AUTHORITY</small></footer>
     </section>
   </div>;
 }

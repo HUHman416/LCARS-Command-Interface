@@ -30,6 +30,8 @@ linux:
       to: shared/lcars_federation_crypto.py
     - from: shared/lcars_data_fabric.py
       to: shared/lcars_data_fabric.py
+    - from: shared/lcars_intents.py
+      to: shared/lcars_intents.py
     - from: padd
       to: padd
     - from: extensions
@@ -66,6 +68,8 @@ win:
       to: shared/lcars_federation_crypto.py
     - from: shared/lcars_data_fabric.py
       to: shared/lcars_data_fabric.py
+    - from: shared/lcars_intents.py
+      to: shared/lcars_intents.py
     - from: padd
       to: padd
     - from: extensions

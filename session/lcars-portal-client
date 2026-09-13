@@ -1,0 +1,56 @@
+#!/usr/bin/env python3
+"""Submit a request to the local LCARS Portal Center and optionally await it."""
+import argparse
+import json
+import sys
+import time
+import urllib.parse
+import urllib.request
+
+
+BASE = "http://127.0.0.1:8765"
+
+
+def request(path, payload=None):
+    data = json.dumps(payload).encode() if payload is not None else None
+    headers = {"Content-Type": "application/json"} if data else {}
+    with urllib.request.urlopen(urllib.request.Request(BASE + path, data=data, headers=headers), timeout=4) as response:
+        return json.loads(response.read().decode())
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Request an operator-reviewed LCARS portal action")
+    parser.add_argument("kind", choices=("open-file", "save-file", "open-folder", "open-with", "authorize", "notification", "microphone", "camera", "screen-share", "print", "share"))
+    parser.add_argument("--title", default="Application request")
+    parser.add_argument("--detail", default="")
+    parser.add_argument("--client", default="LCARS PORTAL CLIENT")
+    parser.add_argument("--payload", default="{}", help="Small JSON object containing non-secret request context")
+    parser.add_argument("--no-wait", action="store_true")
+    parser.add_argument("--timeout", type=int, default=120)
+    args = parser.parse_args()
+    try:
+        payload = json.loads(args.payload)
+        if not isinstance(payload, dict):
+            raise ValueError("payload must be a JSON object")
+        submitted = request("/api/portal-operation", {"operation": "submit", "kind": args.kind, "title": args.title, "detail": args.detail, "client": args.client, "payload": payload})
+        portal_request = submitted["request"]
+        if args.no_wait or portal_request["decision"] != "waiting":
+            print(json.dumps(portal_request))
+            return 0 if portal_request["decision"] in ("waiting", "approved") else 2
+        deadline = time.time() + max(1, min(120, args.timeout))
+        while time.time() < deadline:
+            time.sleep(0.65)
+            current = request("/api/portal-request?id=" + urllib.parse.quote(portal_request["id"]))["request"]
+            if current["decision"] != "waiting":
+                print(json.dumps(current))
+                return 0 if current["decision"] == "approved" else 2
+        request("/api/portal-operation", {"operation": "cancel", "id": portal_request["id"]})
+        print(json.dumps({"ok": False, "decision": "cancelled", "error": "Portal request timed out"}))
+        return 2
+    except Exception as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}))
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

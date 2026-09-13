@@ -1,0 +1,167 @@
+name: Version 31.1 Portal and Intent Broker Development
+
+on:
+  push:
+    branches: [31-development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build and test Version 31.1
+        run: |
+          npm run build
+          node --test tests/*.test.mjs
+          python3 -m unittest discover -s tests -p 'test_*.py'
+          python3 -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/*.py
+          node --check desktop/main.cjs
+          bash -n scripts/prepare-voice-runtime.sh install.sh install-autostart.sh uninstall-linux.sh start-local.sh local/lcars-recovery.sh session/lcars-session session/install-session.sh
+      - name: Build Linux AppImage with offline voice runtime
+        run: npm run desktop:package:linux -- --publish never
+      - name: Verify and assemble Linux development package
+        run: |
+          set -euo pipefail
+          test -x voice-runtime/linux/whisper-cli
+          test -s voice-runtime/linux/ggml-tiny.en-q5_1.bin
+          appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
+          test -n "$appimage"
+          checksum="$(sha256sum "$appimage" | awk '{print $1}')"
+          mkdir -p release-assets/LCARS-Universal-Linux-Desktop-v31.1/local release-assets/LCARS-Universal-Linux-Desktop-v31.1/session
+          cp "$appimage" release-assets/LCARS-Universal-Linux-Desktop-v31.1/LCARS-Command-Interface.AppImage
+          cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run release-assets/LCARS-Universal-Linux-Desktop-v31.1/
+          cp desktop/icons/512x512.png release-assets/LCARS-Universal-Linux-Desktop-v31.1/lcars-command-interface.png
+          cp local/lcars-recovery.sh release-assets/LCARS-Universal-Linux-Desktop-v31.1/local/
+          cp session/lcars-session session/lcars-portal-client session/install-session.sh session/lcars-session.desktop.in release-assets/LCARS-Universal-Linux-Desktop-v31.1/session/
+          sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" release-assets/LCARS-Universal-Linux-Desktop-v31.1/install.sh
+          sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" release-assets/LCARS-Universal-Linux-Desktop-v31.1/BUILD-INFO-LINUX.txt
+          chmod +x release-assets/LCARS-Universal-Linux-Desktop-v31.1/LCARS-Command-Interface.AppImage release-assets/LCARS-Universal-Linux-Desktop-v31.1/*.sh release-assets/LCARS-Universal-Linux-Desktop-v31.1/*.run release-assets/LCARS-Universal-Linux-Desktop-v31.1/*.desktop release-assets/LCARS-Universal-Linux-Desktop-v31.1/local/lcars-recovery.sh release-assets/LCARS-Universal-Linux-Desktop-v31.1/session/*
+          cp "$appimage" release-assets/LCARS-Command-Interface-v31.1-x86_64.AppImage
+          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v31.1.sh
+          chmod +x release-assets/LCARS-Linux-Integration-v31.1.sh
+          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v31.1.zip LCARS-Universal-Linux-Desktop-v31.1)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v31.1-development-linux
+          path: |
+            release-assets/LCARS-Command-Interface-v31.1-x86_64.AppImage
+            release-assets/LCARS-Universal-Linux-Desktop-v31.1.zip
+            release-assets/LCARS-Linux-Integration-v31.1.sh
+          retention-days: 30
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Test Portal Broker and desktop process
+        run: |
+          node --test tests/version31-1-portal-broker.test.mjs tests/version30-14-systems-layout.test.mjs tests/version30-13-horizontal-system-navigation.test.mjs tests/version30-12-unified-systems.test.mjs tests/version30-11-native-controls.test.mjs tests/version30-10-authoritative-session.test.mjs tests/version30-9-commissioning.test.mjs tests/version30-8-continuum.test.mjs tests/version30-7-operator-media.test.mjs tests/version30-computer-core.test.mjs tests/accessibility-css.test.mjs
+          python -m unittest tests.test_intent_broker
+          python -m py_compile local/lcars_bridge.py windows/lcars_bridge_windows.py shared/lcars_intents.py
+          node --check desktop/main.cjs
+      - name: Build Windows installer with offline voice runtime
+        run: npm run desktop:package:windows -- --publish never
+      - name: Verify and prepare Windows development installer
+        shell: pwsh
+        run: |
+          if (-not (Test-Path voice-runtime/windows/whisper-cli.exe)) { throw 'whisper.cpp executable is missing' }
+          if (-not (Test-Path voice-runtime/windows/ggml-tiny.en-q5_1.bin)) { throw 'Whisper model is missing' }
+          New-Item -ItemType Directory -Force release-assets | Out-Null
+          $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
+          if (-not $installer) { throw 'Windows installer was not produced.' }
+          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v31.1.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v31.1-development-windows
+          path: release-assets/LCARS-Windows-Setup-v31.1.exe
+          retention-days: 30
+
+  android:
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_SIGNING_KEY_BASE64: ${{ secrets.ANDROID_SIGNING_KEY_BASE64 }}
+      ANDROID_SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+      ANDROID_SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      ANDROID_SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+      - name: Validate Android support code
+        run: |
+          mkdir -p mobile/android/build/address-test
+          javac -d mobile/android/build/address-test mobile/android/app/src/main/java/com/lcars/padd/StationAddress.java mobile/android/app/src/main/java/com/lcars/padd/BatteryStatus.java mobile/android/tools/StationAddressSelfTest.java mobile/android/tools/BatteryStatusSelfTest.java
+          java -cp mobile/android/build/address-test com.lcars.padd.StationAddressSelfTest
+          java -cp mobile/android/build/address-test com.lcars.padd.BatteryStatusSelfTest
+      - name: Restore persistent Android development identity
+        run: |
+          set -euo pipefail
+          test -n "$ANDROID_SIGNING_KEY_BASE64"
+          printf '%s' "$ANDROID_SIGNING_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/lcars-release.jks"
+          test -s "$RUNNER_TEMP/lcars-release.jks"
+      - name: Build signed Android development APK
+        env:
+          ANDROID_SIGNING_STORE_FILE: ${{ runner.temp }}/lcars-release.jks
+        run: gradle -p mobile/android --no-daemon :app:assembleDebug
+      - name: Verify and prepare Android development package
+        run: |
+          set -euo pipefail
+          apk=mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          signer="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
+          "$signer" verify --verbose --print-certs "$apk"
+          mkdir -p release-assets
+          cp "$apk" release-assets/LCARS-Mobile-Environment-v31.1-Android.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LCARS-v31.1-development-android
+          path: release-assets/LCARS-Mobile-Environment-v31.1-Android.apk
+          retention-days: 30
+
+  publish-development-release:
+    needs: [linux, windows, android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+      - name: Create source archive and checksums
+        run: |
+          set -euo pipefail
+          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v31.1-Source.zip HEAD
+          (cd release-assets && sha256sum LCARS-Command-Interface-v31.1-x86_64.AppImage LCARS-Universal-Linux-Desktop-v31.1.zip LCARS-Linux-Integration-v31.1.sh LCARS-Windows-Setup-v31.1.exe LCARS-Mobile-Environment-v31.1-Android.apk LCARS-Command-Interface-v31.1-Source.zip > SHA256SUMS.txt)
+          (cd release-assets && sha256sum --check SHA256SUMS.txt)
+      - name: Publish Version 31.1 development release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          notes='Version 31.1 Development begins the self-sufficient Version 31 line with the LCARS Portal and Intent Broker. A dedicated numbered Portal Center now reviews file, application, authorization, notification, microphone, camera, screen-share, print, and share intents through one bounded local queue. Ordinary routes support Ask, Allow, or Deny policy; sensitive routes can never be silently approved. Requests expire automatically, file choices stay within the operator home directory, and completed history remains bounded. Electron device requests are routed through operator review, compatible applications receive a local portal client, and Linux exposes an honest opt-in XDG adapter foundation. Version 30 remains Stable.'
+          if gh release view v31.1 >/dev/null 2>&1; then
+            gh release upload v31.1 release-assets/* --clobber
+            gh release edit v31.1 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 31.1 Development · Portal and Intent Broker" --notes "$notes" --prerelease
+          else
+            gh release create v31.1 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 31.1 Development · Portal and Intent Broker" --notes "$notes" --prerelease
+          fi

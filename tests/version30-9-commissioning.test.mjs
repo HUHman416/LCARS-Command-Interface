@@ -23,9 +23,10 @@ test("offline command help is searchable and the Computer can open it",async()=>
   assert.equal(plan.steps[0].target,"commissioning");
 });
 
-test("Version 30.14 keeps Browser Station retired and continuously numbers the full desktop rail",async()=>{
+test("Version 31.1 keeps Browser Station retired and continuously numbers the expanded desktop rail",async()=>{
   const [page,desktop,styles,continuum]=await Promise.all([source("../app/page.tsx"),source("../desktop/main.cjs"),source("../app/globals.css"),source("../app/v30-continuum.ts")]);
-  assert.match(page,/\["commissioning", "09", "COMMISSION"\]/);
+  assert.match(page,/\["portals", "09", "PORTALS"\]/);
+  assert.match(page,/\["commissioning", "10", "COMMISSION"\]/);
   assert.match(page,/taskRailNumber=String\(visibleNav\.length\+customPages\.length\+1\)/);
   assert.match(page,/powerNumber=String\(visibleNav\.length\+customPages\.length\+2\)/);
   assert.match(page,/visibleNav\.length\+index\+1/);
@@ -50,8 +51,8 @@ test("Commissioning integrates trust, diagnostics, bounded retention, and resume
 
 test("development history and the Version 30 Stable workflow remain separately signed",async()=>{
   const [development,stable,pkg,gradle]=await Promise.all([source("../.github/workflows/v30-development.yml"),source("../.github/workflows/v30-stable.yml"),source("../package.json"),source("../mobile/android/app/build.gradle")]);
-  assert.equal(JSON.parse(pkg).version,"30.0.0");
-  assert.match(gradle,/versionCode 3099001/);
+  assert.equal(JSON.parse(pkg).version,"31.1.0");
+  assert.match(gradle,/versionCode 3101000/);
   assert.match(development,/gh release (?:view|create) v30\.14/);
   assert.match(development,/--prerelease/);
   assert.match(stable,/branches: \[30-stable\]/);

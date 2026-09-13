@@ -12,9 +12,10 @@ from lcars_extensions import load_extensions, extension_state, save_extension_st
 from lcars_documents import read_document, write_document
 from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
+from lcars_intents import IntentBroker
 
 PORT=8765
-LCARS_VERSION="30"
+LCARS_VERSION="31.1"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -28,6 +29,8 @@ MODULE_RUNTIME_DIR=CONFIG_DIR/"module-platform"
 PADD_ASSET_DIR=Path(__file__).resolve().parent.parent/"padd"
 PADD=PaddController(CONFIG_DIR,PADD_ASSET_DIR,LCARS_VERSION,"windows")
 DATA_FABRIC=DataFabric(CONFIG_DIR,"windows")
+INTENT_BROKER=IntentBroker(CONFIG_DIR,"windows")
+PORTAL_OPERATOR_TOKEN=os.environ.get("LCARS_PORTAL_OPERATOR_TOKEN","").strip()
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
 APP_CACHE={}
@@ -616,6 +619,10 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/padd-commands":return self.send_json({"commands":PADD.pop_commands()})
         if route=="/api/padd-events":return self.send_json({"events":PADD.pop_events()})
         if route=="/api/data-fabric":return self.send_json(DATA_FABRIC.status())
+        if route=="/api/portal-status":return self.send_json(INTENT_BROKER.status())
+        if route=="/api/portal-request":
+            request=INTENT_BROKER.request(parse_qs(parsed.query).get("id",[""])[0])
+            return self.send_json({"ok":bool(request),"request":request},200 if request else 404)
         if route=="/api/universal-search":
             try:return self.send_json(DATA_FABRIC.search_files(parse_qs(parsed.query).get("q",[""])[0],24))
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
@@ -726,6 +733,17 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send_json(result)
                 return self.send_json(DATA_FABRIC.operate(data))
             except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/portal-operation":
+            try:
+                operation=str(data.get("operation","status")).strip().lower()
+                if operation in {"resolve","policy","registration","clear-resolved"} and PORTAL_OPERATOR_TOKEN and str(data.get("authority",""))!=PORTAL_OPERATOR_TOKEN:raise PermissionError("Operator authority is required for Portal Center changes")
+                if operation=="resolve" and str(data.get("decision",""))=="approved":
+                    request=INTENT_BROKER.request(str(data.get("id","")))
+                    if request and request.get("kind")=="open-with" and str((data.get("result") or {}).get("applicationId","")) not in {item["id"] for item in applications()}:raise PermissionError("Open With must use an installed LCARS application identity")
+                return self.send_json(INTENT_BROKER.operate(data))
+            except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+            except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/padd-sync":
             try:return self.send_json(PADD.sync(data))

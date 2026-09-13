@@ -11,6 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v30-ff9866" alt="Stable Version 30">
+  <img src="https://img.shields.io/badge/development-v31.1-b69de8" alt="Development Version 31.1">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -18,6 +19,8 @@
 
 <p align="center">
   <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v30"><strong>🚀 Download Version 30</strong></a>
+  ·
+  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v31.1">Test Version 31.1</a>
   ·
   <a href="https://github.com/HUHman416/LCARS-Command-Interface/issues">🐞 Report an issue</a>
   ·
@@ -29,6 +32,9 @@
 
 > [!NOTE]
 > Existing installations can update from **Updates → LCARS Interface**. Decimal releases are development milestones; Stable releases use the major version number.
+
+> [!NOTE]
+> **Version 31.1 Development is now active.** It adds the LCARS Portal and Intent Broker: one operator-controlled route for file choices, permissions, protected requests, notifications, printing, and sharing. Version 30 remains Stable. See the [Version 31 roadmap](docs/VERSION-31-ROADMAP.md) and [31.1 implementation notes](docs/VERSION-31.1-PORTAL-BROKER.md).
 
 > [!TIP]
 > **Version 30 is the Computer Core and Federation stable release.** It combines local offline voice, trusted multi-station operations, a native System Control Matrix, an optional Linux LCARS session, universal search and data handoff, operator workspaces, integrated media, Android Continuum, and the final complete viewport-fit audit.

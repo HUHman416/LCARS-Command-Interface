@@ -63,9 +63,10 @@ import {
   normalizeComputerUndo,
 } from "./v30-core";
 import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, ComputerPlan, ComputerPlanStep, ComputerUndoSnapshot } from "./v30-core";
+import { PortalCenter } from "./v31-portal";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="30";
+const LCARS_VERSION="31.1";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -367,7 +368,8 @@ const nav = [
   ["network", "06", "NETWORK"],
   ["updates", "07", "UPDATES"],
   ["settings", "08", "SETTINGS"],
-  ["commissioning", "09", "COMMISSION"],
+  ["portals", "09", "PORTALS"],
+  ["commissioning", "10", "COMMISSION"],
 ];
 const speedDialChoices: { id: SpeedDialItem; label: string; description: string }[] = [
   { id:"page:network", label:"NETWORK", description:"Open a compact Network Page Peek" },
@@ -703,6 +705,7 @@ export default function Home() {
     [clock, setClock] = useState<Date | null>(null),
     [bridge, setBridge] = useState(false);
   const [platform, setPlatform] = useState("NOBARA LINUX");
+  const [portalPending, setPortalPending] = useState(0);
   const [compat, setCompat] = useState<Compatibility | null>(null),
     [compatOpen, setCompatOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false),
@@ -756,6 +759,11 @@ export default function Home() {
   const powerNumber=String(visibleNav.length+customPages.length+2).padStart(2,"0");
   const routineTriggerGuard=useRef<Set<string>>(new Set()),routineLastRun=useRef<Map<string,number>>(new Map()),workstationRestoreGuard=useRef(false);
   useEffect(()=>{const update=(event:Event)=>setWorkspaceWindows((event as CustomEvent<{active?:string[]}>).detail?.active||[]);window.addEventListener(workspaceStateEvent,update);return()=>window.removeEventListener(workspaceStateEvent,update);},[]);
+  useEffect(()=>{
+    if(!bridge){setPortalPending(0);return;}
+    const refresh=()=>fetch("http://127.0.0.1:8765/api/portal-status",{cache:"no-store"}).then((response)=>response.json()).then((value)=>setPortalPending(Math.max(0,Number(value.pending)||0))).catch(()=>{});
+    refresh();const timer=window.setInterval(refresh,1800);return()=>window.clearInterval(timer);
+  },[bridge]);
   useEffect(()=>{
     const visible=notices.filter((notice)=>notice.id>0&&Number.isFinite(notice.expiresAt));
     if(!visible.length)return;
@@ -882,7 +890,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v30-stable"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-1"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1902,7 +1910,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"30.14",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.1",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2518,7 +2526,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>30 STABLE</small>
+          <small>31.1 DEV</small>
         </button>
         <div className="title">
           <div className="title-copy">
@@ -2646,6 +2654,7 @@ export default function Home() {
               </h2>
             </div>
             <div className="heading-actions">
+              <button className={portalPending ? "portal-pending" : ""} onClick={() => setSection("portals")}>PORTALS <b>{portalPending}</b></button>
               <span>
                 ●{" "}
                 {bridge ? "LOCAL SYSTEM CONNECTED" : "INTERFACE DEMONSTRATION"}
@@ -2764,6 +2773,7 @@ export default function Home() {
             open={openCommissioningTarget}
             exportDiagnostics={()=>void exportCommissioningDiagnostics()}
           />}
+          {section === "portals" && <PortalCenter bridge={bridge} operatorName={activeOperator?.name||userName} authority={detachedParams?.get("portalAuthority")||""} notify={notify} onPendingChange={setPortalPending}/>}
           {section === "terminal" && (
             <Terminal bridge={bridge} notify={notify} prefs={prefs} seed={terminalSeed} clearSeed={()=>setTerminalSeed("")} />
           )}
@@ -3046,7 +3056,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version30Welcome close={()=>{localStorage.setItem("lcars-whats-new-v30-stable","1");setWhatsNewOpen(false);}} openCommissioning={()=>{localStorage.setItem("lcars-whats-new-v30-stable","1");setWhatsNewOpen(false);setSystemControlArea("telemetry");setSection("system");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-1","1");setWhatsNewOpen(false);}} openPortals={()=>{localStorage.setItem("lcars-whats-new-v31-1","1");setWhatsNewOpen(false);setSection("portals");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -4069,7 +4079,7 @@ function WorkspaceWindowPanel({windows,peeks,arrange,reset,closePeeks,command}:{
 
 function MobileCommandBar({section,sheet,navigate,applications,commands,communications,more,computer,routines,tray,displays,power,close}:{section:string;sheet:"commands"|"more"|null;navigate:(page:string)=>void;applications:()=>void;commands:()=>void;communications:()=>void;more:()=>void;computer:()=>void;routines:()=>void;tray:()=>void;displays:()=>void;power:()=>void;close:()=>void}){
   const item=(page:string,label:string,code:string)=><button className={section===page?"active":""} onClick={()=>navigate(page)}><i>{code}</i><span>{label}</span></button>;
-  return <><nav className="mobile-command-bar" aria-label="PADD navigation">{item("overview","STATUS","01")}<button onClick={applications}><i>02</i><span>APPS</span></button><button className={sheet==="commands"?"active":""} onClick={commands}><i>03</i><span>COMMAND</span></button><button onClick={communications}><i>04</i><span>COMMS</span></button><button className={sheet==="more"?"active":""} onClick={more}><i>05</i><span>MORE</span></button></nav>{sheet&&<div className="mobile-sheet-scrim" onPointerDown={(event)=>event.target===event.currentTarget&&close()}><section className="mobile-command-sheet" aria-label={sheet==="commands"?"PADD command sheet":"PADD page sheet"}><header><span><small>LCARS PADD</small><b>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</b></span><button onClick={close}>CLOSE ×</button></header>{sheet==="commands"?<div className="mobile-sheet-grid"><button onClick={computer}><i>01</i><b>COMPUTER CORE</b><small>NATURAL LANGUAGE PLANS</small></button><button onClick={routines}><i>02</i><b>PROCEDURES</b><small>OPERATIONS AUTOMATION</small></button><button onClick={tray}><i>03</i><b>TRAY DECK</b><small>APPLICATIONS & SERVICES</small></button><button onClick={displays}><i>04</i><b>DISPLAYS</b><small>MONITOR ROUTING</small></button><button onClick={power}><i>05</i><b>POWER</b><small>PROTECTED CONTROLS</small></button></div>:<div className="mobile-sheet-grid page-grid">{item("terminal","TERMINAL","02")}{item("files","FILES","03")}{item("system","SYSTEMS","04")}{item("media","MEDIA","05")}{item("network","NETWORK","06")}{item("updates","UPDATES","07")}{item("settings","SETTINGS","08")}</div>}</section></div>}</>;
+  return <><nav className="mobile-command-bar" aria-label="PADD navigation">{item("overview","STATUS","01")}<button onClick={applications}><i>02</i><span>APPS</span></button><button className={sheet==="commands"?"active":""} onClick={commands}><i>03</i><span>COMMAND</span></button><button onClick={communications}><i>04</i><span>COMMS</span></button><button className={sheet==="more"?"active":""} onClick={more}><i>05</i><span>MORE</span></button></nav>{sheet&&<div className="mobile-sheet-scrim" onPointerDown={(event)=>event.target===event.currentTarget&&close()}><section className="mobile-command-sheet" aria-label={sheet==="commands"?"PADD command sheet":"PADD page sheet"}><header><span><small>LCARS PADD</small><b>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</b></span><button onClick={close}>CLOSE ×</button></header>{sheet==="commands"?<div className="mobile-sheet-grid"><button onClick={computer}><i>01</i><b>COMPUTER CORE</b><small>NATURAL LANGUAGE PLANS</small></button><button onClick={routines}><i>02</i><b>PROCEDURES</b><small>OPERATIONS AUTOMATION</small></button><button onClick={tray}><i>03</i><b>TRAY DECK</b><small>APPLICATIONS & SERVICES</small></button><button onClick={displays}><i>04</i><b>DISPLAYS</b><small>MONITOR ROUTING</small></button><button onClick={power}><i>05</i><b>POWER</b><small>PROTECTED CONTROLS</small></button></div>:<div className="mobile-sheet-grid page-grid">{item("terminal","TERMINAL","02")}{item("files","FILES","03")}{item("system","SYSTEMS","04")}{item("media","MEDIA","05")}{item("network","NETWORK","06")}{item("updates","UPDATES","07")}{item("settings","SETTINGS","08")}{item("portals","PORTALS","09")}{item("commissioning","COMMISSION","10")}</div>}</section></div>}</>;
 }
 
 function DesktopExperience({
@@ -4881,7 +4891,7 @@ function OperatorCenter({operators,activeId,devices,canManage,close,switchOperat
   useEffect(()=>{if(!operators.some((item)=>item.id===selectedId))setSelectedId(activeId||operators[0]?.id||"");},[operators,selectedId,activeId]);
   const activate=async(identity:OperatorIdentity)=>{setBusy(`switch:${identity.id}`);const accepted=await switchOperator(identity.id,pins[identity.id]||"");setBusy("");if(accepted){setPins((old)=>({...old,[identity.id]:""}));close();}};
   return <div className="backdrop operator-center-backdrop" onMouseDown={(change)=>change.target===change.currentTarget&&close()}><ResizablePopup popupKey="operator-center" className="operator-center" ariaModal={true} minWidth={760} minHeight={560}>
-    <header><div><small>VERSION 30 · INDIVIDUAL COMMAND ENVIRONMENTS</small><h2>OPERATOR IDENTITIES</h2><p>Switch complete favorites, decks, Display Matrix, layouts, commands, and station preferences without mixing operator configurations.</p></div><button onClick={close}>CLOSE ×</button></header>
+    <header><div><small>INDIVIDUAL COMMAND ENVIRONMENTS</small><h2>OPERATOR IDENTITIES</h2><p>Switch complete favorites, decks, Display Matrix, layouts, commands, and station preferences without mixing operator configurations.</p></div><button onClick={close}>CLOSE ×</button></header>
     <section className="operator-center-layout"><aside><header><b>QUICK OPERATOR SWITCH</b><small>{operators.length}/24 IDENTITIES</small></header>{operators.map((identity,index)=><article className={`${identity.id===selected?.id?"selected":""} ${identity.id===activeId?"active":""}`} key={identity.id}><button onClick={()=>setSelectedId(identity.id)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{identity.name}</b><small>{identity.awayTeam?"AWAY TEAM":identity.role.toUpperCase()} · {identity.shared?"SHARED":"PERSONAL"}</small></span><em>{identity.id===activeId?"ACTIVE":identity.credential?"PIN":"OPEN"}</em></button>{identity.id!==activeId&&<div>{identity.credential&&<input type="password" inputMode="numeric" autoComplete="off" placeholder="OPERATOR PIN" value={pins[identity.id]||""} onChange={(change)=>setPins((old)=>({...old,[identity.id]:change.target.value.slice(0,64)}))}/>}<button disabled={busy===`switch:${identity.id}`} onClick={()=>void activate(identity)}>{busy===`switch:${identity.id}`?"VERIFYING…":"ACTIVATE"}</button></div>}</article>)}</aside>
       {selected&&<main><section className="operator-identity-card"><header><i>{selected.awayTeam?"AT":selected.role==="administrator"?"A":selected.role==="operator"?"O":"G"}</i><span><small>{selected.shared?"SHARED WORKSTATION PROFILE":"INDIVIDUAL OPERATOR PROFILE"}</small><h3>{selected.name}</h3><p>{selected.awayTeam?"Temporary restricted access for field operation and borrowed stations.":selected.role==="administrator"?"Full identity, configuration, automation, and protected-system authority.":selected.role==="operator"?"Daily operation, automation, and roaming without protected-system authority.":"Navigation, applications, media, and personal workspace access only."}</p></span><strong>{selected.id===activeId?"ON DUTY":"STANDBY"}</strong></header><div className="operator-profile-stats"><span><b>{selected.workspace.favoriteIds.length}</b> FAVORITES</span><span><b>{selected.workspace.workstations.length}</b> DECKS</span><span><b>{selected.workspace.routines.length}</b> COMMANDS</span><span><b>{Object.keys(selected.stationPreferences).length}</b> STATIONS</span></div></section>
         <section className="operator-configuration"><header><b>IDENTITY & AUTHORITY</b><small>{canManage?"ADMINISTRATOR CONTROLS AVAILABLE":"READ ONLY FOR THIS OPERATOR"}</small></header><div><label>OPERATOR NAME<input disabled={!canManage} maxLength={48} value={selected.name} onChange={(change)=>updateOperator(selected.id,{name:change.target.value})}/></label><label>ROLE<select disabled={!canManage||selected.awayTeam} value={selected.role} onChange={(change)=>updateOperator(selected.id,{role:change.target.value as OperatorRole})}><option value="guest">GUEST</option><option value="operator">OPERATOR</option><option value="administrator">ADMINISTRATOR</option></select></label><label className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.shared} onChange={(change)=>updateOperator(selected.id,{shared:change.target.checked})}/><span><b>SHARED WORKSTATION PROFILE</b><small>Use this identity as a common household or command-terminal workspace.</small></span></label><label className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.awayTeam} onChange={(change)=>updateOperator(selected.id,{awayTeam:change.target.checked})}/><span><b>AWAY TEAM PROFILE</b><small>Force temporary Guest authority and block automation, configuration, and protected actions.</small></span></label></div><nav><input disabled={!canManage} type="password" inputMode="numeric" autoComplete="new-password" placeholder={selected.credential?"REPLACE OPERATOR PIN":"OPTIONAL NEW PIN"} value={newPin} onChange={(change)=>setNewPin(change.target.value.slice(0,64))}/><button disabled={!canManage||!newPin} onClick={()=>{void setPin(selected.id,newPin);setNewPin("");}}>{selected.credential?"REPLACE PIN":"SET PIN"}</button><button disabled={!canManage||!selected.credential} onClick={()=>void setPin(selected.id,"")}>REMOVE PIN</button><button className="danger" disabled={!canManage||selected.id===activeId||operators.length<=1} onClick={()=>deleteOperator(selected.id)}>REMOVE IDENTITY</button></nav></section>
@@ -5073,16 +5083,14 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
   </section></div>;
 }
 
-function Version30Welcome({close,openCommissioning}:{close:()=>void;openCommissioning:()=>void}){
+function Version31Welcome({close,openPortals}:{close:()=>void;openPortals:()=>void}){
   const features=[
-    {code:"01",title:"COMPUTER CORE + OFFLINE VOICE",text:"Run permission-aware natural-language commands with bundled local speech recognition, wake word, authorization, and optional immediate execution."},
-    {code:"02",title:"FEDERATION + DATA FABRIC",text:"Discover trusted stations, hand off pages and files, synchronize selected data, and search the entire environment from one LCARS index."},
-    {code:"03",title:"LCARS SESSION + NATIVE CONTROLS",text:"Opt into a recoverable Linux LCARS desktop session and operate networking, audio, displays, processes, storage, software, and modules without routine host settings windows."},
-    {code:"04",title:"OPERATIONS + OPERATOR WORKSPACES",text:"Review a unified timeline, rerun supported actions, switch protected identities, and roam credential-free layouts between trusted stations."},
-    {code:"05",title:"INTEGRATED MEDIA + CONTINUUM",text:"Play local audio and video inside LCARS while connected phones and tablets adapt between eight handheld, companion, and docked roles."},
-    {code:"06",title:"COMPLETE VIEWPORT-FIT AUDIT",text:"Every page, Systems panel, dialog, Page Peek, notice window, and Terminal remains readable and reachable across desktop, compact, portrait, and landscape displays."},
+    {code:"01",title:"ONE TRUSTED REQUEST ROUTE",text:"Applications can ask LCARS to choose files, select destinations, request device access, authorize actions, print, share, or post notices through one bounded local broker."},
+    {code:"02",title:"OPERATOR-CONTROLLED PERMISSIONS",text:"Sensitive microphone, camera, screen-share, authorization, print, and share requests can never be silently approved."},
+    {code:"03",title:"POLICY + EXPIRATION",text:"Set each compatible route to Ask, Allow, or Deny. Unanswered requests expire automatically and resolved history stays bounded."},
+    {code:"04",title:"PLATFORM ADAPTER FOUNDATION",text:"Native LCARS requests work now, Electron device permissions are brokered, and compatible Linux desktops can opt into the XDG adapter foundation."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 30"><header><span><small>FEDERATION OPERATING ENVIRONMENT · STABLE</small><h2>WELCOME TO VERSION 30</h2><p>The complete Computer Core, Federation, native-control, operator, media, and responsive command environment is ready for daily use.</p></span><strong>30</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openCommissioning}>OPEN COMMISSIONING</button><button autoFocus onClick={close}>START USING VERSION 30</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.1"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.1 PORTAL CENTER</h2><p>The first Version 31 milestone establishes a trusted bridge between applications, LCARS, and the host.</p></span><strong>31.1</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openPortals}>OPEN PORTAL CENTER</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){
