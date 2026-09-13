@@ -37,6 +37,8 @@ Those capabilities should be upgraded only where the milestones below identify a
 - Add printers, scanners, cameras, game controllers, USB devices, and removable-device policy to the System Control Matrix.
 - Reuse Portal Center for camera, screen-sharing, device, printing, and protected connection requests.
 
+Implemented in Version 31.4: the existing Network area is now the Connectivity and Hardware matrix; Wi-Fi, Bluetooth, Storage, and Portal Center remain shared foundations instead of being duplicated. Platform-changing connection operations require matching, single-use Portal authorization. Unsupported adapters remain visibly unavailable.
+
 ## 31.5 Development — Daily Utilities
 
 - Add clipboard history with privacy controls, screenshots, screen recording, notifications-as-a-service, and print management.

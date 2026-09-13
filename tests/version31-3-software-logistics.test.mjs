@@ -9,7 +9,7 @@ test("Version 31.3 upgrades the existing Systems software area",()=>{
   assert.match(systems,/area==="software"&&<SoftwareLogistics/);
   assert.doesNotMatch(systems,/PREPARE UPDATE IN LCARS TERMINAL/);
   for(const phrase of ["SOFTWARE LOGISTICS","SEARCH AVAILABLE SOFTWARE","REVIEW INSTALL","REVIEW UPDATE","REVIEW REMOVE","CHANGE PREVIEW","SIGNATURE","TRANSACTION","VERIFIED SOURCES"])assert.match(software,new RegExp(phrase));
-  assert.match(page,/VERSION 31\.3 SOFTWARE LOGISTICS/);
+  assert.match(software,/VERSION 31\.4 · CAPABILITY-AWARE PACKAGE CONTROL/);
 });
 
 test("package operations are capability-aware, reviewed, and shell-free",()=>{
@@ -32,8 +32,8 @@ test("Files 2.0 uses compact bounded rows and horizontal controls",()=>{
   assert.match(css,/@media\(max-width:680px\)/);
 });
 
-test("31.3 identity and roadmap memory are current",()=>{
-  assert.equal(JSON.parse(read("../package.json")).version,"31.3.0");
-  assert.match(read("../mobile/android/app/build.gradle"),/versionCode 3103000/);
-  assert.match(memory,/Version 31\.3 Development upgrades the existing System Control Matrix software area/);
+test("31.3 capability remains present under the current development identity",()=>{
+  assert.equal(JSON.parse(read("../package.json")).version,"31.4.0");
+  assert.match(read("../mobile/android/app/build.gradle"),/versionCode 3104000/);
+  assert.match(read("../docs/VERSION-31.3-SOFTWARE-LOGISTICS.md"),/Version 31\.3 upgrades the existing System Control Matrix software area/);
 });

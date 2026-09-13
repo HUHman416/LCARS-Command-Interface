@@ -119,7 +119,7 @@ class SoftwareLogistics:
                 except Exception as exc:errors.append(f"{item['name']} scan unavailable: {type(exc).__name__}")
         detail=(" · ".join(item["name"] for item in managers)+" READY") if managers else "NO SUPPORTED PACKAGE MANAGER DETECTED"
         if not refresh and managers:detail+=" · SELECT SCAN INVENTORY TO REFRESH"
-        value={"ok":True,"version":"31.3","manager":managers[0]["id"] if managers else "NONE","managers":managers,"available":bool(managers),"updates":updates,"count":len(updates),"command":"","detail":detail,"errors":errors,"sources":self.sources(),"history":list(reversed(self.history[-50:])),"jobs":[self._public_job(item) for item in self.jobs.values()]}
+        value={"ok":True,"version":"31.4","manager":managers[0]["id"] if managers else "NONE","managers":managers,"available":bool(managers),"updates":updates,"count":len(updates),"command":"","detail":detail,"errors":errors,"sources":self.sources(),"history":list(reversed(self.history[-50:])),"jobs":[self._public_job(item) for item in self.jobs.values()]}
         with self.lock:self.cache={"at":self.now(),"value":value}
         return value
 

@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v30-ff9866" alt="Stable Version 30">
-  <img src="https://img.shields.io/badge/development-v31.3-b69de8" alt="Development Version 31.3">
+  <img src="https://img.shields.io/badge/development-v31.4-b69de8" alt="Development Version 31.4">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -20,7 +20,7 @@
 <p align="center">
   <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v30"><strong>🚀 Download Version 30</strong></a>
   ·
-  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v31.3">Test Version 31.3</a>
+  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v31.4">Test Version 31.4</a>
   ·
   <a href="https://github.com/HUHman416/LCARS-Command-Interface/issues">🐞 Report an issue</a>
   ·
@@ -34,7 +34,7 @@
 > Existing installations can update from **Updates → LCARS Interface**. Decimal releases are development milestones; Stable releases use the major version number.
 
 > [!NOTE]
-> **Version 31.3 Development is now active.** It replaces the old software-to-Terminal handoff with capability-aware graphical package search, details, reviewed install/remove/update plans, signature and restart reporting, live progress, safe cancellation, source inventory, and transaction history. It also makes Files 2.0 rows compact and viewport-safe. Version 30 remains Stable. See the [Version 31 roadmap](docs/VERSION-31-ROADMAP.md) and [31.3 implementation notes](docs/VERSION-31.3-SOFTWARE-LOGISTICS.md).
+> **Version 31.4 Development is now active.** It turns the existing Network area into a capability-aware Connectivity and Hardware matrix for VPNs, hotspots, firewall state, saved-network policy, diagnostics, printers, scanners, cameras, controllers, USB devices, and removable media. Protected connection changes use single-use Portal approval, and Software Logistics button geometry is repaired. Version 30 remains Stable. See the [Version 31 roadmap](docs/VERSION-31-ROADMAP.md) and [31.4 implementation notes](docs/VERSION-31.4-CONNECTIVITY-HARDWARE.md).
 
 > [!TIP]
 > **Version 30 is the Computer Core and Federation stable release.** It combines local offline voice, trusted multi-station operations, a native System Control Matrix, an optional Linux LCARS session, universal search and data handoff, operator workspaces, integrated media, Android Continuum, and the final complete viewport-fit audit.

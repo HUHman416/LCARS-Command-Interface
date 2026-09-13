@@ -36,6 +36,8 @@ linux:
       to: shared/lcars_files.py
     - from: shared/lcars_software.py
       to: shared/lcars_software.py
+    - from: shared/lcars_connectivity.py
+      to: shared/lcars_connectivity.py
     - from: padd
       to: padd
     - from: extensions
@@ -78,6 +80,8 @@ win:
       to: shared/lcars_files.py
     - from: shared/lcars_software.py
       to: shared/lcars_software.py
+    - from: shared/lcars_connectivity.py
+      to: shared/lcars_connectivity.py
     - from: padd
       to: padd
     - from: extensions

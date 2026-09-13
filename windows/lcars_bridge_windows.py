@@ -15,9 +15,10 @@ from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 from lcars_intents import IntentBroker
 from lcars_software import SoftwareLogistics
+from lcars_connectivity import ConnectivityHardware
 
 PORT=8765
-LCARS_VERSION="31.3"
+LCARS_VERSION="31.4"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -35,6 +36,7 @@ INTENT_BROKER=IntentBroker(CONFIG_DIR,"windows")
 FILES=FileOperations(CONFIG_DIR,"windows",HOME)
 DOCUMENTS=DocumentWorkspaceStore(CONFIG_DIR,FILES.safe_path)
 SOFTWARE=SoftwareLogistics(CONFIG_DIR,"windows")
+CONNECTIVITY_HARDWARE=ConnectivityHardware(CONFIG_DIR,"windows",storage_provider=lambda:storage_data())
 PORTAL_OPERATOR_TOKEN=os.environ.get("LCARS_PORTAL_OPERATOR_TOKEN","").strip()
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
@@ -257,9 +259,10 @@ def system_details():
     for adapter in graphics:adapter["usage"]=max(0,min(100,int(adapter.get("usage") or 0)))
     return {"cpu":{"logical":len(cpu) or (os.cpu_count() or 1),"load":[],"cores":[{"name":f"CORE {i}","usage":round(value)} for i,value in enumerate(cpu)]},"memory":memory,"graphics":graphics,"storage":storage_data(),"kernel":"WINDOWS NT"}
 
-def storage_action(ident,action):
+def storage_action(ident,action,confirmed=False):
     allowed={x["id"] for x in storage_data() if x["removable"]}
     if ident not in allowed:return {"ok":False,"message":"Only detected removable volumes can be controlled from LCARS"}
+    if action=="mount":CONNECTIVITY_HARDWARE.authorize_removable_mount(confirmed)
     if action=="unmount":
         result=run_ps(f"$v=Get-Volume -DriveLetter '{ident[0]}';$v|Get-Partition|Remove-PartitionAccessPath -AccessPath '{ident}\\' -ErrorAction Stop;'Volume safely unmounted'")
         return {"ok":bool(result),"message":result or "Windows could not safely unmount the volume"}
@@ -592,6 +595,7 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/storage":return self.send_json({"drives":storage_data()})
         if route=="/api/network-details":return self.send_json(network_details())
         if route=="/api/connectivity":return self.send_json(connectivity_data())
+        if route=="/api/connectivity-hardware":return self.send_json(CONNECTIVITY_HARDWARE.status(parse_qs(parsed.query).get("refresh",["0"])[0]=="1"))
         if route=="/api/software":return self.send_json(software_data(parse_qs(parsed.query).get("refresh",["0"])[0]=="1"))
         if route=="/api/software-logistics":
             query=parse_qs(parsed.query);operation=query.get("operation",["status"])[0]
@@ -602,6 +606,18 @@ class Handler(BaseHTTPRequestHandler):
                 if operation=="job":
                     job=SOFTWARE.job(query.get("id",[""])[0]);return self.send_json({"ok":bool(job),"job":job},200 if job else 404)
                 return self.send_json(SOFTWARE.status(query.get("refresh",["0"])[0]=="1"))
+            except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+            except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/connectivity-hardware":
+            try:
+                operation=str(data.get("operation","")).strip().lower()
+                if operation=="request":
+                    payload=CONNECTIVITY_HARDWARE.request_description(data)
+                    result=INTENT_BROKER.operate({"operation":"submit","kind":"authorize","client":"LCARS CONNECTIVITY AND HARDWARE","title":payload["label"],"detail":"Protected connection change requested from the System Control Matrix.","payload":payload})
+                    return self.send_json({"ok":True,"approvalRequired":True,"request":result["request"]})
+                approval=INTENT_BROKER.request(str(data.get("approvalId",""))) if operation=="execute" else None
+                return self.send_json(CONNECTIVITY_HARDWARE.operate(data,approval))
             except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
             except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
@@ -780,7 +796,7 @@ class Handler(BaseHTTPRequestHandler):
             ident=str(data.get("id",""));path=APP_CACHE.get(ident)
             if not path:return self.send_json({"error":"Application is not in the Windows launcher inventory"},403)
             os.startfile(path);return self.send_json({"ok":True})
-        if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action",""))))
+        if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action","")),bool(data.get("confirmed"))))
         if route=="/api/connectivity-action":
             try:return self.send_json(connectivity_action(str(data.get("category","")),str(data.get("action","")),str(data.get("id","")),str(data.get("secret",""))))
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)

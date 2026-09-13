@@ -15,9 +15,10 @@ from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 from lcars_intents import IntentBroker
 from lcars_software import SoftwareLogistics
+from lcars_connectivity import ConnectivityHardware
 
 PORT=8765
-LCARS_VERSION="31.3"
+LCARS_VERSION="31.4"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -38,6 +39,7 @@ INTENT_BROKER=IntentBroker(CONFIG_DIR,"linux")
 FILES=FileOperations(CONFIG_DIR,"linux")
 DOCUMENTS=DocumentWorkspaceStore(CONFIG_DIR,FILES.safe_path)
 SOFTWARE=SoftwareLogistics(CONFIG_DIR,"linux")
+CONNECTIVITY_HARDWARE=ConnectivityHardware(CONFIG_DIR,"linux",storage_provider=lambda:storage_data())
 PORTAL_OPERATOR_TOKEN=os.environ.get("LCARS_PORTAL_OPERATOR_TOKEN","").strip()
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
@@ -723,12 +725,13 @@ def system_details():
     except Exception:pass
     return {"cpu":{"logical":os.cpu_count() or 1,"load":[round(x,2) for x in os.getloadavg()],"cores":cores},"memory":memory_details(),"graphics":graphics_details(),"storage":storage_data(),"kernel":os.uname().release}
 
-def storage_action(ident,action):
+def storage_action(ident,action,confirmed=False):
     allowed={x["id"]:x for x in storage_data() if x["removable"] and x["type"] in ("part","rom")}
     if ident not in allowed:return {"ok":False,"message":"Only detected removable volumes can be mounted from LCARS"}
     if not shutil.which("udisksctl"):return {"ok":False,"message":"UDisks2/udisksctl is not installed"}
     command="unmount" if action=="unmount" else "mount" if action=="mount" else ""
     if not command:return {"ok":False,"message":"Unknown storage command"}
+    if command=="mount":CONNECTIVITY_HARDWARE.authorize_removable_mount(confirmed)
     result=subprocess.run(["udisksctl",command,"-b",ident],capture_output=True,text=True,timeout=30)
     return {"ok":result.returncode==0,"message":(result.stdout or result.stderr).strip() or command.title()+" complete"}
 
@@ -1193,6 +1196,7 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/storage": self.send_json({"drives":storage_data()})
         elif route=="/api/network-details": self.send_json(network_details())
         elif route=="/api/connectivity": self.send_json(connectivity_data())
+        elif route=="/api/connectivity-hardware": self.send_json(CONNECTIVITY_HARDWARE.status(parse_qs(parsed.query).get("refresh",["0"])[0]=="1"))
         elif route=="/api/software": self.send_json(software_data(parse_qs(urlparse(self.path).query).get("refresh",["0"])[0]=="1"))
         elif route=="/api/software-logistics":
             query=parse_qs(parsed.query);operation=query.get("operation",["status"])[0]
@@ -1292,6 +1296,18 @@ class Handler(BaseHTTPRequestHandler):
                     if operation=="cancel":return self.send_json(SOFTWARE.cancel(str(data.get("id",""))))
                     if operation=="source":return self.send_json(SOFTWARE.source_action(data),202)
                     return self.send_json({"ok":False,"error":"Unknown Software Logistics operation"},400)
+                except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+                except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/connectivity-hardware":
+                try:
+                    operation=str(data.get("operation","")).strip().lower()
+                    if operation=="request":
+                        payload=CONNECTIVITY_HARDWARE.request_description(data)
+                        result=INTENT_BROKER.operate({"operation":"submit","kind":"authorize","client":"LCARS CONNECTIVITY AND HARDWARE","title":payload["label"],"detail":"Protected connection change requested from the System Control Matrix.","payload":payload})
+                        return self.send_json({"ok":True,"approvalRequired":True,"request":result["request"]})
+                    approval=INTENT_BROKER.request(str(data.get("approvalId",""))) if operation=="execute" else None
+                    return self.send_json(CONNECTIVITY_HARDWARE.operate(data,approval))
                 except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
                 except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
@@ -1400,7 +1416,7 @@ class Handler(BaseHTTPRequestHandler):
                 volume=max(0,min(100,int(data.get("volume",0))))
                 subprocess.run(["wpctl","set-volume","@DEFAULT_AUDIO_SINK@",f"{volume}%"],timeout=3)
                 return self.send_json({"volume":volume})
-            if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action",""))))
+            if route=="/api/storage-action":return self.send_json(storage_action(str(data.get("id","")),str(data.get("action","")),bool(data.get("confirmed"))))
             if route=="/api/connectivity-action":
                 try:return self.send_json(connectivity_action(str(data.get("category","")),str(data.get("action","")),str(data.get("id","")),str(data.get("secret",""))))
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
