@@ -14,9 +14,10 @@ from lcars_files import FileOperations
 from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 from lcars_intents import IntentBroker
+from lcars_software import SoftwareLogistics
 
 PORT=8765
-LCARS_VERSION="31.2"
+LCARS_VERSION="31.3"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -33,6 +34,7 @@ DATA_FABRIC=DataFabric(CONFIG_DIR,"windows")
 INTENT_BROKER=IntentBroker(CONFIG_DIR,"windows")
 FILES=FileOperations(CONFIG_DIR,"windows",HOME)
 DOCUMENTS=DocumentWorkspaceStore(CONFIG_DIR,FILES.safe_path)
+SOFTWARE=SoftwareLogistics(CONFIG_DIR,"windows")
 PORTAL_OPERATOR_TOKEN=os.environ.get("LCARS_PORTAL_OPERATOR_TOKEN","").strip()
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
@@ -114,23 +116,7 @@ def connectivity_action(category,action,ident="",secret=""):
     return {"ok":True,"message":f"Wi-Fi {action} command completed","state":connectivity_data(True)}
 
 def software_data(force=False):
-    if not force and SOFTWARE_CACHE["value"] and time.time()-SOFTWARE_CACHE["at"]<120:return SOFTWARE_CACHE["value"]
-    available=bool(shutil.which("winget.exe") or shutil.which("winget"));updates=[];detail="Windows Package Manager is unavailable"
-    if available and not force:return {"ok":True,"manager":"WINGET","available":True,"updates":[],"count":0,"command":"winget upgrade --all --include-unknown --accept-source-agreements --accept-package-agreements","detail":"WINGET ready · select SCAN PACKAGES to refresh"}
-    if available:
-        try:
-            result=subprocess.run(["winget","upgrade","--accept-source-agreements","--disable-interactivity"],capture_output=True,text=True,timeout=30,creationflags=0x08000000)
-            for line in result.stdout.splitlines():
-                value=line.strip()
-                if not value or value.startswith(("Name ","---")) or "upgrades available" in value.casefold():continue
-                parts=re.split(r"\s{2,}",value)
-                if len(parts)>=4 and re.search(r"\d",parts[-2]):updates.append({"name":parts[0][:120],"current":parts[-3],"available":parts[-2]})
-                if len(updates)>=100:break
-            detail="WINGET application inventory ready"
-        except subprocess.TimeoutExpired:detail="WINGET scan timed out; existing LCARS controls remain available"
-        except Exception as exc:detail="WINGET scan unavailable: "+type(exc).__name__
-    value={"ok":True,"manager":"WINGET" if available else "NONE","available":available,"updates":updates,"count":len(updates),"command":"winget upgrade --all --include-unknown --accept-source-agreements --accept-package-agreements","detail":detail}
-    SOFTWARE_CACHE.update(at=time.time(),value=value);return value
+    return SOFTWARE.status(force)
 
 def extension_manifests():
     return module_platform_status(EXTENSION_DIR,BUILTIN_EXTENSION_DIR,MODULE_RUNTIME_DIR)
@@ -607,6 +593,18 @@ class Handler(BaseHTTPRequestHandler):
         if route=="/api/network-details":return self.send_json(network_details())
         if route=="/api/connectivity":return self.send_json(connectivity_data())
         if route=="/api/software":return self.send_json(software_data(parse_qs(parsed.query).get("refresh",["0"])[0]=="1"))
+        if route=="/api/software-logistics":
+            query=parse_qs(parsed.query);operation=query.get("operation",["status"])[0]
+            try:
+                if operation=="search":return self.send_json(SOFTWARE.search(query.get("q",[""])[0],query.get("manager",[""])[0]))
+                if operation=="details":return self.send_json(SOFTWARE.details(query.get("manager",[""])[0],query.get("id",[""])[0]))
+                if operation=="plan":return self.send_json(SOFTWARE.plan(query.get("action",[""])[0],query.get("manager",[""])[0],query.get("id",[""])[0]))
+                if operation=="job":
+                    job=SOFTWARE.job(query.get("id",[""])[0]);return self.send_json({"ok":bool(job),"job":job},200 if job else 404)
+                return self.send_json(SOFTWARE.status(query.get("refresh",["0"])[0]=="1"))
+            except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+            except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/system-locations":return self.send_json({"extensions":str(EXTENSION_DIR),"configuration":str(CONFIG_DIR),"updates":str(UPDATE_DIR)})
         if route=="/api/tray":return self.send_json({"items":[],"supported":False,"reason":"Windows does not expose a supported API for re-hosting every third-party notification icon; LCARS quick controls remain available"})
         if route=="/api/padd-pairing":return self.send_json(PADD.status(True))
@@ -673,6 +671,16 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         length=int(self.headers.get("Content-Length","0"));data=json.loads(self.rfile.read(length) or b"{}")
         route=urlparse(self.path).path
+        if route=="/api/software-logistics":
+            try:
+                operation=str(data.get("operation","status"))
+                if operation=="start":return self.send_json(SOFTWARE.start(data),202)
+                if operation=="cancel":return self.send_json(SOFTWARE.cancel(str(data.get("id",""))))
+                if operation=="source":return self.send_json(SOFTWARE.source_action(data),202)
+                return self.send_json({"ok":False,"error":"Unknown Software Logistics operation"},400)
+            except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+            except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/lcars-update":
             operation=str(data.get("operation","check"))
             requested_channel=str(data.get("channel","stable"));channel=requested_channel if requested_channel in {"development","stable-release"} else "stable"

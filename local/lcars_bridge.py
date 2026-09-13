@@ -14,9 +14,10 @@ from lcars_files import FileOperations
 from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 from lcars_intents import IntentBroker
+from lcars_software import SoftwareLogistics
 
 PORT=8765
-LCARS_VERSION="31.2"
+LCARS_VERSION="31.3"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -36,6 +37,7 @@ DATA_FABRIC=DataFabric(CONFIG_DIR,"linux")
 INTENT_BROKER=IntentBroker(CONFIG_DIR,"linux")
 FILES=FileOperations(CONFIG_DIR,"linux")
 DOCUMENTS=DocumentWorkspaceStore(CONFIG_DIR,FILES.safe_path)
+SOFTWARE=SoftwareLogistics(CONFIG_DIR,"linux")
 PORTAL_OPERATOR_TOKEN=os.environ.get("LCARS_PORTAL_OPERATOR_TOKEN","").strip()
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
@@ -173,29 +175,7 @@ def connectivity_action(category,action,ident="",secret=""):
     return {"ok":True,"message":f"{category.title()} {action} command completed","state":connectivity_data(True)}
 
 def software_data(force=False):
-    if not force and SOFTWARE_CACHE["value"] and time.time()-SOFTWARE_CACHE["at"]<120:return SOFTWARE_CACHE["value"]
-    manager=next((name for name in ("apt","dnf","pacman","zypper","apk","xbps-install") if shutil.which(name)),"")
-    commands={"apt":["apt","list","--upgradable"],"dnf":["dnf","-q","check-update"],"pacman":["pacman","-Qu"],"zypper":["zypper","--non-interactive","list-updates"],"apk":["apk","version","-l","<"],"xbps-install":["xbps-install","-Mun"]}
-    upgrade={"apt":"sudo apt update && sudo apt upgrade","dnf":"sudo dnf upgrade --refresh","pacman":"sudo pacman -Syu","zypper":"sudo zypper update","apk":"sudo apk upgrade","xbps-install":"sudo xbps-install -Su"}.get(manager,"")
-    updates=[];detail="No supported distribution package manager was detected"
-    if manager and not force:return {"ok":True,"manager":manager,"available":True,"updates":[],"count":0,"command":upgrade,"detail":f"{manager.upper()} ready · select SCAN PACKAGES to refresh"}
-    if manager:
-        try:
-            env={**os.environ,"LC_ALL":"C","LANG":"C"};result=subprocess.run(commands[manager],capture_output=True,text=True,timeout=25,env=env);lines=(result.stdout or "").splitlines()
-            for line in lines:
-                value=line.strip()
-                if not value or value.lower().startswith(("listing","last metadata","loading","repository","s |","name","available upgrades")) or set(value)<=set("-+| "):continue
-                if manager=="apt" and "/" in value:
-                    name=value.split("/",1)[0];parts=value.split();available=parts[1] if len(parts)>1 else "AVAILABLE";current=re.search(r"upgradable from: ([^\]]+)",value);updates.append({"name":name,"current":current.group(1) if current else "INSTALLED","available":available})
-                elif manager in ("pacman","apk","xbps-install"):
-                    parts=value.split();updates.append({"name":parts[0],"current":parts[1] if len(parts)>2 else "INSTALLED","available":parts[-1] if len(parts)>1 else "AVAILABLE"})
-                elif len(value)<240:updates.append({"name":value.split()[0],"current":"INSTALLED","available":"UPDATE AVAILABLE"})
-                if len(updates)>=100:break
-            detail=f"{manager.upper()} package inventory ready"
-        except subprocess.TimeoutExpired:detail=f"{manager.upper()} scan timed out; existing LCARS controls remain available"
-        except Exception as exc:detail=f"{manager.upper()} scan unavailable: {type(exc).__name__}"
-    value={"ok":True,"manager":manager or "NONE","available":bool(manager),"updates":updates,"count":len(updates),"command":upgrade,"detail":detail}
-    SOFTWARE_CACHE.update(at=time.time(),value=value);return value
+    return SOFTWARE.status(force)
 
 def extension_manifests():
     """Load the non-executable Module API v1 manifest format."""
@@ -1214,6 +1194,18 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/network-details": self.send_json(network_details())
         elif route=="/api/connectivity": self.send_json(connectivity_data())
         elif route=="/api/software": self.send_json(software_data(parse_qs(urlparse(self.path).query).get("refresh",["0"])[0]=="1"))
+        elif route=="/api/software-logistics":
+            query=parse_qs(parsed.query);operation=query.get("operation",["status"])[0]
+            try:
+                if operation=="search":self.send_json(SOFTWARE.search(query.get("q",[""])[0],query.get("manager",[""])[0]))
+                elif operation=="details":self.send_json(SOFTWARE.details(query.get("manager",[""])[0],query.get("id",[""])[0]))
+                elif operation=="plan":self.send_json(SOFTWARE.plan(query.get("action",[""])[0],query.get("manager",[""])[0],query.get("id",[""])[0]))
+                elif operation=="job":
+                    job=SOFTWARE.job(query.get("id",[""])[0]);self.send_json({"ok":bool(job),"job":job},200 if job else 404)
+                else:self.send_json(SOFTWARE.status(query.get("refresh",["0"])[0]=="1"))
+            except PermissionError as exc:self.send_json({"ok":False,"error":str(exc)},403)
+            except KeyError as exc:self.send_json({"ok":False,"error":str(exc).strip("'")},404)
+            except Exception as exc:self.send_json({"ok":False,"error":str(exc)},400)
         elif route=="/api/system-locations": self.send_json({"extensions":str(EXTENSION_DIR),"configuration":str(CONFIG_DIR),"updates":str(UPDATE_DIR)})
         elif route=="/api/tray": self.send_json(tray_data())
         elif route=="/api/padd-pairing": self.send_json(PADD.status(True))
@@ -1293,6 +1285,16 @@ class Handler(BaseHTTPRequestHandler):
         try:
             length=int(self.headers.get("Content-Length","0")); data=json.loads(self.rfile.read(length)); app_id=data.get("id","")
             route=urlparse(self.path).path
+            if route=="/api/software-logistics":
+                try:
+                    operation=str(data.get("operation","status"))
+                    if operation=="start":return self.send_json(SOFTWARE.start(data),202)
+                    if operation=="cancel":return self.send_json(SOFTWARE.cancel(str(data.get("id",""))))
+                    if operation=="source":return self.send_json(SOFTWARE.source_action(data),202)
+                    return self.send_json({"ok":False,"error":"Unknown Software Logistics operation"},400)
+                except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+                except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
             if route=="/api/lcars-update":
                 operation=str(data.get("operation","check"))
                 requested_channel=str(data.get("channel","stable"));channel=requested_channel if requested_channel in {"development","stable-release"} else "stable"

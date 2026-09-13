@@ -99,10 +99,11 @@ Windows is distributed separately and is not included in the Universal Linux ins
 - Green Alert and No Alert voice phrases plus distinct spoken single-command and compact multi-command confirmation cues
 - Version 31.1 Portal Center with a bounded local intent broker, explicit permission review, per-route policy, safe file/application choices, Electron device-permission routing, and an opt-in standard desktop adapter foundation
 - Version 31.2 Files and Documents 2.0 with tabbed navigation, Recent and Places, batch commands, conflict handling, LCARS Trash, archives, recoverable history, network shares, default-app choices, document recovery, find/replace, metadata, print, and export routes
+- Version 31.3 Software Logistics with graphical catalog search, package details, reviewed install/remove/update plans, signature and restart reporting, live progress, safe cancellation, source inventory, and transaction history
 
 ## Current stage
 
-Version 31.2 Development is active on the `31-development` branch. It introduces Files and Documents 2.0 on top of the Version 31.1 Portal and Intent Broker. Version 30 remains the current Stable release. Read `docs/PROJECT-MEMORY.md` before planning a milestone; the deduplicated sequence is preserved in `docs/VERSION-31-ROADMAP.md`.
+Version 31.3 Development is active on the `31-development` branch. It upgrades the existing Systems software area into graphical, review-first Software Logistics and corrects Files 2.0 item density. Version 30 remains the current Stable release. Read `docs/PROJECT-MEMORY.md` before planning a milestone; the deduplicated sequence is preserved in `docs/VERSION-31-ROADMAP.md`.
 
 Version 30 combines the complete Computer Core, Federation, Module Platform, optional Linux LCARS session, Universal Search and Data Fabric, Operations Center, Operator Workspaces, integrated media, Android Continuum, Commissioning Center, native System Control Matrix, and the final cross-page viewport-fit audit. Every desktop page and major window remains contained at standard and short heights, while handheld portrait and landscape modes preserve reachable controls without clipping. See `docs/VERSION-30-STABLE.md` for the release summary and `docs/VERSION-30.14-SYSTEMS-LAYOUT-AUDIT.md` for the final development milestone.
 

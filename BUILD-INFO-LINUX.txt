@@ -1,8 +1,8 @@
-LCARS Universal Linux Desktop Version 31.2 Development
+LCARS Universal Linux Desktop Version 31.3 Development
 Application version: 30.0.0
 AppImage SHA-256: GENERATED-DURING-PACKAGING
 
 The installer verifies this checksum before replacing the installed application.
 The optional LCARS login session is installed only from Settings with explicit authorization. It retains a normal-desktop escape route.
-Version 31.2 Development adds Files and Documents 2.0 on top of the LCARS Portal and Intent Broker while retaining the complete Version 30 Stable environment.
+Version 31.3 Development adds graphical, review-first Software Logistics and a compact Files 2.0 density correction while retaining the complete Version 30 Stable environment.
 Run install-autostart.sh to register a portable AppImage in application search and optionally enable login startup without sudo.

@@ -57,7 +57,7 @@ export function normalizePortalStatus(value: unknown): PortalStatus | null {
   const policies = Object.fromEntries(portalKinds.map((kind) => [kind, ["ask", "allow", "deny"].includes(raw.policies?.[kind] || "") ? raw.policies?.[kind] : "ask"])) as Record<PortalIntentKind, PortalPolicy>;
   return {
     ok: true,
-    version: String(raw.version || "31.2"),
+    version: String(raw.version || "31.3"),
     platform: String(raw.platform || "unknown"),
     pending: Math.max(0, Number(raw.pending) || 0),
     standardPortalEnabled: Boolean(raw.standardPortalEnabled),

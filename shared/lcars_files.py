@@ -171,7 +171,7 @@ class FileOperations:
                     trash.append(public)
             return {
                 "ok": True,
-                "version": "31.2",
+                "version": "31.3",
                 "platform": self.platform,
                 "places": self._places(),
                 "recent": list(reversed(self.state["recent"][-40:])),

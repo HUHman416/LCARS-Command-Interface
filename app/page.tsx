@@ -67,7 +67,7 @@ import { PortalCenter } from "./v31-portal";
 import { DocumentWorkspace as DocumentWorkspaceV31, FileExplorer as FileExplorerV31 } from "./v31-files";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="31.2";
+const LCARS_VERSION="31.3";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -891,7 +891,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-2"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-3"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1911,7 +1911,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"31.2",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.3",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2527,7 +2527,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>31.2 DEV</small>
+          <small>31.3 DEV</small>
         </button>
         <div className="title">
           <div className="title-copy">
@@ -3057,7 +3057,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-2","1");setWhatsNewOpen(false);}} openPortals={()=>{localStorage.setItem("lcars-whats-new-v31-2","1");setWhatsNewOpen(false);setSection("files");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-3","1");setWhatsNewOpen(false);}} openSoftware={()=>{localStorage.setItem("lcars-whats-new-v31-3","1");setWhatsNewOpen(false);setSystemControlArea("software");setSection("system");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -5084,14 +5084,14 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
   </section></div>;
 }
 
-function Version31Welcome({close,openPortals}:{close:()=>void;openPortals:()=>void}){
+function Version31Welcome({close,openSoftware}:{close:()=>void;openSoftware:()=>void}){
   const features=[
-    {code:"01",title:"FILES COMMAND STATION",text:"Use tabs, breadcrumbs, Recent, Places, sorting, filtering, properties, default applications, and true batch selection without leaving LCARS."},
-    {code:"02",title:"RECOVERABLE OPERATIONS",text:"Rename, duplicate, copy, move, archive, cancel, resolve conflicts, reverse supported changes, or restore items from the dedicated LCARS Trash."},
-    {code:"03",title:"DOCUMENT WORKSPACE 2.0",text:"Find and replace, crash-safe recovery drafts, recent documents, metadata, Save As, printing, and Text, Markdown, or HTML export are now integrated."},
-    {code:"04",title:"PORTAL-BACKED CHOICES",text:"Open, Save, Select Folder, and Open With requests reuse the trusted Version 31 broker while network shares remain explicit approved Places."},
+    {code:"01",title:"GRAPHICAL SOFTWARE CONTROL",text:"Search the station's real package catalogs, inspect package details, and install, remove, or update without preparing a Terminal command."},
+    {code:"02",title:"REVIEW BEFORE CHANGE",text:"Every package transaction shows available manager output, storage impact, signature policy, required authority, and possible restart effects before confirmation."},
+    {code:"03",title:"TRANSACTION OPERATIONS",text:"Follow live progress, safely cancel where the package manager supports it, review bounded history, and receive truthful rollback guidance."},
+    {code:"04",title:"DENSER FILES 2.0",text:"File and folder rows are compact, consistent, and viewport-safe, with the command bars kept on deliberate horizontal rails."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.2"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.2 FILES 2.0</h2><p>A complete daily file and document workflow—contained, recoverable, and broker-aware.</p></span><strong>31.2</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openPortals}>OPEN FILES 2.0</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.3"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.3 SOFTWARE LOGISTICS</h2><p>Capability-aware package control with visible review, progress, and history—entirely inside LCARS.</p></span><strong>31.3</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openSoftware}>OPEN SOFTWARE LOGISTICS</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){
