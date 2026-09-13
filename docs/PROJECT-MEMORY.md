@@ -16,8 +16,8 @@ This file is the durable handoff for future development sessions. Read it before
 
 Version 31 closes the remaining gaps between the optional LCARS session and a self-sufficient daily desktop. It should replace fragmented host dialogs with one coherent, operator-controlled workflow while retaining safe fallbacks.
 
-The verified roadmap and existing-feature audit live in [VERSION-31-ROADMAP.md](VERSION-31-ROADMAP.md). Version 31.1 implementation notes live in [VERSION-31.1-PORTAL-BROKER.md](VERSION-31.1-PORTAL-BROKER.md).
+The verified roadmap and existing-feature audit live in [VERSION-31-ROADMAP.md](VERSION-31-ROADMAP.md). Implementation notes are retained for [Version 31.1](VERSION-31.1-PORTAL-BROKER.md) and [Version 31.2](VERSION-31.2-FILES-DOCUMENTS.md).
 
 ## Active milestone
 
-Version 31.1 Development builds the LCARS Portal and Intent Broker: one bounded local service for file choices, device permissions, protected requests, notifications, printing, sharing, and future application-to-LCARS intents. Sensitive routes always require an operator decision, and only the trusted LCARS window receives the random per-launch authority used for approvals and policy changes. A standard XDG portal adapter remains explicit and opt-in.
+Version 31.2 Development upgrades the existing Files station and Document Workspace rather than introducing duplicate applications. It adds tabbed and breadcrumb navigation, Recent and Places, sorting, batch commands, conflict decisions, default-application preferences, mounted network shares, cancellable operation jobs, archives, LCARS Trash, and bounded reversible history. Documents add recovery drafts, find/replace, metadata, recent tracking, Save As and Print intents, plus Text, Markdown, and HTML exports. All file roots remain explicitly contained to the operator home or approved mounted Places; archive traversal and links are rejected. Version 31.1 Portal Center remains the trusted route for Open, Save, Select Folder, Open With, Print, and other application intents.

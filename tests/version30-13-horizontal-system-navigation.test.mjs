@@ -42,11 +42,11 @@ test("Telemetry uses horizontal space before increasing page height",async()=>{
 
 test("Version 30 Stable preserves the horizontal Systems milestone",async()=>{
   const [pkg,gradle,workflow,page,padd]=await Promise.all([source("../package.json"),source("../mobile/android/app/build.gradle"),source("../.github/workflows/v30-stable.yml"),source("../app/page.tsx"),source("../padd/app.js")]);
-  assert.equal(JSON.parse(pkg).version,"31.1.0");
-  assert.match(gradle,/versionCode 3101000/);
-  assert.match(gradle,/versionName "31\.1\.0"/);
-  assert.match(page,/const LCARS_VERSION="31\.1"/);
-  assert.match(padd,/VERSION 31\.1 DEVELOPMENT/);
+  assert.equal(JSON.parse(pkg).version,"31.2.0");
+  assert.match(gradle,/versionCode 3102000/);
+  assert.match(gradle,/versionName "31\.2\.0"/);
+  assert.match(page,/const LCARS_VERSION="31\.2"/);
+  assert.match(padd,/VERSION 31\.2 DEVELOPMENT/);
   assert.match(workflow,/Version 30 Stable/);
   for(const asset of ["LCARS-Command-Interface-v30-x86_64.AppImage","LCARS-Universal-Linux-Desktop-v30.zip","LCARS-Linux-Integration-v30.sh","LCARS-Windows-Setup-v30.exe","LCARS-Mobile-Environment-v30-Android.apk","LCARS-Command-Interface-v30-Source.zip"]){
     assert.ok(workflow.includes(asset),asset);

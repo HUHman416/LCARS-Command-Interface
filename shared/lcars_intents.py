@@ -97,7 +97,7 @@ class IntentBroker:
             pending = sum(item.get("decision") == "waiting" for item in requests)
             return {
                 "ok": True,
-                "version": "31.1",
+                "version": "31.2",
                 "platform": self.platform,
                 "pending": pending,
                 "standardPortalEnabled": self.state["standardPortalEnabled"],

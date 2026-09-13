@@ -64,9 +64,10 @@ import {
 } from "./v30-core";
 import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, ComputerPlan, ComputerPlanStep, ComputerUndoSnapshot } from "./v30-core";
 import { PortalCenter } from "./v31-portal";
+import { DocumentWorkspace as DocumentWorkspaceV31, FileExplorer as FileExplorerV31 } from "./v31-files";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="31.1";
+const LCARS_VERSION="31.2";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -890,7 +891,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-1"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-2"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1910,7 +1911,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"31.1",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.2",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2509,7 +2510,7 @@ export default function Home() {
     return <CustomApplicationPage page={activeCustomPage} app={app} embedded={app?embeddedPageForApp(app):null} launch={()=>app&&launch(app)} navigate={setSection}/>;
   };
   const detachedParams=typeof window!=="undefined"?new URLSearchParams(window.location.search):null;
-  if(detachedParams?.get("tool")==="document"&&detachedParams.get("path"))return <DocumentWorkspace path={detachedParams.get("path")||""} detached close={()=>window.close()} notify={notify}/>;
+  if(detachedParams?.get("tool")==="document"&&detachedParams.get("path"))return <DocumentWorkspaceV31 path={detachedParams.get("path")||""} detached close={()=>window.close()} notify={notify}/>;
   if(detachedParams?.get("tool")==="page-peek"&&detachedParams.get("page")){const page=detachedParams.get("page")||"overview";return <main className={`lcars detached-peek-shell theme-${theme}`}><SpeedDialPagePeek detached popupKey="detached-page-peek" page={page} pinned={false} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>{}} close={()=>window.close()} openFull={(target)=>{window.location.href=`lcars://app/index.html?section=${encodeURIComponent(target)}`;}}/></main>;}
   return (
     <main
@@ -2526,7 +2527,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>31.1 DEV</small>
+          <small>31.2 DEV</small>
         </button>
         <div className="title">
           <div className="title-copy">
@@ -2778,7 +2779,7 @@ export default function Home() {
             <Terminal bridge={bridge} notify={notify} prefs={prefs} seed={terminalSeed} clearSeed={()=>setTerminalSeed("")} />
           )}
           {section === "files" && (
-            <FileExplorer bridge={bridge} notify={notify} cue={cue} requestedFile={fileSearchTarget} clearRequestedFile={()=>setFileSearchTarget("")} requestedPath={fileBrowseTarget} clearRequestedPath={()=>setFileBrowseTarget("")} openMedia={(file,kind)=>{setLocalMediaRequest({path:file.path,name:file.name,kind,nonce:Date.now()});setSection("media");}} />
+            <FileExplorerV31 bridge={bridge} notify={notify} cue={cue} requestedFile={fileSearchTarget} clearRequestedFile={()=>setFileSearchTarget("")} requestedPath={fileBrowseTarget} clearRequestedPath={()=>setFileBrowseTarget("")} openMedia={(file,kind)=>{setLocalMediaRequest({path:file.path,name:file.name,kind,nonce:Date.now()});setSection("media");}} />
           )}
           {section === "bay" && bayApp && (
             <ApplicationBay
@@ -3056,7 +3057,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-1","1");setWhatsNewOpen(false);}} openPortals={()=>{localStorage.setItem("lcars-whats-new-v31-1","1");setWhatsNewOpen(false);setSection("portals");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-2","1");setWhatsNewOpen(false);}} openPortals={()=>{localStorage.setItem("lcars-whats-new-v31-2","1");setWhatsNewOpen(false);setSection("files");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -5085,12 +5086,12 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
 
 function Version31Welcome({close,openPortals}:{close:()=>void;openPortals:()=>void}){
   const features=[
-    {code:"01",title:"ONE TRUSTED REQUEST ROUTE",text:"Applications can ask LCARS to choose files, select destinations, request device access, authorize actions, print, share, or post notices through one bounded local broker."},
-    {code:"02",title:"OPERATOR-CONTROLLED PERMISSIONS",text:"Sensitive microphone, camera, screen-share, authorization, print, and share requests can never be silently approved."},
-    {code:"03",title:"POLICY + EXPIRATION",text:"Set each compatible route to Ask, Allow, or Deny. Unanswered requests expire automatically and resolved history stays bounded."},
-    {code:"04",title:"PLATFORM ADAPTER FOUNDATION",text:"Native LCARS requests work now, Electron device permissions are brokered, and compatible Linux desktops can opt into the XDG adapter foundation."},
+    {code:"01",title:"FILES COMMAND STATION",text:"Use tabs, breadcrumbs, Recent, Places, sorting, filtering, properties, default applications, and true batch selection without leaving LCARS."},
+    {code:"02",title:"RECOVERABLE OPERATIONS",text:"Rename, duplicate, copy, move, archive, cancel, resolve conflicts, reverse supported changes, or restore items from the dedicated LCARS Trash."},
+    {code:"03",title:"DOCUMENT WORKSPACE 2.0",text:"Find and replace, crash-safe recovery drafts, recent documents, metadata, Save As, printing, and Text, Markdown, or HTML export are now integrated."},
+    {code:"04",title:"PORTAL-BACKED CHOICES",text:"Open, Save, Select Folder, and Open With requests reuse the trusted Version 31 broker while network shares remain explicit approved Places."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.1"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.1 PORTAL CENTER</h2><p>The first Version 31 milestone establishes a trusted bridge between applications, LCARS, and the host.</p></span><strong>31.1</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openPortals}>OPEN PORTAL CENTER</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.2"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.2 FILES 2.0</h2><p>A complete daily file and document workflow—contained, recoverable, and broker-aware.</p></span><strong>31.2</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openPortals}>OPEN FILES 2.0</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

@@ -26,17 +26,17 @@ test("short desktop and handheld layouts preserve navigation and Operations Cent
   assert.match(css,/\.system-tray\.speed-dial\s*\{\s*display:none !important/);
 });
 
-test("Version 31.1 development identity preserves the Version 30 stable release assets",async()=>{
+test("Version 31.2 development identity preserves the Version 30 stable release assets",async()=>{
   const [pkg,gradle,page,padd,linux,windows,workflow,updateManager]=await Promise.all([
     source("../package.json"),source("../mobile/android/app/build.gradle"),source("../app/page.tsx"),source("../padd/app.js"),source("../local/lcars_bridge.py"),source("../windows/lcars_bridge_windows.py"),source("../.github/workflows/v30-stable.yml"),source("../mobile/android/app/src/main/java/com/lcars/padd/MobileUpdateManager.java"),
   ]);
-  assert.equal(JSON.parse(pkg).version,"31.1.0");
-  assert.match(gradle,/versionCode 3101000/);
-  assert.match(gradle,/versionName "31\.1\.0"/);
-  assert.match(page,/const LCARS_VERSION="31\.1"/);
-  assert.match(padd,/VERSION 31\.1 DEVELOPMENT/);
-  assert.match(linux,/LCARS_VERSION="31\.1"/);
-  assert.match(windows,/LCARS_VERSION="31\.1"/);
+  assert.equal(JSON.parse(pkg).version,"31.2.0");
+  assert.match(gradle,/versionCode 3102000/);
+  assert.match(gradle,/versionName "31\.2\.0"/);
+  assert.match(page,/const LCARS_VERSION="31\.2"/);
+  assert.match(padd,/VERSION 31\.2 DEVELOPMENT/);
+  assert.match(linux,/LCARS_VERSION="31\.2"/);
+  assert.match(windows,/LCARS_VERSION="31\.2"/);
   assert.match(updateManager,/installed\[1\]>0/);
   for(const asset of ["LCARS-Command-Interface-v30-x86_64.AppImage","LCARS-Universal-Linux-Desktop-v30.zip","LCARS-Linux-Integration-v30.sh","LCARS-Windows-Setup-v30.exe","LCARS-Mobile-Environment-v30-Android.apk","LCARS-Command-Interface-v30-Source.zip","SHA256SUMS.txt"]){
     assert.ok(workflow.includes(asset),asset);

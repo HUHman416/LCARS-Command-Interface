@@ -44,9 +44,9 @@ test("session authority, continuous placement, and deck task routing are exposed
 
 test("Version 30.14 development package and release workflow align",async()=>{
   const [pkg,gradle,workflow]=await Promise.all([source("../package.json"),source("../mobile/android/app/build.gradle"),source("../.github/workflows/v30-development.yml")]);
-  assert.equal(JSON.parse(pkg).version,"31.1.0");
-  assert.match(gradle,/versionCode 3101000/);
-  assert.match(gradle,/versionName "31\.1\.0"/);
+  assert.equal(JSON.parse(pkg).version,"31.2.0");
+  assert.match(gradle,/versionCode 3102000/);
+  assert.match(gradle,/versionName "31\.2\.0"/);
   assert.match(workflow,/gh release (?:view|create) v30\.14/);
   assert.match(workflow,/Version 30\.14 Systems Layout Audit Development/);
   assert.match(workflow,/--prerelease/);

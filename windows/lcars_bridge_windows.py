@@ -9,13 +9,14 @@ from urllib.parse import parse_qs, urlparse
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
 from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
 from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation, repository_source_operation, prepare_module_publication, module_platform_status, module_platform_operation, module_package_operation, create_module_draft
-from lcars_documents import read_document, write_document
+from lcars_documents import DocumentWorkspaceStore, read_document, write_document
+from lcars_files import FileOperations
 from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 from lcars_intents import IntentBroker
 
 PORT=8765
-LCARS_VERSION="31.1"
+LCARS_VERSION="31.2"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -30,6 +31,8 @@ PADD_ASSET_DIR=Path(__file__).resolve().parent.parent/"padd"
 PADD=PaddController(CONFIG_DIR,PADD_ASSET_DIR,LCARS_VERSION,"windows")
 DATA_FABRIC=DataFabric(CONFIG_DIR,"windows")
 INTENT_BROKER=IntentBroker(CONFIG_DIR,"windows")
+FILES=FileOperations(CONFIG_DIR,"windows",HOME)
+DOCUMENTS=DocumentWorkspaceStore(CONFIG_DIR,FILES.safe_path)
 PORTAL_OPERATOR_TOKEN=os.environ.get("LCARS_PORTAL_OPERATOR_TOKEN","").strip()
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
@@ -462,17 +465,8 @@ def media_key(command):
     ctypes.windll.user32.keybd_event(code,0,0,0);ctypes.windll.user32.keybd_event(code,0,2,0);return True
 
 def files_data(path):
-    target=Path(path).expanduser()
-    if str(path)=="~":target=HOME
-    target=target.resolve()
-    if not target.is_dir():return {"error":"Folder not found"}
-    items=[]
-    try:
-        for f in target.iterdir():
-            try:s=f.stat();items.append({"name":f.name,"path":str(f),"directory":f.is_dir(),"size":s.st_size,"modified":s.st_mtime,"hidden":bool(f.name.startswith(".") or ctypes.windll.kernel32.GetFileAttributesW(str(f))&2)})
-            except:pass
-    except PermissionError:return {"error":"Windows denied access to this folder"}
-    return {"path":str(target),"parent":str(target.parent) if target.parent!=target else "","items":sorted(items,key=lambda x:(not x["directory"],x["name"].lower()))}
+    try:return FILES.list_directory(path)
+    except Exception as exc:return {"ok":False,"error":str(exc)}
 
 def protected_action(action):
     lcars_controls={"system-monitor":"SYSTEM MONITOR","storage":"STORAGE MATRIX","processes":"PROCESS CONTROL","media-player":"MEDIA DECK","audio-settings":"AUDIO ROUTING","network-settings":"NETWORK CONTROL","wifi":"WI-FI CONTROL","bluetooth":"BLUETOOTH CONTROL","software-center":"SOFTWARE LOGISTICS","check-updates":"SOFTWARE LOGISTICS","display-settings":"DISPLAY CONTROL","identify-displays":"DISPLAY IDENTIFICATION","extension-folder":"MODULE PLATFORM"}
@@ -647,17 +641,26 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send_json({**check_update(LCARS_VERSION,"windows",channel),"rollback":rollback_status("windows",os.environ.get("LCARS_EXECUTABLE",""),CONFIG_DIR/"previous-release")})
             except Exception as exc:return self.send_json({"ok":False,"silent":True,"error":str(exc)},503)
         if route=="/api/document":
-            try:return self.send_json(read_document(parse_qs(parsed.query).get("path",[""])[0]))
+            try:return self.send_json(DOCUMENTS.read(parse_qs(parsed.query).get("path",[""])[0]))
             except Exception as exc:return self.send_json({"error":str(exc)},400)
         if route=="/api/config":
             try:return self.send_json(json.loads(CONFIG_FILE.read_text()))
             except:return self.send_json({})
         if route.startswith("/api/terminal-output/"):
             ident=route.rsplit("/",1)[-1];term=TERMINALS.get(ident);return self.send_json({"output":term["output"] if term else "","closed":not term or term["process"].poll() is not None})
-        if route=="/api/files":return self.send_json(files_data(parse_qs(parsed.query).get("path",["~"])[0]))
+        if route=="/api/files":
+            query=parse_qs(parsed.query)
+            try:return self.send_json(FILES.list_directory(query.get("path",["~"])[0],query.get("sort",["name"])[0],query.get("order",["asc"])[0],query.get("hidden",["1"])[0]=="1"))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/file-hub":return self.send_json(FILES.status())
+        if route=="/api/file-properties":
+            try:return self.send_json(FILES.properties(parse_qs(parsed.query).get("path",[""])[0]))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/file-operations":
+            job=FILES.job(parse_qs(parsed.query).get("id",[""])[0]);return self.send_json({"ok":bool(job),"job":job},200 if job else 404)
         if route=="/api/file-preview":
             try:
-                path=Path(os.path.expandvars(os.path.expanduser(parse_qs(parsed.query).get("path",[""])[0]))).resolve();mime=__import__('mimetypes').guess_type(path.name)[0] or ""
+                path=FILES.safe_path(parse_qs(parsed.query).get("path",[""])[0]);mime=__import__('mimetypes').guess_type(path.name)[0] or ""
                 if not path.is_file() or path.stat().st_size>2097152:return self.send_json({"error":"preview unavailable"},400)
                 if mime.startswith("image/"):return self.send_json({"kind":"image","content":f"data:{mime};base64,"+base64.b64encode(path.read_bytes()).decode()})
                 if mime.startswith("text/") or path.suffix.lower() in (".md",".json",".log",".ini",".conf",".py",".js",".ts",".tsx",".css",".html",".ps1"):return self.send_json({"kind":"text","content":path.read_text(encoding="utf-8",errors="replace")[:32768]})
@@ -756,7 +759,14 @@ class Handler(BaseHTTPRequestHandler):
             try:return self.send_json(routine_command(str(data.get("command",""))))
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
         if route=="/api/document":
-            try:return self.send_json(write_document(str(data.get("path","")),str(data.get("content",""))))
+            try:return self.send_json(DOCUMENTS.operate({**data,"operation":str(data.get("operation") or "save")}))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/file-operation":
+            try:return self.send_json(FILES.start(data),202)
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+        if route=="/api/file-operation-cancel":
+            try:return self.send_json(FILES.cancel(str(data.get("id",""))))
+            except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
             except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/launch":
             ident=str(data.get("id",""));path=APP_CACHE.get(ident)
@@ -796,10 +806,12 @@ class Handler(BaseHTTPRequestHandler):
             muted=bool(data.get("muted"));ok=set_stream_audio(str(data.get("id","")),muted=muted);return self.send_json({"ok":ok,"muted":muted,"message":"Application mute changed" if ok else "Windows audio session is no longer active"},200 if ok else 404)
         if route=="/api/config":CONFIG_DIR.mkdir(parents=True,exist_ok=True);CONFIG_FILE.write_text(json.dumps(data,indent=2));return self.send_json({"ok":True})
         if route=="/api/file-open":os.startfile(str(data.get("path","")));return self.send_json({"ok":True})
-        if route=="/api/file-folder":Path(str(data.get("path","~"))).expanduser().joinpath(str(data.get("name","New Folder"))).mkdir();return self.send_json({"ok":True})
+        if route=="/api/file-folder":
+            try:return self.send_json(FILES.operate({"operation":"create-folder","destination":str(data.get("path","~")),"name":str(data.get("name",""))}))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         if route=="/api/file-transfer":
-            src=Path(str(data.get("source","")));dst=Path(str(data.get("destination","")))/src.name
-            (shutil.move if data.get("move") else (shutil.copytree if src.is_dir() else shutil.copy2))(str(src),str(dst));return self.send_json({"ok":True})
+            try:return self.send_json(FILES.operate({"operation":"transfer","paths":[str(data.get("source",""))],"destination":str(data.get("destination","")),"move":bool(data.get("move",False)),"conflict":"rename"}))
+            except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
         return self.send_json({"error":"not found"},404)
     def log_message(self,format,*args):pass
 

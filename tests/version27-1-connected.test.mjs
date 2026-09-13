@@ -15,8 +15,8 @@ const companion = read("padd/app.js");
 const manifest = read("padd/manifest.webmanifest");
 
 test("Connected settings remain explicit through the Version 28 migration", () => {
-  assert.match(page, /LCARS_VERSION="(?:31\.1|30|30\.14|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0)"/);
-  assert.match(page, /(?:31\.1 DEV|30 STABLE|30\.14 DEV|30\.10 DEV|30\.8 DEV|30\.7 DEV|30\.6 DEV|30\.4 DEV|30\.3 DEV|30\.2 DEV|30\.1 DEV|29 STABLE|29\.3 RC 1|29\.2 DEVELOPMENT|28 STABLE)/);
+  assert.match(page, /LCARS_VERSION="(?:31\.[12]|30|30\.14|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0)"/);
+  assert.match(page, /(?:31\.[12] DEV|30 STABLE|30\.14 DEV|30\.10 DEV|30\.8 DEV|30\.7 DEV|30\.6 DEV|30\.4 DEV|30\.3 DEV|30\.2 DEV|30\.1 DEV|29 STABLE|29\.3 RC 1|29\.2 DEVELOPMENT|28 STABLE)/);
   assert.match(page, /ConnectedOperationsPanel/);
   assert.match(connected, /(?:PADD FLEET COMMAND|FEDERATION OPERATIONS)/);
   assert.match(connected, /VIEWER.*OPERATOR.*COMMAND/s);

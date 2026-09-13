@@ -32,6 +32,8 @@ linux:
       to: shared/lcars_data_fabric.py
     - from: shared/lcars_intents.py
       to: shared/lcars_intents.py
+    - from: shared/lcars_files.py
+      to: shared/lcars_files.py
     - from: padd
       to: padd
     - from: extensions
@@ -70,6 +72,8 @@ win:
       to: shared/lcars_data_fabric.py
     - from: shared/lcars_intents.py
       to: shared/lcars_intents.py
+    - from: shared/lcars_files.py
+      to: shared/lcars_files.py
     - from: padd
       to: padd
     - from: extensions

@@ -9,13 +9,14 @@ from urllib.parse import parse_qs, unquote, urlparse
 sys.path.insert(0,str(Path(__file__).resolve().parent.parent/"shared"))
 from lcars_updater import check_update, download_update, schedule_install, rollback_status, schedule_rollback
 from lcars_extensions import load_extensions, extension_state, save_extension_state, extension_catalog as build_extension_catalog, extension_operation, repository_source_operation, prepare_module_publication, module_platform_status, module_platform_operation, module_package_operation, create_module_draft
-from lcars_documents import read_document, write_document
+from lcars_documents import DocumentWorkspaceStore, read_document, write_document
+from lcars_files import FileOperations
 from lcars_padd import PaddController
 from lcars_data_fabric import DataFabric
 from lcars_intents import IntentBroker
 
 PORT=8765
-LCARS_VERSION="31.1"
+LCARS_VERSION="31.2"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -33,6 +34,8 @@ PADD_ASSET_DIR=Path(__file__).resolve().parent.parent/"padd"
 PADD=PaddController(CONFIG_DIR,PADD_ASSET_DIR,LCARS_VERSION,"linux")
 DATA_FABRIC=DataFabric(CONFIG_DIR,"linux")
 INTENT_BROKER=IntentBroker(CONFIG_DIR,"linux")
+FILES=FileOperations(CONFIG_DIR,"linux")
+DOCUMENTS=DocumentWorkspaceStore(CONFIG_DIR,FILES.safe_path)
 PORTAL_OPERATOR_TOKEN=os.environ.get("LCARS_PORTAL_OPERATOR_TOKEN","").strip()
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
@@ -422,15 +425,7 @@ def safe_home_path(value="~"):
     return candidate
 
 def file_list(value="~"):
-    folder=safe_home_path(value)
-    if not folder.is_dir(): raise ValueError("Folder not found")
-    items=[]
-    for path in folder.iterdir():
-        try:
-            stat=path.stat(); items.append({"name":path.name,"path":str(path),"directory":path.is_dir(),"size":stat.st_size,"modified":int(stat.st_mtime),"hidden":path.name.startswith(".")})
-        except OSError: pass
-    items.sort(key=lambda x:(not x["directory"],x["name"].casefold()))
-    return {"path":str(folder),"parent":str(folder.parent) if folder!=Path.home().resolve() else "","items":items}
+    return FILES.list_directory(value)
 
 def file_transfer(source_value,destination_value,move=False):
     source=safe_home_path(source_value); destination=safe_home_path(destination_value)
@@ -1240,12 +1235,19 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/audio-devices": self.send_json({"devices":audio_devices_data()})
         elif route=="/api/files":
             from urllib.parse import parse_qs
-            requested=parse_qs(urlparse(self.path).query).get("path",["~"])[0]
-            self.send_json(file_list(requested))
+            query=parse_qs(urlparse(self.path).query);requested=query.get("path",["~"])[0]
+            try:self.send_json(FILES.list_directory(requested,query.get("sort",["name"])[0],query.get("order",["asc"])[0],query.get("hidden",["1"])[0]=="1"))
+            except Exception as exc:self.send_json({"ok":False,"error":str(exc)},400)
+        elif route=="/api/file-hub": self.send_json(FILES.status())
+        elif route=="/api/file-properties":
+            try:self.send_json(FILES.properties(parse_qs(parsed.query).get("path",[""])[0]))
+            except Exception as exc:self.send_json({"ok":False,"error":str(exc)},400)
+        elif route=="/api/file-operations":
+            job=FILES.job(parse_qs(parsed.query).get("id",[""])[0]);self.send_json({"ok":bool(job),"job":job},200 if job else 404)
         elif route=="/api/file-preview":
             from urllib.parse import parse_qs
             try:
-                path=safe_home_path(parse_qs(urlparse(self.path).query).get("path",[""])[0]);mime=mimetypes.guess_type(path.name)[0] or ""
+                path=FILES.safe_path(parse_qs(urlparse(self.path).query).get("path",[""])[0]);mime=mimetypes.guess_type(path.name)[0] or ""
                 if not path.is_file() or path.stat().st_size>2097152:self.send_json({"error":"preview unavailable"},400)
                 elif mime.startswith("image/"):self.send_json({"kind":"image","content":f"data:{mime};base64,"+base64.b64encode(path.read_bytes()).decode()})
                 elif mime.startswith("text/") or path.suffix.lower() in (".md",".json",".log",".ini",".conf",".py",".js",".ts",".tsx",".css",".html",".sh"):self.send_json({"kind":"text","content":path.read_text(encoding="utf-8",errors="replace")[:32768]})
@@ -1279,7 +1281,7 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as exc:self.send_json({"ok":False,"silent":True,"error":str(exc)},503)
         elif route=="/api/document":
             from urllib.parse import parse_qs
-            try:self.send_json(read_document(parse_qs(urlparse(self.path).query).get("path",[""])[0]))
+            try:self.send_json(DOCUMENTS.read(parse_qs(urlparse(self.path).query).get("path",[""])[0]))
             except Exception as exc:self.send_json({"error":str(exc)},400)
         elif route=="/api/terminal-sessions": self.send_json({"sessions":[{"id":x["id"],"name":x["name"]} for x in TERMINALS.values()]})
         elif route.startswith("/api/terminal-output/"):
@@ -1379,7 +1381,14 @@ class Handler(BaseHTTPRequestHandler):
                 try:return self.send_json(routine_command(str(data.get("command",""))))
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},403)
             if route=="/api/document":
-                try:return self.send_json(write_document(str(data.get("path","")),str(data.get("content",""))))
+                try:return self.send_json(DOCUMENTS.operate({**data,"operation":str(data.get("operation") or "save")}))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/file-operation":
+                try:return self.send_json(FILES.start(data),202)
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/file-operation-cancel":
+                try:return self.send_json(FILES.cancel(str(data.get("id",""))))
+                except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
             if route=="/api/audio":
                 if not shutil.which("wpctl"): return self.send_json({"error":"wpctl unavailable"},503)
@@ -1407,12 +1416,11 @@ class Handler(BaseHTTPRequestHandler):
             if route=="/api/config":
                 return self.send_json(save_config(data))
             if route=="/api/file-transfer":
-                target=file_transfer(str(data.get("source","")),str(data.get("destination","")),bool(data.get("move",False)))
-                return self.send_json({"ok":True,"message":"Transfer complete","path":target})
+                result=FILES.operate({"operation":"transfer","paths":[str(data.get("source",""))],"destination":str(data.get("destination","")),"move":bool(data.get("move",False)),"conflict":"rename"})
+                return self.send_json(result)
             if route=="/api/file-folder":
-                parent=safe_home_path(str(data.get("path","~"))); name=str(data.get("name","")).strip()
-                if not name or name in (".","..") or "/" in name: return self.send_json({"error":"invalid folder name"},400)
-                (parent/name).mkdir(exist_ok=False); return self.send_json({"ok":True,"message":"Folder created"})
+                try:return self.send_json(FILES.operate({"operation":"create-folder","destination":str(data.get("path","~")),"name":str(data.get("name",""))}))
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
             if route=="/api/file-open":
                 path=safe_home_path(str(data.get("path","")))
                 if not path.is_file(): return self.send_json({"error":"file not found"},404)

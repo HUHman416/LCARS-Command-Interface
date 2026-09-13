@@ -57,7 +57,7 @@ export function normalizePortalStatus(value: unknown): PortalStatus | null {
   const policies = Object.fromEntries(portalKinds.map((kind) => [kind, ["ask", "allow", "deny"].includes(raw.policies?.[kind] || "") ? raw.policies?.[kind] : "ask"])) as Record<PortalIntentKind, PortalPolicy>;
   return {
     ok: true,
-    version: String(raw.version || "31.1"),
+    version: String(raw.version || "31.2"),
     platform: String(raw.platform || "unknown"),
     pending: Math.max(0, Number(raw.pending) || 0),
     standardPortalEnabled: Boolean(raw.standardPortalEnabled),
@@ -71,4 +71,3 @@ export function normalizePortalStatus(value: unknown): PortalStatus | null {
 export function portalRequestNeedsChoice(request: PortalRequest) {
   return request.decision === "waiting" && ["open-file", "save-file", "open-folder", "open-with"].includes(request.kind);
 }
-

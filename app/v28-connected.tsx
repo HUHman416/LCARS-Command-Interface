@@ -85,7 +85,7 @@ export function ConnectedOperationsPanel({status,busy,now,workstations,refresh,o
   const sendFile=(device:PaddDevice,file:File)=>{if(file.size>524288)return window.alert("Federation file transfers are limited to 512 KiB.");const reader=new FileReader();reader.onload=()=>operate("delivery",device,{kind:"file",payload:{name:file.name,mime:file.type||"application/octet-stream",content:String(reader.result).split(",")[1]||""}});reader.readAsDataURL(file);};
   return <section className="connected-operations-panel">
     <header className="connected-operations-head">
-      <span><small>VERSION 31.1 DEVELOPMENT · CONTINUUM</small><b>FEDERATION OPERATIONS</b><p>One operator, many trusted stations: automatic discovery, durable identities, adaptive device roles, AES-256-GCM synchronization, selective data routes, operational handoff, and bounded offline delivery queues.</p></span>
+      <span><small>VERSION 31.2 DEVELOPMENT · CONTINUUM</small><b>FEDERATION OPERATIONS</b><p>One operator, many trusted stations: automatic discovery, durable identities, adaptive device roles, AES-256-GCM synchronization, selective data routes, operational handoff, and bounded offline delivery queues.</p></span>
       <strong className={status?.enabled&&status.online?"online":""}>{status?.enabled&&status.online?"LINK ONLINE":"LINK STANDBY"}</strong>
     </header>
     <div className="connected-summary">
