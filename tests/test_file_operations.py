@@ -160,6 +160,11 @@ class DocumentRecoveryTests(unittest.TestCase):
         exported = self.store.operate({"operation": "export", "path": str(self.document), "content": "saved", "format": "html", "destination": str(self.home / "log.html")})
         self.assertIn("<pre>saved</pre>", Path(exported["path"]).read_text())
 
+    def test_recovery_created_in_same_timestamp_tick_is_available(self):
+        with patch("lcars_documents.time.time", return_value=self.document.stat().st_mtime):
+            self.store.operate({"operation": "autosave", "path": str(self.document), "content": "same tick"})
+        self.assertTrue(self.store.read(str(self.document))["recovery"]["available"])
+
 
 if __name__ == "__main__":
     unittest.main()

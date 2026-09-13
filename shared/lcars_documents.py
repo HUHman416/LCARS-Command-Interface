@@ -57,7 +57,7 @@ class DocumentWorkspaceStore:
         result=read_document(value,self.path_guard);path,draft=self._draft_path(value);recovery={"available":False}
         try:
             data=json.loads(draft.read_text(encoding="utf-8"))
-            if data.get("path")==str(path) and int(data.get("updatedAt",0))>int(path.stat().st_mtime*1000):
+            if data.get("path")==str(path) and int(data.get("updatedAt",0))>=int(path.stat().st_mtime*1000):
                 recovery={"available":True,"content":str(data.get("content","")),"updatedAt":int(data.get("updatedAt",0))}
         except Exception:pass
         result["recovery"]=recovery
