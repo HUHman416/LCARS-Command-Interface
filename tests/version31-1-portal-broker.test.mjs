@@ -16,9 +16,10 @@ const roadmap = read("../docs/VERSION-31-ROADMAP.md");
 const memory = read("../docs/PROJECT-MEMORY.md");
 
 test("Version 31.1 exposes a continuously numbered Portal Center", () => {
-  assert.match(page, /const LCARS_VERSION="31\.4"/);
+  assert.match(page, /const LCARS_VERSION="31\.5"/);
   assert.match(page, /\["portals", "09", "PORTALS"\]/);
-  assert.match(page, /\["commissioning", "10", "COMMISSION"\]/);
+  assert.match(page, /\["utilities", "10", "UTILITIES"\]/);
+  assert.match(page, /\["commissioning", "11", "COMMISSION"\]/);
   assert.match(page, /section === "portals" && <PortalCenter/);
   assert.match(page, /PORTALS <b>\{portalPending\}<\/b>/);
 });
@@ -37,7 +38,7 @@ test("both local bridges expose the shared bounded broker", () => {
     assert.match(source, /\/api\/portal-status/);
     assert.match(source, /\/api\/portal-request/);
     assert.match(source, /\/api\/portal-operation/);
-    assert.match(source, /LCARS_VERSION="31\.4"/);
+    assert.match(source, /LCARS_VERSION="31\.5"/);
     assert.match(source, /LCARS_PORTAL_OPERATOR_TOKEN/);
     assert.match(source, /Operator authority is required for Portal Center changes/);
     assert.match(source, /Open With must use an installed LCARS application identity/);

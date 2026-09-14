@@ -65,9 +65,10 @@ import {
 import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, ComputerPlan, ComputerPlanStep, ComputerUndoSnapshot } from "./v30-core";
 import { PortalCenter } from "./v31-portal";
 import { DocumentWorkspace as DocumentWorkspaceV31, FileExplorer as FileExplorerV31 } from "./v31-files";
+import { DailyUtilities } from "./v31-utilities";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="31.4";
+const LCARS_VERSION="31.5";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -370,7 +371,8 @@ const nav = [
   ["updates", "07", "UPDATES"],
   ["settings", "08", "SETTINGS"],
   ["portals", "09", "PORTALS"],
-  ["commissioning", "10", "COMMISSION"],
+  ["utilities", "10", "UTILITIES"],
+  ["commissioning", "11", "COMMISSION"],
 ];
 const speedDialChoices: { id: SpeedDialItem; label: string; description: string }[] = [
   { id:"page:network", label:"NETWORK", description:"Open a compact Network Page Peek" },
@@ -891,7 +893,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-4"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1255,6 +1257,21 @@ export default function Home() {
     };
     setNotices((old) => {const match=old.find((item)=>item.text===text&&item.source===source&&!item.archived),next=match?[{...match,id:notice.id,time:notice.time,kind,priority,action,read:false,expiresAt:notice.expiresAt,repeats:(match.repeats||1)+1},...old.filter((item)=>item!==match)].slice(0,100):[{...notice,read:false,archived:false,repeats:1},...old].slice(0,100);localStorage.setItem("lcars-notification-history",JSON.stringify(next));return next;});
   };
+  const serviceNotifyRef=useRef(notify);
+  useEffect(()=>{serviceNotifyRef.current=notify;});
+  useEffect(()=>{
+    if(!bridge)return;
+    let cancelled=false;
+    const poll=async()=>{try{
+      const response=await fetch("http://127.0.0.1:8765/api/portal-status",{cache:"no-store"}),value=await response.json();if(cancelled||!response.ok)return;
+      const delivered=new Set<string>(),ledger=localStorage.getItem("lcars-service-notification-ids");try{const saved=JSON.parse(ledger||"[]");if(Array.isArray(saved))saved.slice(-100).forEach((id)=>delivered.add(String(id)));}catch{}
+      if(ledger===null){const recentCutoff=Date.now()-15000;(value.requests||[]).filter((item:{id?:string;kind?:string;decision?:string;resolvedAt?:number})=>item.kind==="notification"&&item.decision==="approved"&&item.id&&Number(item.resolvedAt||0)<recentCutoff).forEach((item:{id:string})=>delivered.add(item.id));}
+      const notifications=(value.requests||[]).filter((item:{id?:string;kind?:string;decision?:string})=>item.kind==="notification"&&item.decision==="approved"&&item.id&&!delivered.has(item.id)).reverse();
+      for(const item of notifications){serviceNotifyRef.current([item.title,item.detail].filter(Boolean).join(" · ")||"Application notification","info",true,item.client||"LCARS APPLICATION",item.payload?.priority==="critical"?"critical":item.payload?.priority==="priority"?"priority":"routine");delivered.add(item.id);}
+      localStorage.setItem("lcars-service-notification-ids",JSON.stringify(Array.from(delivered).slice(-100)));
+    }catch{}};
+    void poll();const timer=window.setInterval(poll,3000);return()=>{cancelled=true;window.clearInterval(timer);};
+  },[bridge]);
   const dismissNotice = (id: number) =>
     setNotices((old) => {
       const next=old.map((x) =>
@@ -1911,7 +1928,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"31.4",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.5",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2527,7 +2544,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>LCARS</span>
-          <small>31.4 DEV</small>
+          <small>31.5 DEV</small>
         </button>
         <div className="title">
           <div className="title-copy">
@@ -2774,6 +2791,7 @@ export default function Home() {
             open={openCommissioningTarget}
             exportDiagnostics={()=>void exportCommissioningDiagnostics()}
           />}
+          {section === "utilities" && <DailyUtilities bridge={bridge} doNotDisturb={doNotDisturb} toggleDnd={()=>setDoNotDisturb(value=>!value)} notify={notify} open={(target)=>{if(target==="calendar"){setCalendarOpen(true);return;}if(target==="communications"||target==="operations"){setHistoryOpen(true);return;}if(target==="search"){setPaletteQuery("");setPaletteOpen(true);return;}if(target==="portals"||target==="files"||target==="settings")setSection(target);}}/>}
           {section === "portals" && <PortalCenter bridge={bridge} operatorName={activeOperator?.name||userName} authority={detachedParams?.get("portalAuthority")||""} notify={notify} onPendingChange={setPortalPending}/>}
           {section === "terminal" && (
             <Terminal bridge={bridge} notify={notify} prefs={prefs} seed={terminalSeed} clearSeed={()=>setTerminalSeed("")} />
@@ -3057,7 +3075,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-4","1");setWhatsNewOpen(false);}} openConnectivity={()=>{localStorage.setItem("lcars-whats-new-v31-4","1");setWhatsNewOpen(false);setSystemControlArea("network");setSection("system");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5","1");setWhatsNewOpen(false);}} openUtilities={()=>{localStorage.setItem("lcars-whats-new-v31-5","1");setWhatsNewOpen(false);setSection("utilities");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -4080,7 +4098,7 @@ function WorkspaceWindowPanel({windows,peeks,arrange,reset,closePeeks,command}:{
 
 function MobileCommandBar({section,sheet,navigate,applications,commands,communications,more,computer,routines,tray,displays,power,close}:{section:string;sheet:"commands"|"more"|null;navigate:(page:string)=>void;applications:()=>void;commands:()=>void;communications:()=>void;more:()=>void;computer:()=>void;routines:()=>void;tray:()=>void;displays:()=>void;power:()=>void;close:()=>void}){
   const item=(page:string,label:string,code:string)=><button className={section===page?"active":""} onClick={()=>navigate(page)}><i>{code}</i><span>{label}</span></button>;
-  return <><nav className="mobile-command-bar" aria-label="PADD navigation">{item("overview","STATUS","01")}<button onClick={applications}><i>02</i><span>APPS</span></button><button className={sheet==="commands"?"active":""} onClick={commands}><i>03</i><span>COMMAND</span></button><button onClick={communications}><i>04</i><span>COMMS</span></button><button className={sheet==="more"?"active":""} onClick={more}><i>05</i><span>MORE</span></button></nav>{sheet&&<div className="mobile-sheet-scrim" onPointerDown={(event)=>event.target===event.currentTarget&&close()}><section className="mobile-command-sheet" aria-label={sheet==="commands"?"PADD command sheet":"PADD page sheet"}><header><span><small>LCARS PADD</small><b>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</b></span><button onClick={close}>CLOSE ×</button></header>{sheet==="commands"?<div className="mobile-sheet-grid"><button onClick={computer}><i>01</i><b>COMPUTER CORE</b><small>NATURAL LANGUAGE PLANS</small></button><button onClick={routines}><i>02</i><b>PROCEDURES</b><small>OPERATIONS AUTOMATION</small></button><button onClick={tray}><i>03</i><b>TRAY DECK</b><small>APPLICATIONS & SERVICES</small></button><button onClick={displays}><i>04</i><b>DISPLAYS</b><small>MONITOR ROUTING</small></button><button onClick={power}><i>05</i><b>POWER</b><small>PROTECTED CONTROLS</small></button></div>:<div className="mobile-sheet-grid page-grid">{item("terminal","TERMINAL","02")}{item("files","FILES","03")}{item("system","SYSTEMS","04")}{item("media","MEDIA","05")}{item("network","NETWORK","06")}{item("updates","UPDATES","07")}{item("settings","SETTINGS","08")}{item("portals","PORTALS","09")}{item("commissioning","COMMISSION","10")}</div>}</section></div>}</>;
+  return <><nav className="mobile-command-bar" aria-label="PADD navigation">{item("overview","STATUS","01")}<button onClick={applications}><i>02</i><span>APPS</span></button><button className={sheet==="commands"?"active":""} onClick={commands}><i>03</i><span>COMMAND</span></button><button onClick={communications}><i>04</i><span>COMMS</span></button><button className={sheet==="more"?"active":""} onClick={more}><i>05</i><span>MORE</span></button></nav>{sheet&&<div className="mobile-sheet-scrim" onPointerDown={(event)=>event.target===event.currentTarget&&close()}><section className="mobile-command-sheet" aria-label={sheet==="commands"?"PADD command sheet":"PADD page sheet"}><header><span><small>LCARS PADD</small><b>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</b></span><button onClick={close}>CLOSE ×</button></header>{sheet==="commands"?<div className="mobile-sheet-grid"><button onClick={computer}><i>01</i><b>COMPUTER CORE</b><small>NATURAL LANGUAGE PLANS</small></button><button onClick={routines}><i>02</i><b>PROCEDURES</b><small>OPERATIONS AUTOMATION</small></button><button onClick={tray}><i>03</i><b>TRAY DECK</b><small>APPLICATIONS & SERVICES</small></button><button onClick={displays}><i>04</i><b>DISPLAYS</b><small>MONITOR ROUTING</small></button><button onClick={power}><i>05</i><b>POWER</b><small>PROTECTED CONTROLS</small></button></div>:<div className="mobile-sheet-grid page-grid">{item("terminal","TERMINAL","02")}{item("files","FILES","03")}{item("system","SYSTEMS","04")}{item("media","MEDIA","05")}{item("network","NETWORK","06")}{item("updates","UPDATES","07")}{item("settings","SETTINGS","08")}{item("portals","PORTALS","09")}{item("utilities","UTILITIES","10")}{item("commissioning","COMMISSION","11")}</div>}</section></div>}</>;
 }
 
 function DesktopExperience({
@@ -4906,7 +4924,7 @@ function OperatorCenter({operators,activeId,devices,canManage,close,switchOperat
 
 function VoiceControl({ prefs, computer, notify }: { prefs: ShellPrefs; computer: (command:string,authorized:boolean) => VoiceCommandResult|Promise<VoiceCommandResult>; notify: (text: string, kind?: "info" | "error") => void }) {
   const [listening, setListening] = useState(false), [busy, setBusy] = useState(false), [commanding,setCommanding]=useState(false), [confirmation,setConfirmation]=useState(""), [history, setHistory] = useState<string[]>([]), [armed,setArmed]=useState(!prefs.voicePushToTalk);
-  const stopRecorder = useRef<null|(()=>void)>(null),capture=useRef<{stream:MediaStream;context:AudioContext;source:MediaStreamAudioSourceNode;processor:ScriptProcessorNode;timer?:number;frames:Float32Array[];speech:number;sampleRate:number}|null>(null),processing=useRef(false),prefsRef=useRef(prefs),computerRef=useRef(computer),notifyRef=useRef(notify),affirmativeAudio=useRef<HTMLAudioElement|null>(null),sequenceAudio=useRef<HTMLAudioElement|null>(null),confirmationTimer=useRef<number|undefined>(undefined),lastConfirmationAt=useRef(0);
+  const stopRecorder = useRef<null|(()=>void)>(null),capture=useRef<{stream:MediaStream;context:AudioContext;source:MediaStreamAudioSourceNode;processor:ScriptProcessorNode;timer?:number;frames:Float32Array[];speech:number;sampleRate:number}|null>(null),starting=useRef(false),processing=useRef(false),prefsRef=useRef(prefs),computerRef=useRef(computer),notifyRef=useRef(notify),affirmativeAudio=useRef<HTMLAudioElement|null>(null),sequenceAudio=useRef<HTMLAudioElement|null>(null),confirmationTimer=useRef<number|undefined>(undefined),lastConfirmationAt=useRef(0);
   useEffect(()=>{prefsRef.current=prefs;computerRef.current=computer;notifyRef.current=notify;},[prefs,computer,notify]);
   useEffect(()=>{affirmativeAudio.current=new Audio("/assets/sounds/voice-affirmative.mp3");sequenceAudio.current=new Audio("/assets/sounds/input-ok.mp3");for(const audio of [affirmativeAudio.current,sequenceAudio.current]){audio.preload="auto";audio.volume=.55;audio.load();}return()=>{if(confirmationTimer.current)window.clearTimeout(confirmationTimer.current);affirmativeAudio.current?.pause();sequenceAudio.current?.pause();};},[]);
   const confirmCommand = (result:VoiceCommandResult) => {
@@ -4935,8 +4953,9 @@ function VoiceControl({ prefs, computer, notify }: { prefs: ShellPrefs; computer
     finally{processing.current=false;setBusy(false);}
   };
   const start = async (ambient=false) => {
+    if(capture.current||starting.current)return;
+    starting.current=true;
     try {
-      if(capture.current)return;
       if(!navigator.mediaDevices?.getUserMedia)throw new Error("Microphone capture is unavailable in this environment");
       const statusResponse=await fetch("http://127.0.0.1:8765/api/voice-status"),status=await statusResponse.json();
       if(!statusResponse.ok||!status.available)throw new Error(status.reason||"The bundled offline voice runtime is unavailable");
@@ -4945,7 +4964,11 @@ function VoiceControl({ prefs, computer, notify }: { prefs: ShellPrefs; computer
       processor.onaudioprocess=(event)=>{const frame=new Float32Array(event.inputBuffer.getChannelData(0));active.frames.push(frame);let energy=0;for(const sample of frame)energy+=sample*sample;if(Math.sqrt(energy/frame.length)>.012)active.speech++;if(active.frames.length>Math.ceil(active.sampleRate*12/frame.length))active.frames.splice(0,Math.floor(active.frames.length/3));};source.connect(processor);processor.connect(context.destination);setListening(true);
       if(ambient){active.timer=window.setInterval(()=>{if(processing.current||!capture.current)return;const frames=active.frames.splice(0),speech=active.speech;active.speech=0;if(speech>=3)void transcribe(frames,active.sampleRate,true);},4500);stopRecorder.current=()=>stopCapture(false);}
       else{stopRecorder.current=()=>stopCapture(true);window.setTimeout(()=>capture.current===active&&stopCapture(true),15000);}
-    } catch(error) { setArmed(false);notifyRef.current(error instanceof Error?error.message:"Microphone access was denied", "error"); }
+    } catch(error) {
+      setArmed(false);
+      const name=error instanceof DOMException?error.name:"",message=error instanceof Error?error.message:"";
+      notifyRef.current(/notallowed|permission|denied/i.test(`${name} ${message}`)?"Microphone access was not approved. Review the request in Portal Center, then arm Voice Control again.":message||"Microphone capture could not be started", "error");
+    } finally { starting.current=false; }
   };
   useEffect(()=>{if(!prefs.voiceEnabled||prefs.voicePushToTalk){setArmed(false);stopCapture(false);return;}setArmed(true);return()=>stopCapture(false);},[prefs.voiceEnabled,prefs.voicePushToTalk,prefs.voiceDevice]);
   useEffect(()=>{if(prefs.voiceEnabled&&!prefs.voicePushToTalk&&armed&&!capture.current)void start(true);else if((!armed||prefs.voicePushToTalk)&&capture.current)stopCapture(false);return()=>{};},[armed,prefs.voiceEnabled,prefs.voicePushToTalk,prefs.voiceDevice]);
@@ -5084,14 +5107,15 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
   </section></div>;
 }
 
-function Version31Welcome({close,openConnectivity}:{close:()=>void;openConnectivity:()=>void}){
+function Version31Welcome({close,openUtilities}:{close:()=>void;openUtilities:()=>void}){
   const features=[
-    {code:"01",title:"CONNECTION COMMAND",text:"Manage saved networks, VPN profiles, Linux hotspots, metered links, and live connection diagnostics from one compact Systems station."},
-    {code:"02",title:"HARDWARE MATRIX",text:"Inspect printers, scanners, cameras, controllers, USB peripherals, and removable storage through real platform adapters."},
-    {code:"03",title:"PORTAL-PROTECTED CHANGES",text:"VPN, hotspot, and saved-network changes require a matching single-use approval from the existing LCARS Portal Center."},
-    {code:"04",title:"SOFTWARE CONTROLS REPAIRED",text:"Software Logistics now has isolated, readable LCARS button geometry and a clear offline package-manager state."},
+    {code:"01",title:"PRIVATE CLIPBOARD HISTORY",text:"Capture, restore, pin, and clear a bounded local clipboard history with opt-in storage and a one-control private mode."},
+    {code:"02",title:"LCARS DISPLAY CAPTURE",text:"Take screenshots and screen recordings through Portal-approved access, saved directly into local LCARS Captures folders."},
+    {code:"03",title:"NOTIFICATION SERVICE",text:"Approved local application notifications now arrive in the existing Communications and Operations timeline instead of a duplicate inbox."},
+    {code:"04",title:"PRINT COMMAND",text:"Review printers and queued jobs, then cancel a job through a matching, single-use Portal authorization."},
+    {code:"05",title:"VOICE PERMISSION REPAIR",text:"Hands-free Voice Control now recognizes trusted LCARS microphone requests and prevents repeated startup attempts or duplicate denial notices."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.4"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.4 CONNECTIVITY AND HARDWARE</h2><p>Native station connections, peripheral inventory, diagnostics, and protected changes—inside the existing Systems matrix.</p></span><strong>31.4</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openConnectivity}>OPEN CONNECTION MATRIX</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5 DAILY UTILITIES</h2><p>Private clipboard history, LCARS capture, notification routing, print management, and repaired Voice Control permissions.</p></span><strong>31.5</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openUtilities}>OPEN UTILITY COMMAND</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

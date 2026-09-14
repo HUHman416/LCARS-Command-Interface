@@ -16,9 +16,10 @@ from lcars_data_fabric import DataFabric
 from lcars_intents import IntentBroker
 from lcars_software import SoftwareLogistics
 from lcars_connectivity import ConnectivityHardware
+from lcars_utilities import DailyUtilities
 
 PORT=8765
-LCARS_VERSION="31.4"
+LCARS_VERSION="31.5"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
@@ -40,6 +41,7 @@ FILES=FileOperations(CONFIG_DIR,"linux")
 DOCUMENTS=DocumentWorkspaceStore(CONFIG_DIR,FILES.safe_path)
 SOFTWARE=SoftwareLogistics(CONFIG_DIR,"linux")
 CONNECTIVITY_HARDWARE=ConnectivityHardware(CONFIG_DIR,"linux",storage_provider=lambda:storage_data())
+DAILY_UTILITIES=DailyUtilities(CONFIG_DIR,"linux")
 PORTAL_OPERATOR_TOKEN=os.environ.get("LCARS_PORTAL_OPERATOR_TOKEN","").strip()
 TERMINALS={}
 TERMINAL_LOCK=threading.Lock()
@@ -1197,6 +1199,7 @@ class Handler(BaseHTTPRequestHandler):
         elif route=="/api/network-details": self.send_json(network_details())
         elif route=="/api/connectivity": self.send_json(connectivity_data())
         elif route=="/api/connectivity-hardware": self.send_json(CONNECTIVITY_HARDWARE.status(parse_qs(parsed.query).get("refresh",["0"])[0]=="1"))
+        elif route=="/api/daily-utilities": self.send_json(DAILY_UTILITIES.status())
         elif route=="/api/software": self.send_json(software_data(parse_qs(urlparse(self.path).query).get("refresh",["0"])[0]=="1"))
         elif route=="/api/software-logistics":
             query=parse_qs(parsed.query);operation=query.get("operation",["status"])[0]
@@ -1308,6 +1311,19 @@ class Handler(BaseHTTPRequestHandler):
                         return self.send_json({"ok":True,"approvalRequired":True,"request":result["request"]})
                     approval=INTENT_BROKER.request(str(data.get("approvalId",""))) if operation=="execute" else None
                     return self.send_json(CONNECTIVITY_HARDWARE.operate(data,approval))
+                except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
+                except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
+                except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)
+            if route=="/api/daily-utilities":
+                try:
+                    operation=str(data.get("operation","")).strip().lower()
+                    if operation=="request":
+                        payload=DAILY_UTILITIES.request_description(data)
+                        result=INTENT_BROKER.operate({"operation":"submit","kind":"print","client":"LCARS DAILY UTILITIES","title":payload["label"],"detail":"A queued print job is selected for cancellation.","payload":payload})
+                        return self.send_json({"ok":True,"approvalRequired":True,"request":result["request"]})
+                    approval=INTENT_BROKER.request(str(data.get("approvalId",""))) if operation=="execute" else None
+                    request={**data,"operation":str(data.get("action",""))} if operation=="execute" else data
+                    return self.send_json(DAILY_UTILITIES.operate(request,approval))
                 except PermissionError as exc:return self.send_json({"ok":False,"error":str(exc)},403)
                 except KeyError as exc:return self.send_json({"ok":False,"error":str(exc).strip("'")},404)
                 except Exception as exc:return self.send_json({"ok":False,"error":str(exc)},400)

@@ -33,7 +33,7 @@ test("Files 2.0 uses compact bounded rows and horizontal controls",()=>{
 });
 
 test("31.3 capability remains present under the current development identity",()=>{
-  assert.equal(JSON.parse(read("../package.json")).version,"31.4.0");
-  assert.match(read("../mobile/android/app/build.gradle"),/versionCode 3104000/);
+  assert.equal(JSON.parse(read("../package.json")).version,"31.5.0");
+  assert.match(read("../mobile/android/app/build.gradle"),/versionCode 3105000/);
   assert.match(read("../docs/VERSION-31.3-SOFTWARE-LOGISTICS.md"),/Version 31\.3 upgrades the existing System Control Matrix software area/);
 });

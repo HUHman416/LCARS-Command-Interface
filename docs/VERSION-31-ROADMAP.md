@@ -45,6 +45,8 @@ Implemented in Version 31.4: the existing Network area is now the Connectivity a
 - Add LCARS-native quick settings and consistent status surfaces for the utilities that still depend on host pop-ups.
 - Integrate the existing calendar, Communications, Search, Data Fabric, and Operations timeline instead of creating duplicate applications.
 
+Implemented in Version 31.5: a continuously numbered Utilities page provides opt-in, bounded local clipboard history with Private Mode; Portal-approved still and WebM display capture saved to fixed local LCARS folders; real printer and print-job inventory with exact-match, single-use Portal authorization for cancellation; and a local notification route that feeds approved Portal notifications into the existing Communications and Operations history. Calendar, Universal Search, Files, and the Operations timeline remain shared destinations. Electron now recognizes device requests from the active trusted `lcars://` frame even when Chromium omits the request-origin field, and Voice Control serializes microphone startup so one unmute cannot produce repeated denials.
+
 ## 31.6 Development — Security, Recovery, and Accessibility
 
 - Add PolicyKit and secret/keyring mediation with clear operator identity and reason displays.

@@ -51,10 +51,10 @@ test("Linux and Windows bridges expose native controls without desktop-settings 
 
 test("Version 30.14 development identities retain Version 30.11 native controls",async()=>{
   const [pkg,gradle,workflow,padd]=await Promise.all([source("../package.json"),source("../mobile/android/app/build.gradle"),source("../.github/workflows/v30-development.yml"),source("../padd/app.js")]);
-  assert.equal(JSON.parse(pkg).version,"31.4.0");
-  assert.match(gradle,/versionCode 3104000/);
-  assert.match(gradle,/versionName "31\.4\.0"/);
+  assert.equal(JSON.parse(pkg).version,"31.5.0");
+  assert.match(gradle,/versionCode 3105000/);
+  assert.match(gradle,/versionName "31\.5\.0"/);
   assert.match(workflow,/v30\.14/);
   assert.match(workflow,/Systems Layout Audit Development/);
-  assert.match(padd,/VERSION 31\.4 DEVELOPMENT/);
+  assert.match(padd,/VERSION 31\.5 DEVELOPMENT/);
 });

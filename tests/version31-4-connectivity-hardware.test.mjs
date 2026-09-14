@@ -10,7 +10,7 @@ test("Version 31.4 upgrades the existing Network area without adding another Sys
   assert.match(systems,/\["network","NET","NETWORK"\]/);
   assert.equal((systems.match(/\["(?:telemetry|network|wifi|bluetooth|audio|displays|software|processes|storage|modules|media)"/g)||[]).length,11);
   for(const phrase of ["STATION LINK MATRIX","VPN PROFILES","HOTSPOT CONTROL","SAVED NETWORKS","CONNECTION DIAGNOSTICS","REMOVABLE DEVICE POLICY","USB DEVICES","GAME CONTROLLERS"])assert.match(component,new RegExp(phrase));
-  assert.match(page,/VERSION 31\.4 CONNECTIVITY AND HARDWARE/);
+  assert.match(systems,/VERSION 31\.4 · CONNECTIVITY AND HARDWARE MATRIX/);
 });
 
 test("protected connections use matching single-use Portal authorization",()=>{
@@ -33,10 +33,10 @@ test("Software Logistics button geometry is isolated from legacy Systems nav rul
   assert.match(read("../app/v31-software.tsx"),/NO MANAGER/);
 });
 
-test("both packages include the connectivity service and current 31.4 identity",()=>{
+test("both packages retain the connectivity service under the current development identity",()=>{
   assert.equal((builder.match(/shared\/lcars_connectivity\.py/g)||[]).length,4);
-  assert.equal(JSON.parse(read("../package.json")).version,"31.4.0");
-  assert.match(read("../mobile/android/app/build.gradle"),/versionCode 3104000/);
-  assert.match(read("../mobile/android/app/build.gradle"),/versionName "31\.4\.0"/);
-  assert.match(memory,/Version 31\.4 Development/);
+  assert.equal(JSON.parse(read("../package.json")).version,"31.5.0");
+  assert.match(read("../mobile/android/app/build.gradle"),/versionCode 3105000/);
+  assert.match(read("../mobile/android/app/build.gradle"),/versionName "31\.5\.0"/);
+  assert.match(memory,/\[Version 31\.4\]/);
 });
