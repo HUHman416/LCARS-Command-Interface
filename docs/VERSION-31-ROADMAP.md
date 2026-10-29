@@ -58,6 +58,8 @@ Implemented in Version 31.5: a continuously numbered Utilities page provides opt
 
 31.5.3 applies the additional character-sheet reference with translucent resin keycaps, domed indicators, restrained panel codes, bold white Roddenberry headings, and thin white rules on black fields. This remains a supplementary TOS refinement.
 
+31.5.4 retains the operator-preferred 31.5.2 composition with a stronger control palette, subtle rectangular resin caps, and repaired selected-category contrast.
+
 ## 31.6 Development — Security, Recovery, and Accessibility
 
 - Add PolicyKit and secret/keyring mediation with clear operator identity and reason displays.
