@@ -51,8 +51,8 @@ test("Commissioning integrates trust, diagnostics, bounded retention, and resume
 
 test("development history and the Version 30 Stable workflow remain separately signed",async()=>{
   const [development,stable,pkg,gradle]=await Promise.all([source("../.github/workflows/v30-development.yml"),source("../.github/workflows/v30-stable.yml"),source("../package.json"),source("../mobile/android/app/build.gradle")]);
-  assert.equal(JSON.parse(pkg).version,"31.5.0");
-  assert.match(gradle,/versionCode 3105000/);
+  assert.equal(JSON.parse(pkg).version,"31.5.1");
+  assert.match(gradle,/versionCode 3105001/);
   assert.match(development,/gh release (?:view|create) v30\.14/);
   assert.match(development,/--prerelease/);
   assert.match(stable,/branches: \[30-stable\]/);

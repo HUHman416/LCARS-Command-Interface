@@ -47,6 +47,13 @@ Implemented in Version 31.4: the existing Network area is now the Connectivity a
 
 Implemented in Version 31.5: a continuously numbered Utilities page provides opt-in, bounded local clipboard history with Private Mode; Portal-approved still and WebM display capture saved to fixed local LCARS folders; real printer and print-job inventory with exact-match, single-use Portal authorization for cancellation; and a local notification route that feeds approved Portal notifications into the existing Communications and Operations history. Calendar, Universal Search, Files, and the Operations timeline remain shared destinations. Electron now recognizes device requests from the active trusted `lcars://` frame even when Chromium omits the request-origin field, and Voice Control serializes microphone startup so one unmute cannot produce repeated denials.
 
+## 31.5.1 Development — TOS Console (supplementary)
+
+- Add an optional production-series Enterprise physical console skin and bundled operator-provided fonts.
+- Preserve all existing desktop functions and Display Matrix families.
+- Validate detached views, accessibility modes, and responsive layouts.
+- Publish as Development only; this addition does not replace the next milestone.
+
 ## 31.6 Development — Security, Recovery, and Accessibility
 
 - Add PolicyKit and secret/keyring mediation with clear operator identity and reason displays.

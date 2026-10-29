@@ -19,5 +19,6 @@ import "./v31-files.css";
 import "./v31-3.css";
 import "./v31-4.css";
 import "./v31-5.css";
-export const metadata: Metadata = { title: "LCARS Command Interface", description: "LCARS-inspired Nobara and Fedora desktop dashboard.", other: { "codex-preview": "31.5-development" } };
+import "./tos.css";
+export const metadata: Metadata = { title: "LCARS Command Interface", description: "LCARS-inspired Nobara and Fedora desktop dashboard.", other: { "codex-preview": "31.5.1-development" } };
 export default function RootLayout({children}:{children:React.ReactNode}) { return <html lang="en" suppressHydrationWarning><body>{children}</body></html>; }

@@ -1,6 +1,8 @@
 "use client";
+import { createTosKeyPlayer, createTosEventPlayer, isTosCancelKey } from "./tos-audio";
+import { TosLoadInstrument } from "./tos-instruments";
 import { Component, useEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
+import type { MouseEvent as ReactMouseEvent, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import lcarsEmblem from "../desktop/icons/512x512.png";
 import {
   createV25Id,
@@ -68,7 +70,7 @@ import { DocumentWorkspace as DocumentWorkspaceV31, FileExplorer as FileExplorer
 import { DailyUtilities } from "./v31-utilities";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="31.5";
+const LCARS_VERSION="31.5.1";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -332,6 +334,7 @@ const widgetInfo: Record<BuiltinWidgetId, { name: string; description: string }>
 };
 const defaultWidgets: WidgetId[] = ["system", "favorites", "operations"];
 const themes = [
+  {id:"tos",name:"Enterprise · The Original Series",code:"NCC-1701",era:"2266–2269",family:"CONSTITUTION-CLASS",description:"Physical console fascia, black instrument wells, illuminated resin switch banks, and amber readouts."},
   {id:"classic",name:"Enterprise-D",code:"NCC-1701-D",era:"2364–2370",family:"TNG GALAXY-CLASS",description:"Warm, broad Okudagram bands and high-contrast rounded control bays."},
   {id:"voyager",name:"Voyager",code:"NCC-74656",era:"2371–2378",family:"INTREPID-CLASS",description:"Compact late-24th-century panels with cooler blue structure and dense data rails."},
   {id:"nemesis",name:"Enterprise-E",code:"NCC-1701-E",era:"2379",family:"NEMESIS LCARS",description:"Predominantly blue tactical framing, thin cyan divisions, and squared information panes."},
@@ -893,7 +896,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-1"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1129,16 +1132,40 @@ export default function Home() {
         .sort((a, b) => a.name.localeCompare(b.name)),
     [apps, query],
   );
+  const tosKeyPlayer = useRef<ReturnType<typeof createTosKeyPlayer> | null>(null);
+  const tosEventPlayer = useRef<ReturnType<typeof createTosEventPlayer> | null>(null);
+  const playTosKey = (cancel = false) => {
+    if (theme !== "tos" || !sound || access.soundVolume <= 0) return;
+    tosKeyPlayer.current ??= createTosKeyPlayer();
+    tosKeyPlayer.current.play(sound, access.soundVolume, cancel);
+  };
+  useEffect(() => {
+    if (theme !== "tos" || !sound || access.soundVolume <= 0) {tosKeyPlayer.current?.stop();tosEventPlayer.current?.stop();}
+    return () => {tosKeyPlayer.current?.stop();tosEventPlayer.current?.stop();};
+  }, [theme, sound, access.soundVolume]);
+  const tosConsoleKey = (event: ReactMouseEvent<HTMLElement>) => {
+    if (theme !== "tos" || !(event.target instanceof Element)) return;
+    const key = event.target.closest("button,[role='button'],input[type='checkbox'],input[type='radio'],select");
+    if (!key || key.hasAttribute("disabled") || key.getAttribute("aria-disabled") === "true") return;
+    playTosKey(isTosCancelKey(key.getAttribute("aria-label") || key.textContent || ""));
+  };
   const beep = (ok = false) => {
-    if (!sound) return;
+    if (!sound || theme === "tos") return;
     const a = new Audio(ok ? "/assets/beep2.mp3" : "/assets/beep1.mp3");
     a.volume = access.soundVolume / 100;
     a.play().catch(() => {});
   };
   const cue = (
-    name: "error" | "processing" | "transfer-complete" | "transfer-failed",
+    name: "error" | "processing" | "transfer-complete" | "transfer-failed" | "update-data",
   ) => {
-    if (!sound) return;
+    if (!sound || access.soundVolume <= 0) return;
+    if (theme === "tos" && (name === "error" || name === "transfer-failed" || name === "update-data")) {
+      tosEventPlayer.current ??= createTosEventPlayer();
+      tosKeyPlayer.current?.stop();
+      tosEventPlayer.current.play(sound, access.soundVolume, name !== "update-data");
+      return;
+    }
+    if (name === "update-data") return;
     const a = new Audio(`/assets/sounds/${name}.mp3`);
     a.volume = access.soundVolume / 100;
     a.play().catch(() => {});
@@ -1928,7 +1955,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"31.5",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.5.1",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2363,6 +2390,7 @@ export default function Home() {
           <h3>
             SYSTEM INFORMATION <small>SYS-01</small>
           </h3>
+          {theme==="tos"?<TosLoadInstrument meters={meters} open={()=>{setSystemControlArea("telemetry");setSection("system");}}/>:(
           <div className="meters">
             {meters.map((m, i) => (
               <article key={String(m[0])} role="button" tabIndex={0} onClick={() => {setSystemControlArea("telemetry");setSection("system");}} onKeyDown={(e) => {if(e.key === "Enter"){setSystemControlArea("telemetry");setSection("system");}}}>
@@ -2379,6 +2407,7 @@ export default function Home() {
               </article>
             ))}
           </div>
+          )}
           <div className="hardware-glance">
             <span><small>MEMORY AVAILABLE</small><b>{formatBytes(systemDetails.memory?.available||0)}</b></span>
             <span><small>GRAPHICS ADAPTERS</small><b>{systemDetails.graphics?.length||0}</b></span>
@@ -2526,11 +2555,30 @@ export default function Home() {
     const app=apps.find((item)=>item.id===activeCustomPage.target);
     return <CustomApplicationPage page={activeCustomPage} app={app} embedded={app?embeddedPageForApp(app):null} launch={()=>app&&launch(app)} navigate={setSection}/>;
   };
+  const consoleNavigation = <>
+{visibleNav.map((n, i) => (
+            <button
+              key={n[0]}
+              className={"nav n" + i + (section === n[0] ? " active" : "")}
+              onClick={() => {
+                beep();
+                setSection(n[0]);
+              }}
+            >
+              <i>{n[1]}</i>
+              <span>{n[2]}</span>
+            </button>
+          ))}
+          {customPages.map((page,index)=><button title={`${page.kind.toUpperCase()} · ${page.name}`} key={page.id} className={`nav custom-nav n${(index+2)%6}${section===`custom:${page.id}`?" active":""}`} onClick={()=>{beep();setSection(`custom:${page.id}`);}}><i>{String(visibleNav.length+index+1).padStart(2,"0")}</i><span>{page.name}</span></button>)}
+  </>;
+  const detachedConsoleClass = `lcars detached-peek-shell theme-${theme}${access.highContrast?" accessibility-contrast":""}${access.reducedMotion?" reduced-motion":""}${access.colorSafe?" color-safe":""}${alertCondition!=="normal"?` alert-${alertCondition}`:""}`;
   const detachedParams=typeof window!=="undefined"?new URLSearchParams(window.location.search):null;
-  if(detachedParams?.get("tool")==="document"&&detachedParams.get("path"))return <DocumentWorkspaceV31 path={detachedParams.get("path")||""} detached close={()=>window.close()} notify={notify}/>;
-  if(detachedParams?.get("tool")==="page-peek"&&detachedParams.get("page")){const page=detachedParams.get("page")||"overview";return <main className={`lcars detached-peek-shell theme-${theme}`}><SpeedDialPagePeek detached popupKey="detached-page-peek" page={page} pinned={false} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>{}} close={()=>window.close()} openFull={(target)=>{window.location.href=`lcars://app/index.html?section=${encodeURIComponent(target)}`;}}/></main>;}
+  if(detachedParams?.get("tool")==="document"&&detachedParams.get("path"))return <main onClickCapture={tosConsoleKey} onKeyDownCapture={(event)=>{if(event.key==="Escape")playTosKey(true);}} className={detachedConsoleClass} style={{fontSize:access.fontScale+"%"}}><DocumentWorkspaceV31 path={detachedParams.get("path")||""} detached close={()=>window.close()} notify={notify}/></main>;
+  if(detachedParams?.get("tool")==="page-peek"&&detachedParams.get("page")){const page=detachedParams.get("page")||"overview";return <main onClickCapture={tosConsoleKey} onKeyDownCapture={(event)=>{if(event.key==="Escape")playTosKey(true);}} className={detachedConsoleClass} style={{fontSize:access.fontScale+"%"}}><SpeedDialPagePeek detached popupKey="detached-page-peek" page={page} pinned={false} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>{}} close={()=>window.close()} openFull={(target)=>{window.location.href=`lcars://app/index.html?section=${encodeURIComponent(target)}`;}}/></main>;}
   return (
     <main
+      onClickCapture={tosConsoleKey}
+      onKeyDownCapture={(event)=>{if(event.key==="Escape")playTosKey(true);}}
       style={{ fontSize: access.fontScale + "%" }}
       className={
         "lcars theme-" +
@@ -2543,8 +2591,8 @@ export default function Home() {
     >
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
-          <span>LCARS</span>
-          <small>31.5 DEV</small>
+          <span>{theme === "tos" ? "STARFLEET" : "LCARS"}</span>
+          <small>31.5.1 DEV</small>
         </button>
         <div className="title">
           <div className="title-copy">
@@ -2585,26 +2633,14 @@ export default function Home() {
               : "MUTED"}
         </button>
       </header>
+      {theme === "tos" && <div className="tos-instrument-bank" aria-hidden="true"><span>USS ENTERPRISE · NCC-1701</span><div>{Array.from({length:12},(_,i)=><i key={i}/>)}</div><span>COMPUTER CONTROL · 2266</span></div>}
       {alertCondition!=="normal"&&<button className="alert-condition-banner" onClick={()=>{setAlertCondition("normal");localStorage.setItem("lcars-alert-condition","normal");}}><b>{alertCondition.toUpperCase()} ALERT</b><span>{alertCondition==="red"?"EMERGENCY CONDITION ACTIVE":"HEIGHTENED READINESS CONDITION"} · PRESS FOR NO ALERT</span></button>}
       {safeMode&&<button className="safe-mode-banner" onClick={()=>setSection("settings")}><b>SAFE STARTUP ACTIVE</b><span>SAVED VISUAL SETTINGS AND EXTENSIONS ARE TEMPORARILY BYPASSED · OPEN RECOVERY</span></button>}
       <div className="shell">
         <aside>
           {prefs.trayPresentation==="header"?<button className="elbow header-tray-trigger" aria-expanded={trayOpen} onClick={()=>setTrayOpen((value)=>!value)}><span>TRAY</span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small></button>:<div className="elbow"><span>SYS</span><small>47</small></div>}
           <div className="nav-gap" />
-          {visibleNav.map((n, i) => (
-            <button
-              key={n[0]}
-              className={"nav n" + i + (section === n[0] ? " active" : "")}
-              onClick={() => {
-                beep();
-                setSection(n[0]);
-              }}
-            >
-              <i>{n[1]}</i>
-              <span>{n[2]}</span>
-            </button>
-          ))}
-          {customPages.map((page,index)=><button title={`${page.kind.toUpperCase()} · ${page.name}`} key={page.id} className={`nav custom-nav n${(index+2)%6}${section===`custom:${page.id}`?" active":""}`} onClick={()=>{beep();setSection(`custom:${page.id}`);}}><i>{String(visibleNav.length+index+1).padStart(2,"0")}</i><span>{page.name}</span></button>)}
+          {theme==="tos"?<div className="tos-navigation-bank">{consoleNavigation}</div>:consoleNavigation}
           <div
             className={
               "task-zone " +
@@ -2614,7 +2650,7 @@ export default function Home() {
             onMouseEnter={taskEnter}
             onMouseLeave={taskLeave}
           >
-            {prefs.trayPresentation==="rail"&&<button className="tray-strip-trigger" aria-label="Open system tray" title="Tray Command Deck" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><span aria-hidden="true"><i/><i/><i/></span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small><b aria-hidden="true">›</b></button>}
+            {prefs.trayPresentation==="rail"&&theme!=="tos"&&<button className="tray-strip-trigger" aria-label="Open system tray" title="Tray Command Deck" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><span aria-hidden="true"><i/><i/><i/></span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small><b aria-hidden="true">›</b></button>}
             <button className="task-trigger" onClick={toggleTaskLock}>
               <i aria-hidden="true">{taskRailNumber}</i>
               <span>
@@ -2641,6 +2677,7 @@ export default function Home() {
                 }}
               />
             )}
+            {theme==="tos"&&prefs.trayPresentation==="rail"&&<button className="tos-tray-key" aria-label="Open system tray" title="Tray Command Deck" aria-expanded={trayOpen} onClick={(event)=>{event.stopPropagation();setTrayOpen((value)=>!value);}}><i aria-hidden="true">≡</i><span>SYSTEM TRAY</span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small></button>}
             <div className="filler-codes">
               <i>47-219</i>
               <i>85-302</i>
@@ -2662,7 +2699,7 @@ export default function Home() {
         <section className={"content page-" + section}>
           <div className="heading">
             <div>
-              <small>LCARS / {themes.find((candidate) => candidate.id === theme)?.code}</small>
+              <small>{theme === "tos" ? "STARFLEET COMPUTER / " : "LCARS / "}{themes.find((candidate) => candidate.id === theme)?.code}</small>
               <h2>
                 {section === "overview"
                   ? "SYSTEM OVERVIEW"
@@ -2854,7 +2891,7 @@ export default function Home() {
             <NetworkConsole info={networkInfo} action={coreAction} refresh={() => fetch("http://127.0.0.1:8765/api/network-details").then((r) => r.json()).then(setNetworkInfo).catch(() => notify("Network telemetry unavailable","error"))} />
           )}
           {section === "updates" && (
-            <UpdateCenter platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => {setSettingsArea("system");setSection("settings");}} update={lcarsUpdate} setUpdate={setLcarsUpdate} notify={notify} extensions={extensions} catalog={extensionCatalog} sources={extensionSources} setCatalog={setExtensionCatalog} setSources={setExtensionSources} disabled={disabledExtensions} setDisabled={saveDisabledExtensions} refreshExtensions={()=>Promise.all([fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()),fetch("http://127.0.0.1:8765/api/extension-catalog").then((response)=>response.json())]).then(([installed,catalog])=>{setExtensions(installed.extensions||[]);setExtensionCatalog(catalog.catalog||[]);setExtensionSources(catalog.sources||[]);}).catch(()=>notify("Extension inventory could not be refreshed","error"))} />
+            <UpdateCenter onUpdateActivity={()=>cue("update-data")} platform={platform} action={coreAction} health={health} prefs={prefs} configureVoice={() => {setSettingsArea("system");setSection("settings");}} update={lcarsUpdate} setUpdate={setLcarsUpdate} notify={notify} extensions={extensions} catalog={extensionCatalog} sources={extensionSources} setCatalog={setExtensionCatalog} setSources={setExtensionSources} disabled={disabledExtensions} setDisabled={saveDisabledExtensions} refreshExtensions={()=>Promise.all([fetch("http://127.0.0.1:8765/api/extensions").then((response)=>response.json()),fetch("http://127.0.0.1:8765/api/extension-catalog").then((response)=>response.json())]).then(([installed,catalog])=>{setExtensions(installed.extensions||[]);setExtensionCatalog(catalog.catalog||[]);setExtensionSources(catalog.sources||[]);}).catch(()=>notify("Extension inventory could not be refreshed","error"))} />
           )}
           {section.startsWith("custom:") && renderCustomPage()}
           {section === "settings" && (
@@ -2873,9 +2910,9 @@ export default function Home() {
                 <div className="setting-block settings-display-matrix">
                   <header>
                     <span>DISPLAY MATRIX</span>
-                    <small>SELECT VERIFIED ON-SCREEN LCARS FAMILY</small>
+                    <small>SELECT STARFLEET CONSOLE FAMILY</small>
                   </header>
-                  <p className="display-matrix-brief">Each selection now changes geometry, information density, borders, navigation, and panel behavior—not only color. Non-LCARS systems such as Cardassian station controls and La Sirena holograms are intentionally excluded.</p>
+                  <p className="display-matrix-brief">Choose a Starfleet console: the physical switch banks of the Original Series Enterprise, or the LCARS display families of later eras. Each changes framing, controls, navigation, and instrument styling.</p>
                   <div className="settings-themes">
                     {themes.map((t, i) => (
                       <button
@@ -3075,7 +3112,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5","1");setWhatsNewOpen(false);}} openUtilities={()=>{localStorage.setItem("lcars-whats-new-v31-5","1");setWhatsNewOpen(false);setSection("utilities");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-1","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-1","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -3544,6 +3581,7 @@ function TaskRail({
 }
 
 function UpdateCenter({
+  onUpdateActivity,
   platform,
   action,
   health,
@@ -3561,6 +3599,7 @@ function UpdateCenter({
   setDisabled,
   refreshExtensions,
 }: {
+  onUpdateActivity: () => void;
   platform: string;
   action: (value: string) => void;
   health: Health;
@@ -3591,12 +3630,16 @@ function UpdateCenter({
       sessionStorage.setItem("lcars-update-download-locked-v28","1");
     }
     setUpdateBusy(operation);
+    if(operation!=="check")onUpdateActivity();
     try{
       const response=await fetch("http://127.0.0.1:8765/api/lcars-update",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({operation,path:update?.path||"",channel})});
       const result:UpdateInfo=await response.json();
       setUpdate({...update,...result});
       if(!response.ok||!result.ok)notify(result.error||"GitHub update service could not be reached","error");
-      else notify(result.message||(result.available?`LCARS ${result.version} is available`:"LCARS is up to date"));
+      else {
+        if(operation==="check"&&result.available)onUpdateActivity();
+        notify(result.message||(result.available?`LCARS ${result.version} is available`:"LCARS is up to date"));
+      }
       if(result.closeApp)window.setTimeout(()=>window.close(),700);
     }catch{notify("GitHub update service could not be reached","error");}
     finally{operationLock.current=false;setUpdateBusy("");}
@@ -5107,15 +5150,16 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
   </section></div>;
 }
 
-function Version31Welcome({close,openUtilities}:{close:()=>void;openUtilities:()=>void}){
+function Version31Welcome({close,openDisplay}:{close:()=>void;openDisplay:()=>void}){
   const features=[
+    {code:"00",title:"ORIGINAL SERIES CONSOLE",text:"Choose Enterprise · The Original Series in Display Matrix for vibrant resin switch banks, black instrument fields, Roddenberry lettering, and backlit data blocks."},
     {code:"01",title:"PRIVATE CLIPBOARD HISTORY",text:"Capture, restore, pin, and clear a bounded local clipboard history with opt-in storage and a one-control private mode."},
     {code:"02",title:"LCARS DISPLAY CAPTURE",text:"Take screenshots and screen recordings through Portal-approved access, saved directly into local LCARS Captures folders."},
     {code:"03",title:"NOTIFICATION SERVICE",text:"Approved local application notifications now arrive in the existing Communications and Operations timeline instead of a duplicate inbox."},
     {code:"04",title:"PRINT COMMAND",text:"Review printers and queued jobs, then cancel a job through a matching, single-use Portal authorization."},
     {code:"05",title:"VOICE PERMISSION REPAIR",text:"Hands-free Voice Control now recognizes trusted LCARS microphone requests and prevents repeated startup attempts or duplicate denial notices."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5 DAILY UTILITIES</h2><p>Private clipboard history, LCARS capture, notification routing, print management, and repaired Voice Control permissions.</p></span><strong>31.5</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openUtilities}>OPEN UTILITY COMMAND</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.1"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.1 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.1</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openDisplay}>OPEN DISPLAY MATRIX</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){
