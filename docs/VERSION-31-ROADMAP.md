@@ -56,6 +56,8 @@ Implemented in Version 31.5: a continuously numbered Utilities page provides opt
 
 31.5.2 refines the supplementary TOS skin after operator review with paired instrument monitors, amber allocation graphics, and grouped station keys. No planned milestone is displaced.
 
+31.5.3 applies the additional character-sheet reference with translucent resin keycaps, domed indicators, restrained panel codes, bold white Roddenberry headings, and thin white rules on black fields. This remains a supplementary TOS refinement.
+
 ## 31.6 Development — Security, Recovery, and Accessibility
 
 - Add PolicyKit and secret/keyring mediation with clear operator identity and reason displays.

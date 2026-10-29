@@ -19,7 +19,7 @@ from lcars_connectivity import ConnectivityHardware
 from lcars_utilities import DailyUtilities
 
 PORT=8765
-LCARS_VERSION="31.5.2"
+LCARS_VERSION="31.5.3"
 HOME=Path.home()
 CONFIG_DIR=Path(os.environ.get("APPDATA",HOME))/"LCARS Command Interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"

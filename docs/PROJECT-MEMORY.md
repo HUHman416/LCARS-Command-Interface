@@ -34,3 +34,15 @@ The additional supplied `tos_datareceived_ep.mp3` announces explicit built-in up
 ## TOS production-console fidelity — 31.5.2 Development
 
 Following operator review of the 31.5.1 build, the TOS composition now uses two paired cyan-surrounded graphic monitors, an original amber radial memory/storage instrument, smaller technical panel labels, and a two-column bank of consistently shaped illuminated station keys. The screen surface remains black throughout. Large dashboard-style headings and individually boxed application cards are reduced in favor of physical program-selector keys. Roddenberry fonts and all four supplied key/updater/failure recordings remain. Version 31.6 is still reserved, and Version 30 stays Stable.
+
+## Additional TOS visual direction — character-sheet reference
+
+The operator supplied `Star_Trek_Adventures_1e_TOS_Desktop_V5_Fillable.pdf` as an additional aesthetic reference after 31.5.2. Both pages were reviewed. Carry these cues into future TOS refinements: pure black fields; flat, saturated yellow, green, cyan, and orange-red section bars with black lettering; bold white Roddenberry headings and short white labels; thin white rules; and simple square, rectangular, triangle, and diamond markers. Use color and alignment to group controls, with generous black separation and fewer enclosing card borders.
+
+This is a fan-made design reference, supplementary to the supplied console photographs and graphics. Its gray outer surround does not override the operator's explicit requirement for an entirely black application background. Keep station-key shapes and icon sizing uniform, and preserve the corrected Tasks/Tray/Power area. This direction is implemented in the supplementary 31.5.3 Development update.
+
+## TOS character-sheet style — 31.5.3 Development
+
+The TOS graphics use the additional reference palette: yellow `#ffdd00`, green `#39e639`, cyan `#00bfff`, orange-red `#ff3200`, white, and black. Later operator review explicitly rejected large red/yellow areas ("ketchup and mustard"), broad TNG-like bands, and a movie-era appearance. The subsequently supplied resin-button photographs take priority for physical controls: translucent blue, green, ivory, and amber caps, jelly-bean switches, small domed lamps, and printed legends separate from the cap. Keep station key geometry and numeric legends uniform; use red sparingly for signals and Power.
+
+The final 31.5.3 treatment uses black instrument screens, white Roddenberry headings, thin white rules, and small colored panel-code blocks instead of wide colored bands. Resin caps use original CSS highlights and bevels, with no reference photographs bundled. Selected Settings categories use black labels on light ivory, including High Contrast mode. Tasks, Tray, and Power remain pinned. Compact layouts use the existing mobile control bar and Command Deck rather than an overlapping Speed Dial strip. Functional telemetry, all three fonts, all four recordings, accessibility modes, and the six other families are retained. See [31.5.3 notes](VERSION-31.5.3-TOS-STYLE.md).

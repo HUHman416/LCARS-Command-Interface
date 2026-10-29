@@ -11,12 +11,12 @@ test("Version 31.1 package retains the Version 30 development history", async ()
     source("../app/page.tsx"),
     source("../mobile/android/app/build.gradle"),
   ]);
-  assert.equal(JSON.parse(pkg).version, "31.5.2");
+  assert.equal(JSON.parse(pkg).version, "31.5.3");
   assert.match(workflow, /Version 30\.14 Systems Layout Audit Development/);
   assert.match(workflow, /gh release (?:view|create) v30\.14/);
-  assert.match(page, /const LCARS_VERSION="31\.5\.2"/);
-  assert.match(android, /versionCode 3105002/);
-  assert.match(android, /versionName "31\.5\.2"/);
+  assert.match(page, /const LCARS_VERSION="31\.5\.3"/);
+  assert.match(android, /versionCode 3105003/);
+  assert.match(android, /versionName "31\.5\.3"/);
 });
 
 test("Federation server exposes discovery, durable identity, policy, and encrypted queues", async () => {

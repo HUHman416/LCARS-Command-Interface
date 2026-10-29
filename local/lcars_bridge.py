@@ -19,7 +19,7 @@ from lcars_connectivity import ConnectivityHardware
 from lcars_utilities import DailyUtilities
 
 PORT=8765
-LCARS_VERSION="31.5.2"
+LCARS_VERSION="31.5.3"
 APP_DIRS=[Path.home()/".local/share/applications",Path("/usr/local/share/applications"),Path("/usr/share/applications")]
 CONFIG_DIR=Path.home()/".config/lcars-command-interface"
 CONFIG_FILE=CONFIG_DIR/"settings.json"
