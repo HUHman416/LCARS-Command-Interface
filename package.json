@@ -1,6 +1,6 @@
 {
   "name": "lcars-command-interface",
-  "version": "31.5.5",
+  "version": "31.5.6",
   "description": "A standalone LCARS desktop command environment for Windows and Linux.",
   "author": "LCARS Command Interface Project",
   "desktopName": "lcars-command-interface.desktop",

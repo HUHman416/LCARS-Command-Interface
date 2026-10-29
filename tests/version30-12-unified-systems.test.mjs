@@ -49,11 +49,11 @@ test("unified Systems geometry is responsive and distinctly LCARS",async()=>{
 
 test("unified Systems remains included in the current Stable identity",async()=>{
   const [pkg,gradle,workflow,page,padd]=await Promise.all([source("../package.json"),source("../mobile/android/app/build.gradle"),source("../.github/workflows/v30-stable.yml"),source("../app/page.tsx"),source("../padd/app.js")]);
-  assert.equal(JSON.parse(pkg).version,"31.5.5");
-  assert.match(gradle,/versionCode 3105005/);
-  assert.match(gradle,/versionName "31\.5\.5"/);
-  assert.match(page,/const LCARS_VERSION="31\.5\.5"/);
-  assert.match(padd,/VERSION 31\.5\.5 DEVELOPMENT/);
+  assert.equal(JSON.parse(pkg).version,"31.5.6");
+  assert.match(gradle,/versionCode 3105006/);
+  assert.match(gradle,/versionName "31\.5\.6"/);
+  assert.match(page,/const LCARS_VERSION="31\.5\.6"/);
+  assert.match(padd,/VERSION 31\.5\.6 DEVELOPMENT/);
   assert.match(workflow,/Version 30 Stable/);
   for(const asset of ["LCARS-Command-Interface-v30-x86_64.AppImage","LCARS-Universal-Linux-Desktop-v30.zip","LCARS-Linux-Integration-v30.sh","LCARS-Windows-Setup-v30.exe","LCARS-Mobile-Environment-v30-Android.apk","LCARS-Command-Interface-v30-Source.zip"]){
     assert.ok(workflow.includes(asset),asset);

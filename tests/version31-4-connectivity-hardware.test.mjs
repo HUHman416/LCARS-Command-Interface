@@ -35,8 +35,8 @@ test("Software Logistics button geometry is isolated from legacy Systems nav rul
 
 test("both packages retain the connectivity service under the current development identity",()=>{
   assert.equal((builder.match(/shared\/lcars_connectivity\.py/g)||[]).length,4);
-  assert.equal(JSON.parse(read("../package.json")).version,"31.5.5");
-  assert.match(read("../mobile/android/app/build.gradle"),/versionCode 3105005/);
-  assert.match(read("../mobile/android/app/build.gradle"),/versionName "31\.5\.5"/);
+  assert.equal(JSON.parse(read("../package.json")).version,"31.5.6");
+  assert.match(read("../mobile/android/app/build.gradle"),/versionCode 3105006/);
+  assert.match(read("../mobile/android/app/build.gradle"),/versionName "31\.5\.6"/);
   assert.match(memory,/\[Version 31\.4\]/);
 });

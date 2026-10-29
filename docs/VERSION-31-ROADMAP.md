@@ -62,6 +62,8 @@ Implemented in Version 31.5: a continuously numbered Utilities page provides opt
 
 31.5.5 reduces green to small indicator lamps, using ivory/blue/amber controls and channel readouts with restrained coral accents. The preferred composition remains.
 
+31.5.6 adds the requested seamless console housing, character-sheet-inspired screen bevel, stationary blue trim, and captain’s-chair-style on/off rocker switches.
+
 ## 31.6 Development — Security, Recovery, and Accessibility
 
 - Add PolicyKit and secret/keyring mediation with clear operator identity and reason displays.

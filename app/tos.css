@@ -197,14 +197,14 @@
 .theme-tos .tray-strip-trigger{background:#070b08;border:1px solid #435146;border-radius:2px!important;color:#eee4ba}
 .theme-tos .tray-strip-trigger>span i{background:#eac770;border-radius:2px}
 .lcars.theme-tos button:not([class*="theme-preview-"]){border-radius:3px!important}
-.theme-tos .experience-grid>section,.theme-tos .settings-columns>section{background:#050a07;border:1px solid #53634f;padding:12px}
+.theme-tos .experience-grid>article,.experience-grid>section,.theme-tos .settings-columns>section{background:#050a07;border:1px solid #53634f;padding:12px}
 .theme-tos .lcars-toggle{grid-template-columns:42px minmax(0,1fr);column-gap:10px}
 .theme-tos .lcars-toggle>span{min-width:0}
 .theme-tos .experience-settings>header{border-bottom:2px solid #768265;background:#040805;padding:8px;color:#efe5c1}
 .theme-tos .lcars-toggle input:focus-visible+i{outline:3px solid #fff0b6;outline-offset:3px}
 /* TOS control fields and surrounding console surface are uniformly black. */
 .lcars.theme-tos{background:#000;border-color:#000;border-top-color:#b94936;box-shadow:none}
-.theme-tos :is(.top,.shell,.shell>aside,.content,.title,.brand,.clock,.heading,.overview-widget,.overview-widget>h3,.meters article,.favorite-app,.mini-status p,.hardware-glance>span,.ticker b,.overview-toolbar,.settings-area-tabs,.update-area-tabs,.experience-settings,.experience-settings>header,.experience-grid>section,.settings-columns>section,.setting-block,.widget,.panel,.lcars-console,.detail-view,.system-control-matrix,.utility-command-header,.tos-instrument-bank,.task-zone,.task-trigger,.mobile-command-bar,.mobile-command-sheet,.lock-screen){background:#000!important}
+.theme-tos :is(.top,.shell,.shell>aside,.content,.title,.brand,.clock,.heading,.overview-widget,.overview-widget>h3,.meters article,.favorite-app,.mini-status p,.hardware-glance>span,.ticker b,.overview-toolbar,.settings-area-tabs,.update-area-tabs,.experience-settings,.experience-settings>header,.experience-grid>article,.experience-grid>section,.settings-columns>section,.setting-block,.widget,.panel,.lcars-console,.detail-view,.system-control-matrix,.utility-command-header,.tos-instrument-bank,.task-zone,.task-trigger,.mobile-command-bar,.mobile-command-sheet,.lock-screen){background:#000!important}
 .theme-tos :is(.nav,.tray-strip-trigger,.overview-toolbar button){background:#000}
 .theme-tos .top{border-color:#282b27;border-bottom-color:#282b27}
 .theme-tos .shell>aside,.theme-tos .content{border-color:#343b36}
@@ -394,3 +394,64 @@
 .theme-tos .system-tray.speed-dial button:nth-child(2n){background:#65b9d8}
 .theme-tos .system-tray.speed-dial button:nth-child(5n){background:#f1bc5b}
 .theme-preview-tos .theme-preview-screen em:nth-child(2){background:#fff4d4!important}
+/* One continuous console housing, with the character-sheet bevel around the display. */
+.lcars.theme-tos{--tos-frame-light:#b5b7ac;--tos-frame-mid:#7f8986;--tos-frame-face:#343d40;--tos-frame-shadow:#4b5557;--tos-screen-trim:#235cff;display:flex;flex-direction:column;height:100dvh;min-height:0;overflow:clip;border:10px solid;border-color:var(--tos-frame-light) var(--tos-frame-shadow) var(--tos-frame-shadow) var(--tos-frame-mid);border-radius:0;padding:0;gap:0;background:#000;box-shadow:inset 0 0 0 2px var(--tos-frame-face)}
+.lcars.theme-tos::after{content:"";position:fixed;left:calc(50% - 25px);bottom:3px;width:50px;height:5px;background:#e95740;box-shadow:0 0 0 3px var(--tos-frame-face);pointer-events:none;z-index:4}
+.lcars.theme-tos .top{background:var(--tos-frame-face)!important;border:0;border-bottom:3px solid var(--tos-frame-shadow);border-radius:0!important;padding:8px;gap:10px;min-height:80px;box-shadow:inset 0 1px 0 #ffffff35}
+.theme-tos .top :is(.brand,.title,.clock){border:1px solid #14191b!important;box-shadow:inset 0 1px 2px #000,0 1px 0 #ffffff20;border-radius:2px;padding:7px 10px}
+.theme-tos .top .title h1{margin-top:5px}
+.theme-tos .top .clock{border-bottom:4px solid #fff4d4!important}
+.theme-tos .top :is(.command-button,.audio){border:3px solid #181c1e;box-shadow:inset 0 1px 1px #ffffff80,inset 0 -2px 2px #0003,0 1px 0 #ffffff35}
+.theme-tos .tos-instrument-bank{background:#000!important;border:0;border-left:8px solid var(--tos-frame-face);border-right:8px solid var(--tos-frame-face);padding:6px 8px}
+.lcars.theme-tos>.shell{display:grid;grid-template-rows:minmax(0,1fr);gap:0;min-height:0;flex:1 1 auto;height:auto;overflow:hidden}
+.lcars.theme-tos .shell>aside{background:var(--tos-frame-face)!important;border:0;border-radius:0!important;padding:6px 8px 8px;box-shadow:inset 1px 0 0 #ffffff25;gap:7px}
+.theme-tos .tos-navigation-bank{background:transparent;border:0;padding:8px 4px;box-shadow:none}
+.lcars.theme-tos .shell>aside .tos-navigation-bank .nav{background:transparent!important}
+.lcars.theme-tos .shell>aside .task-zone{background:var(--tos-frame-face)!important;margin:0;gap:7px}
+.lcars.theme-tos .shell>aside :is(.task-trigger,.tos-tray-key,.power){background:transparent!important;border:0!important;box-shadow:none}
+.lcars.theme-tos .shell>aside .task-rail{background:var(--tos-frame-face)!important;border-color:#75807b}
+.theme-tos .shell>aside .task-group article,.theme-tos .shell>aside .task-group article>button{background:transparent;border-color:#75807b}
+.theme-tos .tos-monitor{position:relative;display:grid;grid-template-rows:minmax(0,1fr);min-width:0;min-height:0;border:12px solid;border-color:var(--tos-frame-light) var(--tos-frame-shadow) var(--tos-frame-face) var(--tos-frame-mid);border-radius:0;padding:9px;background:#000;box-shadow:0 0 0 2px var(--tos-frame-face);isolation:isolate}
+.theme-tos .tos-monitor::before{content:"";position:absolute;inset:6px;border:2px solid var(--tos-screen-trim);pointer-events:none;z-index:2}
+.theme-tos .tos-monitor::after{content:"";position:absolute;right:-8px;bottom:25px;width:4px;height:58px;background:linear-gradient(#e95740 0 28%,#343d40 28% 34%,#f1bc5b 34% 62%,#343d40 62% 68%,#65b9d8 68%);pointer-events:none}
+.theme-tos .tos-monitor>.content{min-width:0;min-height:0;width:100%;height:100%;border:0!important;border-radius:0!important;padding:6px;box-shadow:none;background:#000!important;overscroll-behavior:contain}
+.lcars.theme-tos .system-tray.speed-dial{position:static;align-self:stretch;display:flex;justify-content:flex-end;flex:0 0 auto;width:auto;max-width:none;margin:0;padding:6px 8px!important;background:var(--tos-frame-face)!important;border:0;border-top:3px solid var(--tos-frame-shadow);transform:none;box-shadow:none}
+.theme-tos .system-tray.speed-dial button{border:2px solid #181c1e;background-image:var(--tos-key-sheen);box-shadow:inset 0 1px 1px #ffffff80,0 1px 0 #ffffff20}
+.theme-tos .tos-tray-key>span{font-size:9px;white-space:nowrap}
+.lcars.theme-tos :is(.experience-grid>article,.experience-grid>section,.settings-columns>section){background:#000!important}
+.theme-tos.detached-peek-shell{padding:10px!important;box-shadow:inset 0 0 0 2px var(--tos-screen-trim)}
+.theme-tos.accessibility-contrast{--tos-screen-trim:#a4e4ef;--tos-frame-light:#e6e7df;--tos-frame-mid:#9ba6a1}
+.lcars.theme-tos.alert-red{border-color:#ef8176 #813e34 #813e34 #c15b4c}
+.lcars.theme-tos.alert-yellow{border-color:#efda79 #887338 #887338 #c1a64c}
+@media(max-width:1000px){.theme-tos .top{gap:6px;padding:6px}.theme-tos .top :is(.brand,.title,.clock){padding:6px}}
+@media(max-width:680px){.lcars.theme-tos{border-width:6px}.lcars.theme-tos .top{min-height:64px;padding:5px;gap:4px}.theme-tos .top :is(.brand,.title,.clock){padding:4px}.theme-tos .tos-monitor{border-width:8px;padding:6px}.theme-tos .tos-monitor::before{inset:3px;border-width:1px}.theme-tos .tos-monitor::after{right:-6px;width:3px;height:40px}.theme-tos .tos-monitor>.content{padding:4px 4px 75px}.theme-tos .tos-instrument-bank{border-width:0 5px;padding:5px}.theme-tos .mobile-command-bar{left:6px;right:6px;bottom:6px;width:auto;background:var(--tos-frame-face)!important;border:0;border-top:3px solid var(--tos-frame-shadow);padding:6px}.lcars.theme-tos::after{height:3px;bottom:1px}}
+@media(max-height:600px) and (min-width:681px){.lcars.theme-tos{border-width:7px}.lcars.theme-tos .top{min-height:58px;padding:5px}.theme-tos .tos-monitor{border-width:8px;padding:6px}.theme-tos .tos-monitor::before{inset:3px;border-width:1px}.theme-tos .tos-monitor>.content{padding:4px}}
+/* Captain's-chair rocker: the original checkbox retains its label, focus, and state. */
+.theme-tos .lcars-toggle{grid-template-columns:48px minmax(0,1fr);column-gap:10px;min-height:56px;align-items:center}
+.theme-tos .lcars-toggle>i{position:relative;display:block;align-self:start;width:32px;height:40px;margin-top:2px;border:2px solid;border-color:#69726e #171c1d #171c1d #69726e;border-radius:3px;background:#080b0c;box-shadow:inset 0 0 0 2px #000;overflow:visible}
+.theme-tos .lcars-toggle>i::before{content:"OFF";position:absolute;top:42px;left:-2px;width:32px;text-align:center;color:#d9dcd8;font:700 8px/1 Arial,sans-serif;letter-spacing:.08em}
+.theme-tos .lcars-toggle>i::after{content:"I\A O";white-space:pre;position:absolute;top:3px;left:3px;width:22px;height:30px;border-radius:4px;background:linear-gradient(#b7b7a8 0%,#d7d6c3 40%,#fff4d4 54%,#f4edd1 100%);color:#4a4c46;text-align:center;font:700 8px/14px Arial,sans-serif;transform:perspective(80px) rotateX(-18deg);transform-origin:50% 50%;box-shadow:0 -2px 0 #777e74,inset 0 1px 1px #ffffffa0,inset 0 -1px 2px #0004;transition:transform .12s ease,box-shadow .12s ease}
+.theme-tos .lcars-toggle input:checked+i{background:#080b0c}
+.theme-tos .lcars-toggle input:checked+i::before{content:"ON";color:#fff}
+.theme-tos .lcars-toggle input:checked+i::after{background:linear-gradient(#fff8e6 0%,#f4edd1 46%,#d7d6c3 60%,#a8ada3 100%);transform:perspective(80px) rotateX(18deg);box-shadow:0 2px 0 #777e74,inset 0 1px 1px #ffffffa0,inset 0 -1px 2px #0004}
+.theme-tos .lcars-toggle input:focus-visible+i{outline:3px solid #fff;outline-offset:3px}
+.theme-tos .lcars-toggle input:disabled+i{opacity:.5}
+.theme-tos.accessibility-contrast .lcars-toggle>i{border-color:#fff}
+.theme-tos.reduced-motion .lcars-toggle>i::after{transition:none}
+@media(prefers-reduced-motion:reduce){.theme-tos .lcars-toggle>i::after{transition:none}}
+/* Match the shell's existing compact-navigation breakpoint, including short landscape. */
+@media(max-width:760px),(max-width:900px) and (orientation:landscape) and (max-height:520px){
+  .lcars.theme-tos{border-width:6px}
+  .theme-tos .shell{grid-template-columns:minmax(0,1fr)}
+  .lcars.theme-tos .system-tray.speed-dial{display:none!important}
+  .theme-tos .tos-monitor{border-width:8px;padding:6px}
+  .theme-tos .tos-monitor::before{inset:3px;border-width:1px}
+  .theme-tos .tos-monitor::after{right:-6px;width:3px;height:40px}
+  .theme-tos .tos-monitor>.content{padding:4px}
+  .lcars.theme-tos .mobile-command-bar{position:static;flex:0 0 auto;align-self:stretch;left:auto;right:auto;bottom:auto;width:auto;min-height:54px;background:var(--tos-frame-face)!important;border:0;border-top:3px solid var(--tos-frame-shadow);padding:6px;transform:none}
+  .lcars.theme-tos::after{height:3px;bottom:1px}
+}
+
+/* The interior is one black display; blue trim belongs to the outer bezel only. */
+.lcars.theme-tos .tos-monitor .overview-widget{border:0!important;box-shadow:none;background:#000!important}
+.lcars.theme-tos .tos-monitor .tos-load-instruments :is(.tos-load-screen,.tos-allocation-screen){border:0!important;border-radius:0!important;box-shadow:none;background:#000!important}

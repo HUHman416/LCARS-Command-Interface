@@ -1,6 +1,7 @@
 "use client";
 import { createTosKeyPlayer, createTosEventPlayer, isTosCancelKey } from "./tos-audio";
 import { TosLoadInstrument } from "./tos-instruments";
+import { ConsoleDisplay } from "./tos-console";
 import { Component, useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import lcarsEmblem from "../desktop/icons/512x512.png";
@@ -70,7 +71,7 @@ import { DocumentWorkspace as DocumentWorkspaceV31, FileExplorer as FileExplorer
 import { DailyUtilities } from "./v31-utilities";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="31.5.5";
+const LCARS_VERSION="31.5.6";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -334,7 +335,7 @@ const widgetInfo: Record<BuiltinWidgetId, { name: string; description: string }>
 };
 const defaultWidgets: WidgetId[] = ["system", "favorites", "operations"];
 const themes = [
-  {id:"tos",name:"Enterprise · The Original Series",code:"NCC-1701",era:"2266–2269",family:"CONSTITUTION-CLASS",description:"Black console fields, translucent resin keys, domed indicators, and bold white Roddenberry legends."},
+  {id:"tos",name:"Enterprise · The Original Series",code:"NCC-1701",era:"2266–2269",family:"CONSTITUTION-CLASS",description:"A beveled console housing, black screen with blue trim, resin keys, and physical rocker switches."},
   {id:"classic",name:"Enterprise-D",code:"NCC-1701-D",era:"2364–2370",family:"TNG GALAXY-CLASS",description:"Warm, broad Okudagram bands and high-contrast rounded control bays."},
   {id:"voyager",name:"Voyager",code:"NCC-74656",era:"2371–2378",family:"INTREPID-CLASS",description:"Compact late-24th-century panels with cooler blue structure and dense data rails."},
   {id:"nemesis",name:"Enterprise-E",code:"NCC-1701-E",era:"2379",family:"NEMESIS LCARS",description:"Predominantly blue tactical framing, thin cyan divisions, and squared information panes."},
@@ -896,7 +897,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-5"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-6"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1955,7 +1956,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"31.5.5",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.5.6",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2592,7 +2593,7 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>{theme === "tos" ? "STARFLEET" : "LCARS"}</span>
-          <small>31.5.5 DEV</small>
+          <small>31.5.6 DEV</small>
         </button>
         <div className="title">
           <div className="title-copy">
@@ -2695,6 +2696,7 @@ export default function Home() {
           </button>
           <div className="foot-elbow" />
         </aside>
+        <ConsoleDisplay tos={theme==="tos"}>
         <section className={"content page-" + section}>
           <div className="heading">
             <div>
@@ -3038,6 +3040,7 @@ export default function Home() {
             </section>
           )}
         </section>
+        </ConsoleDisplay>
       </div>
       {allOpen && (
         <AppDrawer
@@ -3111,7 +3114,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-5","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-5","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-6","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-6","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -4909,7 +4912,7 @@ function Toggle({
         checked={checked}
         onChange={(e) => change(e.target.checked)}
       />
-      <i />
+      <i aria-hidden="true" />
       <span>
         <b>{label}</b>
         {description && <small>{description}</small>}
@@ -5151,14 +5154,14 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
 
 function Version31Welcome({close,openDisplay}:{close:()=>void;openDisplay:()=>void}){
   const features=[
-    {code:"00",title:"ORIGINAL SERIES CONSOLE",text:"Choose Enterprise · The Original Series in Display Matrix for translucent resin keycaps, small domed lamps, black instrument screens, bold white Roddenberry legends, and restrained color-coded panel labels."},
+    {code:"00",title:"ORIGINAL SERIES CONSOLE",text:"Choose Enterprise · The Original Series in Display Matrix for a seamless beveled console housing, a blue-trimmed black screen, resin keys, and captain’s-chair-style rocker switches for on/off settings."},
     {code:"01",title:"PRIVATE CLIPBOARD HISTORY",text:"Capture, restore, pin, and clear a bounded local clipboard history with opt-in storage and a one-control private mode."},
     {code:"02",title:"LCARS DISPLAY CAPTURE",text:"Take screenshots and screen recordings through Portal-approved access, saved directly into local LCARS Captures folders."},
     {code:"03",title:"NOTIFICATION SERVICE",text:"Approved local application notifications now arrive in the existing Communications and Operations timeline instead of a duplicate inbox."},
     {code:"04",title:"PRINT COMMAND",text:"Review printers and queued jobs, then cancel a job through a matching, single-use Portal authorization."},
     {code:"05",title:"VOICE PERMISSION REPAIR",text:"Hands-free Voice Control now recognizes trusted LCARS microphone requests and prevents repeated startup attempts or duplicate denial notices."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.5"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.5 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.5</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openDisplay}>OPEN DISPLAY MATRIX</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.6"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.6 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.6</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openDisplay}>OPEN DISPLAY MATRIX</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

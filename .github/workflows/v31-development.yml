@@ -1,4 +1,4 @@
-name: Version 31.5.5 TOS Console Style Development
+name: Version 31.5.6 TOS Console Style Development
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Build and test Version 31.5.5
+      - name: Build and test Version 31.5.6
         run: |
           npm run build
           node --test tests/*.test.mjs
@@ -36,26 +36,26 @@ jobs:
           appimage="$(find release-desktop -maxdepth 1 -name '*.AppImage' -print -quit)"
           test -n "$appimage"
           checksum="$(sha256sum "$appimage" | awk '{print $1}')"
-          mkdir -p release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/local release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/session
-          cp "$appimage" release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/LCARS-Command-Interface.AppImage
-          cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/
-          cp desktop/icons/512x512.png release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/lcars-command-interface.png
-          cp local/lcars-recovery.sh release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/local/
-          cp session/lcars-session session/lcars-portal-client session/install-session.sh session/lcars-session.desktop.in release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/session/
-          sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/install.sh
-          sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/BUILD-INFO-LINUX.txt
-          chmod +x release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/LCARS-Command-Interface.AppImage release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/*.sh release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/*.run release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/*.desktop release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/local/lcars-recovery.sh release-assets/LCARS-Universal-Linux-Desktop-v31.5.5/session/*
-          cp "$appimage" release-assets/LCARS-Command-Interface-v31.5.5-x86_64.AppImage
-          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v31.5.5.sh
-          chmod +x release-assets/LCARS-Linux-Integration-v31.5.5.sh
-          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v31.5.5.zip LCARS-Universal-Linux-Desktop-v31.5.5)
+          mkdir -p release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/local release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/session
+          cp "$appimage" release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/LCARS-Command-Interface.AppImage
+          cp README-LCARS.md start-local.sh install.sh Uninstall-LCARS-Linux.desktop install-autostart.sh BUILD-INFO-LINUX.txt uninstall-linux.sh Install-LCARS-Linux.desktop Start-LCARS-Linux.desktop Install-LCARS-Linux.run release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/
+          cp desktop/icons/512x512.png release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/lcars-command-interface.png
+          cp local/lcars-recovery.sh release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/local/
+          cp session/lcars-session session/lcars-portal-client session/install-session.sh session/lcars-session.desktop.in release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/session/
+          sed -i "s/^expected_appimage_sha256=.*/expected_appimage_sha256=\"$checksum\"/" release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/install.sh
+          sed -i "s/^AppImage SHA-256:.*/AppImage SHA-256: $checksum/" release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/BUILD-INFO-LINUX.txt
+          chmod +x release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/LCARS-Command-Interface.AppImage release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/*.sh release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/*.run release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/*.desktop release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/local/lcars-recovery.sh release-assets/LCARS-Universal-Linux-Desktop-v31.5.6/session/*
+          cp "$appimage" release-assets/LCARS-Command-Interface-v31.5.6-x86_64.AppImage
+          cp install-autostart.sh release-assets/LCARS-Linux-Integration-v31.5.6.sh
+          chmod +x release-assets/LCARS-Linux-Integration-v31.5.6.sh
+          (cd release-assets && zip -qr LCARS-Universal-Linux-Desktop-v31.5.6.zip LCARS-Universal-Linux-Desktop-v31.5.6)
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v31.5.5-development-linux
+          name: LCARS-v31.5.6-development-linux
           path: |
-            release-assets/LCARS-Command-Interface-v31.5.5-x86_64.AppImage
-            release-assets/LCARS-Universal-Linux-Desktop-v31.5.5.zip
-            release-assets/LCARS-Linux-Integration-v31.5.5.sh
+            release-assets/LCARS-Command-Interface-v31.5.6-x86_64.AppImage
+            release-assets/LCARS-Universal-Linux-Desktop-v31.5.6.zip
+            release-assets/LCARS-Linux-Integration-v31.5.6.sh
           retention-days: 30
 
   windows:
@@ -83,11 +83,11 @@ jobs:
           New-Item -ItemType Directory -Force release-assets | Out-Null
           $installer = Get-ChildItem release-desktop -Filter '*.exe' | Where-Object { $_.Name -notmatch 'uninstall' } | Select-Object -First 1
           if (-not $installer) { throw 'Windows installer was not produced.' }
-          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v31.5.5.exe
+          Copy-Item $installer.FullName release-assets/LCARS-Windows-Setup-v31.5.6.exe
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v31.5.5-development-windows
-          path: release-assets/LCARS-Windows-Setup-v31.5.5.exe
+          name: LCARS-v31.5.6-development-windows
+          path: release-assets/LCARS-Windows-Setup-v31.5.6.exe
           retention-days: 30
 
   android:
@@ -129,11 +129,11 @@ jobs:
           signer="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner -print | sort -V | tail -n 1)"
           "$signer" verify --verbose --print-certs "$apk"
           mkdir -p release-assets
-          cp "$apk" release-assets/LCARS-Mobile-Environment-v31.5.5-Android.apk
+          cp "$apk" release-assets/LCARS-Mobile-Environment-v31.5.6-Android.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: LCARS-v31.5.5-development-android
-          path: release-assets/LCARS-Mobile-Environment-v31.5.5-Android.apk
+          name: LCARS-v31.5.6-development-android
+          path: release-assets/LCARS-Mobile-Environment-v31.5.6-Android.apk
           retention-days: 30
 
   publish-development-release:
@@ -150,18 +150,18 @@ jobs:
       - name: Create source archive and checksums
         run: |
           set -euo pipefail
-          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v31.5.5-Source.zip HEAD
-          (cd release-assets && sha256sum LCARS-Command-Interface-v31.5.5-x86_64.AppImage LCARS-Universal-Linux-Desktop-v31.5.5.zip LCARS-Linux-Integration-v31.5.5.sh LCARS-Windows-Setup-v31.5.5.exe LCARS-Mobile-Environment-v31.5.5-Android.apk LCARS-Command-Interface-v31.5.5-Source.zip > SHA256SUMS.txt)
+          git archive --format=zip --output=release-assets/LCARS-Command-Interface-v31.5.6-Source.zip HEAD
+          (cd release-assets && sha256sum LCARS-Command-Interface-v31.5.6-x86_64.AppImage LCARS-Universal-Linux-Desktop-v31.5.6.zip LCARS-Linux-Integration-v31.5.6.sh LCARS-Windows-Setup-v31.5.6.exe LCARS-Mobile-Environment-v31.5.6-Android.apk LCARS-Command-Interface-v31.5.6-Source.zip > SHA256SUMS.txt)
           (cd release-assets && sha256sum --check SHA256SUMS.txt)
-      - name: Publish Version 31.5.5 development release
+      - name: Publish Version 31.5.6 development release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          notes='Version 31.5.5 Development reduces green across the Original Series skin: ivory, blue, amber, and restrained coral accents now carry the control and instrument palette. Green remains in small indicator lamps. The preferred console composition, rectangular resin keys, compact labels, paired cyan-framed monitors, and amber allocation screen remain. Highlighted Settings text remains readable. All three supplied fonts, four sounds, other themes, and desktop functions are retained. Version 31.6 stays reserved; Version 30 remains Stable.'
-          if gh release view v31.5.5 >/dev/null 2>&1; then
-            gh release upload v31.5.5 release-assets/* --clobber
-            gh release edit v31.5.5 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 31.5.5 Development · TOS Console Style" --notes "$notes" --prerelease
+          notes='Version 31.5.6 Development joins the TOS header, sidebar, and display surround into one console housing. A beveled gray border and fine blue inner trim follow the supplied character-sheet reference, with scrolling content contained inside the stationary black screen. Settings on/off controls use ivory rocker faces with tilt and explicit ON/OFF legends, preserving native checkbox labels, keyboard operation, and focus. The preferred palette, small green lamps, all three fonts, four sounds, other themes, and desktop functions remain. Version 31.6 stays reserved; Version 30 remains Stable.'
+          if gh release view v31.5.6 >/dev/null 2>&1; then
+            gh release upload v31.5.6 release-assets/* --clobber
+            gh release edit v31.5.6 --target "$GITHUB_SHA" --title "LCARS Command Interface Version 31.5.6 Development · TOS Console Style" --notes "$notes" --prerelease
           else
-            gh release create v31.5.5 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 31.5.5 Development · TOS Console Style" --notes "$notes" --prerelease
+            gh release create v31.5.6 release-assets/* --target "$GITHUB_SHA" --title "LCARS Command Interface Version 31.5.6 Development · TOS Console Style" --notes "$notes" --prerelease
           fi
