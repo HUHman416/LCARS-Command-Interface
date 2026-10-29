@@ -60,6 +60,8 @@ Implemented in Version 31.5: a continuously numbered Utilities page provides opt
 
 31.5.4 retains the operator-preferred 31.5.2 composition with a stronger control palette, subtle rectangular resin caps, and repaired selected-category contrast.
 
+31.5.5 reduces green to small indicator lamps, using ivory/blue/amber controls and channel readouts with restrained coral accents. The preferred composition remains.
+
 ## 31.6 Development — Security, Recovery, and Accessibility
 
 - Add PolicyKit and secret/keyring mediation with clear operator identity and reason displays.

@@ -27,7 +27,7 @@
 .tos-instrument-bank>span{font:italic 700 10px Roddenberry,Arial,sans-serif;letter-spacing:.1em;color:#fff}
 .tos-instrument-bank>div{display:flex;gap:7px}
 .tos-instrument-bank i{width:20px;height:9px;border-radius:2px;background:#ffdd00;box-shadow:inset 0 1px 0 #fff8ba}
-.tos-instrument-bank i:nth-child(3n){background:#39d34c;animation:tos-indicator-cycle 7.3s steps(1,end) infinite}
+.tos-instrument-bank i:nth-child(3n){background:var(--tos-indicator-green,#6aaf70);animation:tos-indicator-cycle 7.3s steps(1,end) infinite}
 .tos-instrument-bank i:nth-child(4n){background:#e54836;animation:tos-indicator-cycle 9.7s steps(1,end) -3s infinite}
 .tos-instrument-bank i:nth-child(5n){background:#fff4d4;animation:tos-indicator-cycle 11.1s steps(1,end) -6s infinite}
 @keyframes tos-indicator-cycle{0%,70%,100%{opacity:1}75%,95%{opacity:.4}}
@@ -40,7 +40,7 @@
 .theme-tos .nav:nth-of-type(4n+1){--switch:#fff4d4}
 .theme-tos .nav:nth-of-type(4n+2){--switch:#1c9bc7}
 .theme-tos .nav:nth-of-type(4n+3){--switch:#ffdd00}
-.theme-tos .nav:nth-of-type(4n){--switch:#39d34c}
+.theme-tos .nav:nth-of-type(4n){--switch:#fff4d4}
 .theme-tos .nav i{display:grid;place-items:center;flex:0 0 35px;min-height:29px;font:700 10px ui-monospace,monospace;border:2px solid #1d2421;background:var(--switch);color:#111c16;padding:4px;border-radius:2px;margin:0;box-shadow:inset 0 2px 0 #ffffff80}
 .theme-tos .nav:nth-of-type(3n) i{border-radius:12px;min-height:22px}
 .theme-tos .nav.active{background:#10190f;color:#fff8d3;box-shadow:none;border-color:#eddf97;transform:none}
@@ -77,7 +77,7 @@
 .settings-themes .theme-preview-tos{border:4px solid #798a8c!important;border-top:7px solid #a34a3c!important;border-radius:2px!important;background:#182226!important;color:#f7d996!important}
 .theme-preview-tos .theme-preview-screen{border:5px solid #53656a;border-radius:2px;background:#080e0d;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;padding:8px}
 .theme-preview-tos .theme-preview-screen em{border-radius:2px!important;background:#ffdd00!important;box-shadow:none}
-.theme-preview-tos .theme-preview-screen em:nth-child(2){background:#39d34c!important}
+.theme-preview-tos .theme-preview-screen em:nth-child(2){background:#fff4d4!important}
 .theme-preview-tos .theme-preview-screen em:nth-child(3){background:#1c9bc7!important}
 .theme-preview-tos .theme-preview-copy b{font-family:Roddenberry,Arial,sans-serif}
 .theme-tos :is(button,a,input,select,textarea,[tabindex]):focus-visible{outline:3px solid #fff2a6!important;outline-offset:3px}
@@ -131,7 +131,7 @@
 .theme-tos .clock{border:0;border-bottom:5px solid #d2d8cb;box-shadow:none}
 .theme-tos .shell>aside{border:3px solid #344347;border-top:5px solid #75898c}
 .theme-tos .meters article{--readout:#f3cb58;background:#020503;border:1px solid #35463b;display:grid;align-content:start;gap:5px}
-.theme-tos .meters article:nth-child(2){--readout:#91c67e}
+.theme-tos .meters article:nth-child(2){--readout:#f1bc5b}
 .theme-tos .meters article:nth-child(3){--readout:#efa44b}
 .theme-tos .meters article:nth-child(4){--readout:#f3e9c8}
 .theme-tos .meters header{display:grid;grid-template-columns:1fr;gap:9px;justify-items:start}
@@ -139,11 +139,11 @@
 .theme-tos .meters strong{background:var(--readout);color:#081409;padding:4px 9px;font:bold 24px ui-monospace,Consolas,monospace;min-width:72px}
 .theme-tos .meters article>div{height:28px;border:0;background:#112016;margin:6px 0}
 .theme-tos .meters article>div i{background:repeating-linear-gradient(90deg,var(--readout) 0 8px,#020503 8px 12px)}
-.theme-tos .hardware-glance>span{border:0;border-top:3px solid #91bd7a;background:#071008}
+.theme-tos .hardware-glance>span{border:0;border-top:3px solid #88928c;background:#071008}
 .theme-tos .hardware-glance b{font:700 14px ui-monospace,monospace;color:#e6f2c2}
 .theme-tos .hardware-glance small{color:#b7c7ac}
 .theme-tos .favorite-app:nth-child(4n+1) i{background:#ffdd00}
-.theme-tos .favorite-app:nth-child(4n+2) i{background:#39d34c;border-radius:12px}
+.theme-tos .favorite-app:nth-child(4n+2) i{background:#fff4d4;border-radius:12px}
 .theme-tos .favorite-app:nth-child(4n+3) i{background:#fff7de}
 .theme-tos .favorite-app:nth-child(4n) i{background:#fff4d4;border-radius:12px}
 .theme-tos .mini-status p{border-color:#304734;background:#020503;color:#edeccc;gap:12px}
@@ -153,7 +153,7 @@
 .theme-tos .settings-area-tabs>button,.theme-tos .update-area-tabs>button{border:1px solid #536150;background:#040805;box-shadow:none}
 .theme-tos .settings-area-tabs>button.active,.theme-tos .update-area-tabs>button.active{background:#f1cf67;color:#111c0c}
 .theme-tos .settings-area-tabs>button>i,.theme-tos .update-area-tabs>button>i{background:#f3edcf;color:#14200c}
-.theme-tos .lcars-toggle input:checked+i::after{background:#94c57e}
+.theme-tos .lcars-toggle input:checked+i::after{background:#fff4d4}
 .theme-tos .nav:hover{border-color:#fff0c1;background:#16201a}
 .theme-tos.accessibility-contrast .nav{background:#050705;color:#fff}
 .theme-tos.accessibility-contrast .nav.active{background:#182015;color:#fff;outline:2px solid #ffe8a6;outline-offset:-3px}
@@ -174,7 +174,7 @@
 .theme-tos .overview-toolbar button{background:#080f09;color:#eee7c1;border:1px solid #718366;font-size:10px}
 .theme-tos .mobile-command-bar{background:#050805;border-top:5px solid #b64c38;gap:5px;padding:5px}
 .theme-tos .mobile-command-bar button{border:2px solid #172217;border-radius:2px!important;background:#f6efd5;color:#17200c;box-shadow:inset 0 2px 0 #fff}
-.theme-tos .mobile-command-bar button:nth-child(2){background:#95c181}
+.theme-tos .mobile-command-bar button:nth-child(2){background:#fff4d4}
 .theme-tos .mobile-command-bar button:nth-child(3){background:#ffdd00}
 .theme-tos .mobile-command-bar button:nth-child(4){background:#e57053}
 .theme-tos .mobile-command-bar button.active{background:#fff9b2;outline:2px solid #fff7cd;outline-offset:-3px}
@@ -252,9 +252,9 @@
 .theme-tos .tos-screen-label{display:block;font:700 10px Arial,sans-serif;letter-spacing:.12em;color:#fff;margin-bottom:5px}
 .theme-tos .tos-load-screen svg{display:block;width:100%;height:auto;max-height:225px;font-family:ui-monospace,Consolas,monospace}
 .theme-tos .tos-numeric-bank{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-content:center}
-.theme-tos .tos-numeric-bank button{--tos-readout:#ffdd00;display:grid;grid-template-columns:1fr;gap:5px;min-width:0;min-height:76px;padding:6px;border:1px solid #414e39;background:#000;text-align:left;color:#eee0b0;box-shadow:none}
-.theme-tos .tos-numeric-bank button:nth-child(2){--tos-readout:#39d34c}
-.theme-tos .tos-numeric-bank button:nth-child(3){--tos-readout:#1c9bc7}
+.theme-tos .tos-numeric-bank button{--tos-readout:#fff4d4;display:grid;grid-template-columns:1fr;gap:5px;min-width:0;min-height:76px;padding:6px;border:1px solid #414e39;background:#000;text-align:left;color:#eee0b0;box-shadow:none}
+.theme-tos .tos-numeric-bank button:nth-child(2){--tos-readout:#f1bc5b}
+.theme-tos .tos-numeric-bank button:nth-child(3){--tos-readout:#65b9d8}
 .theme-tos .tos-numeric-bank button:nth-child(4){--tos-readout:#fff4d4}
 .theme-tos .tos-numeric-bank button>span{display:flex;align-items:center;gap:5px;font:700 10px Arial,sans-serif}
 .theme-tos .tos-numeric-bank i{font:8px ui-monospace,monospace;color:#bdc4a6}
@@ -324,7 +324,7 @@
 .theme-tos .tos-numeric-bank button>span{grid-column:2;font:700 9px Arial,sans-serif}
 .theme-tos .tos-numeric-bank strong{grid-column:1;grid-row:1/3;font-size:25px;min-width:66px;padding:4px 7px}
 .theme-tos .tos-numeric-bank em{grid-column:2;font:8px Arial,sans-serif}
-.theme-tos .hardware-glance>span{border:0;border-top:1px solid #7e9d53;padding:5px}
+.theme-tos .hardware-glance>span{border:0;border-top:1px solid #88928c;padding:5px}
 .theme-tos .hardware-glance small{font-size:8px}
 .theme-tos .hardware-glance b{font:700 10px ui-monospace,monospace}
 .theme-tos .favorite-app{border:0!important;padding:6px 3px!important;box-shadow:none}
@@ -341,12 +341,12 @@
 .lcars.theme-tos .favorite-app>button:first-child{border:0!important;box-shadow:none;background:#000}
 .lcars.theme-tos .tos-navigation-bank .nav.active:not(:focus-visible){outline:0!important}
 /* Preserve the operator-selected 31.5.2 console composition; refine its palette and hardware. */
-.lcars.theme-tos{--gold:#ffdd00;--orange:#efb83e;--peach:#fff4d4;--pink:#e54836;--violet:#39d34c;--blue:#1c9bc7;--accent:#ffdd00;color:#fff;border-top:4px solid #bb402d;--tos-key-sheen:linear-gradient(175deg,#ffffff35 0%,transparent 45%,#00000020 100%)}
+.lcars.theme-tos{--gold:#f1bc5b;--orange:#e95740;--peach:#fff4d4;--pink:#e95740;--violet:#fff4d4;--blue:#65b9d8;--accent:#f1bc5b;--tos-indicator-green:#6aaf70;color:#fff;border-top:4px solid #bb402d;--tos-key-sheen:linear-gradient(175deg,#ffffff35 0%,transparent 45%,#00000020 100%)}
 .theme-tos .tos-navigation-bank .nav:nth-of-type(6n+1){--switch:#fff4d4}
 .theme-tos .tos-navigation-bank .nav:nth-of-type(6n+2){--switch:#1c9bc7}
-.theme-tos .tos-navigation-bank .nav:nth-of-type(6n+3){--switch:#39d34c}
-.theme-tos .tos-navigation-bank .nav:nth-of-type(6n+4){--switch:#ffdd00}
-.theme-tos .tos-navigation-bank .nav:nth-of-type(6n+5){--switch:#1c9bc7}
+.theme-tos .tos-navigation-bank .nav:nth-of-type(6n+3){--switch:#e95740}
+.theme-tos .tos-navigation-bank .nav:nth-of-type(6n+4){--switch:#fff4d4}
+.theme-tos .tos-navigation-bank .nav:nth-of-type(6n+5){--switch:#f1bc5b}
 .theme-tos .tos-navigation-bank .nav:nth-of-type(6n){--switch:#fff4d4}
 .lcars.theme-tos .tos-navigation-bank .nav i,.lcars.theme-tos .tos-navigation-bank .nav:nth-of-type(3n) i{border-radius:4px!important;background-color:var(--switch);background-image:var(--tos-key-sheen);color:#000;border:2px solid #252525;box-shadow:inset 0 1px 1px #ffffff80,inset 0 -2px 2px #0003}
 .lcars.theme-tos .tos-navigation-bank .nav.active i{background-color:var(--switch);background-image:var(--tos-key-sheen);border-color:#fff;box-shadow:inset 0 1px 1px #ffffff80,0 0 4px #ffffff40}
@@ -356,11 +356,11 @@
 .theme-tos .tos-instrument-bank i:nth-child(3n){background-image:radial-gradient(circle at 30% 25%,#ffffffa0,transparent 40%),radial-gradient(circle at 50% 35%,transparent 20%,#0006 100%);box-shadow:0 0 0 1px #292929}
 .theme-tos :is(.command-button,.audio){background-image:var(--tos-key-sheen);border:2px solid #252525;box-shadow:inset 0 1px 1px #ffffff80,inset 0 -2px 2px #0003;color:#000}
 .theme-tos .command-button{background-color:#fff4d4}
-.theme-tos .audio{background-color:#39d34c}
-.theme-tos .favorite-app:nth-child(4n+1) i{background-color:#ffdd00}
-.theme-tos .favorite-app:nth-child(4n+2) i{background-color:#39d34c}
+.theme-tos .audio{background-color:#fff4d4}
+.theme-tos .favorite-app:nth-child(4n+1) i{background-color:#fff4d4}
+.theme-tos .favorite-app:nth-child(4n+2) i{background-color:#f1bc5b}
 .theme-tos .favorite-app:nth-child(4n+3) i{background-color:#1c9bc7}
-.theme-tos .favorite-app:nth-child(4n) i{background-color:#fff4d4}
+.theme-tos .favorite-app:nth-child(4n) i{background-color:#e95740}
 .theme-tos .favorite-app i{background-image:var(--tos-key-sheen);border-radius:4px!important;box-shadow:inset 0 1px 1px #ffffff80,inset 0 -2px 2px #0003}
 .theme-tos .apps .all-apps{border:0!important;background:#000}
 .theme-tos .apps .all-apps>i{width:48px;height:26px;min-height:26px;border:2px solid #252525;border-radius:4px!important;background:var(--tos-key-sheen),#1c9bc7;box-shadow:inset 0 1px 1px #ffffff80;color:#000}
@@ -368,7 +368,7 @@
 .lcars.theme-tos :is(.settings-area-tabs,.update-area-tabs)>button.active :is(b,small){color:#000!important}
 .lcars.theme-tos :is(.settings-area-tabs,.update-area-tabs)>button.active>i{background:#1c9bc7;color:#000!important}
 .theme-tos .detail-view>h3{border-radius:0!important;background:#000;color:#fff;border-bottom:1px solid #596142}
-.settings-themes button.theme-preview-tos,.settings-themes button.theme-preview-tos:nth-child(even){background:#000!important;color:#fff!important;border:1px solid #596142!important;border-radius:3px!important;--preview-a:#ffdd00;--preview-b:#1c9bc7;--preview-c:#39d34c}
+.settings-themes button.theme-preview-tos,.settings-themes button.theme-preview-tos:nth-child(even){background:#000!important;color:#fff!important;border:1px solid #596142!important;border-radius:3px!important;--preview-a:#ffdd00;--preview-b:#1c9bc7;--preview-c:#fff4d4}
 .settings-themes button.theme-preview-tos>i{border-radius:3px!important;background:#1c9bc7!important;color:#000!important}
 .theme-preview-tos .theme-preview-screen em{background-image:linear-gradient(175deg,#ffffff35,transparent 45%,#0003)!important;border-radius:4px!important}
 .theme-preview-tos .theme-preview-copy :is(small,p){color:#fff!important}
@@ -376,10 +376,21 @@
 .theme-tos .tos-tray-key>i{background-color:#fff4d4}
 .theme-tos .mobile-command-bar{border-top:1px solid #596142}
 .theme-tos .mobile-command-bar button{background:#fff4d4;background-image:var(--tos-key-sheen);color:#000;border:2px solid #252525;box-shadow:inset 0 1px 1px #ffffff80}
-.theme-tos .mobile-command-bar button:nth-child(2){background-color:#39d34c}
+.theme-tos .mobile-command-bar button:nth-child(2){background-color:#fff4d4}
 .theme-tos .mobile-command-bar button:nth-child(3),.theme-tos .mobile-command-bar button:nth-child(4){background-color:#1c9bc7}
 .theme-tos .mobile-command-bar button.active{background-color:#fff4d4;outline:2px solid #fff;outline-offset:-2px}
 .theme-tos .mobile-command-bar button :is(i,span){color:#000}
 .theme-tos .mobile-sheet-grid button{background:#fff4d4;background-image:var(--tos-key-sheen);color:#000;border:2px solid #252525;box-shadow:inset 0 1px 1px #ffffff80}
 .theme-tos .mobile-sheet-grid button :is(i,b,small){color:#000}
 @media(max-width:680px){.theme-tos .system-tray.speed-dial{display:none!important}.theme-tos .content{padding-bottom:70px}}
+
+/* Limit green to small lamps; preserve the selected TOS console geometry. */
+.theme-tos .clock{border-bottom-color:#fff4d4!important}
+.theme-tos .clock::after{background:#fff4d4!important}
+.theme-tos .mini-status span{color:#fff4d4}
+.theme-tos .mini-status p b{background:#fff4d4;color:#000}
+.theme-tos :is(.meter i,.peek-meter-list em,progress){background:repeating-linear-gradient(90deg,#fff4d4 0 9px,#151515 9px 12px)}
+.theme-tos .system-tray.speed-dial button{background:#fff4d4;color:#000}
+.theme-tos .system-tray.speed-dial button:nth-child(2n){background:#65b9d8}
+.theme-tos .system-tray.speed-dial button:nth-child(5n){background:#f1bc5b}
+.theme-preview-tos .theme-preview-screen em:nth-child(2){background:#fff4d4!important}
