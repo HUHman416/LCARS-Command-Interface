@@ -93,3 +93,13 @@ test('TOS updater and failure cues use supplied event recordings without polling
  assert.match(page,/if\(operation==="check"&&result.available\)onUpdateActivity\(\)/);
  assert.match(page,/name === "error" \|\| name === "transfer-failed" \|\| name === "update-data"/);
 });
+
+test('production-console composition pairs live instruments and uses grouped station keys',()=>{
+ const instrument=read('app/tos-instruments.tsx');
+ assert.match(instrument,/className="tos-allocation-screen"/);
+ assert.match(instrument,/memory=readings.find\(item=>item.label==="MEM"\)/);
+ assert.match(instrument,/storage=readings.find\(item=>item.label==="DISK"\)/);
+ assert.match(instrument,/strokeDasharray=\{`\$\{memory/);
+ assert.match(css,/\.theme-tos \.tos-navigation-bank\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(page,/LIBRARY COMPUTER/);
+});

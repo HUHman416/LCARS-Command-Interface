@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const stablePreviewMeta =
-  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']31\.5\.1-development["'])[^>]*>/i;
+  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']31\.5\.2-development["'])[^>]*>/i;
 
 test("renders Version 31.5 development preview metadata", async () => {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);

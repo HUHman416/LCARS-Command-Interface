@@ -278,3 +278,65 @@
 .theme-tos .tray-drawer>header>button{width:58px;height:34px;min-height:34px;max-height:34px;margin:0;padding:5px;font:700 10px Arial,sans-serif;background:#e16a4e;color:#121508;border:2px solid #352a1a;white-space:nowrap}
 .theme-tos .tray-shortcuts button{background:#000;color:#e9ddae;border-radius:3px!important;border:1px solid #596646}
 .theme-tos .tray-shortcuts button i{border-radius:3px;background:#efdfad;color:#17200d}
+/* Production-console composition: grouped physical keys and paired graphic monitors. */
+.lcars.theme-tos{border:0;border-top:6px solid #b9432c;padding:12px;gap:8px}
+.theme-tos .top{border:0;border-bottom:1px solid #3e4036;min-height:68px;padding:3px 0 8px;grid-template-columns:170px minmax(0,1fr) auto auto auto;gap:12px}
+.theme-tos .brand{border:0!important;box-shadow:none;padding:4px 10px;text-align:left}
+.theme-tos .brand span{font-size:25px}
+.theme-tos .title{border:0;border-left:1px solid #424632;padding:4px 12px}
+.theme-tos .title h1{font-size:24px;margin:6px 0 0}
+.theme-tos .title-kicker>small{font:8px Arial,sans-serif;letter-spacing:.14em}
+.theme-tos .clock{border:1px solid #605f38;border-bottom:0;min-width:110px}
+.theme-tos .clock b{font:24px ui-monospace,monospace;color:#f3d981}
+.theme-tos .top>.command-button,.theme-tos .top>.audio{min-height:32px;align-self:center;padding:9px 14px}
+.theme-tos .shell{grid-template-columns:164px minmax(0,1fr);gap:16px}
+.lcars.theme-tos .shell>aside{border:0;border-right:1px solid #30382b;padding:5px 10px 0 0}
+.theme-tos .shell>aside .elbow{display:none}
+.theme-tos .nav-gap{height:4px}
+.theme-tos .tos-navigation-bank{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:10px 8px;padding:4px 5px 8px 0}
+.lcars.theme-tos .tos-navigation-bank .nav{display:flex;flex-direction:column;align-items:stretch;justify-content:start;gap:5px;min-height:62px;margin:0;padding:0 2px 5px;border:0!important;background:#000!important;box-shadow:none;text-align:center}
+.lcars.theme-tos .tos-navigation-bank .nav i,.lcars.theme-tos .tos-navigation-bank .nav:nth-of-type(3n) i{display:grid;place-items:center;flex:0 0 29px;width:100%;height:29px;min-height:29px;border:2px solid #22291c;border-radius:5px!important;background:var(--switch);color:#202512;box-shadow:inset 0 2px 0 #ffffff55;font:8px ui-monospace,monospace}
+.theme-tos .tos-navigation-bank .nav span{font:700 8px Arial,sans-serif;letter-spacing:.06em;text-align:center;white-space:normal;overflow-wrap:anywhere}
+.lcars.theme-tos .tos-navigation-bank .nav.active i{background:#fff0ac;box-shadow:inset 0 1px 0 #fff,0 0 6px #d9b85580;border-color:#eee0a8}
+.theme-tos .tos-navigation-bank .nav.active span{color:#ffe596;text-decoration:underline;text-underline-offset:3px}
+.theme-tos .tos-navigation-bank .nav.active::after{display:none}
+.theme-tos .tos-navigation-bank .nav:hover i{filter:brightness(1.15)}
+.theme-tos .content{border:0;border-top:1px solid #596142;box-shadow:none;padding-right:0}
+.theme-tos .heading{border:0;border-bottom:1px solid #353e29;min-height:48px;padding:5px 8px}
+.theme-tos .heading h2{font:20px Roddenberry,Arial,sans-serif;margin:2px 0 0}
+.theme-tos .heading small{font-size:7px;letter-spacing:.14em}
+.theme-tos .heading-actions button{font-size:8px;padding:5px;min-height:26px}
+.theme-tos .ticker{min-height:23px;gap:3px;margin:0;padding:4px 0}
+.theme-tos .ticker b{font:700 8px Arial,sans-serif;padding:2px 5px;border:0;color:#d6d7ac}
+.theme-tos .overview-toolbar{min-height:26px;margin:0;padding:3px 0;gap:8px}
+.theme-tos .overview-toolbar>span{font-size:8px}
+.theme-tos .overview-toolbar button{font:8px Arial,sans-serif;min-height:25px;padding:4px 8px}
+.lcars.theme-tos .overview-widget{border:1px solid #2b3628!important;padding:10px!important;box-shadow:none}
+.theme-tos .overview-widget>h3{font:700 10px Arial,sans-serif;letter-spacing:.15em;min-height:24px;padding:4px 0!important;border-bottom:0!important;margin:0 0 6px}
+.theme-tos .overview-widget>h3 small{font:8px ui-monospace,monospace}
+.theme-tos .tos-load-instruments{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:12px;padding:2px 0 8px}
+.lcars.theme-tos .tos-load-instruments .tos-load-screen,.lcars.theme-tos .tos-load-instruments .tos-allocation-screen{display:block;min-width:0;width:100%;height:100%;padding:8px;background:#000;border:3px solid #258eab!important;border-radius:7px!important;box-shadow:none;text-align:left}
+.theme-tos .tos-allocation-screen svg{display:block;width:100%;height:auto;max-height:205px}
+.theme-tos .tos-screen-label{font:700 8px Arial,sans-serif;letter-spacing:.1em;margin-bottom:6px}
+.theme-tos .tos-load-screen svg{max-height:205px;min-height:145px}
+.theme-tos .tos-numeric-bank{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.theme-tos .tos-numeric-bank button{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;align-items:center;gap:4px 8px;min-height:55px;border:0;padding:3px;background:#000}
+.theme-tos .tos-numeric-bank button>span{grid-column:2;font:700 9px Arial,sans-serif}
+.theme-tos .tos-numeric-bank strong{grid-column:1;grid-row:1/3;font-size:25px;min-width:66px;padding:4px 7px}
+.theme-tos .tos-numeric-bank em{grid-column:2;font:8px Arial,sans-serif}
+.theme-tos .hardware-glance>span{border:0;border-top:1px solid #7e9d53;padding:5px}
+.theme-tos .hardware-glance small{font-size:8px}
+.theme-tos .hardware-glance b{font:700 10px ui-monospace,monospace}
+.theme-tos .favorite-app{border:0!important;padding:6px 3px!important;box-shadow:none}
+.theme-tos .favorite-app i{width:48px;height:26px!important;min-height:26px;font:700 12px Arial,sans-serif;border:2px solid #202319;border-radius:6px!important;box-shadow:inset 0 2px 0 #ffffff55}
+.theme-tos .favorite-app b{font:700 11px Arial,sans-serif}
+.theme-tos .favorite-app small{font:8px Arial,sans-serif}
+.theme-tos .tos-instrument-bank{border:0;border-bottom:1px solid #3c452c;padding:5px 8px}
+.theme-tos .tos-instrument-bank>span{font-size:8px}
+.theme-tos .tos-instrument-bank i:nth-child(3n){border-radius:50%;width:9px}
+@media(max-width:900px){.theme-tos .tos-load-instruments{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}.theme-tos .tos-numeric-bank button{grid-template-columns:1fr}.theme-tos .tos-numeric-bank button>span,.theme-tos .tos-numeric-bank strong,.theme-tos .tos-numeric-bank em{grid-column:1;grid-row:auto}.theme-tos .tos-load-screen svg{min-height:0}}
+@media(max-width:680px){.lcars.theme-tos{padding:5px;border-top-width:4px}.theme-tos .top{min-height:60px;gap:4px}.theme-tos .brand{padding:3px}.theme-tos .brand span{font-size:19px}.theme-tos .title h1{font-size:17px}.theme-tos .shell{grid-template-columns:minmax(0,1fr)}.theme-tos .tos-load-instruments{grid-template-columns:minmax(0,1fr);gap:8px}.theme-tos .tos-load-screen svg{max-height:180px}.theme-tos .tos-allocation-screen svg{max-height:160px}.theme-tos .tos-numeric-bank{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.theme-tos .tos-numeric-bank strong{font-size:18px;min-width:0}.theme-tos .tos-numeric-bank em{font-size:7px}.theme-tos .overview-toolbar nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-height:600px) and (min-width:681px){.theme-tos .tos-navigation-bank{gap:5px}.lcars.theme-tos .tos-navigation-bank .nav{min-height:49px;gap:3px}.lcars.theme-tos .tos-navigation-bank .nav i,.lcars.theme-tos .tos-navigation-bank .nav:nth-of-type(3n) i{height:23px;min-height:23px;flex-basis:23px}.theme-tos .tos-load-screen svg,.theme-tos .tos-allocation-screen svg{max-height:145px}}
+.lcars.theme-tos .tos-numeric-bank button{border:0!important;box-shadow:none}
+.lcars.theme-tos .favorite-app>button:first-child{border:0!important;box-shadow:none;background:#000}
+.lcars.theme-tos .tos-navigation-bank .nav.active:not(:focus-visible){outline:0!important}

@@ -34,7 +34,7 @@ test("Linux and Windows package and route the shared utility service",async()=>{
   const [linux,windows,builder,workflow]=await Promise.all([read("../local/lcars_bridge.py"),read("../windows/lcars_bridge_windows.py"),read("../electron-builder.yml"),read("../.github/workflows/v31-development.yml")]);
   for(const source of [linux,windows])for(const token of ["DailyUtilities","/api/daily-utilities","DAILY_UTILITIES.operate"])assert.ok(source.includes(token),token);
   assert.match(builder,/shared\/lcars_utilities\.py/g);
-  assert.match(workflow,/Version 31\.5\.1 TOS Console Development/);
-  assert.match(workflow,/LCARS-Mobile-Environment-v31\.5\.1-Android\.apk/);
-  assert.match(workflow,/gh release create v31\.5\.1/);
+  assert.match(workflow,/Version 31\.5\.2 TOS Console Fidelity Development/);
+  assert.match(workflow,/LCARS-Mobile-Environment-v31\.5\.2-Android\.apk/);
+  assert.match(workflow,/gh release create v31\.5\.2/);
 });

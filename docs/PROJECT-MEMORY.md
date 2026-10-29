@@ -30,3 +30,7 @@ The optional `tos` Display Matrix family adds uniformly black console surfaces, 
 The TOS addition also bundles the operator-provided `tos_keypress1.mp3` and `tos_cancel_keypress.mp3`. Capture-phase key feedback respects the existing sound toggle and Interface Sound volume; cancel/dismiss/Escape use the cancel recording, and the old beeps are suppressed only for TOS to prevent duplicate cues. `app/tos-audio.ts` keeps one active playback channel.
 
 The additional supplied `tos_datareceived_ep.mp3` announces explicit built-in updater activity (and manual discovery of a release), while `tos_unabletocomply.mp3` handles TOS errors, transfer failures, and failed updates. Quiet background update polling remains silent. These clips follow the same existing sound toggle and volume.
+
+## TOS production-console fidelity — 31.5.2 Development
+
+Following operator review of the 31.5.1 build, the TOS composition now uses two paired cyan-surrounded graphic monitors, an original amber radial memory/storage instrument, smaller technical panel labels, and a two-column bank of consistently shaped illuminated station keys. The screen surface remains black throughout. Large dashboard-style headings and individually boxed application cards are reduced in favor of physical program-selector keys. Roddenberry fonts and all four supplied key/updater/failure recordings remain. Version 31.6 is still reserved, and Version 30 stays Stable.

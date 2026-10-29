@@ -45,7 +45,7 @@ test("Version 30.8 retains the complete actionable Operations Center",async()=>{
   assert.match(linux,/def media_control\(player,command\)/);
   assert.match(linux,/\"play\",\"pause\"/);
   assert.match(windows,/\"play\":0xB3,\"pause\":0xB3/);
-  assert.equal(JSON.parse(pkg).version,"31.5.1");
-  assert.match(android,/versionCode 3105001/);
+  assert.equal(JSON.parse(pkg).version,"31.5.2");
+  assert.match(android,/versionCode 3105002/);
   assert.match(workflow,/gh release (?:view|create) v30\.14/);
 });

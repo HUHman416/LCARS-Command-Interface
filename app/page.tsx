@@ -70,7 +70,7 @@ import { DocumentWorkspace as DocumentWorkspaceV31, FileExplorer as FileExplorer
 import { DailyUtilities } from "./v31-utilities";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="31.5.1";
+const LCARS_VERSION="31.5.2";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -896,7 +896,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-1"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-2"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1955,7 +1955,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"31.5.1",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.5.2",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2388,7 +2388,7 @@ export default function Home() {
       return (
         <section className="overview-widget wide-widget">
           <h3>
-            SYSTEM INFORMATION <small>SYS-01</small>
+            {theme === "tos" ? "ENGINEERING INSTRUMENTS" : "SYSTEM INFORMATION"} <small>SYS-01</small>
           </h3>
           {theme==="tos"?<TosLoadInstrument meters={meters} open={()=>{setSystemControlArea("telemetry");setSection("system");}}/>:(
           <div className="meters">
@@ -2419,7 +2419,7 @@ export default function Home() {
       return (
         <section className="overview-widget wide-widget">
           <h3>
-            FAVORITE APPLICATIONS <small>APP-02</small>
+            {theme === "tos" ? "PROGRAM SELECTOR" : "FAVORITE APPLICATIONS"} <small>APP-02</small>
           </h3>
           <div className="apps">
             {favorites.slice(0, 20).map((a, i) => {const embedded=embeddedPageForApp(a),destination=appDestinations[a.id]||(embedded?"embedded":"native");return (
@@ -2592,18 +2592,17 @@ export default function Home() {
       <header className="top">
         <button className="brand" onClick={() => setSection("overview")}>
           <span>{theme === "tos" ? "STARFLEET" : "LCARS"}</span>
-          <small>31.5.1 DEV</small>
+          <small>31.5.2 DEV</small>
         </button>
         <div className="title">
           <div className="title-copy">
             <div className={`title-kicker${prefs.voiceEnabled?" voice-active":""}`}>
-              <small>FEDERATION OPERATING ENVIRONMENT</small>
+              <small>{theme === "tos" ? "USS ENTERPRISE · NCC-1701 · COMPUTER CONTROL" : "FEDERATION OPERATING ENVIRONMENT"}</small>
               <button className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></button>
               {prefs.voiceEnabled&&<VoiceControl prefs={prefs} computer={dispatchVoiceComputer} notify={notify} />}
             </div>
             <h1>
-              {platform.includes("WINDOWS") ? "WINDOWS" : "LINUX"} COMMAND
-              INTERFACE
+              {theme === "tos" ? "LIBRARY COMPUTER" : `${platform.includes("WINDOWS") ? "WINDOWS" : "LINUX"} COMMAND INTERFACE`}
             </h1>
           </div>
         </div>
@@ -2702,7 +2701,7 @@ export default function Home() {
               <small>{theme === "tos" ? "STARFLEET COMPUTER / " : "LCARS / "}{themes.find((candidate) => candidate.id === theme)?.code}</small>
               <h2>
                 {section === "overview"
-                  ? "SYSTEM OVERVIEW"
+                  ? (theme === "tos" ? "PRIMARY SYSTEMS" : "SYSTEM OVERVIEW")
                   : section === "bay"
                     ? "APPLICATION BAY"
                     : activeCustomPage?.name.toUpperCase() || section.toUpperCase()}
@@ -3112,7 +3111,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-1","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-1","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-2","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-2","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -5159,7 +5158,7 @@ function Version31Welcome({close,openDisplay}:{close:()=>void;openDisplay:()=>vo
     {code:"04",title:"PRINT COMMAND",text:"Review printers and queued jobs, then cancel a job through a matching, single-use Portal authorization."},
     {code:"05",title:"VOICE PERMISSION REPAIR",text:"Hands-free Voice Control now recognizes trusted LCARS microphone requests and prevents repeated startup attempts or duplicate denial notices."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.1"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.1 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.1</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openDisplay}>OPEN DISPLAY MATRIX</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.2"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.2 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.2</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openDisplay}>OPEN DISPLAY MATRIX</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

@@ -54,6 +54,8 @@ Implemented in Version 31.5: a continuously numbered Utilities page provides opt
 - Validate detached views, accessibility modes, and responsive layouts.
 - Publish as Development only; this addition does not replace the next milestone.
 
+31.5.2 refines the supplementary TOS skin after operator review with paired instrument monitors, amber allocation graphics, and grouped station keys. No planned milestone is displaced.
+
 ## 31.6 Development — Security, Recovery, and Accessibility
 
 - Add PolicyKit and secret/keyring mediation with clear operator identity and reason displays.
