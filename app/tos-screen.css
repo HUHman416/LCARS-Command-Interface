@@ -1,0 +1,43 @@
+/* A physical display-selector rail joins the housing immediately below the lamp strip. */
+.lcars.theme-tos .tos-display-chassis{flex:0 0 auto;background:var(--tos-frame-face);border-bottom:2px solid var(--tos-frame-shadow);padding:7px 10px}
+.lcars.theme-tos .tos-display-selector{display:grid;grid-template-columns:34px minmax(0,1fr) 34px 100px;align-items:center;gap:7px;margin:0;padding:0;background:var(--tos-frame-face)!important}
+.lcars.theme-tos .tos-display-keys{display:grid;gap:7px;min-width:0;background:transparent!important}
+.lcars.theme-tos .tos-display-selector button{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;width:100%;height:32px;padding:4px 7px;border:3px solid #181c1e;border-radius:4px!important;background-color:var(--tos-key-ivory);background-image:var(--tos-resin-sheen);background-clip:padding-box;box-shadow:var(--tos-lens-shadow);color:#090b0d!important;font:700 9px/1.2 Arial,sans-serif;cursor:pointer}
+.lcars.theme-tos .tos-display-selector button[aria-pressed=true]{background-color:#f1bc5b}
+.lcars.theme-tos .tos-display-selector button:disabled{opacity:.5;cursor:default}
+.lcars.theme-tos .tos-display-selector button:focus-visible{outline:2px solid white;outline-offset:2px}
+.lcars.theme-tos .tos-display-selector button i{font:9px ui-monospace,monospace;font-style:normal;background:transparent!important;flex:0 0 auto}
+.lcars.theme-tos .tos-display-selector button span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-width:0}
+.lcars.theme-tos .tos-display-selector output{font:9px ui-monospace,monospace;color:#fff4d4;text-align:center}
+.lcars.theme-tos .tos-monitor:has(>.tos-screen-viewport){display:flex;flex-direction:column}
+.lcars.theme-tos .tos-screen-viewport{position:relative;flex:1 1 auto;min-width:0;min-height:0;overflow:clip!important;background:#000!important}
+.lcars.theme-tos .tos-screen-track{width:100%;height:auto;min-height:0;background:#000!important}
+.lcars.theme-tos .tos-screen-track .content{display:flex;flex-direction:column;gap:9px;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;padding:0!important;background:#000!important}
+.lcars.theme-tos .tos-screen-track .content>*{flex:0 0 auto!important}
+.lcars.theme-tos .tos-screen-track .content :is(.file-browser-body,.file-grid,.file-inspector,.network-grid,.terminal-output,.portal-center,.daily-utilities,.media-console,.system-control-matrix){height:auto!important;max-height:none!important;overflow:visible!important}
+.lcars.theme-tos .tos-screen-track :is(svg,img,video,canvas){max-height:max(40px,calc(var(--tos-display-height,400px) - 30px))!important;object-fit:contain}
+.lcars.theme-tos .tos-screen-track .content .tos-load-instruments{margin:0}
+.lcars.theme-tos .tos-screen-track .content .overview-modules{display:flex!important;flex-direction:column;gap:14px}
+.lcars.theme-tos .tos-screen-track .content .overview-modules>.widget-wrap{width:100%!important;min-width:0!important}
+.lcars.theme-tos .tos-screen-track :is(pre,p){overflow-wrap:anywhere;white-space:pre-wrap}
+@media(max-width:760px){
+ .lcars.theme-tos .tos-display-chassis{padding:6px}
+ .lcars.theme-tos .tos-display-selector{grid-template-columns:25px minmax(0,1fr) 25px;gap:4px}
+ .lcars.theme-tos .tos-display-keys{gap:4px}
+ .lcars.theme-tos .tos-display-selector button{font-size:8px;padding:3px;height:32px}
+ .lcars.theme-tos .tos-display-selector output{display:none}
+}
+@media(max-height:550px){
+ .lcars.theme-tos .tos-display-chassis{padding:4px 6px}
+ .lcars.theme-tos .tos-display-selector button{height:28px}
+ .lcars.theme-tos .tos-screen-track .content{gap:5px}
+}
+.lcars.theme-tos .tos-screen-track .tos-load-instruments :is(.tos-load-screen,.tos-allocation-screen){height:auto!important;padding:4px 0!important}
+.lcars.theme-tos .tos-screen-track .tos-load-instruments svg{min-height:0!important;max-height:min(205px,max(30px,calc(var(--tos-display-height,400px) - 95px)))!important}
+.lcars.theme-tos .tos-display-selector:has(.tos-display-command-key){grid-template-columns:34px minmax(0,1fr) 34px 115px 90px}
+.lcars.theme-tos .tos-display-selector .tos-display-command-key{background-color:var(--tos-key-blue)}
+.lcars.theme-tos .tos-station[data-tos-controls-open=false]>.tos-fixed-deck{display:none!important}
+@media(max-width:760px){.lcars.theme-tos .tos-display-selector:has(.tos-display-command-key){grid-template-columns:25px minmax(0,1fr) 25px 55px}.lcars.theme-tos .tos-display-command-key{gap:2px;padding:3px;font-size:7px}}
+.lcars.theme-tos .tos-screen-track [data-tos-flow-source]{overflow:visible!important;max-height:none!important;height:auto!important;min-height:0!important}
+/* Configuration panels become consecutive named displays instead of parallel columns. */
+.lcars.theme-tos .tos-screen-track .content :is(.experience-grid,.settings-columns){grid-template-columns:minmax(0,1fr)!important}

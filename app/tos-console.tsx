@@ -2,6 +2,7 @@
 import { Children, cloneElement, createContext, isValidElement, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type ComponentPropsWithRef, type HTMLAttributes, type InputHTMLAttributes, type ReactElement, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
 import { computerContent, computerProps, computerTerminology } from "./tos-terminology";
+import { TosScreen } from "./tos-screen";
 import { consoleControlPages } from "./tos-deck";
 import { subscribeConsoleDialogs, type ConsoleDialogRequest } from "./console-dialogs";
 
@@ -104,10 +105,12 @@ export function ConsoleControls({children}:{children:ReactNode}){
   if(!active)return <>{children}</>;
   return target?createPortal(<Context.Provider value={{...context,inBank:true}}>{computerContent(children,context.enabled)}</Context.Provider>,target):null;
 }
-export function ConsoleDisplay({tos,children}:{tos:boolean;children:ReactNode}){
+export function ConsoleDisplay({tos,children,pageKey,navigationTarget}:{tos:boolean;children:ReactNode;pageKey?:string;navigationTarget?:HTMLDivElement|null}){
   const {value,deck}=useDeck(tos);
+  const [controlsOpen,setControlsOpen]=useState(true);
+  useEffect(()=>{if(!tos)return;const compact=window.matchMedia('(max-height:600px)'),update=()=>setControlsOpen(!compact.matches);update();compact.addEventListener('change',update);return()=>compact.removeEventListener('change',update);},[tos]);
   if(!tos)return <>{children}</>;
-  return <div className="tos-station"><Context.Provider value={value}><div className="tos-monitor">{computerContent(children,tos)}</div>{deck}</Context.Provider></div>;
+  return <div className="tos-station" data-tos-controls-open={controlsOpen}><Context.Provider value={value}><div className="tos-monitor"><TosScreen pageKey={pageKey} navigationTarget={navigationTarget} controlsOpen={controlsOpen} toggleControls={()=>setControlsOpen(value=>!value)}>{computerContent(children,tos)}</TosScreen></div>{deck}</Context.Provider></div>;
 }
 /** Modal controls stay in their own window and inside its focus boundary. */
 export function ConsoleWindowControls({children,close}:{children:ReactNode;close?:()=>void}){

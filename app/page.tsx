@@ -76,7 +76,7 @@ import { DailyUtilities } from "./v31-utilities";
 import { TosInformationReadout } from "./tos-information";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="31.5.10";
+const LCARS_VERSION="31.5.11";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -653,6 +653,7 @@ export default function Home() {
     [section, setSection] = useState("overview"),
     [sound, setSound] = useState(true);
   const [ambiance,setAmbiance]=useState<InterfaceAudioState>({enabled:false,owner:true,phase:"OFF",playing:false,volume:.4});
+  const [screenNavigation,setScreenNavigation]=useState<HTMLDivElement|null>(null);
   const [interfaceAudioReady,setInterfaceAudioReady]=useState(false);
   const [alertCondition,setAlertCondition]=useState<AlertCondition>("normal");
   const [volume, setVolume] = useState(64),
@@ -904,7 +905,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-10"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-11"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1173,6 +1174,7 @@ export default function Home() {
     if(event.repeat)return;
     if(event.key==="Escape"){playTosKey(true);return;}
     if(!(event.target instanceof Element))return;
+    if(["ArrowLeft","ArrowRight"].includes(event.key)&&event.target.closest(".tos-display-selector")){playTosKey();return;}
     const field=event.target.closest("input,select");
     if(!field||field.hasAttribute("disabled")||field.matches("input[type=checkbox],input[type=radio]"))return;
     if(event.key==="Enter"||(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Home","End"].includes(event.key)&&field.matches("select,input[type=range]")))playTosKey();
@@ -1983,7 +1985,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"31.5.10",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.5.11",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2629,7 +2631,7 @@ export default function Home() {
       <header className="top">
         <ConsoleButton className="brand" onClick={() => setSection("overview")}>
           <span>{theme === "tos" ? "STARFLEET" : "LCARS"}</span>
-          <small>31.5.10 DEV</small>
+          <small>31.5.11 DEV</small>
         </ConsoleButton>
         <div className="title">
           <div className="title-copy">
@@ -2672,6 +2674,7 @@ export default function Home() {
         </ConsoleButton>
       </header>
       {theme === "tos" && <div className="tos-instrument-bank" aria-hidden="true"><span>USS ENTERPRISE · NCC-1701</span><div>{Array.from({length:12},(_,i)=><i key={i}/>)}</div><span>COMPUTER CONTROL · 2266</span></div>}
+      {theme==="tos"&&<div className="tos-display-chassis" ref={setScreenNavigation}/>}
       {alertCondition!=="normal"&&<ConsoleButton className="alert-condition-banner" onClick={()=>{setAlertCondition("normal");localStorage.setItem("lcars-alert-condition","normal");}}><b>{alertCondition.toUpperCase()} ALERT</b><span>{alertCondition==="red"?"EMERGENCY CONDITION ACTIVE":"HEIGHTENED READINESS CONDITION"} · PRESS FOR NO ALERT</span></ConsoleButton>}
       {safeMode&&<ConsoleButton className="safe-mode-banner" onClick={()=>setSection("settings")}><b>SAFE STARTUP ACTIVE</b><span>SAVED VISUAL SETTINGS AND EXTENSIONS ARE TEMPORARILY BYPASSED · OPEN RECOVERY</span></ConsoleButton>}
       <div className="shell">
@@ -2734,7 +2737,7 @@ export default function Home() {
           </ConsoleButton>
           <div className="foot-elbow" />
         </aside>
-        <ConsoleDisplay tos={theme==="tos"}>
+        <ConsoleDisplay tos={theme==="tos"} pageKey={section} navigationTarget={screenNavigation}>
         <ConsoleGroup label={<>
                 {section === "overview"
                   ? (theme === "tos" ? "PRIMARY SYSTEMS" : "SYSTEM OVERVIEW")
@@ -3159,7 +3162,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-10","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-10","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-11","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-11","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -5209,7 +5212,7 @@ function Version31Welcome({close,openDisplay}:{close:()=>void;openDisplay:()=>vo
     {code:"04",title:"PRINT COMMAND",text:"Review printers and queued jobs, then cancel a job through a matching, single-use Portal authorization."},
     {code:"05",title:"VOICE PERMISSION REPAIR",text:"Hands-free Voice Control now recognizes trusted LCARS microphone requests and prevents repeated startup attempts or duplicate denial notices."},
   ];
-  return <ConsoleCopy><div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>VERSION 31.5.10 TOS CONSOLE</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.10"><ConsoleWindowControls><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.10 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.10</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openDisplay}>OPEN DISPLAY MATRIX</ConsoleButton><ConsoleButton autoFocus onClick={close}>CONTINUE TO LCARS</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div></ConsoleCopy>;
+  return <ConsoleCopy><div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>VERSION 31.5.11 TOS CONSOLE</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.11"><ConsoleWindowControls><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.11 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.11</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openDisplay}>OPEN DISPLAY MATRIX</ConsoleButton><ConsoleButton autoFocus onClick={close}>CONTINUE TO LCARS</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div></ConsoleCopy>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

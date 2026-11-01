@@ -1,0 +1,13 @@
+# Version 31.5.11 Development — Fixed TOS Information Displays
+
+The operator requests removing the content-page scrollbar and selecting each part of the display through a new set of console buttons beneath the header lamps. The main TOS station now has a dedicated physical display-selector rail, styled as part of the existing gray chassis and glossy resin keys.
+
+Named display parts and numbered continuation sheets replace main information scrolling. Status opens on its Engineering Instruments sheet; the station summary remains available through its own key. Previous/Next Display keys and direct selector keys expose every sheet. The current display and sheet count are announced accessibly; focused selector keys also accept Left/Right arrows. Whole records, graphic instruments, and rendered text lines guide page boundaries. The number of sheets responds to available width/height, font loading, new records, and command-bank size. Existing content stays mounted rather than being cloned or moved between React parents, retaining fields, handlers, media, and running operations. Off-sheet source elements are excluded from assistive reading without replacing their original accessibility attributes. Other display families keep their original DOM and scrolling.
+
+A COMMAND KEYS key shows or stows the existing command bank. It remains open by default on taller screens; at 600 pixels high or less it begins stowed, providing enough room for the information display. Opening it exposes the original fixed control banks and their key pages, with no hardware scrolling. Closing it returns the space to the display, preserving the selected named part where possible.
+
+Nested application record panes expand into the same information sheets. Embedded third-party documents, media content, and native viewer internals retain their existing capabilities. This release changes the main TOS station; modal windows retain their own established control decks and content behavior.
+
+Validation includes both renderer builds, regression tests, all eleven main sections and every default desktop sheet, portrait and short landscape, resizing with preservation of the current display part, command-bank stowing/reopening, keyboard selection, and comparison with the original display families. TypeScript retains the seven pre-existing diagnostics; this change adds none. Live host records, Windows/Android hardware, and third-party document viewers are not exhaustively exercised locally.
+
+The full bridge ambiance, glossy controls, Computer wording, fonts, previous key/updater/error/startup sounds, Version 30 Stable, and reserved 31.6 milestone remain.

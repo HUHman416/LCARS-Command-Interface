@@ -16,7 +16,9 @@ const deckExports={};
 runInNewContext(ts.transpileModule(read("app/tos-deck.ts"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:deckExports});
 const terminologyExports={};
 runInNewContext(ts.transpileModule(read("app/tos-terminology.tsx"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports:terminologyExports,require});
-const consoleRequire=name=>name==="./tos-terminology"?terminologyExports:name==="./tos-deck"?deckExports:name==='./console-dialogs'?dialogExports:require(name);
+const screenPages={};runInNewContext(ts.transpileModule(read('app/tos-screen-pages.ts'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:screenPages});
+const screen={};runInNewContext(ts.transpileModule(read('app/tos-screen.tsx'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports:screen,require:name=>name==='./tos-screen-pages'?screenPages:name==='./tos-terminology'?terminologyExports:require(name)});
+const consoleRequire=name=>name==='./tos-screen'?screen:name==="./tos-terminology"?terminologyExports:name==="./tos-deck"?deckExports:name==='./console-dialogs'?dialogExports:require(name);
 
 const bootstrap=require('../desktop/startup-audio.cjs').startupAudioBootstrap;
 function audioHarness(theme,prefs={}){
@@ -65,7 +67,7 @@ test('other families retain native controls and TOS information renders without 
  const {ConsoleThemeProvider,ConsoleDisplay,ConsoleButton,ConsoleControls}=exports;
  const tree=tos=>React.createElement(ConsoleThemeProvider,{tos},React.createElement(ConsoleDisplay,{tos},React.createElement('section',null,React.createElement('p',null,'CURRENT INFORMATION'),React.createElement(ConsoleControls,null,React.createElement(ConsoleButton,null,'COMMAND')),React.createElement(ConsoleButton,{consoleChoice:true},React.createElement('span',null,'DOCUMENT NAME')))));
  const classic=renderToStaticMarkup(tree(false));assert.equal(classic,'<section><p>CURRENT INFORMATION</p><button>COMMAND</button><button><span>DOCUMENT NAME</span></button></section>');
- const tos=renderToStaticMarkup(tree(true));assert.match(tos,/tos-monitor/);assert.match(tos,/CURRENT INFORMATION/);assert.match(tos,/DOCUMENT NAME/);assert.doesNotMatch(tos,/<button/);
+ const tos=renderToStaticMarkup(tree(true));assert.match(tos,/tos-monitor/);assert.match(tos,/CURRENT INFORMATION/);assert.match(tos,/DOCUMENT NAME/);assert.doesNotMatch(tos.slice(tos.indexOf('class="tos-screen-track"')),/<button/);
  const url=exports.detachedWorkspaceUrl('document',{path:'/tmp/a b.txt'},true);assert.equal(new URL(url).searchParams.get('path'),'/tmp/a b.txt');assert.equal(new URL(url).searchParams.get('console'),'tos');
 });
 test('the integrated media station renders its empty state without an undefined drag flag',()=>{

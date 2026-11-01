@@ -11,7 +11,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/stable-v30-ff9866" alt="Stable Version 30">
-  <img src="https://img.shields.io/badge/development-v31.5.10-b69de8" alt="Development Version 31.5.10">
+  <img src="https://img.shields.io/badge/development-v31.5.11-b69de8" alt="Development Version 31.5.11">
   <img src="https://img.shields.io/badge/Linux-x86__64-f2c84b" alt="Linux x86-64">
   <img src="https://img.shields.io/badge/Windows-10%20%7C%2011-829af1" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/interface-local--first-b69de8" alt="Local-first interface">
@@ -20,7 +20,7 @@
 <p align="center">
   <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v30"><strong>🚀 Download Version 30</strong></a>
   ·
-  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v31.5.10">Test Version 31.5.10</a>
+  <a href="https://github.com/HUHman416/LCARS-Command-Interface/releases/tag/v31.5.11">Test Version 31.5.11</a>
   ·
   <a href="https://github.com/HUHman416/LCARS-Command-Interface/issues">🐞 Report an issue</a>
   ·
@@ -34,7 +34,7 @@
 > Existing installations can update from **Updates → LCARS Interface**. Decimal releases are development milestones; Stable releases use the major version number.
 
 > [!NOTE]
-> **Version 31.5.10 Development adds glossy TOS resin keys and optional bridge ambiance**, with a header key beneath Computer Operator and the full activation recording looping from 0:04. The information screens, button selectors, fixed banks, and Computer terminology remain. See [resin and ambiance notes](docs/VERSION-31.5.10-TOS-RESIN-AMBIANCE.md). Version 31.6 remains reserved for Security, Recovery, and Accessibility.
+> **Version 31.5.11 Development adds fixed TOS information displays**, selected by physical keys beneath the header lamps. Named parts and continuation sheets replace the main content scrollbar, keeping information readable and controls mounted on the chassis. See [fixed display notes](docs/VERSION-31.5.11-TOS-FIXED-DISPLAYS.md). Version 31.6 remains reserved for Security, Recovery, and Accessibility.
 
 > **Version 31.5 Daily Utilities is retained.** It adds a compact Daily Utilities page for private clipboard history, Portal-approved screenshots and screen recording, approved application notifications, and print-queue management. It also repairs Voice Control microphone permission handling and prevents duplicate requests from a single unmute. Version 30 remains Stable. See the [Version 31 roadmap](docs/VERSION-31-ROADMAP.md) and [31.5 implementation notes](docs/VERSION-31.5-DAILY-UTILITIES.md).
 

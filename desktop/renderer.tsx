@@ -27,6 +27,7 @@ import "../app/tos-surfaces.css";
 import "../app/tos-banks.css";
 import "../app/tos-displays.css";
 import "../app/tos-resin.css";
+import "../app/tos-screen.css";
 
 const nativeFetch: typeof window.fetch = window.fetch.bind(window);
 const compatFallback = {
