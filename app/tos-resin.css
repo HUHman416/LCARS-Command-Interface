@@ -1,0 +1,52 @@
+/* Cast-resin key lenses: highlights sit inside the existing black mounting sockets. */
+.lcars.theme-tos{
+ --tos-resin-sheen:
+  radial-gradient(ellipse at 24% -15%,#fffffff0 0 8%,#ffffff80 18%,#ffffff14 37%,transparent 53%),
+  radial-gradient(ellipse at 77% 125%,#ffffffd9 0 7%,#ffffff59 18%,transparent 46%),
+  linear-gradient(108deg,#ffffff8c 0 2%,transparent 7% 88%,#ffffff54 95%,transparent 100%),
+  linear-gradient(176deg,#ffffff45 0 22%,#ffffff0d 27%,transparent 43%,#0000001f 70%,#0000004d 88%,#ffffff70 100%);
+ --tos-lens-shadow:inset 0 0 0 1px #ffffffb3,inset 0 3px 3px #ffffff80,inset 3px 0 4px #00000029,inset -3px -4px 5px #00000080,inset 0 -1px 1px #ffffffbf,0 1px 2px #000000a6,0 0 0 1px #ffffff14;
+}
+.lcars.theme-tos .tos-command-deck.tos-command-deck button,
+.lcars.theme-tos .top.top :is(.command-button,.audio,.header-operator,.tos-ambiance-key),
+.lcars.theme-tos .tos-navigation-bank.tos-navigation-bank .nav>i,
+.lcars.theme-tos .shell>aside :is(.task-trigger,.tos-tray-key,.nav.power)>i,
+.lcars.theme-tos .system-tray.speed-dial.speed-dial button,
+.lcars.theme-tos .mobile-command-bar.mobile-command-bar>button,
+.lcars.theme-tos .mobile-sheet-grid.mobile-sheet-grid button,
+.lcars.theme-tos.renderer-recovery.renderer-recovery button{
+ background-image:var(--tos-resin-sheen)!important;
+ background-clip:padding-box;
+ border-radius:4px!important;
+ box-shadow:var(--tos-lens-shadow)!important;
+ text-shadow:0 1px 0 #ffffff45;
+}
+/* File-import labels are real controls, with the same lens as the adjacent keys. */
+.lcars.theme-tos .tos-fixed-deck label.import-config[data-tos-unit]{background-image:var(--tos-resin-sheen)!important;box-shadow:var(--tos-lens-shadow)!important}
+/* Keep the chair rocker geometry and state tilt; add only a reflected surface. */
+.lcars.theme-tos .lcars-toggle>i::after,
+.lcars.theme-tos .tos-command-deck label[data-console-toggle]>input[type=checkbox]{
+ background-image:var(--tos-resin-sheen),linear-gradient(90deg,#b6b9ac 0 48%,#6e756d 48% 51%,#fff4d4 51%)!important;
+}
+.lcars.theme-tos .lcars-toggle input:checked+i::after,
+.lcars.theme-tos .tos-command-deck label[data-console-toggle]>input[type=checkbox]:checked{
+ background-image:var(--tos-resin-sheen),linear-gradient(90deg,#fff4d4 0 48%,#6e756d 48% 51%,#b6b9ac 51%)!important;
+}
+/* The material is static: focus, disabled state, and reduced-motion behavior stay intact. */
+
+/* Two matched hardware keys, with the ambiance key directly below the operator key. */
+.lcars.theme-tos .top .title-copy{padding-right:174px;min-height:58px;justify-content:center}
+.lcars.theme-tos .top .title-kicker,.lcars.theme-tos .top .title-kicker.voice-active{display:block}
+.lcars.theme-tos .tos-operator-controls{position:absolute;right:0;top:0;display:grid;gap:5px;width:164px}
+.lcars.theme-tos .top .tos-operator-controls>button{display:flex;align-items:center;justify-content:space-between;gap:5px;width:100%;max-width:none;min-height:25px;height:25px;padding:3px 7px;border:2px solid #181c1e;color:#090b0d!important;font:800 9px/1 Arial,sans-serif;letter-spacing:.04em}
+.lcars.theme-tos .top .tos-ambiance-key{background-color:var(--tos-key-ivory)!important;cursor:pointer}
+.lcars.theme-tos .top .tos-ambiance-key[aria-pressed=true]{background-color:var(--tos-key-blue)!important}
+.lcars.theme-tos .top .tos-ambiance-key b{font:800 8px/1 Arial,sans-serif}
+.lcars.theme-tos .top .title-kicker .voice-control{margin-top:5px;max-width:160px}
+@media(max-width:760px){
+ .lcars.theme-tos .top .title-copy{padding-right:0;min-height:0}
+ .lcars.theme-tos .tos-operator-controls{position:static;width:100%;max-width:160px}
+ .lcars.theme-tos .top .tos-operator-controls>button{height:23px;min-height:23px;font-size:8px}
+ .lcars.theme-tos .top .title-kicker>small{display:none}
+ .lcars.theme-tos .top .title-copy>h1{font-size:14px}
+}

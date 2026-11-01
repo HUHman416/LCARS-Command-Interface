@@ -85,3 +85,5 @@ Supplementary 31.5.7 audits TOS display/control separation, connected and unifor
 31.5.8 supplementary TOS refinement: fixed selectable hardware banks replace console scrolling; Search/Data Fabric use an attached control deck and selected-record actions. The 31.6 milestone remains reserved.
 
 31.5.9 supplementary TOS refinement: physical selector keys, all-section information registers/plots, and Computer interface terminology. Version 31.6 remains reserved.
+
+31.5.10 supplementary TOS refinement: glossy cast-resin physical keys and an optional header ambiance key, with smooth activation and the full original bridge recording looping from 0:04. The 31.6 milestone remains reserved.

@@ -18,7 +18,7 @@ const terminologyExports={};
 runInNewContext(ts.transpileModule(read("app/tos-terminology.tsx"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports:terminologyExports,require});
 const consoleRequire=name=>name==="./tos-terminology"?terminologyExports:name==="./tos-deck"?deckExports:name==='./console-dialogs'?dialogExports:require(name);
 
-const bootstrap=runInNewContext(main.slice(main.indexOf('const startupAudioBootstrap='),main.indexOf('function createWindow'))+';startupAudioBootstrap');
+const bootstrap=require('../desktop/startup-audio.cjs').startupAudioBootstrap;
 function audioHarness(theme,prefs={}){
  const values=new Map([['lcars-theme',theme],['lcars-shell-prefs',JSON.stringify(prefs)]]),made=[],assets=[],revoked=[];
  class Audio{constructor(url){this.url=url;this.plays=0;this.pauses=0;made.push(this);}async play(){this.plays++;}pause(){this.pauses++;}}

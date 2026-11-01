@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import Home from "../app/page";
+import { installInterfaceAudio } from "../app/interface-audio-runtime";
 import "../app/globals.css";
 import "../app/v23-1.css";
 import "../app/v23-2.css";
@@ -25,6 +26,7 @@ import "../app/tos.css";
 import "../app/tos-surfaces.css";
 import "../app/tos-banks.css";
 import "../app/tos-displays.css";
+import "../app/tos-resin.css";
 
 const nativeFetch: typeof window.fetch = window.fetch.bind(window);
 const compatFallback = {
@@ -68,7 +70,7 @@ window.addEventListener("lcars-runtime-stable",(event)=>{
 class RendererRecovery extends React.Component<React.PropsWithChildren, {error:string}> {
   state={error:""};
   static getDerivedStateFromError(error:unknown){return{error:String(error)}}
-  componentDidCatch(error:unknown,info:React.ErrorInfo){console.error("LCARS renderer recovered from a component failure",error,info)}
+  componentDidCatch(error:unknown,info:React.ErrorInfo){installInterfaceAudio(window).suspend();console.error("LCARS renderer recovered from a component failure",error,info)}
   render(){if(this.state.error){let tos=false;try{tos=localStorage.getItem("lcars-theme")==="tos";}catch{}const button={padding:"12px 24px",margin:"4px",border:0,borderRadius:"20px 2px 20px 20px",background:"#b29be6",color:"#080808"};return <main className={tos?"lcars theme-tos renderer-recovery":""} style={{background:"#000",color:"#f4b66b",minHeight:"100vh",padding:"8vh",fontFamily:"sans-serif"}}><h1>{tos?"COMPUTER DISPLAY RECOVERY":"LCARS RENDERER RECOVERY"}</h1><p>An interface component failed. The local core and your saved configuration remain intact.</p><pre style={{whiteSpace:"pre-wrap",color:"#ddd",maxHeight:"24vh",overflow:"auto"}}>{this.state.error}</pre><div><button style={button} onClick={()=>location.reload()}>RELOAD INTERFACE</button><button style={{...button,background:"#7f9cf1"}} onClick={()=>{sessionStorage.setItem("lcars-safe-mode","1");location.reload();}}>START SAFE MODE</button><button style={{...button,background:"#ff9868"}} onClick={async()=>{try{const snapshot=JSON.parse(localStorage.getItem("lcars-last-known-good")||"null");if(snapshot?.values){restoreValues(snapshot.values);sessionStorage.removeItem("lcars-safe-mode");const shellPrefs=JSON.parse(snapshot.values["lcars-shell-prefs"]||"{}");await nativeFetch("http://127.0.0.1:8765/api/config",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({shell_prefs:shellPrefs})}).catch(()=>null);location.reload();}}catch{}}}>RESTORE LAST KNOWN GOOD</button></div><small>{tos?"After three failed starts, the Computer bypasses saved visual settings and extensions for this session.":"After three failed starts, LCARS automatically bypasses saved visual settings and extensions for this session."}</small></main>}return this.props.children;}
 }
 

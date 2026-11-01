@@ -1,6 +1,8 @@
 "use client";
 
-import { createTosKeyPlayer, createTosEventPlayer, isTosCancelKey, startupSoundAsset } from "./tos-audio";
+import { createTosKeyPlayer, createTosEventPlayer, isTosCancelKey } from "./tos-audio";
+import { installInterfaceAudio } from "./interface-audio-runtime";
+import type { InterfaceAudioState } from "./interface-audio-runtime";
 import { consolePrompt, consoleConfirm } from "./console-dialogs";
 import { TosLoadInstrument } from "./tos-instruments";
 import { ConsoleCopy, ConsoleVideo, ConsoleDisplay, detachedWorkspaceUrl, ConsoleControls, ConsoleButton, ConsoleThemeProvider, ConsoleField, ConsoleTextarea, ConsoleWindowControls, ConsoleGroup, ConsoleDisclosure, ConsoleSelect, ConsoleLink } from "./tos-console";
@@ -74,7 +76,7 @@ import { DailyUtilities } from "./v31-utilities";
 import { TosInformationReadout } from "./tos-information";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="31.5.9";
+const LCARS_VERSION="31.5.10";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -489,7 +491,7 @@ const verifyLockCredential = async (password: string, credential: LockCredential
 type RecoverySnapshot = { id:string; created:string; reason:string; values:Record<string,string> };
 const recoveryConfigKeys = [
   "lcars-theme","lcars-favorites","lcars-overview-widgets","lcars-widget-sizes","lcars-pinned-players",
-  "lcars-shell-prefs","lcars-accessibility","lcars-workspaces","lcars-user-name","lcars-session-restore",
+  "lcars-shell-prefs","lcars-accessibility","lcars-tos-ambiance","lcars-workspaces","lcars-user-name","lcars-session-restore",
   "lcars-custom-pages","lcars-app-destinations","lcars-default-workstation","lcars-selected-player",
   "lcars-routines","lcars-activity-log","lcars-tray-shortcuts","lcars-control-mappings","lcars-disabled-extensions",
   "lcars-operators-v30-7","lcars-active-operator-v30-7",
@@ -650,6 +652,8 @@ export default function Home() {
   const [theme, setTheme] = useState("classic"),
     [section, setSection] = useState("overview"),
     [sound, setSound] = useState(true);
+  const [ambiance,setAmbiance]=useState<InterfaceAudioState>({enabled:false,owner:true,phase:"OFF",playing:false,volume:.4});
+  const [interfaceAudioReady,setInterfaceAudioReady]=useState(false);
   const [alertCondition,setAlertCondition]=useState<AlertCondition>("normal");
   const [volume, setVolume] = useState(64),
     [audioMuted, setAudioMuted] = useState(false),
@@ -900,7 +904,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-9"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-10"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1024,22 +1028,22 @@ export default function Home() {
     getDesktop();
     const getEngineering=()=>fetch("http://127.0.0.1:8765/api/engineering").then((r) => r.json()).then((d)=>setEngineering({processes:Array.isArray(d.processes)?d.processes:[],sensors:Array.isArray(d.sensors)?d.sensors:[],processControl:Boolean(d.processControl),serviceControl:Boolean(d.serviceControl),notes:Array.isArray(d.notes)?d.notes:[]})).catch(() => {});
     getEngineering();
-    let sound = true;
-    try {
-      sound = JSON.parse(localStorage.getItem("lcars-shell-prefs") || "{}").startupSound !== false;
-    } catch {}
-    let powered = false;
+    const interfaceAudio=installInterfaceAudio(window);
+    setAmbiance(interfaceAudio.status());setInterfaceAudioReady(true);
+    let powered=false;
     const reportAudio=(event:Event)=>{const result=(event as CustomEvent).detail;if(result)setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);};
-    const power = async () => {
-      if (sound && !powered) {
-        const result=window.__lcarsPlayStartupSound?await window.__lcarsPlayStartupSound():await (async()=>{const asset=new URL(startupSoundAsset(localStorage.getItem("lcars-theme")),window.location.href).href;try{const response=await fetch(asset,{cache:"no-store"});if(!response.ok)throw new Error(`Audio asset returned HTTP ${response.status}`);const blob=await response.blob();if(!blob.type.startsWith("audio/"))throw new Error(`Audio asset returned ${blob.type||"an unknown content type"}`);const objectUrl=URL.createObjectURL(blob);const a=new Audio(objectUrl);a.volume=.42;a.addEventListener("ended",()=>URL.revokeObjectURL(objectUrl),{once:true});await a.play();return{ok:true,status:"PLAYING",asset,output:"SYSTEM DEFAULT"};}catch(error){return{ok:false,status:"FAILED",error:String(error),asset,output:"SYSTEM DEFAULT"};}})();
-        powered=result.ok;setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);
-      }
+    const reportAmbiance=(event:Event)=>setAmbiance((event as CustomEvent<InterfaceAudioState>).detail);
+    const power=async(event?:Event)=>{
+      if(event?.type==="pointerdown"&&(event.target as Element)?.closest?.(".tos-ambiance-key"))return;
+      if(powered)return;
+      const result=await interfaceAudio.startup();
+      powered=result.ok&&result.status!=="CANCELLED";
     };
-    power();
-    window.addEventListener("lcars-startup-audio", power);
     window.addEventListener("lcars-startup-audio-result",reportAudio);
-    window.addEventListener("pointerdown", power, { once: true });
+    window.addEventListener("lcars-ambiance-state",reportAmbiance);
+    window.addEventListener("lcars-startup-audio",power);
+    window.addEventListener("pointerdown",power,{once:true});
+    void power();
     const whileVisible=(operation:()=>void)=>()=>{if(!document.hidden)operation();};
     const refreshAfterResume=()=>{if(document.hidden)return;getSystem();getMedia();getDesktop();getEngineering();void getExtensions();fetch("http://127.0.0.1:8765/api/padd-pairing").then((response)=>response.json()).then((result)=>result.ok&&setPaddStatus(result)).catch(()=>{});fetch("http://127.0.0.1:8765/api/data-fabric").then((response)=>response.json()).then((result)=>result.ok&&setFabric(result)).catch(()=>{});};
     const timer = setInterval(() => setClock(new Date()), 1000),
@@ -1065,6 +1069,7 @@ export default function Home() {
       clearTimeout(stableTimer);
       window.removeEventListener("lcars-startup-audio", power);
       window.removeEventListener("lcars-startup-audio-result",reportAudio);
+      window.removeEventListener("lcars-ambiance-state",reportAmbiance);
       window.removeEventListener("pointerdown", power);
       document.removeEventListener("visibilitychange",refreshAfterResume);
       window.removeEventListener("focus",refreshAfterResume);
@@ -1072,6 +1077,15 @@ export default function Home() {
       window.removeEventListener("online",refreshAfterResume);
     };
   }, []);
+  useEffect(()=>{
+    if(!interfaceAudioReady)return;
+    void installInterfaceAudio(window).sync(theme,ambiance.enabled,sound?access.soundVolume:0);
+  },[interfaceAudioReady,theme,ambiance.enabled,sound,access.soundVolume]);
+  const toggleAmbiance=()=>{
+    const audio=installInterfaceAudio(window);
+    if(ambiance.enabled&&ambiance.phase==="BLOCKED")void audio.resume();
+    else void audio.setAmbiance(!ambiance.enabled);
+  };
   useEffect(() => {
     const timer = window.setTimeout(() => {
       fetch(`http://127.0.0.1:8765/api/lcars-update?channel=${encodeURIComponent(prefs.updateChannel)}`)
@@ -1969,7 +1983,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"31.5.9",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.5.10",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2615,13 +2629,15 @@ export default function Home() {
       <header className="top">
         <ConsoleButton className="brand" onClick={() => setSection("overview")}>
           <span>{theme === "tos" ? "STARFLEET" : "LCARS"}</span>
-          <small>31.5.9 DEV</small>
+          <small>31.5.10 DEV</small>
         </ConsoleButton>
         <div className="title">
           <div className="title-copy">
             <div className={`title-kicker${prefs.voiceEnabled?" voice-active":""}`}>
               <small>{theme === "tos" ? "USS ENTERPRISE · NCC-1701 · COMPUTER CONTROL" : "FEDERATION OPERATING ENVIRONMENT"}</small>
-              <ConsoleButton className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></ConsoleButton>
+              {theme==="tos"?<div className="tos-operator-controls"><ConsoleButton className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></ConsoleButton>
+                {ambiance.owner&&<ConsoleButton className="tos-ambiance-key" aria-label="Bridge ambiance" aria-pressed={ambiance.enabled} onClick={toggleAmbiance} title={ambiance.phase==="BLOCKED"?"Press to start bridge ambiance":"Loop the original bridge recording from 0:04"}><span>AMBIANCE</span><b>{!ambiance.enabled?"OFF":ambiance.phase==="BLOCKED"?"PLAY":ambiance.phase==="FAILED"?"ERROR":(!sound||access.soundVolume===0)?"MUTED":"ON"}</b></ConsoleButton>}
+              </div>:<ConsoleButton className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></ConsoleButton>}
               {prefs.voiceEnabled&&<VoiceControl prefs={prefs} computer={dispatchVoiceComputer} notify={notify} />}
             </div>
             <h1>
@@ -3143,7 +3159,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-9","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-9","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-10","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-10","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -5186,14 +5202,14 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
 
 function Version31Welcome({close,openDisplay}:{close:()=>void;openDisplay:()=>void}){
   const features=[
-    {code:"00",title:"ORIGINAL SERIES CONSOLE",text:"Choose Enterprise · The Original Series in Display Matrix for black information screens, information-screen registers and plots, physical bank-selector buttons without console scrolling, Computer terminology, an attached Search/Data Fabric deck, and horizontal rocker switches."},
+    {code:"00",title:"ORIGINAL SERIES CONSOLE",text:"Choose Enterprise · The Original Series in Display Matrix for black information screens, information-screen registers and plots, glossy cast-resin physical keys, fixed button banks without console scrolling, Computer terminology, and horizontal rocker switches."},
     {code:"01",title:"PRIVATE CLIPBOARD HISTORY",text:"Capture, restore, pin, and clear a bounded local clipboard history with opt-in storage and a one-control private mode."},
     {code:"02",title:"LCARS DISPLAY CAPTURE",text:"Take screenshots and screen recordings through Portal-approved access, saved directly into local LCARS Captures folders."},
     {code:"03",title:"NOTIFICATION SERVICE",text:"Approved local application notifications now arrive in the existing Communications and Operations timeline instead of a duplicate inbox."},
     {code:"04",title:"PRINT COMMAND",text:"Review printers and queued jobs, then cancel a job through a matching, single-use Portal authorization."},
     {code:"05",title:"VOICE PERMISSION REPAIR",text:"Hands-free Voice Control now recognizes trusted LCARS microphone requests and prevents repeated startup attempts or duplicate denial notices."},
   ];
-  return <ConsoleCopy><div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>VERSION 31.5.9 TOS CONSOLE</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.9"><ConsoleWindowControls><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.9 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.9</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openDisplay}>OPEN DISPLAY MATRIX</ConsoleButton><ConsoleButton autoFocus onClick={close}>CONTINUE TO LCARS</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div></ConsoleCopy>;
+  return <ConsoleCopy><div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>VERSION 31.5.10 TOS CONSOLE</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.10"><ConsoleWindowControls><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.10 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.10</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openDisplay}>OPEN DISPLAY MATRIX</ConsoleButton><ConsoleButton autoFocus onClick={close}>CONTINUE TO LCARS</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div></ConsoleCopy>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

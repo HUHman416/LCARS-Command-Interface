@@ -17,8 +17,9 @@ test("lcars protocol serves audio with a playable MIME type and no HTML fallback
   assert.match(main,/"\.mp3":"audio\/mpeg"/);
   assert.match(main,/LCARS asset not found/);
   assert.match(main,/new Response\(fs\.readFileSync\(target\)/);
-  assert.match(main,/response\.blob\(\)/);
-  assert.match(main,/blob\.type\.startsWith\('audio\/'\)/);
+  const audio=readFileSync(new URL("../app/interface-audio-runtime.js",import.meta.url),"utf8");
+  assert.match(audio,/response\.blob\(\)/);
+  assert.match(audio,/blob\.type\.startsWith\('audio\/'\)/);
 });
 
 test("rail tray actuator is contained, unrotated, and labelled accessibly",()=>{
@@ -100,6 +101,6 @@ test("portable Linux registration and Windows installer autostart are opt-in",()
 test("Current metadata and protected sleep voice intent stay aligned",()=>{
   assert.match(page,/V\$\{update\?\.current\|\|LCARS_VERSION\} · \$\{prefs\.updateChannel\.toUpperCase\(\)\}/);
   assert.match(page+computerCore,/sleep\|suspend/);
-  assert.match(linux,/LCARS_VERSION="(?:31\.5\.9|31\.[12345]|30|30\.14|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
-  assert.match(windows,/LCARS_VERSION="(?:31\.5\.9|31\.[12345]|30|30\.14|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(linux,/LCARS_VERSION="(?:31\.5\.10|31\.[12345]|30|30\.14|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
+  assert.match(windows,/LCARS_VERSION="(?:31\.5\.10|31\.[12345]|30|30\.14|30\.10|30\.8\.1|30\.[2345678]|30\.1-A|29\.0\.0|29\.3\.0-rc\.1|29\.2\.0-dev\.1|28\.0\.0|28\.3-rc\.1|28\.2-dev\.1|27\.(?:2\.[01]|1\.1)-dev\.1|26\.(?:3\.0-dev\.1|0\.0))"/);
 });

@@ -6,6 +6,8 @@ directories:
 files:
   - desktop/main.cjs
   - desktop/tos-window.cjs
+  - desktop/startup-audio.cjs
+  - app/interface-audio-runtime.js
   - desktop-dist/**/*
   - package.json
   - '!node_modules/**/*'

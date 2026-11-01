@@ -32,8 +32,8 @@ test("document workspace embeds safe formats, detaches, and contains viewer fail
 
 test("packaged startup audio is bootstrapped by Electron and remains testable", () => {
   assert.match(main, /startupAudioBootstrap/);
-  assert.match(main, /assets\/sounds\/power-up\.mp3/);
-  assert.match(main, /tos-startup-10s\.mp3/);
+  assert.match(fs.readFileSync(new URL("../app/interface-audio-runtime.js",import.meta.url),"utf8"), /assets\/sounds\/power-up\.mp3/);
+  assert.match(fs.readFileSync(new URL("../app/interface-audio-runtime.js",import.meta.url),"utf8"), /tos-startup-10s\.mp3/);
   assert.match(main, /autoplay-policy/);
   assert.match(page, /TEST POWER-UP AUDIO/);
   assert.match(page, /lcars-startup-audio-result/);
