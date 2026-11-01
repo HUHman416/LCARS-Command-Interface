@@ -1,6 +1,7 @@
 "use client";
 import { Children, cloneElement, createContext, isValidElement, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type ComponentPropsWithRef, type HTMLAttributes, type InputHTMLAttributes, type ReactElement, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
+import { computerContent, computerProps, computerTerminology } from "./tos-terminology";
 import { consoleControlPages } from "./tos-deck";
 import { subscribeConsoleDialogs, type ConsoleDialogRequest } from "./console-dialogs";
 
@@ -25,13 +26,15 @@ function useDeck(enabled:boolean,initialGroup:Group=defaultGroup,close?:()=>void
   return {value,deck:<FixedControlDeck groups={groups} active={active} select={setSelected} attach={attach} close={close}/>};
 }
 function FixedControlDeck({groups,active,select,attach,close}:{groups:Group[];active:string;select:(id:string)=>void;attach:(id:string,node:HTMLDivElement|null)=>void;close?:()=>void}){
-  const index=groups.findIndex(group=>group.id===active);
+  const index=groups.findIndex(group=>group.id===active),deckRef=useRef<HTMLDivElement|null>(null),[bankLimit,setBankLimit]=useState(4);
+  useLayoutEffect(()=>{const deck=deckRef.current;if(!deck)return;const update=()=>setBankLimit(deck.getBoundingClientRect().width<700?2:4);update();const resize=new ResizeObserver(update);resize.observe(deck);return()=>resize.disconnect();},[groups.length]);
+  const first=Math.floor(Math.max(0,index)/bankLimit)*bankLimit;
   if(!groups.length)return null;
-  return <div className="tos-command-deck tos-fixed-deck" role="region" aria-label="Console control deck" hidden={!groups.length}>
+  return <div ref={deckRef} className="tos-command-deck tos-fixed-deck" role="region" aria-label="Console control deck" hidden={!groups.length}>
     <nav className={`tos-bank-selector ${close?"has-close":""}`} aria-label="Console bank selector">
-      <button aria-label="Previous control bank" disabled={index<=0} onClick={()=>select(groups[index-1].id)}>◀ BANK</button>
-      <select aria-label="Control bank" value={active} onChange={event=>select(event.target.value)}>{groups.map((group,index)=><option key={group.id} value={group.id}>{String(index+1).padStart(2,"0")} · {group.label}</option>)}</select>
-      <button aria-label="Next control bank" disabled={index>=groups.length-1} onClick={()=>select(groups[index+1].id)}>BANK ▶</button>{close&&<button onClick={close}>CLOSE ×</button>}
+      <button aria-label="Previous control bank" disabled={index<=0} onClick={()=>select(groups[index-1].id)}>◀</button>
+      <div className="tos-bank-keys" style={{gridTemplateColumns:`repeat(${bankLimit},minmax(0,1fr))`}}>{groups.slice(first,first+bankLimit).map((group,offset)=><button key={group.id} className={active===group.id?"active":""} aria-label={`Control bank ${first+offset+1}: ${group.label}`} aria-pressed={active===group.id} title={group.label} onClick={()=>select(group.id)}><i>{String(first+offset+1).padStart(2,"0")}</i><span>{group.label}</span></button>)}</div>
+      <button aria-label="Next control bank" disabled={index>=groups.length-1} onClick={()=>select(groups[index+1].id)}>▶</button>{close&&<button onClick={close}>CLOSE ×</button>}
     </nav>
     {groups.map(group=><ControlBank key={group.id} group={group} active={active===group.id} attach={attach}/>)}
   </div>;
@@ -51,7 +54,7 @@ function ControlBank({group,active,attach}:{group:Group;active:boolean;attach:(i
         }else units.push(element);
       };
       Array.from(bank.children).forEach(child=>visit(child as HTMLElement));
-      const costs=units.map(element=>element.matches("textarea,.lcars-calendar-grid")?capacity:element.matches("label,input,select")?Math.min(3,capacity):1);
+      const costs=units.map(element=>element.matches('textarea,.lcars-calendar-grid,input[aria-label="Search query"]')?capacity:element.matches("label,input,select")?Math.min(3,capacity):1);
       const assignments=consoleControlPages(costs,capacity),count=(assignments.at(-1)??0)+1,current=Math.min(page,count-1);
       units.forEach((element,index)=>{element.dataset.tosUnit="";element.dataset.tosPageVisible=String(assignments[index]===current);element.style.setProperty("--tos-unit-span",String(costs[index]));});
       setPages(count);if(page!==current)setPage(current);
@@ -68,7 +71,7 @@ export function useTosConsole(){return useContext(Context).enabled;}
 export function ConsoleThemeProvider({tos,children,onFeedback}:{tos:boolean;children:ReactNode;onFeedback?:(cancel?:boolean)=>void}){
   const [dialogs,setDialogs]=useState<ConsoleDialogRequest[]>([]);
   useEffect(()=>{if(!tos){setDialogs([]);return;}return subscribeConsoleDialogs(request=>setDialogs(current=>[...current,request]));},[tos]);
-  return <Context.Provider value={{enabled:tos,targets:{},register:null,rename:null,group:defaultGroup,inBank:false}}>{children}{tos&&dialogs[0]&&<ConsolePromptWindow key={dialogs[0].id} request={dialogs[0]} feedback={onFeedback} close={value=>{dialogs[0].finish(value);setDialogs(current=>current.slice(1));}}/>}</Context.Provider>;
+  return <Context.Provider value={{enabled:tos,targets:{},register:null,rename:null,group:defaultGroup,inBank:false}}>{computerContent(children,tos)}{tos&&dialogs[0]&&<ConsolePromptWindow key={dialogs[0].id} request={dialogs[0]} feedback={onFeedback} close={value=>{dialogs[0].finish(value);setDialogs(current=>current.slice(1));}}/>}</Context.Provider>;
 }
 function ConsolePromptWindow({request,feedback,close}:{request:ConsoleDialogRequest;feedback?:((cancel?:boolean)=>void);close:(value:string|null)=>void}){
   const [value,setValue]=useState(request.initial),ref=useRef<HTMLElement|null>(null);
@@ -79,12 +82,12 @@ function ConsolePromptWindow({request,feedback,close}:{request:ConsoleDialogRequ
   return <div className={`lcars theme-tos tos-dialog-host ${modes}`} style={{fontSize:source?.style.fontSize||"100%"}}><div className="backdrop"><section ref={ref} className="tos-prompt-dialog" role={request.kind==="prompt"?"dialog":"alertdialog"} aria-modal="true" aria-labelledby="tos-prompt-title" aria-describedby="tos-prompt-message" onKeyDown={event=>{
     if(event.key==="Escape"){event.preventDefault();event.stopPropagation();answer(null);}
     if(event.key==="Tab"){const controls=Array.from(ref.current?.querySelectorAll<HTMLElement>("button:not(:disabled),input:not(:disabled)")||[]),first=controls[0],last=controls.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}
-  }}><header><small>LIBRARY COMPUTER · OPERATOR INPUT</small><h2 id="tos-prompt-title">{request.kind==="prompt"?"INPUT REQUIRED":request.kind==="confirm"?"CONFIRM ACTION":"COMPUTER NOTICE"}</h2></header><p id="tos-prompt-message">{request.message}</p><div className="tos-command-deck"><section className="tos-control-group"><h4>OPERATOR CONTROL</h4><div className="tos-command-bank">{request.kind==="prompt"&&<input aria-label={request.message} value={value} onChange={event=>setValue(event.target.value)} onKeyDown={event=>{if(event.key==="Enter"){event.preventDefault();answer(value);}}}/>}<button onClick={()=>answer(request.kind==="prompt"?value:"confirmed")}>{request.kind==="confirm"?"CONFIRM":request.kind==="alert"?"ACKNOWLEDGE":"ACCEPT"}</button>{request.kind!=="alert"&&<button onClick={()=>answer(null)}>CANCEL</button>}</div></section></div></section></div></div>;
+  }}><header><small>LIBRARY COMPUTER · OPERATOR INPUT</small><h2 id="tos-prompt-title">{request.kind==="prompt"?"INPUT REQUIRED":request.kind==="confirm"?"CONFIRM ACTION":"COMPUTER NOTICE"}</h2></header><p id="tos-prompt-message">{computerTerminology(request.message)}</p><div className="tos-command-deck"><section className="tos-control-group"><h4>OPERATOR CONTROL</h4><div className="tos-command-bank">{request.kind==="prompt"&&<input aria-label={computerTerminology(request.message)} value={value} onChange={event=>setValue(event.target.value)} onKeyDown={event=>{if(event.key==="Enter"){event.preventDefault();answer(value);}}}/>}<button onClick={()=>answer(request.kind==="prompt"?value:"confirmed")}>{request.kind==="confirm"?"CONFIRM":request.kind==="alert"?"ACKNOWLEDGE":"ACCEPT"}</button>{request.kind!=="alert"&&<button onClick={()=>answer(null)}>CANCEL</button>}</div></section></div></section></div></div>;
 }
 /** Logical groups keep each section's physical keys in a labeled, aligned bank. */
 export function ConsoleGroup({label,children}:{label:ReactNode;children:ReactNode}){
   const context=useContext(Context),id=useId();
-  return <Context.Provider value={{...context,group:{id,label:caption(label)||"CONTROLS"}}}>{children}</Context.Provider>;
+  return <Context.Provider value={{...context,group:{id,label:context.enabled?computerTerminology(caption(label)||"CONTROLS"):caption(label)||"CONTROLS"}}}>{computerContent(children,context.enabled)}</Context.Provider>;
 }
 /** Real React controls move to the housing without copied handlers or replayed clicks. */
 export function ConsoleControls({children}:{children:ReactNode}){
@@ -99,18 +102,18 @@ export function ConsoleControls({children}:{children:ReactNode}){
     if(find(children)){context.activate?.(context.group.id);const frame=requestAnimationFrame(()=>target.querySelector<HTMLElement>("input,textarea,select")?.focus());return()=>cancelAnimationFrame(frame);}
   },[active,target,context.group.id]);
   if(!active)return <>{children}</>;
-  return target?createPortal(<Context.Provider value={{...context,inBank:true}}>{children}</Context.Provider>,target):null;
+  return target?createPortal(<Context.Provider value={{...context,inBank:true}}>{computerContent(children,context.enabled)}</Context.Provider>,target):null;
 }
 export function ConsoleDisplay({tos,children}:{tos:boolean;children:ReactNode}){
   const {value,deck}=useDeck(tos);
   if(!tos)return <>{children}</>;
-  return <div className="tos-station"><Context.Provider value={value}><div className="tos-monitor">{children}</div>{deck}</Context.Provider></div>;
+  return <div className="tos-station"><Context.Provider value={value}><div className="tos-monitor">{computerContent(children,tos)}</div>{deck}</Context.Provider></div>;
 }
 /** Modal controls stay in their own window and inside its focus boundary. */
 export function ConsoleWindowControls({children,close}:{children:ReactNode;close?:()=>void}){
   const {enabled,group}=useContext(Context),{value,deck}=useDeck(enabled,{id:"window",label:group.id==="station"?"WINDOW CONTROLS":group.label},close);
   if(!enabled)return <>{children}</>;
-  return <Context.Provider value={value}>{children}{deck}</Context.Provider>;
+  return <Context.Provider value={value}>{computerContent(children,enabled)}{deck}</Context.Provider>;
 }
 function displayOnly(children:ReactNode):ReactNode{
   return Children.map(children,child=>{
@@ -126,11 +129,11 @@ function displayOnly(children:ReactNode):ReactNode{
 export function ConsoleButton({consoleChoice=false,children,...props}:ButtonHTMLAttributes<HTMLButtonElement>&{consoleChoice?:boolean}){
   const context=useContext(Context);
   const selection=context.enabled&&Boolean(context.register)&&props.role==="option"?{role:undefined,"aria-selected":undefined,"aria-pressed":props["aria-selected"]}:{};
-  const control=<button {...props} {...selection}>{children}</button>;
+  const control=<button {...computerProps(props,context.enabled)} {...selection}>{computerContent(children,context.enabled)}</button>;
   if(!context.enabled||context.inBank||!context.register)return control;
-  return <>{(consoleChoice||props.className==="app-launch-button")&&<div role={props.role==="option"?"listitem":undefined} className={`tos-display-choice ${props.className||""}`}>{displayOnly(children)}</div>}<ConsoleControls>{control}</ConsoleControls></>;
+  return <>{(consoleChoice||props.className==="app-launch-button")&&<div role={props.role==="option"?"listitem":undefined} className={`tos-display-choice ${props.className||""}`}>{displayOnly(computerContent(children,context.enabled))}</div>}<ConsoleControls>{control}</ConsoleControls></>;
 }
-export function ConsoleField(props:InputHTMLAttributes<HTMLInputElement>){return <ConsoleControls><input {...props}/></ConsoleControls>;}
+export function ConsoleField(props:InputHTMLAttributes<HTMLInputElement>){const {enabled}=useContext(Context);return <ConsoleControls><input {...computerProps(props,enabled)}/></ConsoleControls>;}
 export function ConsoleTextarea(props:TextareaHTMLAttributes<HTMLTextAreaElement>){
   const context=useContext(Context);
   return <>{context.enabled&&context.register&&!context.inBank&&<pre className="tos-document-information">{String(props.value??props.defaultValue??"")}</pre>}<ConsoleControls><textarea {...props}/></ConsoleControls></>;
@@ -155,3 +158,6 @@ export function ConsoleChoiceList(props:HTMLAttributes<HTMLDivElement>){const co
 
 /** Picture glass stays informational; fullscreen uses its hardware key in TOS. */
 export function ConsoleVideo(props:ComponentPropsWithRef<"video">){const context=useContext(Context);return <video {...props} {...(context.enabled&&context.register?{onDoubleClick:undefined}:{})}/>;}
+
+/** Terminology for small standalone UI fragments without adding DOM wrappers. */
+export function ConsoleCopy({children}:{children:ReactNode}){const {enabled}=useContext(Context);return <>{computerContent(children,enabled)}</>;}

@@ -3,7 +3,7 @@
 import { createTosKeyPlayer, createTosEventPlayer, isTosCancelKey, startupSoundAsset } from "./tos-audio";
 import { consolePrompt, consoleConfirm } from "./console-dialogs";
 import { TosLoadInstrument } from "./tos-instruments";
-import { ConsoleVideo, ConsoleDisplay, detachedWorkspaceUrl, ConsoleControls, ConsoleButton, ConsoleThemeProvider, ConsoleField, ConsoleTextarea, ConsoleWindowControls, ConsoleGroup, ConsoleDisclosure, ConsoleSelect, ConsoleLink } from "./tos-console";
+import { ConsoleCopy, ConsoleVideo, ConsoleDisplay, detachedWorkspaceUrl, ConsoleControls, ConsoleButton, ConsoleThemeProvider, ConsoleField, ConsoleTextarea, ConsoleWindowControls, ConsoleGroup, ConsoleDisclosure, ConsoleSelect, ConsoleLink } from "./tos-console";
 import { Component, useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import lcarsEmblem from "../desktop/icons/512x512.png";
@@ -71,9 +71,10 @@ import type { ComputerAuditEntry, ComputerCommandSource, ComputerContext, Comput
 import { PortalCenter } from "./v31-portal";
 import { DocumentWorkspace as DocumentWorkspaceV31, FileExplorer as FileExplorerV31 } from "./v31-files";
 import { DailyUtilities } from "./v31-utilities";
+import { TosInformationReadout } from "./tos-information";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="31.5.8";
+const LCARS_VERSION="31.5.9";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -899,7 +900,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-8"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-9"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1138,6 +1139,7 @@ export default function Home() {
   );
   const tosKeyPlayer = useRef<ReturnType<typeof createTosKeyPlayer> | null>(null);
   const tosEventPlayer = useRef<ReturnType<typeof createTosEventPlayer> | null>(null);
+  useEffect(()=>{document.title=theme==="tos"?"STARFLEET · LIBRARY COMPUTER":"LCARS Command Interface";},[theme]);
   const playTosKey = (cancel = false) => {
     if (theme !== "tos" || !sound || access.soundVolume <= 0) return;
     tosKeyPlayer.current ??= createTosKeyPlayer();
@@ -1967,7 +1969,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"31.5.8",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.5.9",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2571,7 +2573,7 @@ export default function Home() {
     if(activeCustomPage.kind==="module")return <section className="detail-view custom-page-view"><header className="custom-page-cap"><small>USER-ASSIGNED MODULE</small><h3>{activeCustomPage.name}</h3></header><div className="custom-module-host">{renderWidget(activeCustomPage.target as WidgetId)}</div></section>;
     if(activeCustomPage.kind==="extension"){
       const [extensionId,placementId]=activeCustomPage.target.split("::"),extension=extensions.find((item)=>item.id===extensionId),placement=extension?.placements.find((item)=>item.id===placementId);
-      return <section className="detail-view custom-page-view"><header className="custom-page-cap"><small>LCARS EXTENSION PAGE</small><h3>{activeCustomPage.name}</h3></header>{extension&&!quarantinedExtensions.includes(extension.id)&&!disabledExtensions.includes(extension.id)?<ExtensionBoundary id={extension.id} name={extension.name} onFailure={recordExtensionFailure}>{extension.apiVersion===1?<ChecklistExtension extension={extension}/>:placement?<DeclarativeExtension extension={extension} placement={placement}/>:<p>THE SELECTED EXTENSION PLACEMENT IS NO LONGER AVAILABLE</p>}</ExtensionBoundary>:<p>EXTENSION OFFLINE, DISABLED, OR QUARANTINED · REVIEW THE EXTENSION HUB</p>}</section>;
+      return <ConsoleCopy><section className="detail-view custom-page-view"><header className="custom-page-cap"><small>LCARS EXTENSION PAGE</small><h3>{activeCustomPage.name}</h3></header>{extension&&!quarantinedExtensions.includes(extension.id)&&!disabledExtensions.includes(extension.id)?<ExtensionBoundary id={extension.id} name={extension.name} onFailure={recordExtensionFailure}>{extension.apiVersion===1?<ChecklistExtension extension={extension}/>:placement?<DeclarativeExtension extension={extension} placement={placement}/>:<p>THE SELECTED EXTENSION PLACEMENT IS NO LONGER AVAILABLE</p>}</ExtensionBoundary>:<p>EXTENSION OFFLINE, DISABLED, OR QUARANTINED · REVIEW THE EXTENSION HUB</p>}</section></ConsoleCopy>;
     }
     const app=apps.find((item)=>item.id===activeCustomPage.target);
     return <CustomApplicationPage page={activeCustomPage} app={app} embedded={app?embeddedPageForApp(app):null} launch={()=>app&&launch(app)} navigate={setSection}/>;
@@ -2613,7 +2615,7 @@ export default function Home() {
       <header className="top">
         <ConsoleButton className="brand" onClick={() => setSection("overview")}>
           <span>{theme === "tos" ? "STARFLEET" : "LCARS"}</span>
-          <small>31.5.8 DEV</small>
+          <small>31.5.9 DEV</small>
         </ConsoleButton>
         <div className="title">
           <div className="title-copy">
@@ -2782,6 +2784,7 @@ export default function Home() {
               />
             )}
           </div>
+          {theme==="tos"&&<TosInformationReadout section={section} connected={bridge} platform={platform} meters={meters} applications={apps.length} windows={tasks.length} players={sortedPlayers.length} volume={volume} muted={audioMuted} operator={activeOperator?.name||userName} role={activeOperator?.role||"guest"} modules={extensions.length} isolated={extensions.filter(item=>item.moduleHealth?.health==="isolated").length} paired={paddStatus?.devices.length||0} online={paddStatus?.devices.filter(device=>device.online).length||0} pending={portalPending} notices={notices.length} dnd={doNotDisturb} updateAvailable={Boolean(lcarsUpdate?.available)} channel={prefs.updateChannel} scale={access.fontScale} sound={sound} contrast={access.highContrast} motion={access.reducedMotion} colorSafe={access.colorSafe} settingsArea={settingsArea} restore={sessionRestore}/>}
           {!!restrictionForSection?.length && (
             <CompatibilityBanner
               items={restrictionForSection}
@@ -3140,7 +3143,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-8","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-8","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-9","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-9","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -3357,7 +3360,7 @@ function FileExplorer({
       {pending && (
         <div className="transfer-strip">
           <span>
-            {pending.move ? "MOVE" : "COPY"} <b>{pending.file.name}</b>
+            {pending.move ? "MOVE" : "COPY"} <b data-console-verbatim="">{pending.file.name}</b>
           </span>
           <small>Navigate to the destination folder.</small>
           <ConsoleButton
@@ -3394,7 +3397,7 @@ function FileExplorer({
             >
               <i className={`file-kind-${fileKind(file)}`}><FileGlyph kind={fileKind(file)}/></i>
               <span>
-                <b>{file.name}</b>
+                <b data-console-verbatim="">{file.name}</b>
                 <small>
                   {file.directory ? "DIRECTORY" : size(file.size)} ·{" "}
                   {new Date(file.modified * 1000).toLocaleDateString()}
@@ -3468,7 +3471,7 @@ function TrayDrawer({open,items,shortcuts,close,execute}:{open:boolean;items:Tra
   return <ResizablePopup as="aside" popupKey="tray-command-deck" className="tray-drawer tray-command-deck" floating minWidth={340} minHeight={300} ariaModal={false} ariaLabel="Tray Command Deck"><header><div><small>LOCAL STATUSNOTIFIER & COMMAND MATRIX</small><h3>TRAY COMMAND DECK</h3></div><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></header><div className="tray-scroll-region" tabIndex={0}><ConsoleGroup label="SECTION CONTROLS"><section className="tray-shortcut-grid" aria-label="Configured tray shortcuts">{shortcuts.map((shortcut,index)=><ConsoleButton className={`tray-shortcut tray-kind-${shortcut.kind}`} key={shortcut.id} onClick={()=>execute(shortcut)} title={`${shortcut.kind}: ${shortcut.label}`}><i>{String(index+1).padStart(2,"0")}</i><span><b>{shortcut.label}</b><small>{shortcut.kind.toUpperCase()}</small></span><em>›</em></ConsoleButton>)}{!shortcuts.length&&<p>NO COMMAND BUTTONS ASSIGNED · ADD THEM IN SETTINGS</p>}</section></ConsoleGroup><ConsoleGroup label={<>DESKTOP SERVICES</>}><section className="tray-service-list" aria-label="Desktop tray services"><header><b>DESKTOP SERVICES</b><small>RIGHT-CLICK FOR APP ACTIONS · {items.length} ACTIVE</small></header>{items.length?items.map((item)=><ConsoleGroup key={item.id} label={<>{item.status||"ACTIVE"}</>}><article className="tray-service-entry" key={item.id}><ConsoleButton className="tray-service-primary" onClick={()=>action(item.id,"activate")} onContextMenu={(event)=>{event.preventDefault();action(item.id,"context",event);}} onKeyDown={(event)=>{if(event.key==="ContextMenu"||(event.shiftKey&&event.key==="F10")){event.preventDefault();action(item.id,"context");}}} title={`${item.name} · Right-click for application actions`}><i>{item.icon?<img src={item.icon} alt=""/>:<b>{item.name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TR"}</b>}</i><span><b>{item.name}</b><small>{item.status||"ACTIVE"}</small></span><em>›</em></ConsoleButton><ConsoleButton className="tray-service-context" disabled={item.hasContextMenu===false} onClick={(event)=>action(item.id,"context",event)} aria-label={`Open ${item.name} context actions`}>ACTIONS</ConsoleButton></article></ConsoleGroup>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</section></ConsoleGroup></div><footer><span>SCROLL MATRIX</span><small>{shortcuts.length} COMMANDS · {items.length} SERVICES</small></footer></ResizablePopup>;
 }
 
-function StartupTelemetry({bridge,reduced}:{bridge:boolean;reduced:boolean}) { return <aside className={'startup-telemetry '+(reduced?'instant':'')} aria-live="polite"><i /><span><small>LCARS INITIALIZATION</small><b>{bridge?'LOCAL CORE SYNCHRONIZED':'LOCAL CORE LINK PENDING'}</b></span><em>SYS 47 · DISPLAY MATRIX · AUDIO BUS</em></aside>; }
+function StartupTelemetry({bridge,reduced}:{bridge:boolean;reduced:boolean}) { return <ConsoleCopy><aside className={'startup-telemetry '+(reduced?'instant':'')} aria-live="polite"><i /><span><small>LCARS INITIALIZATION</small><b>{bridge?'LOCAL CORE SYNCHRONIZED':'LOCAL CORE LINK PENDING'}</b></span><em>SYS 47 · DISPLAY MATRIX · AUDIO BUS</em></aside></ConsoleCopy>; }
 
 const formatBytes=(value:number)=>value>=1099511627776?(value/1099511627776).toFixed(1)+" TB":value>=1073741824?(value/1073741824).toFixed(1)+" GB":value>=1048576?(value/1048576).toFixed(0)+" MB":value?Math.round(value/1024)+" KB":"NOT REPORTED";
 
@@ -3875,7 +3878,7 @@ function PowerDialog({
   >(null);
   if (confirmPower)
     return (
-      <div
+      <ConsoleCopy><div
         className="backdrop power-backdrop"
         onMouseDown={(e) => {
           if (e.target === e.currentTarget) setConfirmPower(null);
@@ -3910,10 +3913,10 @@ function PowerDialog({
             <ConsoleButton onClick={() => setConfirmPower(null)}>GO BACK</ConsoleButton>
           </div>
         </ResizablePopup>
-      </div>
+      </div></ConsoleCopy>
     );
   return (
-    <div
+    <ConsoleCopy><div
       className="backdrop power-backdrop"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) close();
@@ -3969,7 +3972,7 @@ function PowerDialog({
           </ConsoleButton>
         </div>
       </ResizablePopup>
-    </div>
+    </div></ConsoleCopy>
   );
 }
 
@@ -4000,7 +4003,7 @@ function DisplayMenu({
       ?.writeText("LCARS DISPLAY DIAGNOSTICS\n" + report)
       .catch(() => {});
   return (
-    <ResizablePopup popupKey="display-routing" className="display-menu" floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel="Display Routing">
+    <ConsoleCopy><ResizablePopup popupKey="display-routing" className="display-menu" floating minWidth={360} minHeight={300} ariaModal={false} ariaLabel="Display Routing">
       <header>
         <b>DISPLAY ROUTING</b>
         <small>KSCREEN / KDE OUTPUTS</small>
@@ -4069,7 +4072,7 @@ function DisplayMenu({
         <ConsoleButton onClick={identify}>IDENTIFY</ConsoleButton>
         <ConsoleButton onClick={configure}>CONFIGURE</ConsoleButton>
       </footer>
-    </ResizablePopup>
+    </ResizablePopup></ConsoleCopy>
   );
 }
 
@@ -4100,7 +4103,7 @@ function CompatibilityCenter({
   close: () => void;
 }) {
   return (
-    <div className="backdrop">
+    <ConsoleCopy><div className="backdrop">
       <ResizablePopup popupKey="compatibility-center" className="compat-center" minWidth={520} minHeight={420} ariaModal={true} ariaLabel="Compatibility Report">
         <header>
           <div>
@@ -4161,7 +4164,7 @@ function CompatibilityCenter({
           </span>
         </footer>
       </ResizablePopup>
-    </div>
+    </div></ConsoleCopy>
   );
 }
 
@@ -4172,7 +4175,7 @@ function WorkspaceWindowPanel({windows,peeks,arrange,reset,closePeeks,command}:{
 
 function MobileCommandBar({section,sheet,navigate,applications,commands,communications,more,computer,routines,tray,displays,power,close}:{section:string;sheet:"commands"|"more"|null;navigate:(page:string)=>void;applications:()=>void;commands:()=>void;communications:()=>void;more:()=>void;computer:()=>void;routines:()=>void;tray:()=>void;displays:()=>void;power:()=>void;close:()=>void}){
   const item=(page:string,label:string,code:string)=><ConsoleButton className={section===page?"active":""} onClick={()=>navigate(page)}><i>{code}</i><span>{label}</span></ConsoleButton>;
-  return <><ConsoleControls><nav className="mobile-command-bar" aria-label="PADD navigation">{item("overview","STATUS","01")}<ConsoleButton onClick={applications}><i>02</i><span>APPS</span></ConsoleButton><ConsoleButton className={sheet==="commands"?"active":""} onClick={commands}><i>03</i><span>COMMAND</span></ConsoleButton><ConsoleButton onClick={communications}><i>04</i><span>COMMS</span></ConsoleButton><ConsoleButton className={sheet==="more"?"active":""} onClick={more}><i>05</i><span>MORE</span></ConsoleButton></nav></ConsoleControls>{sheet&&<div className="mobile-sheet-scrim" onPointerDown={(event)=>event.target===event.currentTarget&&close()}><ConsoleGroup label={<>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</>}><section className="mobile-command-sheet" aria-label={sheet==="commands"?"PADD command sheet":"PADD page sheet"}><header><span><small>LCARS PADD</small><b>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</b></span><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></header>{sheet==="commands"?<div className="mobile-sheet-grid"><ConsoleButton onClick={computer}><i>01</i><b>COMPUTER CORE</b><small>NATURAL LANGUAGE PLANS</small></ConsoleButton><ConsoleButton onClick={routines}><i>02</i><b>PROCEDURES</b><small>OPERATIONS AUTOMATION</small></ConsoleButton><ConsoleButton onClick={tray}><i>03</i><b>TRAY DECK</b><small>APPLICATIONS & SERVICES</small></ConsoleButton><ConsoleButton onClick={displays}><i>04</i><b>DISPLAYS</b><small>MONITOR ROUTING</small></ConsoleButton><ConsoleButton onClick={power}><i>05</i><b>POWER</b><small>PROTECTED CONTROLS</small></ConsoleButton></div>:<div className="mobile-sheet-grid page-grid">{item("terminal","TERMINAL","02")}{item("files","FILES","03")}{item("system","SYSTEMS","04")}{item("media","MEDIA","05")}{item("network","NETWORK","06")}{item("updates","UPDATES","07")}{item("settings","SETTINGS","08")}{item("portals","PORTALS","09")}{item("utilities","UTILITIES","10")}{item("commissioning","COMMISSION","11")}</div>}</section></ConsoleGroup></div>}</>;
+  return <ConsoleCopy><><ConsoleControls><nav className="mobile-command-bar" aria-label="PADD navigation">{item("overview","STATUS","01")}<ConsoleButton onClick={applications}><i>02</i><span>APPS</span></ConsoleButton><ConsoleButton className={sheet==="commands"?"active":""} onClick={commands}><i>03</i><span>COMMAND</span></ConsoleButton><ConsoleButton onClick={communications}><i>04</i><span>COMMS</span></ConsoleButton><ConsoleButton className={sheet==="more"?"active":""} onClick={more}><i>05</i><span>MORE</span></ConsoleButton></nav></ConsoleControls>{sheet&&<div className="mobile-sheet-scrim" onPointerDown={(event)=>event.target===event.currentTarget&&close()}><ConsoleGroup label={<>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</>}><section className="mobile-command-sheet" aria-label={sheet==="commands"?"PADD command sheet":"PADD page sheet"}><header><span><small>LCARS PADD</small><b>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</b></span><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></header>{sheet==="commands"?<div className="mobile-sheet-grid"><ConsoleButton onClick={computer}><i>01</i><b>COMPUTER CORE</b><small>NATURAL LANGUAGE PLANS</small></ConsoleButton><ConsoleButton onClick={routines}><i>02</i><b>PROCEDURES</b><small>OPERATIONS AUTOMATION</small></ConsoleButton><ConsoleButton onClick={tray}><i>03</i><b>TRAY DECK</b><small>APPLICATIONS & SERVICES</small></ConsoleButton><ConsoleButton onClick={displays}><i>04</i><b>DISPLAYS</b><small>MONITOR ROUTING</small></ConsoleButton><ConsoleButton onClick={power}><i>05</i><b>POWER</b><small>PROTECTED CONTROLS</small></ConsoleButton></div>:<div className="mobile-sheet-grid page-grid">{item("terminal","TERMINAL","02")}{item("files","FILES","03")}{item("system","SYSTEMS","04")}{item("media","MEDIA","05")}{item("network","NETWORK","06")}{item("updates","UPDATES","07")}{item("settings","SETTINGS","08")}{item("portals","PORTALS","09")}{item("utilities","UTILITIES","10")}{item("commissioning","COMMISSION","11")}</div>}</section></ConsoleGroup></div>}</></ConsoleCopy>;
 }
 
 function DesktopExperience({
@@ -4408,7 +4411,7 @@ function CommandPalette({
   const [index, setIndex] = useState(0);
   useEffect(() => setIndex(0), [query]);
   return (
-    <div
+    <ConsoleCopy><div
       className="backdrop command-backdrop"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) close();
@@ -4460,7 +4463,7 @@ function CommandPalette({
           <span>ESC CLOSE</span>
         </footer>
       </ResizablePopup>
-    </div>
+    </div></ConsoleCopy>
   );
 }
 
@@ -4473,13 +4476,13 @@ function LockPasswordControl({credential,save,remove}:{credential:LockCredential
 function VoiceAuthorizationControl({enabled,credential,change}:{enabled:boolean;credential:LockCredential|null;change:(enabled:boolean,credential:LockCredential|null)=>void}){
   const [phrase,setPhrase]=useState(""),[confirm,setConfirm]=useState(""),[status,setStatus]=useState("");
   const save=async()=>{const normalized=phrase.trim().toLowerCase();if(normalized.length<4)return setStatus("USE AT LEAST 4 CHARACTERS");if(normalized!==confirm.trim().toLowerCase())return setStatus("AUTHORIZATION PHRASES DO NOT MATCH");const next=await createLockCredential(normalized);change(true,next);setPhrase("");setConfirm("");setStatus("VOCAL AUTHORIZATION CODE HASH SAVED");};
-  return <div className="lock-password-control voice-authorization-control"><small>{credential?enabled?"VOCAL AUTHORIZATION GATE ACTIVE":"VOCAL CODE SAVED · GATE DISABLED":"VOCAL AUTHORIZATION OPTIONAL"}</small><p>For protected voice plans, say “authorization” followed by this private phrase. LCARS stores only a salted hash. The phrase is a secondary gate and never becomes an operating-system or sudo password.</p><ConsoleField type="password" autoComplete="new-password" placeholder={credential?"NEW VOCAL CODE PHRASE":"CREATE VOCAL CODE PHRASE"} value={phrase} onChange={(event)=>setPhrase(event.target.value)}/><ConsoleField type="password" autoComplete="new-password" placeholder="CONFIRM VOCAL CODE PHRASE" value={confirm} onChange={(event)=>setConfirm(event.target.value)}/><ConsoleControls><nav><ConsoleButton onClick={()=>void save()}>{credential?"CHANGE CODE":"SET CODE + ENABLE"}</ConsoleButton>{credential&&<ConsoleButton onClick={()=>change(!enabled,credential)}>{enabled?"DISABLE GATE":"ENABLE GATE"}</ConsoleButton>}{credential&&<ConsoleButton onClick={()=>{change(false,null);setStatus("VOCAL CODE REMOVED");}}>REMOVE</ConsoleButton>}</nav></ConsoleControls>{status&&<em>{status}</em>}</div>;
+  return <ConsoleCopy><div className="lock-password-control voice-authorization-control"><small>{credential?enabled?"VOCAL AUTHORIZATION GATE ACTIVE":"VOCAL CODE SAVED · GATE DISABLED":"VOCAL AUTHORIZATION OPTIONAL"}</small><p>For protected voice plans, say “authorization” followed by this private phrase. LCARS stores only a salted hash. The phrase is a secondary gate and never becomes an operating-system or sudo password.</p><ConsoleField type="password" autoComplete="new-password" placeholder={credential?"NEW VOCAL CODE PHRASE":"CREATE VOCAL CODE PHRASE"} value={phrase} onChange={(event)=>setPhrase(event.target.value)}/><ConsoleField type="password" autoComplete="new-password" placeholder="CONFIRM VOCAL CODE PHRASE" value={confirm} onChange={(event)=>setConfirm(event.target.value)}/><ConsoleControls><nav><ConsoleButton onClick={()=>void save()}>{credential?"CHANGE CODE":"SET CODE + ENABLE"}</ConsoleButton>{credential&&<ConsoleButton onClick={()=>change(!enabled,credential)}>{enabled?"DISABLE GATE":"ENABLE GATE"}</ConsoleButton>}{credential&&<ConsoleButton onClick={()=>{change(false,null);setStatus("VOCAL CODE REMOVED");}}>REMOVE</ConsoleButton>}</nav></ConsoleControls>{status&&<em>{status}</em>}</div></ConsoleCopy>;
 }
 
 function LockScreen({userName,credential,profiles,activeProfile,defaultWorkstation,chooseProfile,setDefaultWorkstation,power,unlock}:{userName:string;credential:LockCredential|null;profiles:WorkspaceProfile[];activeProfile:string;defaultWorkstation:string;chooseProfile:(profile:WorkspaceProfile)=>void;setDefaultWorkstation:(id:string)=>void;power:()=>void;unlock:()=>void}) {
   const [password,setPassword]=useState(""),[error,setError]=useState(""),[busy,setBusy]=useState(false);
   const authorize=async()=>{if(!credential)return unlock();setBusy(true);const valid=await verifyLockCredential(password,credential).catch(()=>false);setBusy(false);if(valid)unlock();else{setError("AUTHORIZATION DENIED");setPassword("");}};
-  return <div className="lock-screen">
+  return <ConsoleCopy><div className="lock-screen">
     <header><i/><div/><span>{userName||"LCARS OPERATOR"}</span><b/></header>
     <main>
       <img src={lcarsEmblem} alt="Federation emblem"/>
@@ -4490,7 +4493,7 @@ function LockScreen({userName,credential,profiles,activeProfile,defaultWorkstati
     </main>
     <ConsoleGroup label={<>SELECT PROFILE · ★ DEFAULT</>}><section className="lock-workstations"><header><span>AVAILABLE WORKSTATIONS</span><small>SELECT PROFILE · ★ DEFAULT</small></header><div>{profiles.length?profiles.map((profile,index)=><ConsoleGroup key={profile.id} label={<>{profile.theme.toUpperCase()} · {profile.widgets.length} MODULES</>}><article className={activeProfile===profile.id?"active":""} key={profile.id}><ConsoleButton onClick={()=>chooseProfile(profile)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{profile.name}</b><small>{profile.theme.toUpperCase()} · {profile.widgets.length} MODULES</small></span></ConsoleButton><ConsoleButton className={defaultWorkstation===profile.id?"default":""} aria-label={"Set "+profile.name+" as default"} onClick={()=>setDefaultWorkstation(profile.id)}>{defaultWorkstation===profile.id?"★":"☆"}</ConsoleButton></article></ConsoleGroup>):<p>NO SAVED WORKSTATIONS · CREATE ONE IN SETTINGS</p>}</div></section></ConsoleGroup>
     <footer><i/><ConsoleButton onClick={power}>POWER / EXIT OPTIONS</ConsoleButton><div/><span>{credential?"AUTHORIZATION REQUIRED":"DIRECT LOCAL ACCESS"}</span><b/></footer>
-  </div>;
+  </div></ConsoleCopy>;
 }
 
 function LcarsSessionControl({bridge,platform,notify}:{bridge:boolean;platform:string;notify:(text:string,kind?:"info"|"error")=>void}){
@@ -4501,7 +4504,7 @@ function LcarsSessionControl({bridge,platform,notify}:{bridge:boolean;platform:s
   const configure=(config:LcarsSessionStatus["config"])=>operate("configure",config);
   const updateConfig=(change:Partial<LcarsSessionStatus["config"]>)=>status&&setStatus({...status,config:{...status.config,...change}});
   const addRule=()=>{if(!status||!ruleMatch.trim())return;const rules=[...status.config.windowRules,{match:ruleMatch.trim(),deck:ruleDeck}].slice(0,20);setRuleMatch("");updateConfig({windowRules:rules});void configure({...status.config,windowRules:rules});};
-  if(!platform.includes("LINUX"))return <section className="lcars-session-control unavailable"><header><span><small>VERSION 30.10 COMPUTER ENVIRONMENT</small><b>LINUX LCARS SESSION</b></span><em>LINUX ONLY</em></header><p>The selectable LCARS login session is a Linux desktop feature. Normal Windows and Android operation is unchanged.</p></section>;
+  if(!platform.includes("LINUX"))return <ConsoleCopy><section className="lcars-session-control unavailable"><header><span><small>VERSION 30.10 COMPUTER ENVIRONMENT</small><b>LINUX LCARS SESSION</b></span><em>LINUX ONLY</em></header><p>The selectable LCARS login session is a Linux desktop feature. Normal Windows and Android operation is unchanged.</p></section></ConsoleCopy>;
   return <ConsoleGroup label={<>LINUX LCARS LOGIN SESSION</>}><section className={`lcars-session-control ${status?.active?"active":""}`}>
     <header><span><small>VERSION 30.10 AUTHORITATIVE SESSION · EXPLICIT OPT-IN</small><b>LINUX LCARS LOGIN SESSION</b></span><em>{status?.authoritativeActive?"LCARS IN COMMAND":status?.active?"ACTIVE SESSION":status?.installed?"INSTALLED / OPTIONAL":"APPLICATION MODE"}</em></header>
     <p>Use the existing Wayland/X11 session foundation as a real LCARS-led workspace. Authoritative mode removes the supported host shell from view while retaining its compositor, applications, and a deliberately tested recovery route.</p>
@@ -4557,7 +4560,7 @@ function ShellSettings({
   const set = <K extends keyof ShellPrefs>(key: K, value: ShellPrefs[K]) =>
     setPrefs({ ...prefs, [key]: value });
   return (
-    <div className="shell-settings">
+    <ConsoleCopy><div className="shell-settings">
       <header>
         <b>DESKTOP SHELL CONTROL</b>
         <small>TASK RAIL · TERMINAL · RECOVERY</small>
@@ -4765,7 +4768,7 @@ function ShellSettings({
       <ConsoleButton className="settings-save" onClick={save}>
         {saved ? "SETTINGS SAVED ✓" : "SAVE INTERFACE SETTINGS"}
       </ConsoleButton>
-    </div>
+    </div></ConsoleCopy>
   );
 }
 
@@ -4824,7 +4827,7 @@ function ProcedureCenter({routines,apps,profiles,devices,players,running,history
   const addStep=()=>{if(!procedure||procedure.steps.length>=48)return;update({steps:[...procedure.steps,{id:createV25Id("step"),kind:"page",target:"overview",delayMs:0,retries:0,onFailure:"stop"}]});};
   const triggerValue=procedure&&!["manual","startup"].includes(procedure.trigger.type),triggerType=procedure?.trigger.type==="time"?"time":procedure?.trigger.type==="battery-below"||procedure?.trigger.type==="interval"?"number":"text";
   const triggerPlaceholder=procedure?.trigger.type==="app"?"APPLICATION NAME":procedure?.trigger.type==="device"?"AUDIO DEVICE":procedure?.trigger.type==="battery-below"?"BATTERY PERCENT":procedure?.trigger.type==="network"?"NETWORK NAME OR BLANK":procedure?.trigger.type==="notice"?"NOTICE TEXT OR SOURCE":procedure?.trigger.type==="media"?"PLAYER, ARTIST, OR TITLE":procedure?.trigger.type==="station"?"PADD NAME OR BLANK":procedure?.trigger.type==="interval"?"MINUTES":"TRIGGER VALUE";
-  return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
+  return <ConsoleCopy><div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
     <ConsoleGroup label={<>PROCEDURE BUILDER</>}><section className="routine-center procedure-center" role="dialog" aria-modal="true" aria-label="Computer Core Procedure Builder"><ConsoleWindowControls>
       <header><div><small>VERSION 30 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><ConsoleControls><nav><ConsoleButton onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</ConsoleButton><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></nav></ConsoleControls></header>
       <div className="routine-center-layout">
@@ -4857,7 +4860,7 @@ function ProcedureCenter({routines,apps,profiles,devices,players,running,history
         </main>:<div className="adaptive-empty"><b>CREATE A COMPUTER CORE PROCEDURE</b><small>Start with a page change, then add conditions, applications, audio controls, workstation restore, operator prompts, or guarded system actions.</small></div>}
       </div>
     </ConsoleWindowControls></section></ConsoleGroup>
-  </div>;
+  </div></ConsoleCopy>;
 }
 
 function ProcedurePreview({routine,describe,running,cancel,dryRun,run}:{routine:Routine;describe:(step:RoutineStep)=>string;running:boolean;cancel:()=>void;dryRun:()=>void;run:()=>void}){
@@ -4877,12 +4880,12 @@ function RoutineCenter({routines,apps,profiles,devices,players,running,history,s
   const updateStep=(id:string,patch:Partial<RoutineStep>)=>routine&&update({steps:routine.steps.map((step)=>step.id===id?{...step,...patch}:step)});
   const moveStep=(index:number,direction:number)=>{if(!routine)return;const target=index+direction;if(target<0||target>=routine.steps.length)return;const steps=[...routine.steps];[steps[index],steps[target]]=[steps[target],steps[index]];update({steps});};
   const triggerNeedsValue=routine?.trigger.type!=="manual"&&routine?.trigger.type!=="startup";
-  return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><ConsoleGroup label={<>ROUTINE COMMAND CENTER</>}><section className="routine-center" role="dialog" aria-modal="true"><ConsoleWindowControls><header><div><small>VERSION 29 OPERATIONS AUTOMATION</small><h2>ROUTINE COMMAND CENTER</h2><p>Compose conditional local workflows with delays, retries, failure paths, and operator prompts. Protected actions always retain an explicit confirmation gate.</p></div><ConsoleControls><nav><ConsoleButton onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</ConsoleButton><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></nav></ConsoleControls></header><div className="routine-center-layout"><aside><ConsoleButton onClick={add}>+ NEW ROUTINE</ConsoleButton>{routines.map((item,index)=><ConsoleButton className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></ConsoleButton>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</aside>{showHistory?<main className="routine-run-history"><header><small>LOCAL EXECUTION JOURNAL</small><h3>RUN HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO ROUTINE EXECUTIONS RECORDED</p>}</main>:routine?<main><div className="routine-fields"><ConsoleControls><label>ROUTINE NAME<input maxLength={40} value={routine.name} onChange={(event)=>update({name:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>FOLDER<input maxLength={40} value={routine.folder||"GENERAL"} onChange={(event)=>update({folder:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>DESCRIPTION<input maxLength={160} value={routine.description} onChange={(event)=>update({description:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>COLOR<ConsoleSelect value={routine.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></ConsoleSelect></label></ConsoleControls><ConsoleControls><label>TRIGGER<ConsoleSelect value={routine.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option></ConsoleSelect></label></ConsoleControls>{triggerNeedsValue&&<ConsoleControls><label>TRIGGER VALUE<input type={routine.trigger.type==="time"?"time":"text"} value={routine.trigger.value||""} placeholder={routine.trigger.type==="app"?"APPLICATION NAME":"DEVICE NAME"} onChange={(event)=>update({trigger:{...routine.trigger,value:event.target.value}})}/></label></ConsoleControls>}<Toggle label="Routine enabled" checked={routine.enabled} change={(enabled)=>update({enabled})}/></div><ConsoleGroup label={<>ROUTINE STEPS</>}><section className="routine-steps"><header><div><small>EXECUTION ORDER · CONDITIONAL BRANCHES</small><h3>ROUTINE STEPS</h3></div><b>{routine.steps.length}/24</b></header>{routine.steps.map((step,index)=>{const choices=stepChoices(step.kind),selectable=choices.length>0;return <ConsoleGroup key={step.id} label="SECTION CONTROLS"><article className="routine-step-v26" key={step.id}><i>{String(index+1).padStart(2,"0")}</i><ConsoleSelect value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=stepChoices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined,prompt:kind==="prompt"?"Continue this routine?":undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="prompt">OPERATOR PROMPT</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></ConsoleSelect>{step.kind==="prompt"?<ConsoleField aria-label="Operator prompt" value={step.prompt||""} placeholder="ASK THE OPERATOR…" onChange={(event)=>updateStep(step.id,{prompt:event.target.value,target:event.target.value})}/>:selectable?<ConsoleSelect value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!choices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{choices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</ConsoleSelect>:<ConsoleControls><label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label></ConsoleControls>}<ConsoleControls><nav><ConsoleButton title="Test this step" disabled={Boolean(running)} onClick={()=>testStep(routine,step)}>TEST</ConsoleButton><ConsoleButton disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</ConsoleButton><ConsoleButton disabled={index===routine.steps.length-1} onClick={()=>moveStep(index,1)}>↓</ConsoleButton><ConsoleButton disabled={routine.steps.length<=1} onClick={()=>update({steps:routine.steps.filter((item)=>item.id!==step.id)})}>×</ConsoleButton></nav></ConsoleControls><ConsoleDisclosure><summary>BRANCH / TIMING / FAILURE</summary><div><ConsoleControls><label>RUN WHEN<ConsoleSelect value={step.condition?.source||""} onChange={(event)=>updateStep(step.id,{condition:event.target.value?{source:event.target.value as NonNullable<RoutineStep["condition"]>["source"],operator:"available"}:undefined})}><option value="">ALWAYS</option><option value="bridge">LOCAL CORE</option><option value="media">MEDIA</option><option value="application">APPLICATION</option><option value="device">AUDIO DEVICE</option><option value="dnd">DO NOT DISTURB</option></ConsoleSelect></label></ConsoleControls>{step.condition&&<><ConsoleControls><label>CONDITION<ConsoleSelect value={step.condition.operator} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,operator:event.target.value as NonNullable<RoutineStep["condition"]>["operator"]}})}><option value="available">AVAILABLE</option><option value="unavailable">UNAVAILABLE</option><option value="equals">EQUALS</option><option value="not-equals">DOES NOT EQUAL</option></ConsoleSelect></label></ConsoleControls><ConsoleControls><label>MATCH VALUE<input value={step.condition.value||""} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,value:event.target.value}})}/></label></ConsoleControls></>}<ConsoleControls><label>DELAY MS<input type="number" min="0" max="30000" value={step.delayMs||0} onChange={(event)=>updateStep(step.id,{delayMs:+event.target.value})}/></label></ConsoleControls><ConsoleControls><label>RETRIES<input type="number" min="0" max="5" value={step.retries||0} onChange={(event)=>updateStep(step.id,{retries:+event.target.value})}/></label></ConsoleControls><ConsoleControls><label>IF FAILED<ConsoleSelect value={step.onFailure||"stop"} onChange={(event)=>updateStep(step.id,{onFailure:event.target.value as "stop"|"continue"})}><option value="stop">STOP ROUTINE</option><option value="continue">CONTINUE TO NEXT STEP</option></ConsoleSelect></label></ConsoleControls></div></ConsoleDisclosure></article></ConsoleGroup>;})}<ConsoleButton disabled={routine.steps.length>=24} onClick={addStep}>+ ADD STEP</ConsoleButton></section></ConsoleGroup><footer><ConsoleButton className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==routine.id));setSelected("");}}>DELETE ROUTINE</ConsoleButton><ConsoleButton onClick={duplicate}>DUPLICATE</ConsoleButton><ConsoleButton disabled={!routine.steps.length||running===routine.id} onClick={()=>request(routine)}>{running===routine.id?"ROUTINE RUNNING…":"PREVIEW ROUTINE"}</ConsoleButton></footer></main>:<div className="adaptive-empty"><b>CREATE AN OPERATIONS ROUTINE</b><small>Start with a page change, then add conditions, prompts, applications, audio controls, workstation restore, or guarded system actions.</small></div>}</div></ConsoleWindowControls></section></ConsoleGroup></div>;
+  return <ConsoleCopy><div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><ConsoleGroup label={<>ROUTINE COMMAND CENTER</>}><section className="routine-center" role="dialog" aria-modal="true"><ConsoleWindowControls><header><div><small>VERSION 29 OPERATIONS AUTOMATION</small><h2>ROUTINE COMMAND CENTER</h2><p>Compose conditional local workflows with delays, retries, failure paths, and operator prompts. Protected actions always retain an explicit confirmation gate.</p></div><ConsoleControls><nav><ConsoleButton onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</ConsoleButton><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></nav></ConsoleControls></header><div className="routine-center-layout"><aside><ConsoleButton onClick={add}>+ NEW ROUTINE</ConsoleButton>{routines.map((item,index)=><ConsoleButton className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></ConsoleButton>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</aside>{showHistory?<main className="routine-run-history"><header><small>LOCAL EXECUTION JOURNAL</small><h3>RUN HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO ROUTINE EXECUTIONS RECORDED</p>}</main>:routine?<main><div className="routine-fields"><ConsoleControls><label>ROUTINE NAME<input maxLength={40} value={routine.name} onChange={(event)=>update({name:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>FOLDER<input maxLength={40} value={routine.folder||"GENERAL"} onChange={(event)=>update({folder:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>DESCRIPTION<input maxLength={160} value={routine.description} onChange={(event)=>update({description:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>COLOR<ConsoleSelect value={routine.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></ConsoleSelect></label></ConsoleControls><ConsoleControls><label>TRIGGER<ConsoleSelect value={routine.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option></ConsoleSelect></label></ConsoleControls>{triggerNeedsValue&&<ConsoleControls><label>TRIGGER VALUE<input type={routine.trigger.type==="time"?"time":"text"} value={routine.trigger.value||""} placeholder={routine.trigger.type==="app"?"APPLICATION NAME":"DEVICE NAME"} onChange={(event)=>update({trigger:{...routine.trigger,value:event.target.value}})}/></label></ConsoleControls>}<Toggle label="Routine enabled" checked={routine.enabled} change={(enabled)=>update({enabled})}/></div><ConsoleGroup label={<>ROUTINE STEPS</>}><section className="routine-steps"><header><div><small>EXECUTION ORDER · CONDITIONAL BRANCHES</small><h3>ROUTINE STEPS</h3></div><b>{routine.steps.length}/24</b></header>{routine.steps.map((step,index)=>{const choices=stepChoices(step.kind),selectable=choices.length>0;return <ConsoleGroup key={step.id} label="SECTION CONTROLS"><article className="routine-step-v26" key={step.id}><i>{String(index+1).padStart(2,"0")}</i><ConsoleSelect value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=stepChoices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined,prompt:kind==="prompt"?"Continue this routine?":undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="prompt">OPERATOR PROMPT</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></ConsoleSelect>{step.kind==="prompt"?<ConsoleField aria-label="Operator prompt" value={step.prompt||""} placeholder="ASK THE OPERATOR…" onChange={(event)=>updateStep(step.id,{prompt:event.target.value,target:event.target.value})}/>:selectable?<ConsoleSelect value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!choices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{choices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</ConsoleSelect>:<ConsoleControls><label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label></ConsoleControls>}<ConsoleControls><nav><ConsoleButton title="Test this step" disabled={Boolean(running)} onClick={()=>testStep(routine,step)}>TEST</ConsoleButton><ConsoleButton disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</ConsoleButton><ConsoleButton disabled={index===routine.steps.length-1} onClick={()=>moveStep(index,1)}>↓</ConsoleButton><ConsoleButton disabled={routine.steps.length<=1} onClick={()=>update({steps:routine.steps.filter((item)=>item.id!==step.id)})}>×</ConsoleButton></nav></ConsoleControls><ConsoleDisclosure><summary>BRANCH / TIMING / FAILURE</summary><div><ConsoleControls><label>RUN WHEN<ConsoleSelect value={step.condition?.source||""} onChange={(event)=>updateStep(step.id,{condition:event.target.value?{source:event.target.value as NonNullable<RoutineStep["condition"]>["source"],operator:"available"}:undefined})}><option value="">ALWAYS</option><option value="bridge">LOCAL CORE</option><option value="media">MEDIA</option><option value="application">APPLICATION</option><option value="device">AUDIO DEVICE</option><option value="dnd">DO NOT DISTURB</option></ConsoleSelect></label></ConsoleControls>{step.condition&&<><ConsoleControls><label>CONDITION<ConsoleSelect value={step.condition.operator} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,operator:event.target.value as NonNullable<RoutineStep["condition"]>["operator"]}})}><option value="available">AVAILABLE</option><option value="unavailable">UNAVAILABLE</option><option value="equals">EQUALS</option><option value="not-equals">DOES NOT EQUAL</option></ConsoleSelect></label></ConsoleControls><ConsoleControls><label>MATCH VALUE<input value={step.condition.value||""} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,value:event.target.value}})}/></label></ConsoleControls></>}<ConsoleControls><label>DELAY MS<input type="number" min="0" max="30000" value={step.delayMs||0} onChange={(event)=>updateStep(step.id,{delayMs:+event.target.value})}/></label></ConsoleControls><ConsoleControls><label>RETRIES<input type="number" min="0" max="5" value={step.retries||0} onChange={(event)=>updateStep(step.id,{retries:+event.target.value})}/></label></ConsoleControls><ConsoleControls><label>IF FAILED<ConsoleSelect value={step.onFailure||"stop"} onChange={(event)=>updateStep(step.id,{onFailure:event.target.value as "stop"|"continue"})}><option value="stop">STOP ROUTINE</option><option value="continue">CONTINUE TO NEXT STEP</option></ConsoleSelect></label></ConsoleControls></div></ConsoleDisclosure></article></ConsoleGroup>;})}<ConsoleButton disabled={routine.steps.length>=24} onClick={addStep}>+ ADD STEP</ConsoleButton></section></ConsoleGroup><footer><ConsoleButton className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==routine.id));setSelected("");}}>DELETE ROUTINE</ConsoleButton><ConsoleButton onClick={duplicate}>DUPLICATE</ConsoleButton><ConsoleButton disabled={!routine.steps.length||running===routine.id} onClick={()=>request(routine)}>{running===routine.id?"ROUTINE RUNNING…":"PREVIEW ROUTINE"}</ConsoleButton></footer></main>:<div className="adaptive-empty"><b>CREATE AN OPERATIONS ROUTINE</b><small>Start with a page change, then add conditions, prompts, applications, audio controls, workstation restore, or guarded system actions.</small></div>}</div></ConsoleWindowControls></section></ConsoleGroup></div></ConsoleCopy>;
 }
 
 function RoutinePreview({routine,describe,running,cancel,run}:{routine:Routine;describe:(step:RoutineStep)=>string;running:boolean;cancel:()=>void;run:()=>void}){
   const protectedSteps=routineNeedsConfirmation(routine);
-  return <div className="backdrop routine-preview-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&!running&&cancel()}><ConsoleGroup label={<>{routine.name}</>}><section className="routine-preview" role="alertdialog" aria-modal="true"><ConsoleWindowControls><header><div><small>{protectedSteps?"PROTECTED OPERATOR CONFIRMATION":"ROUTINE EXECUTION PREVIEW"}</small><h2>{routine.name}</h2><p>{routine.description||"Operator-defined LCARS routine"}</p></div><i className={protectedSteps?"protected":"ready"}>{protectedSteps?"CONFIRM":"READY"}</i></header><ol>{routine.steps.map((step,index)=><li key={step.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{describe(step)}</b><small>{step.kind.toUpperCase()}{step.kind==="system"||step.kind==="command"?" · PROTECTED":""}</small></span></li>)}</ol><footer><ConsoleButton disabled={running} onClick={cancel}>CANCEL</ConsoleButton><ConsoleButton className={protectedSteps?"protected":""} disabled={running} onClick={run}>{running?"EXECUTING…":protectedSteps?"CONFIRM & RUN":"RUN ROUTINE"}</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div>;
+  return <ConsoleCopy><div className="backdrop routine-preview-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&!running&&cancel()}><ConsoleGroup label={<>{routine.name}</>}><section className="routine-preview" role="alertdialog" aria-modal="true"><ConsoleWindowControls><header><div><small>{protectedSteps?"PROTECTED OPERATOR CONFIRMATION":"ROUTINE EXECUTION PREVIEW"}</small><h2>{routine.name}</h2><p>{routine.description||"Operator-defined LCARS routine"}</p></div><i className={protectedSteps?"protected":"ready"}>{protectedSteps?"CONFIRM":"READY"}</i></header><ol>{routine.steps.map((step,index)=><li key={step.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{describe(step)}</b><small>{step.kind.toUpperCase()}{step.kind==="system"||step.kind==="command"?" · PROTECTED":""}</small></span></li>)}</ol><footer><ConsoleButton disabled={running} onClick={cancel}>CANCEL</ConsoleButton><ConsoleButton className={protectedSteps?"protected":""} disabled={running} onClick={run}>{running?"EXECUTING…":protectedSteps?"CONFIRM & RUN":"RUN ROUTINE"}</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div></ConsoleCopy>;
 }
 
 function SpeedDialMediaPeek({players,streams,volume,muted,control,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute}:{players:Player[];streams:Stream[];volume:number;muted:boolean;control:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void}){
@@ -4897,7 +4900,7 @@ function SpeedDialMediaPeek({players,streams,volume,muted,control,setMasterVolum
         <span><small>{selected.name.toUpperCase()} · {selected.status.toUpperCase()}</small><b>{selected.title||"NO MEDIA TITLE"}</b><em>{selected.artist||"UNKNOWN ARTIST"}{selected.album?` · ${selected.album}`:""}</em></span>
         <ConsoleControls><nav className="peek-media-transport" aria-label={`${selected.name} playback controls`}><ConsoleButton aria-label="Previous" onClick={()=>control(selected.id,"previous")}>PREV</ConsoleButton><ConsoleButton className="primary" aria-label="Play or pause" onClick={()=>control(selected.id,"play-pause")}>{selected.status==="Playing"?"PAUSE":"PLAY"}</ConsoleButton><ConsoleButton aria-label="Next" onClick={()=>control(selected.id,"next")}>NEXT</ConsoleButton></nav></ConsoleControls>
       </article></ConsoleGroup>
-      {others.length>0&&<div className="peek-media-sources">{others.map((player)=>{const playing=player.status==="Playing";return <ConsoleGroup key={player.id} label={<>{player.artist||player.status}</>}><article key={player.id}><i>{player.icon?<img src={player.icon} alt=""/>:initials(player.name)}</i><span><b>{player.title||player.name}</b><small>{player.artist||player.status}</small></span><ConsoleButton className={playing?"is-pause":"is-play"} aria-label={`Play or pause ${player.name}`} onClick={()=>control(player.id,"play-pause")}><span aria-hidden="true">{playing?"Ⅱ":""}</span></ConsoleButton></article></ConsoleGroup>;})}</div>}
+      {others.length>0&&<div className="peek-media-sources">{others.map((player)=>{const playing=player.status==="Playing";return <ConsoleGroup key={player.id} label={<>{player.artist||player.status}</>}><article key={player.id}><i>{player.icon?<img src={player.icon} alt=""/>:initials(player.name)}</i><span><b data-console-verbatim="">{player.title||player.name}</b><small data-console-verbatim="">{player.artist||player.status}</small></span><ConsoleButton className={playing?"is-pause":"is-play"} aria-label={`Play or pause ${player.name}`} onClick={()=>control(player.id,"play-pause")}><span aria-hidden="true">{playing?"Ⅱ":""}</span></ConsoleButton></article></ConsoleGroup>;})}</div>}
     </>:<div className="peek-media-empty"><b>NO ACTIVE MEDIA SOURCES</b><small>MASTER AND APPLICATION AUDIO CONTROLS REMAIN AVAILABLE</small></div>}
     <ConsoleGroup label={<>MASTER AUDIO</>}><section className={`peek-master-audio ${muted?"muted":""}`}><header><span><small>SYSTEM DEFAULT BUS</small><b>MASTER AUDIO</b></span><strong>{muted?"MUTED":`${volume}%`}</strong></header><div><ConsoleField aria-label="Master audio volume" type="range" min="0" max="100" value={volume} onChange={(event)=>setMasterVolume(+event.target.value)} onPointerUp={commitMasterVolume} onKeyUp={commitMasterVolume} onBlur={commitMasterVolume}/><ConsoleButton className={muted?"active":""} onClick={toggleMasterMute}>{muted?"RESTORE":"MUTE"}</ConsoleButton></div></section></ConsoleGroup>
     <ConsoleGroup label={<>APPLICATION AUDIO</>}><section className="peek-app-audio"><header><span><small>LIVE AUDIO SESSIONS</small><b>APPLICATION AUDIO</b></span><strong>{String(groups.length).padStart(2,"0")}</strong></header>{groups.length?groups.map((group)=>{const main=group.items[0],isMuted=group.items.every((stream)=>Boolean(stream.muted));return <ConsoleControls><label className={isMuted?"muted":""} key={group.name}><i>{main.icon?<img src={main.icon} alt=""/>:initials(group.name)}</i><span><b>{group.name}</b><small>{group.items.length===1?"APPLICATION BUS":`${group.items.length} LINKED STREAMS`}</small></span><strong>{main.volume}%</strong><input aria-label={`${group.name} volume`} type="range" min="0" max="100" value={main.volume} onChange={(event)=>group.items.forEach((stream)=>setStreamVolume(stream.id,+event.target.value))}/><ConsoleButton className={isMuted?"active":""} aria-label={`${isMuted?"Unmute":"Mute"} ${group.name}`} onClick={()=>group.items.forEach((stream)=>setStreamMute(stream.id,!isMuted))}>{isMuted?"U":"M"}</ConsoleButton></label></ConsoleControls>}):<p>NO APPLICATION AUDIO STREAMS</p>}</section></ConsoleGroup>
@@ -4907,8 +4910,8 @@ function SpeedDialMediaPeek({players,streams,volume,muted,control,setMasterVolum
 function SpeedDialPagePeek({popupKey,page,pinned,detached=false,customPages,apps,players,streams,network,meters,update,notices,bridge,volume,muted,doNotDisturb,mediaControl,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute,launch,togglePinned,detach,close,openFull}:{popupKey:string;page:string;pinned:boolean;detached?:boolean;customPages:CustomPage[];apps:App[];players:Player[];streams:Stream[];network:NetworkInfo;meters:(string|number)[][];update:UpdateInfo|null;notices:Notice[];bridge:boolean;volume:number;muted:boolean;doNotDisturb:boolean;mediaControl:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void;launch:(app:App)=>void;togglePinned:()=>void;detach?:()=>void;close:()=>void;openFull:(page:string)=>void}){
   const custom=page.startsWith("custom:")?customPages.find((item)=>item.id===page.slice(7)):undefined;
   const title=custom?.name||nav.find((item)=>item[0]===page)?.[2]||page.replace(/^custom:/,"").toUpperCase();
-  const content=page==="overview"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="system"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="media"?<SpeedDialMediaPeek players={players} streams={streams} volume={volume} muted={muted} control={mediaControl} setMasterVolume={setMasterVolume} commitMasterVolume={commitMasterVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={setStreamVolume} setStreamMute={setStreamMute}/>:page==="network"?<div className="peek-network">{network.interfaces.slice(0,4).map((item)=><article key={item.id}><i className={item.state==="connected"?"ready":""}>●</i><span><b>{item.name}</b><small>{item.address||item.state.toUpperCase()}</small></span><em>{item.speed||"LOCAL"}</em></article>)}{!network.interfaces.length&&<p>{bridge?"NO ACTIVE NETWORK INTERFACES":"LOCAL CORE LINK PENDING"}</p>}</div>:page==="updates"?<div className="peek-update"><strong>{update?.available?`V${update.version} AVAILABLE`:"RELEASE CHANNEL READY"}</strong><p>{update?.available?"A verified release can be downloaded from the full Updates page.":"Background checks remain silent when offline."}</p><small>{update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"STABLE / DEVELOPMENT CHANNEL AWARE"}</small></div>:page==="terminal"?<div className="peek-terminal"><pre>LCARS LOCAL COMMAND LINK{`\n`}{bridge?"PTY CORE READY":"LOCAL CORE STANDBY"}{`\n\n`}terminal@lcars:~$ <i>█</i></pre><small>OPEN THE FULL TERMINAL TO TYPE COMMANDS</small></div>:page==="files"?<div className="peek-files"><i><FileGlyph kind="folder"/></i><span><b>LOCAL FILE SYSTEM</b><small>HOME · DOCUMENTS · DOWNLOADS</small><p>Use the full File Browser for previews, transfers, and document editing.</p></span></div>:page==="settings"?<div className="peek-settings"><article><b>LOCAL CORE</b><span>{bridge?"CONNECTED":"STANDBY"}</span></article><article><b>DO NOT DISTURB</b><span>{doNotDisturb?"ACTIVE":"OFF"}</span></article><article><b>NOTICES</b><span>{notices.length}</span></article><p>Open the full page to change themes, workstations, routines, accessibility, and shell behavior.</p></div>:custom?<div className="peek-custom"><i>{custom.kind.toUpperCase()}</i><span><b>{custom.name}</b><small>{custom.target}</small>{custom.kind==="app"&&apps.find((app)=>app.id===custom.target)&&<ConsoleButton onClick={()=>launch(apps.find((app)=>app.id===custom.target)!)}>OPEN APPLICATION ↗</ConsoleButton>}</span></div>:<p>PAGE PREVIEW IS UNAVAILABLE</p>;
-  return <ResizablePopup as="aside" popupKey={popupKey} className={`speed-dial-page-peek ${detached?"detached":pinned?"pinned":"floating"}`} floating={!detached} minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}><header><div><small>{detached?"NATIVE DETACHED PAGE PEEK":pinned?"PINNED PAGE PEEK · ALWAYS ABOVE LCARS":"SPEED DIAL PAGE PEEK"}</small><h3>{title}</h3></div><ConsoleControls><nav>{!detached&&<ConsoleButton className={pinned?"active":""} onClick={togglePinned}>{pinned?"RELEASE":"PIN"}</ConsoleButton>}{!detached&&detach&&<ConsoleButton onClick={detach}>DETACH ↗</ConsoleButton>}<ConsoleButton aria-label={`Close ${title} Page Peek`} onClick={close}>×</ConsoleButton></nav></ConsoleControls></header><main>{content}</main><footer><span>{detached?"NATIVE WINDOW":pinned?"PIN LOCK ACTIVE":"FLOATING PREVIEW"}</span><ConsoleButton onClick={()=>openFull(page)}>OPEN FULL PAGE ›</ConsoleButton></footer></ResizablePopup>;
+  const content=page==="overview"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="system"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="media"?<SpeedDialMediaPeek players={players} streams={streams} volume={volume} muted={muted} control={mediaControl} setMasterVolume={setMasterVolume} commitMasterVolume={commitMasterVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={setStreamVolume} setStreamMute={setStreamMute}/>:page==="network"?<div className="peek-network">{network.interfaces.slice(0,4).map((item)=><article key={item.id}><i className={item.state==="connected"?"ready":""}>●</i><span><b>{item.name}</b><small>{item.address||item.state.toUpperCase()}</small></span><em>{item.speed||"LOCAL"}</em></article>)}{!network.interfaces.length&&<p>{bridge?"NO ACTIVE NETWORK INTERFACES":"LOCAL CORE LINK PENDING"}</p>}</div>:page==="updates"?<div className="peek-update"><strong>{update?.available?`V${update.version} AVAILABLE`:"RELEASE CHANNEL READY"}</strong><p>{update?.available?"A verified release can be downloaded from the full Updates page.":"Background checks remain silent when offline."}</p><small>{update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"STABLE / DEVELOPMENT CHANNEL AWARE"}</small></div>:page==="terminal"?<div className="peek-terminal"><pre><ConsoleCopy>LCARS LOCAL COMMAND LINK{`\n`}{bridge?"PTY CORE READY":"LOCAL CORE STANDBY"}{`\n\n`}terminal@lcars:~$ <i>█</i></ConsoleCopy></pre><small>OPEN THE FULL TERMINAL TO TYPE COMMANDS</small></div>:page==="files"?<div className="peek-files"><i><FileGlyph kind="folder"/></i><span><b>LOCAL FILE SYSTEM</b><small>HOME · DOCUMENTS · DOWNLOADS</small><p>Use the full File Browser for previews, transfers, and document editing.</p></span></div>:page==="settings"?<div className="peek-settings"><article><b>LOCAL CORE</b><span>{bridge?"CONNECTED":"STANDBY"}</span></article><article><b>DO NOT DISTURB</b><span>{doNotDisturb?"ACTIVE":"OFF"}</span></article><article><b>NOTICES</b><span>{notices.length}</span></article><p>Open the full page to change themes, workstations, routines, accessibility, and shell behavior.</p></div>:custom?<div className="peek-custom"><i>{custom.kind.toUpperCase()}</i><span><b>{custom.name}</b><small>{custom.target}</small>{custom.kind==="app"&&apps.find((app)=>app.id===custom.target)&&<ConsoleButton onClick={()=>launch(apps.find((app)=>app.id===custom.target)!)}>OPEN APPLICATION ↗</ConsoleButton>}</span></div>:<p>PAGE PREVIEW IS UNAVAILABLE</p>;
+  return <ConsoleCopy><ResizablePopup as="aside" popupKey={popupKey} className={`speed-dial-page-peek ${detached?"detached":pinned?"pinned":"floating"}`} floating={!detached} minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}><header><div><small>{detached?"NATIVE DETACHED PAGE PEEK":pinned?"PINNED PAGE PEEK · ALWAYS ABOVE LCARS":"SPEED DIAL PAGE PEEK"}</small><h3>{title}</h3></div><ConsoleControls><nav>{!detached&&<ConsoleButton className={pinned?"active":""} onClick={togglePinned}>{pinned?"RELEASE":"PIN"}</ConsoleButton>}{!detached&&detach&&<ConsoleButton onClick={detach}>DETACH ↗</ConsoleButton>}<ConsoleButton aria-label={`Close ${title} Page Peek`} onClick={close}>×</ConsoleButton></nav></ConsoleControls></header><main>{content}</main><footer><span>{detached?"NATIVE WINDOW":pinned?"PIN LOCK ACTIVE":"FLOATING PREVIEW"}</span><ConsoleButton onClick={()=>openFull(page)}>OPEN FULL PAGE ›</ConsoleButton></footer></ResizablePopup></ConsoleCopy>;
 }
 
 function CustomPageManager({pages,apps,extensions,change}:{pages:CustomPage[];apps:App[];extensions:ExtensionManifest[];change:(pages:CustomPage[])=>void}) {
@@ -5123,7 +5126,7 @@ function FirstRun({
   ];
   const item = cards[step];
   return (
-    <div className="backdrop setup-backdrop">
+    <ConsoleCopy><div className="backdrop setup-backdrop">
       <ResizablePopup popupKey="first-run-setup" className="first-run" minWidth={520} minHeight={460} ariaModal={true} ariaLabel="LCARS Shell Setup">
         <header>
           <div>
@@ -5162,7 +5165,7 @@ function FirstRun({
           </ConsoleButton>
         </footer>
       </ResizablePopup>
-    </div>
+    </div></ConsoleCopy>
   );
 }
 
@@ -5173,24 +5176,24 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
   const cells:Array<Date|null>=[...Array(first.getDay()).fill(null),...Array.from({length:days},(_,index)=>new Date(cursor.getFullYear(),cursor.getMonth(),index+1))];
   const same=(firstDate:Date,secondDate:Date)=>firstDate.getFullYear()===secondDate.getFullYear()&&firstDate.getMonth()===secondDate.getMonth()&&firstDate.getDate()===secondDate.getDate();
   const chooseToday=()=>{const today=new Date();setCursor(new Date(today.getFullYear(),today.getMonth(),1));setSelected(today);};
-  return <div className="backdrop lcars-calendar-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><ConsoleGroup label={<>CALENDAR</>}><section className="lcars-calendar" role="dialog" aria-modal="true" aria-label="LCARS calendar"><ConsoleWindowControls>
+  return <ConsoleCopy><div className="backdrop lcars-calendar-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><ConsoleGroup label={<>CALENDAR</>}><section className="lcars-calendar" role="dialog" aria-modal="true" aria-label="LCARS calendar"><ConsoleWindowControls>
     <header><span><small>TEMPORAL OPERATIONS</small><h2>CALENDAR</h2><p>{now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})} · {now.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</p></span><strong>{String(now.getDate()).padStart(2,"0")}</strong></header>
     <ConsoleControls><nav><ConsoleButton onClick={()=>setCursor(new Date(cursor.getFullYear(),cursor.getMonth()-1,1))}>‹ PREVIOUS</ConsoleButton><b>{cursor.toLocaleDateString([],{month:"long",year:"numeric"}).toUpperCase()}</b><ConsoleButton onClick={chooseToday}>TODAY</ConsoleButton><ConsoleButton onClick={()=>setCursor(new Date(cursor.getFullYear(),cursor.getMonth()+1,1))}>NEXT ›</ConsoleButton><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></nav></ConsoleControls>
     <ConsoleGroup label="DATE SELECTOR"><ConsoleControls><div className="lcars-calendar-grid">{["SUN","MON","TUE","WED","THU","FRI","SAT"].map((day)=><i key={day}>{day}</i>)}{cells.map((date,index)=>date?<ConsoleButton key={date.toISOString()} className={`${same(date,now)?"today ":""}${same(date,selected)?"selected":""}`} aria-label={date.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"})} onClick={()=>setSelected(date)}>{date.getDate()}</ConsoleButton>:<span key={`empty-${index}`}/>)}</div></ConsoleControls></ConsoleGroup>
     <footer><i/><span><small>SELECTED DATE</small><b>{selected.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"}).toUpperCase()}</b></span><strong>LOCAL TIME · {now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",timeZoneName:"short"})}</strong></footer>
-  </ConsoleWindowControls></section></ConsoleGroup></div>;
+  </ConsoleWindowControls></section></ConsoleGroup></div></ConsoleCopy>;
 }
 
 function Version31Welcome({close,openDisplay}:{close:()=>void;openDisplay:()=>void}){
   const features=[
-    {code:"00",title:"ORIGINAL SERIES CONSOLE",text:"Choose Enterprise · The Original Series in Display Matrix for black information screens, fixed selectable control banks without console scrolling, an attached Search/Data Fabric deck, horizontal rocker switches, and a ten-second TOS startup cue with a gentle fade."},
+    {code:"00",title:"ORIGINAL SERIES CONSOLE",text:"Choose Enterprise · The Original Series in Display Matrix for black information screens, information-screen registers and plots, physical bank-selector buttons without console scrolling, Computer terminology, an attached Search/Data Fabric deck, and horizontal rocker switches."},
     {code:"01",title:"PRIVATE CLIPBOARD HISTORY",text:"Capture, restore, pin, and clear a bounded local clipboard history with opt-in storage and a one-control private mode."},
     {code:"02",title:"LCARS DISPLAY CAPTURE",text:"Take screenshots and screen recordings through Portal-approved access, saved directly into local LCARS Captures folders."},
     {code:"03",title:"NOTIFICATION SERVICE",text:"Approved local application notifications now arrive in the existing Communications and Operations timeline instead of a duplicate inbox."},
     {code:"04",title:"PRINT COMMAND",text:"Review printers and queued jobs, then cancel a job through a matching, single-use Portal authorization."},
     {code:"05",title:"VOICE PERMISSION REPAIR",text:"Hands-free Voice Control now recognizes trusted LCARS microphone requests and prevents repeated startup attempts or duplicate denial notices."},
   ];
-  return <div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>VERSION 31.5.8 TOS CONSOLE</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.8"><ConsoleWindowControls><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.8 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.8</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openDisplay}>OPEN DISPLAY MATRIX</ConsoleButton><ConsoleButton autoFocus onClick={close}>CONTINUE TO LCARS</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div>;
+  return <ConsoleCopy><div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>VERSION 31.5.9 TOS CONSOLE</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.9"><ConsoleWindowControls><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.9 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.9</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openDisplay}>OPEN DISPLAY MATRIX</ConsoleButton><ConsoleButton autoFocus onClick={close}>CONTINUE TO LCARS</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div></ConsoleCopy>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){
@@ -5202,7 +5205,7 @@ function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()
     {code:"05",title:"CALENDAR & FAVORITES",text:"Open an LCARS calendar from the clock and keep up to twenty independent Favorites above application folders."},
     {code:"06",title:"VERIFIED MOBILE UPDATES",text:"Check, download, checksum, and hand a new APK to Android's installer with one tap from the Mobile Update Console."},
   ];
-  return <div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>WELCOME TO VERSION 29</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 29"><ConsoleWindowControls><header><span><small>MOBILE COMMAND ENVIRONMENT · STABLE</small><h2>WELCOME TO VERSION 29</h2><p>The complete mobile Home, customization, and Connected Station Dock feature set is ready for daily use.</p></span><strong>29</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openConnected}>OPEN FLEET COMMAND</ConsoleButton><ConsoleButton autoFocus onClick={close}>START USING VERSION 29</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div>;
+  return <ConsoleCopy><div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>WELCOME TO VERSION 29</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 29"><ConsoleWindowControls><header><span><small>MOBILE COMMAND ENVIRONMENT · STABLE</small><h2>WELCOME TO VERSION 29</h2><p>The complete mobile Home, customization, and Connected Station Dock feature set is ready for daily use.</p></span><strong>29</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openConnected}>OPEN FLEET COMMAND</ConsoleButton><ConsoleButton autoFocus onClick={close}>START USING VERSION 29</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div></ConsoleCopy>;
 }
 
 function OverviewEditor({
@@ -5486,7 +5489,7 @@ function MediaConsole({
       .slice(0, 2)
       .toUpperCase();
   return (
-    <>
+    <ConsoleCopy><>
       <ConsoleControls><nav className="media-console-tabs" aria-label="Media console sections">
         {([
           ["players", "NOW PLAYING"],
@@ -5579,7 +5582,7 @@ function MediaConsole({
                     <ConsoleGroup key={player.id} label={<>{player.title || "NO MEDIA"}</>}><article className="media-source-row" key={player.id}>
                       <ConsoleButton consoleChoice className="media-source-select" onClick={() => selectPlayer(player.id)} aria-label={`Show ${player.name}`}>
                         <i>{player.icon ? <img src={player.icon} alt="" /> : initials(player.name)}</i>
-                        <span><b>{player.name}</b><small>{player.title || "NO MEDIA"}</small></span>
+                        <span><b>{player.name}</b><small data-console-verbatim="">{player.title || "NO MEDIA"}</small></span>
                         <em className={player.status === "Playing" ? "playing" : ""}>{player.status.toUpperCase()}</em>
                       </ConsoleButton>
                       <ConsoleButton consoleChoice className="media-source-quick" title={`Play or pause ${player.name}`} aria-label={`Play or pause ${player.name}`} onClick={() => control(player.id, "play-pause")}>{player.status === "Playing" ? "Ⅱ" : "▶"}</ConsoleButton>
@@ -5649,7 +5652,7 @@ function MediaConsole({
         />
         {pane==="local"&&<IntegratedLcarsPlayer notify={notify} event={localEvent} request={localRequest} browse={openMedia}/>}
       </div>
-    </>
+    </></ConsoleCopy>
   );
 }
 
@@ -5747,8 +5750,8 @@ function MediaSources({
             <div className="track-info">
               {player.artUrl && <img src={player.artUrl} alt="" />}
               <span>
-                <b>{player.title}</b>
-                <small>
+                <b data-console-verbatim="">{player.title}</b>
+                <small data-console-verbatim="">
                   {player.artist || "Unknown artist"}
                   {player.album ? " · " + player.album : ""}
                 </small>
@@ -5827,7 +5830,7 @@ function OperationsCenter({notices,events,devices,localOperator,reversiblePlanId
   const stations=Array.from(new Set(events.map((event)=>event.station))).sort(),operators=Array.from(new Set([localOperator,...events.map((event)=>event.operator)])).filter(Boolean).sort(),subsystems=Array.from(new Set(events.map((event)=>event.subsystem))).sort();
   const setFilter=(key:keyof OperationsFilters,value:string)=>setFilters((old)=>({...old,[key]:value}));
   const toggleStation=(id:string)=>setSelectedStations((old)=>old.includes(id)?old.filter((item)=>item!==id):[...old,id]);
-  return <>
+  return <ConsoleCopy><>
     <div className="toast-stack">{live.map((notice)=><div className={`toast ${notice.kind} priority-${notice.priority||"routine"}`} key={notice.id}><i>●</i><span><b>{notice.text}</b><small>{notice.source||"LCARS CORE"} · {notice.priority?.toUpperCase()||"ROUTINE"} · {notice.time}{(notice.repeats||1)>1?` · ×${notice.repeats}`:""}</small></span><ConsoleButton title="Close notification" aria-label="Dismiss notification" onClick={()=>dismiss(notice.id)}>×</ConsoleButton></div>)}</div>
     {historyOpen&&<ResizablePopup as="aside" popupKey="communications-center" className="notice-history operations-center" floating minWidth={520} minHeight={420} ariaModal={false} ariaLabel="Operations Center">
       <header><div><small>VERSION 30.6 · UNIFIED OBSERVABILITY</small><h3>OPERATIONS CENTER</h3><p>Notices, commands, automation, stations, media, security, and failures in one actionable timeline.</p></div><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></header>
@@ -5842,7 +5845,7 @@ function OperationsCenter({notices,events,devices,localOperator,reversiblePlanId
       <ConsoleGroup label={<>PRIORITY PROPAGATION</>}><section className="operations-routing"><header><span><b>PRIORITY PROPAGATION</b><small>Choose trusted stations, then route any priority event from its action row.</small></span><em>{selectedStations.length} SELECTED</em></header><div>{devices.map((device)=><ConsoleControls><label data-console-toggle="" className={selectedStations.includes(device.id)?"selected":""} key={device.id}><input type="checkbox" checked={selectedStations.includes(device.id)} onChange={()=>toggleStation(device.id)}/><span>{device.name}</span><small>{device.online?"ONLINE":"OFFLINE QUEUE"}</small></label></ConsoleControls>)}{!devices.length&&<p>NO TRUSTED FEDERATION STATIONS</p>}</div></section></ConsoleGroup>
       <div className="operations-feed" tabIndex={0}>{groups.length?groups.map((group)=><ConsoleDisclosure className={`operations-group severity-${group.severity}`} key={group.id} open={groups.length===1}><summary><i>{group.severity==="critical"?"!":group.severity==="warning"?"△":group.severity==="priority"?"◆":"●"}</i><span><b>{group.title}</b><small>{group.events[0].subsystem} · {group.events.length} RELATED EVENT{group.events.length===1?"":"S"} · {new Date(group.events[0].time).toLocaleString()}</small></span><em>{group.severity.toUpperCase()}</em></summary><div>{group.events.map((event)=><ConsoleGroup key={event.id} label={<>{event.station} · {event.operator} · {event.subsystem} · {event.status.toUpperCase()}</>}><article className={`operations-event severity-${event.severity} ${event.acknowledged?"acknowledged":""}`} key={event.id}><header><span><b>{event.title}</b><small>{event.station} · {event.operator} · {event.subsystem} · {event.status.toUpperCase()}</small></span><time>{new Date(event.time).toLocaleString()}</time></header><p>{event.detail}</p><ConsoleDisclosure className="operations-explanation"><summary>WHAT CHANGED?</summary><p>{event.explanation}</p></ConsoleDisclosure><footer><ConsoleButton className={event.acknowledged?"active":""} onClick={()=>acknowledge(event)}>{event.acknowledged?"ACKNOWLEDGED":"ACKNOWLEDGE"}</ConsoleButton><ConsoleControls><label>ASSIGN<ConsoleSelect value={event.assignee||""} onChange={(change)=>assign(event,change.target.value)}><option value="">UNASSIGNED</option>{operators.map((operator)=><option key={operator} value={operator}>{operator}</option>)}</ConsoleSelect></label></ConsoleControls>{event.action&&<ConsoleButton disabled={event.action.kind==="undo"&&event.action.target!==reversiblePlanId} onClick={()=>action(event)}>{event.action.kind==="procedure"?"RUN AGAIN":event.action.kind==="undo"?"REVERSE":event.action.kind==="media"?"RETRY COMMAND":event.severity==="critical"?"RETRY":"OPEN"}</ConsoleButton>}{event.severity!=="routine"&&<ConsoleButton disabled={!selectedStations.length} onClick={()=>propagate(event,selectedStations)}>PROPAGATE</ConsoleButton>}</footer></article></ConsoleGroup>)}</div></ConsoleDisclosure>):<p className="operations-empty">NO OPERATIONS MATCH THE SELECTED FILTERS</p>}</div>
     </ResizablePopup>}
-  </>;
+  </></ConsoleCopy>;
 }
 function AppDrawer({
   title,
@@ -5870,7 +5873,7 @@ function AppDrawer({
   refresh: () => void;
 }) {
   return (
-    <div className="backdrop">
+    <ConsoleCopy><div className="backdrop">
       <ResizablePopup popupKey="application-drawer" className="drawer" minWidth={520} minHeight={480} ariaModal={true} ariaLabel={title}>
         <header>
           <div>
@@ -5908,7 +5911,7 @@ function AppDrawer({
           );})}
         </div>
       </ResizablePopup>
-    </div>
+    </div></ConsoleCopy>
   );
 }
 function ApplicationBay({
@@ -5956,7 +5959,7 @@ function ApplicationBay({
         <div className="bay-grid" />
         <div className="bay-status">
           <i>{app.name.slice(0, 2).toUpperCase()}</i>
-          <b>{app.name} IS RUNNING</b>
+          <b data-console-verbatim="">{app.name} IS RUNNING</b>
           <small>
             {platform.includes("WINDOWS")
               ? "The Windows local core can focus, minimize, close, and route this application between connected displays through the Task Rail."
@@ -6159,7 +6162,7 @@ function Terminal({
         className={"terminal-output cursor-" + prefs.terminalCursor}
         style={{ fontSize: prefs.terminalFontSize }}
       >
-        {output || "LCARS COMMAND ENVIRONMENT\nWaiting for local PTY…"}
+        {output || <ConsoleCopy>{"LCARS COMMAND ENVIRONMENT\nWaiting for local PTY…"}</ConsoleCopy>}
         <span className="terminal-cursor">█</span>
       </pre>
       <div className="terminal-input">

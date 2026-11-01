@@ -1,5 +1,5 @@
 "use client";
-import { ConsoleButton, ConsoleControls, ConsoleField, ConsoleGroup } from "./tos-console";
+import { ConsoleCopy, ConsoleButton, ConsoleControls, ConsoleField, ConsoleGroup } from "./tos-console";
 
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -52,7 +52,7 @@ export function SystemControlCenter({initialArea,platform,close=()=>{},embedded=
   const memory=details.memory,graphics=details.graphics||[],cores=details.cpu?.cores||[];
   const selectArea=(next:SystemControlArea)=>{setArea(next);setQuery("");};
   const stepArea=(direction:-1|1)=>{const current=areas.findIndex(item=>item[0]===area),next=(current+direction+areas.length)%areas.length;selectArea(areas[next][0]);};
-  return <div className={embedded?"system-control-page":"system-control-backdrop"} role="presentation">
+  return <ConsoleCopy><div className={embedded?"system-control-page":"system-control-backdrop"} role="presentation">
     <ConsoleGroup label={<>LCARS SYSTEMS COMMAND</>}><section className={`system-control-center${embedded?" embedded":""}`} role={embedded?"region":"dialog"} aria-modal={embedded?undefined:true} aria-label="LCARS System Control Matrix">
       <header><div><small>VERSION 31.4 · CONNECTIVITY AND HARDWARE MATRIX</small><h2>LCARS SYSTEMS COMMAND</h2><p>Live telemetry, protected connections, peripheral inventory, package logistics, and workstation controls in one compact LCARS page.</p></div>{!embedded&&<ConsoleButton onClick={close}>CLOSE ×</ConsoleButton>}</header>
       <div className="system-control-tab-deck">
@@ -86,5 +86,5 @@ export function SystemControlCenter({initialArea,platform,close=()=>{},embedded=
       </div>
       <footer><b>NO HOST CONTROL PANEL LAUNCHED</b><span>Platform-mandated security prompts may still appear when the operating system itself requires authorization.</span></footer>
     </section></ConsoleGroup>
-  </div>;
+  </div></ConsoleCopy>;
 }

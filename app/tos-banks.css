@@ -5,7 +5,6 @@
  --tos-key-width:128px;
 }
 .lcars.theme-tos .tos-fixed-deck :is(.tos-bank-selector,.tos-key-pages){display:grid!important;grid-template-columns:110px minmax(0,1fr) 110px;align-items:center;gap:10px;width:100%;padding:0!important;margin:0;border:0!important;background:transparent!important;box-shadow:none!important}
-.lcars.theme-tos .tos-fixed-deck .tos-bank-selector select{width:100%;min-width:0;height:32px;border:2px inset #697471!important;border-radius:1px;background:#111718!important;color:#fff4d4!important;padding:4px 8px;font:700 11px/1.3 Arial,sans-serif;letter-spacing:.03em}
 .lcars.theme-tos .tos-fixed-deck :is(.tos-bank-selector,.tos-key-pages)>button{width:100%;min-width:0;height:32px;min-height:32px;padding:4px 8px;font:700 9px/1.3 Arial,sans-serif!important}
 .lcars.theme-tos .tos-fixed-deck .tos-control-group{width:100%;padding:0!important;margin:0!important;border:0!important;gap:5px;background:transparent!important}
 .lcars.theme-tos .tos-fixed-deck .tos-control-group>h4{font:italic 700 10px/1.3 Roddenberry,Arial,sans-serif!important;color:#fff4d4!important;margin:0}
@@ -40,7 +39,6 @@
 @media(max-width:760px),(max-height:550px){
  .lcars.theme-tos .tos-command-deck.tos-fixed-deck.tos-fixed-deck{padding:6px 8px;gap:5px;border-top-width:4px!important}
  .lcars.theme-tos .tos-fixed-deck :is(.tos-bank-selector,.tos-key-pages){grid-template-columns:76px minmax(0,1fr) 76px;gap:6px}
- .lcars.theme-tos .tos-fixed-deck .tos-bank-selector select{font-size:9px;padding:3px}
  .lcars.theme-tos .tos-fixed-deck textarea[data-tos-unit]{height:48px;min-height:48px!important;max-height:48px}
  .lcars.theme-tos .universal-search>header :is(h2,p){margin:3px 0}
  .lcars.theme-tos .universal-search>header h2{font-size:20px}
@@ -48,12 +46,10 @@
 }
 
 .lcars.theme-tos .universal-search.universal-search>header>div{background:transparent!important}
-.lcars.theme-tos .tos-fixed-deck .tos-bank-selector.has-close{grid-template-columns:100px minmax(0,1fr) 100px 100px}
 @media(max-height:800px) and (min-width:761px){
  .lcars.theme-tos .tos-navigation-bank{gap:4px 6px;overflow:visible!important}
  .lcars.theme-tos .tos-navigation-bank .nav{min-height:43px!important;gap:3px;padding-bottom:3px!important}
 }
-@media(max-width:760px){.lcars.theme-tos .tos-fixed-deck .tos-bank-selector.has-close{grid-template-columns:55px minmax(0,1fr) 55px 60px;gap:4px}}
 .lcars.theme-tos .tos-fixed-deck label.import-config[data-tos-unit]{display:flex!important;align-items:center;justify-content:center;width:min(100%,280px);height:46px;min-height:46px;padding:5px 8px;border:3px solid #20292c!important;border-radius:4px!important;background:var(--tos-key-sheen),var(--tos-key-ivory)!important;color:#080b0c!important;font:700 10px/1.3 Arial,sans-serif;text-align:center}
 @media(max-height:650px) and (min-width:901px){
  .lcars.theme-tos .tos-navigation-bank{gap:3px 6px;padding:4px 0}
@@ -68,3 +64,16 @@
 }
 .lcars.theme-tos .universal-search>footer{flex:0 0 auto!important;min-height:0!important;padding:6px 14px!important;color:#c6c8c1!important;background:#000!important;border:0!important;border-top:1px solid #555e5b!important;font:9px/1.3 Arial,sans-serif}
 .lcars.theme-tos .universal-search>footer span{color:inherit!important;opacity:1}
+/* Dedicated selector keys replace the temporary bank dropdown. */
+.lcars.theme-tos .tos-fixed-deck .tos-bank-selector{grid-template-columns:42px minmax(0,1fr) 42px;gap:7px}
+.lcars.theme-tos .tos-fixed-deck .tos-bank-selector.has-close{grid-template-columns:42px minmax(0,1fr) 42px 80px;gap:7px}
+.lcars.theme-tos .tos-fixed-deck .tos-bank-keys{display:grid;gap:7px;min-width:0;background:transparent!important}
+.lcars.theme-tos .tos-fixed-deck .tos-bank-keys>button{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-width:0;height:36px;min-height:36px;padding:4px 7px;font:700 9px/1.2 Arial,sans-serif!important}
+.lcars.theme-tos .tos-fixed-deck .tos-bank-keys>button>i{font:9px ui-monospace,monospace;font-style:normal;background:transparent!important;flex:0 0 auto}
+.lcars.theme-tos .tos-fixed-deck .tos-bank-keys>button>span{min-width:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:normal;white-space:normal}
+@media(max-width:760px){
+ .lcars.theme-tos .tos-fixed-deck .tos-bank-selector{grid-template-columns:28px minmax(0,1fr) 28px;gap:4px}
+ .lcars.theme-tos .tos-fixed-deck .tos-bank-selector.has-close{grid-template-columns:28px minmax(0,1fr) 28px 55px;gap:4px}
+ .lcars.theme-tos .tos-fixed-deck .tos-bank-keys{gap:4px}
+ .lcars.theme-tos .tos-fixed-deck .tos-bank-keys>button{font-size:8px!important;gap:4px;padding:3px}
+}

@@ -14,7 +14,9 @@ const dialogExports={};
 runInNewContext(ts.transpileModule(read('app/console-dialogs.ts'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:dialogExports});
 const deckExports={};
 runInNewContext(ts.transpileModule(read("app/tos-deck.ts"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:deckExports});
-const consoleRequire=name=>name==="./tos-deck"?deckExports:name==='./console-dialogs'?dialogExports:require(name);
+const terminologyExports={};
+runInNewContext(ts.transpileModule(read("app/tos-terminology.tsx"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports:terminologyExports,require});
+const consoleRequire=name=>name==="./tos-terminology"?terminologyExports:name==="./tos-deck"?deckExports:name==='./console-dialogs'?dialogExports:require(name);
 
 const bootstrap=runInNewContext(main.slice(main.indexOf('const startupAudioBootstrap='),main.indexOf('function createWindow'))+';startupAudioBootstrap');
 function audioHarness(theme,prefs={}){
@@ -106,4 +108,34 @@ test('TOS Search shows bounded passive records while other families keep all nat
  const tos=render(true),classic=render(false);
  assert.match(tos,/Record 08/);assert.doesNotMatch(tos,/Record 09/);assert.doesNotMatch(tos,/<button/);assert.match(tos,/SELECTED RECORD 1 \/ 12/);
  assert.match(classic,/Record 12/);assert.equal((classic.match(/>OPEN<\/button>/g)||[]).length,12);
+});
+
+test('TOS uses Computer for owned interface copy while preserving source text, field values, and handlers',()=>{
+ const {computerTerminology,computerContent}=terminologyExports;
+ assert.equal(computerTerminology('SELECT ONE OR MORE ITEMS FOR LCARS COMMANDS'),'SELECT ONE OR MORE ITEMS FOR COMPUTER COMMANDS');
+ assert.equal(computerTerminology('Open the LCARS interface'),'Open the Computer interface');
+ assert.equal(computerTerminology('LCARS COMPUTER CORE'),'COMPUTER CORE');
+ assert.equal(computerTerminology('terminal@lcars:~$'),'COMPUTER >');
+ for(const value of ['LCARS Manual.pdf','https://example.com/LCARS','/home/operator/LCARS','~/LCARS','lcars://app/index.html'])assert.equal(computerTerminology(value),value);
+ let passedTitle="";const LogicBoundary=({title})=>{passedTitle=title;return React.createElement('span',null,title);};
+ renderToStaticMarkup(computerContent(React.createElement('div',null,React.createElement(LogicBoundary,{title:'LCARS backend identifier'})),true));assert.equal(passedTitle,'LCARS backend identifier');
+ const click=()=>{},tree=React.createElement('section',null,React.createElement('button',{'aria-label':'Open LCARS',onClick:click},'LCARS COMMANDS'),React.createElement('input',{placeholder:'LCARS command',value:'LCARS actual value',readOnly:true}),React.createElement('pre',null,'LCARS terminal source'),React.createElement('b',{'data-console-verbatim':''},'LCARS original record'));
+ const classic=renderToStaticMarkup(computerContent(tree,false)),tos=renderToStaticMarkup(computerContent(tree,true));
+ assert.match(classic,/>LCARS COMMANDS</);assert.match(tos,/>COMPUTER COMMANDS</);assert.match(tos,/aria-label="Open Computer"/);assert.match(tos,/value="LCARS actual value"/);assert.match(tos,/LCARS terminal source/);assert.match(tos,/LCARS original record/);
+ assert.equal(React.Children.toArray(computerContent(tree,true))[0].props.children[0].props.onClick,click);
+ const helpers={};runInNewContext(ts.transpileModule(read('app/tos-console.tsx'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports:helpers,require:consoleRequire,URLSearchParams});
+ const Widget=()=>React.createElement(helpers.ConsoleCopy,null,React.createElement('small',null,'LCARS INITIALIZATION'));
+ const standalone=tos=>renderToStaticMarkup(React.createElement(helpers.ConsoleThemeProvider,{tos},React.createElement(Widget)));
+ assert.equal(standalone(true),'<small>COMPUTER INITIALIZATION</small>');assert.equal(standalone(false),'<small>LCARS INITIALIZATION</small>');
+});
+test('all eleven TOS displays expose passive state registers and honest offline/sample labels',()=>{
+ const result={};runInNewContext(ts.transpileModule(read('app/tos-information.tsx'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports:result,require:consoleRequire});
+ const props={connected:false,platform:'TEST HOST',meters:[['CPU',18],['GPU',31],['MEM',42],['DISK',68]],applications:6,windows:2,players:3,volume:64,muted:false,operator:'LCARS OPERATOR',role:'administrator',modules:4,isolated:1,paired:2,online:1,pending:5,notices:7,dnd:false,updateAvailable:true,channel:'development',scale:110,sound:true,contrast:true,motion:false,colorSafe:false,settingsArea:'interface',restore:true};
+ for(const section of ['overview','terminal','files','system','media','network','updates','settings','portals','utilities','commissioning']){
+  const html=renderToStaticMarkup(React.createElement(result.TosInformationReadout,{...props,section}));assert.doesNotMatch(html,/<(?:button|input|select|textarea|a)\b/);assert.doesNotMatch(html,/LCARS OPERATOR/);
+  if(['overview','system','media'].includes(section))assert.match(html,/DEMONSTRATION SAMPLE/);
+  if(section==='network'){assert.match(html,/2 paired stations, 1 reported online/);assert.match(html,/local core offline/i);}
+  if(section==='portals')assert.match(html,/5 requests awaiting authority/);
+  if(section==='settings')assert.match(html,/110%/);
+ }
 });

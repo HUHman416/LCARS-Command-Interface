@@ -1,5 +1,5 @@
 "use client";
-import { ConsoleWindowControls, ConsoleButton, ConsoleControls, ConsoleField, ConsoleGroup } from "./tos-console";
+import { ConsoleCopy, ConsoleWindowControls, ConsoleButton, ConsoleControls, ConsoleField, ConsoleGroup } from "./tos-console";
 
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -83,7 +83,7 @@ export function ComputerCoreConsole({
     finally { setTransmitting(""); }
   };
   const riskLabel = (risk: ComputerRisk) => risk === "protected" ? "PROTECTED" : risk === "attention" ? "OPERATING" : "SAFE";
-  return <div className="backdrop computer-core-backdrop" onMouseDown={(event) => event.target === event.currentTarget && !running && close()}>
+  return <ConsoleCopy><div className="backdrop computer-core-backdrop" onMouseDown={(event) => event.target === event.currentTarget && !running && close()}>
     <ConsoleGroup label={<>COMPUTER CORE</>}><section className="computer-core-console" role="dialog" aria-modal="true" aria-label="LCARS Computer Core"><ConsoleWindowControls>
       <header className="computer-core-header">
         <div><small>LCARS 31.4 DEVELOPMENT · LOCAL-FIRST COMMAND PROCESSOR</small><h2>COMPUTER CORE</h2><p>Translate operator language into visible, permission-aware plans before anything changes.</p></div>
@@ -120,5 +120,5 @@ export function ComputerCoreConsole({
       </main>}
       <footer className="computer-core-footer"><span>LOCAL-FIRST · EXPLICIT AUTHORITY · DRY-RUN CAPABLE · AUDITABLE</span><small>31.4 OPERATOR AUTHORITY</small></footer>
     </ConsoleWindowControls></section></ConsoleGroup>
-  </div>;
+  </div></ConsoleCopy>;
 }

@@ -1,0 +1,126 @@
+/* Television-era information glass: compact registers, line plots, and discrete signals. */
+.lcars.theme-tos .tos-monitor>.content{gap:9px!important;background:#000!important;color:#fff4d4}
+.lcars.theme-tos .content>.heading{min-height:42px;padding:3px 0 8px;border-bottom:1px solid #7c7d70!important}
+.lcars.theme-tos .content>.heading h2{font:24px/1.1 Roddenberry,Arial,sans-serif;letter-spacing:.08em}
+.lcars.theme-tos .content>.heading small{font:8px ui-monospace,monospace;letter-spacing:.14em;color:#c6c8c1}
+.lcars.theme-tos .tos-screen-source{margin:0;padding:2px 0;color:#f1bc5b;font:9px/1.4 ui-monospace,monospace;letter-spacing:.08em}
+.lcars.theme-tos .content .tos-information-register{flex:0 0 auto;min-height:0;margin:0 0 4px;padding:0 0 7px!important;background:#000!important;border:0!important;border-bottom:1px solid #7c7d70!important}
+.lcars.theme-tos .tos-information-register>header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:15px;padding:4px 0!important;margin:0!important;border:0!important;background:#000!important}
+.lcars.theme-tos .tos-information-register>header>span{font:8px ui-monospace,monospace;color:#f1bc5b;letter-spacing:.1em}
+.lcars.theme-tos .tos-information-register>header>b{font:16px/1.2 Roddenberry,Arial,sans-serif;letter-spacing:.09em;color:#fff4d4;background:none!important;padding:0!important}
+.lcars.theme-tos .tos-information-register>header>small{color:#c6c8c1;font:8px ui-monospace,monospace;letter-spacing:.08em}
+.lcars.theme-tos .tos-information-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px 15px;background:#000!important}
+.lcars.theme-tos .tos-information-fields>div{display:grid;grid-template-columns:17px minmax(0,1fr);align-items:start;gap:7px;padding:7px 0;background:#000!important;border:0!important}
+.lcars.theme-tos .tos-information-fields>div>i{font:8px/1.5 ui-monospace,monospace;font-style:normal;color:#f1bc5b;border-top:7px solid #fff4d4;padding-top:3px}
+.lcars.theme-tos .tos-information-fields>div.attention>i{border-top-color:#e95740}
+.lcars.theme-tos .tos-information-fields>div>span{display:grid;align-content:start;gap:5px;min-width:0}
+.lcars.theme-tos .tos-information-fields small{font:8px/1.25 ui-monospace,monospace;letter-spacing:.08em;color:#c6c8c1}
+.lcars.theme-tos .tos-information-fields strong{font:700 12px/1.3 ui-monospace,monospace;color:#fff4d4;overflow-wrap:anywhere;text-transform:uppercase}
+.lcars.theme-tos .tos-register-scale{display:grid;grid-template-columns:repeat(20,minmax(0,1fr));gap:2px;padding-top:3px}
+.lcars.theme-tos .tos-register-scale>i{height:7px;background:#181818}
+.lcars.theme-tos .tos-register-scale>i.lit{background:#f1bc5b}
+/* Printed readouts replace dashboard cards and broad LCARS section bands. */
+.lcars.theme-tos .content :is(.detail-view,.settings-area-body,.system-control-body,.files-v31,.media-console,.network-console,.update-center,.portal-center,.daily-utilities,.commissioning-center){padding:4px 0!important;margin:0;border:0!important;border-radius:0!important;box-shadow:none!important;background:#000!important}
+.lcars.theme-tos .content :is(.detail-view>h3,.settings-view>h3){font:14px Roddenberry,Arial,sans-serif;letter-spacing:.12em;margin:4px 0 8px}
+.lcars.theme-tos .content :is(.setting-block,.experience-grid>section,.settings-columns>section,.telemetry-bank,.connection-bank,.software-inspector,.file-inspector,.utility-capture>article,.utility-printing>article,.commissioning-card){padding:9px 0!important;border:0!important;border-top:1px solid #4b4e47!important;background:#000!important;border-radius:0!important;box-shadow:none!important}
+.lcars.theme-tos .content :is(.setting-block>header,.experience-grid>section>header,.settings-columns>section>header,.telemetry-bank>header,.connection-bank>header,.software-inspector>header,.file-inspector>header){padding:3px 0 6px!important;background:#000!important;border:0!important;min-height:0;gap:8px}
+.lcars.theme-tos .content :is(.utility-command-header,.software-command-header,.connectivity-command-header,.system-control-center>header,.commissioning-hero){padding:4px 0 8px!important;min-height:0;border:0!important;border-bottom:1px solid #4b4e47!important;background:#000!important}
+.lcars.theme-tos .content :is(.utility-command-header,.software-command-header,.connectivity-command-header)>span>b,.lcars.theme-tos .content .system-control-center>header h2{font:17px/1.25 Roddenberry,Arial,sans-serif!important;letter-spacing:.09em;color:#fff4d4}
+.lcars.theme-tos .content :is(.utility-command-header,.software-command-header,.connectivity-command-header)>strong{font:18px ui-monospace,monospace;color:#f1bc5b;background:#000!important}
+.lcars.theme-tos .content :is(.setting-block,.experience-grid,.settings-columns,.telemetry-bank,.connection-bank,.file-inspector,.portal-center,.daily-utilities,.commissioning-center) :is(p,em,small){font-family:ui-monospace,monospace;font-style:normal;line-height:1.5}
+.lcars.theme-tos .content :is(.setting-block,.experience-grid,.settings-columns) p{font-size:11px;margin:4px 0;color:#c6c8c1;background:#000!important}
+.lcars.theme-tos .content :is(.display-matrix-brief,.display-matrix-summary){padding:5px 0!important;border:0!important}
+.lcars.theme-tos .content :is(.experience-grid,.settings-columns,.telemetry-detail-grid,.connection-grid,.connectivity-overview,.utility-overview,.commissioning-grid){gap:12px 22px!important}
+.lcars.theme-tos .content :is(.health-grid,.memory-summary,.fabric-summary){display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;background:#000!important}
+/* Main engineering, communications, and operations fields use small rectangular marks. */
+.lcars.theme-tos .content :is(.utility-overview,.connectivity-overview)>article{display:grid;grid-template-columns:25px minmax(0,1fr);gap:10px;align-items:start;min-height:73px;padding:8px 0!important;border:0!important;border-bottom:1px solid #4b4e47!important;background:#000!important}
+.lcars.theme-tos .content :is(.utility-overview,.connectivity-overview)>article>i{display:block;width:auto;min-width:0;height:auto;min-height:0;padding:8px 0 0!important;border:0!important;border-top:9px solid #f1bc5b!important;background:#000!important;box-shadow:none!important;border-radius:0!important;color:#fff4d4!important;font:9px ui-monospace,monospace}
+.lcars.theme-tos .content :is(.utility-overview,.connectivity-overview)>article>span{display:grid;gap:4px}
+.lcars.theme-tos .content :is(.utility-overview,.connectivity-overview)>article>span>b{font:700 13px/1.3 ui-monospace,monospace;color:#fff4d4}
+.lcars.theme-tos .content :is(.utility-overview,.connectivity-overview)>article>span>small{font:9px ui-monospace,monospace;color:#f1bc5b;letter-spacing:.07em}
+.lcars.theme-tos .content :is(.utility-overview,.connectivity-overview)>article>span>em{font:9px/1.4 ui-monospace,monospace;color:#c6c8c1}
+.lcars.theme-tos .content :is(.telemetry-meter-grid,.telemetry-core-grid){gap:5px 15px!important}
+.lcars.theme-tos .content :is(.telemetry-meter,.telemetry-core-grid>article,.telemetry-module-list>article,.telemetry-bank>div>article){border:0!important;border-bottom:1px solid #34362f!important;padding:6px 0!important;min-height:35px;background:#000!important}
+.lcars.theme-tos .content :is(.telemetry-meter,.telemetry-core-grid>article,.telemetry-bank>div>article)>i{background:#000!important;color:#f1bc5b!important;border:0!important;border-radius:0!important;box-shadow:none!important;font:9px ui-monospace,monospace}
+.lcars.theme-tos .content :is(.telemetry-meter,.telemetry-core-grid>article) em{height:9px!important;border-radius:0!important;background:#151515!important}
+.lcars.theme-tos .content :is(.telemetry-meter,.telemetry-core-grid>article) em>u{height:9px!important;background:repeating-linear-gradient(90deg,#fff4d4 0 7px,#000 7px 10px)!important;border-radius:0!important}
+.lcars.theme-tos .content :is(.telemetry-meter,.telemetry-core-grid>article)>strong{font:14px ui-monospace,monospace;color:#f1bc5b}
+/* Catalogs are records on glass, with unboxed line geometry and clear column labels. */
+.lcars.theme-tos .content .files-v31 .file-grid{gap:0!important;grid-template-columns:1fr!important;padding:0!important}
+.lcars.theme-tos .content .files-v31 .tos-display-choice{min-height:40px;padding:6px 0!important;border:0!important;border-bottom:1px solid #34362f!important;grid-template-columns:17px 24px minmax(0,1fr);gap:10px}
+.lcars.theme-tos .content .files-v31 .tos-display-choice>i{background:#000!important;color:#f1bc5b!important;box-shadow:none!important;width:24px;height:24px;border:0!important}
+.lcars.theme-tos .content .files-v31 .tos-display-choice :is(b,small){font-family:ui-monospace,monospace;line-height:1.4}
+.lcars.theme-tos .content :is(.file-properties dl,.file-inspector dl,.software-inspector dl,.network-details dl){display:grid;gap:3px}
+.lcars.theme-tos .content :is(.file-properties dl,.file-inspector dl,.software-inspector dl,.network-details dl)>div{display:grid;grid-template-columns:minmax(90px,.6fr) minmax(0,1fr);padding:4px 0;border-bottom:1px solid #34362f!important;background:#000!important;font:11px ui-monospace,monospace}
+.lcars.theme-tos .content :is(.file-properties dl,.file-inspector dl,.software-inspector dl,.network-details dl) :is(dt,dd){margin:0;color:#fff4d4;overflow-wrap:anywhere}
+.lcars.theme-tos .content :is(.file-properties dl,.file-inspector dl,.software-inspector dl,.network-details dl) dt{color:#f1bc5b}
+/* Audio/video pictures and document contents remain their actual source material. */
+.lcars.theme-tos .content .media-console{gap:9px!important}
+.lcars.theme-tos .content :is(.media-source-list,.media-device-list,.audio-streams){display:grid;gap:0!important}
+.lcars.theme-tos .content :is(.media-source-list,.media-device-list,.audio-streams)>:is(article,.tos-display-choice){border:0!important;border-bottom:1px solid #4b4e47!important;border-radius:0!important;background:#000!important;padding:7px 0}
+.lcars.theme-tos .content :is(.media-console,.network-view,.update-center) :is(dl,pre){font:11px/1.5 ui-monospace,monospace;color:#fff4d4}
+.lcars.theme-tos .content .terminal-output{font-family:ui-monospace,monospace!important;font-size:12px!important;line-height:1.5!important;padding:8px 0!important;color:#fff4d4!important;background:#000!important;border:0!important;border-top:1px solid #7c7d70!important}
+.lcars.theme-tos .content :is(.update-summary,.version-stamp){display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:7px 0!important;border:0!important;border-bottom:1px solid #4b4e47!important;color:#fff4d4;background:#000!important;font:11px/1.4 ui-monospace,monospace}
+.lcars.theme-tos .content :is(.update-summary,.version-stamp) strong{font:18px ui-monospace,monospace;color:#f1bc5b}
+.lcars.theme-tos .content :is(.portal-offline,.portal-queue,.portal-client-list){padding:8px 0!important;border:0!important;background:#000!important}
+.lcars.theme-tos .content .portal-offline>div{padding:12px 0!important;border:0!important;border-top:1px solid #4b4e47!important;font:12px/1.5 ui-monospace,monospace}
+.lcars.theme-tos .content :is(.portal-queue,.commissioning-checks)>article{border:0!important;border-bottom:1px solid #4b4e47!important;background:#000!important;padding:7px 0!important;border-radius:0!important}
+.lcars.theme-tos .content .commissioning-hero>strong{background:#000!important;color:#f1bc5b!important;font:24px ui-monospace,monospace!important}
+.lcars.theme-tos .content :is(.commissioning-card,.commissioning-checks) :is(i,em){border-radius:0!important;background:#000!important;color:#f1bc5b!important}
+/* Secondary display windows follow the same register typography. */
+.lcars.theme-tos :is(.universal-search-main,.data-fabric-main,.private-storage-main,.speed-dial-page-peek,.computer-core-console main) :is(article,dl,p){font-family:ui-monospace,monospace}
+.lcars.theme-tos .universal-search .universal-search-results>article :is(b,p,small){font-family:ui-monospace,monospace;line-height:1.4}
+.lcars.theme-tos .universal-search .universal-search-results>article b{font-size:14px!important;text-transform:uppercase}
+.lcars.theme-tos .universal-search .universal-search-results>article small{font-size:9px;color:#f1bc5b!important;letter-spacing:.1em}
+.lcars.theme-tos .universal-search .universal-search-results>article p{font-size:10px;color:#c6c8c1!important;margin:3px 0}
+.lcars.theme-tos .data-fabric-main .fabric-summary article{padding:8px 0!important;border:0!important;border-bottom:1px solid #4b4e47!important}
+.lcars.theme-tos .data-fabric-main .fabric-summary article>b{font:16px ui-monospace,monospace;color:#f1bc5b}
+@media(max-width:760px){
+ .lcars.theme-tos .tos-information-register>header{grid-template-columns:1fr auto;gap:6px}
+ .lcars.theme-tos .tos-information-register>header>b{grid-column:1/-1;grid-row:2;font-size:15px}
+ .lcars.theme-tos .tos-information-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px}
+ .lcars.theme-tos .tos-information-fields strong{font-size:11px}
+ .lcars.theme-tos .content :is(.experience-grid,.settings-columns,.telemetry-detail-grid,.connection-grid){grid-template-columns:1fr!important}
+}
+@media(max-height:550px){.lcars.theme-tos .tos-information-register>header{padding:2px 0!important}.lcars.theme-tos .tos-information-fields>div{padding:3px 0}.lcars.theme-tos .tos-information-fields strong{font-size:10px}.lcars.theme-tos .tos-information-fields small{font-size:7px}}
+.lcars.theme-tos .tos-link-plot{margin:4px 0 0;padding:7px 0 0;border-top:1px solid #34362f;color:#fff4d4}
+.lcars.theme-tos .tos-link-plot figcaption{font:8px ui-monospace,monospace;color:#c6c8c1;letter-spacing:.08em;margin-bottom:5px}
+.lcars.theme-tos .tos-link-plot svg{display:block;width:100%;max-width:900px;max-height:150px;background:#000}
+.lcars.theme-tos .content :is(.adaptive-empty,.file-empty,.software-empty,.utility-empty,.media-empty,.connectivity-empty){display:grid;align-content:start;justify-content:start;text-align:left;gap:5px;height:auto!important;min-height:48px!important;padding:10px 0!important;border:0!important;border-top:1px solid #4b4e47!important;background:#000!important;font:11px/1.5 ui-monospace,monospace}
+.lcars.theme-tos .content :is(.adaptive-empty,.file-empty,.software-empty,.utility-empty,.media-empty)>b{font:12px ui-monospace,monospace;color:#f1bc5b}
+.lcars.theme-tos .content .console-cap{padding:7px 0!important;min-height:0!important;background:#000!important;border:0!important;border-bottom:1px solid #7c7d70!important}
+.lcars.theme-tos .content .console-cap h3{font:16px Roddenberry,Arial,sans-serif;letter-spacing:.1em}
+.lcars.theme-tos .content .console-cap>strong{font:20px ui-monospace,monospace;color:#f1bc5b;background:#000!important}
+.lcars.theme-tos .content .network-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 22px;min-height:0!important;margin:7px 0}
+.lcars.theme-tos .content .network-grid>.adaptive-empty{grid-column:1/-1}
+.lcars.theme-tos .content .network-tile{padding:8px 0!important;border:0!important;border-bottom:1px solid #4b4e47!important;border-radius:0!important;background:#000!important}
+.lcars.theme-tos .content .network-tile>i{background:#000!important;color:#f1bc5b!important;font:9px ui-monospace,monospace}
+.lcars.theme-tos .content .network-tile :is(header,footer,.network-address,.network-flow){background:#000!important;border:0!important;padding:5px 0!important;font:11px/1.4 ui-monospace,monospace}
+.lcars.theme-tos .content .network-flow>i{display:none}
+.lcars.theme-tos .content .network-diagnostics{border:0!important;padding:6px 0!important;background:#000!important}
+.lcars.theme-tos .content .network-diagnostics>header{padding:4px 0!important;border:0!important;border-bottom:1px solid #7c7d70!important;font:10px ui-monospace,monospace}
+.lcars.theme-tos .content .network-diagnostics>article{display:grid;grid-template-columns:25px minmax(0,1fr) auto;gap:10px;padding:6px 0!important;border:0!important;border-bottom:1px solid #34362f!important;font:11px ui-monospace,monospace;background:#000!important}
+.lcars.theme-tos .content .network-diagnostics>article :is(i,b){font:11px ui-monospace,monospace;color:#f1bc5b;background:#000!important}
+@media(max-width:760px){.lcars.theme-tos .content .network-grid{grid-template-columns:1fr}}
+.lcars.theme-tos .register-settings .tos-information-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
+/* Legacy toolbar containers now belong to the display; their controls live on the deck. */
+.lcars.theme-tos .tos-monitor>.content :is(.heading-actions,.overview-toolbar nav,.apps,.settings-area-tabs,.update-area-tabs,.file-mode-bar,.file-tab-bar,.file-path-bar,.file-tools,.terminal-tabs,.terminal-input,.system-control-tab-deck,.system-control-tabs,.system-control-toolbar,.media-console-tabs,.media-command-toolbar,.utility-modes,.utility-integrations>div,.software-modes,.software-inventory-command,.connectivity-modes,.connectivity-quick,.commissioning-tabs,.commissioning-actions,.portal-center>nav,.network-actions,.tos-instrument-controls){background:#000!important;border:0!important;box-shadow:none!important;padding:0!important;min-height:0!important}
+.lcars.theme-tos .content .files-v31>header{min-height:0;padding:6px 0!important;background:#000!important;border:0!important;border-bottom:1px solid #7c7d70!important}
+.lcars.theme-tos .content .files-v31>header :is(small,em){font:9px ui-monospace,monospace;color:#c6c8c1}
+.lcars.theme-tos .content .files-v31>header h3{font:13px ui-monospace,monospace;color:#fff4d4}
+@media(max-width:760px){.lcars.theme-tos .register-settings .tos-information-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lcars.theme-tos .content .update-release-grid{grid-template-columns:1fr!important;gap:10px}
+.lcars.theme-tos .content .update-panel{padding:7px 0!important;min-height:0;border:0!important;border-bottom:1px solid #4b4e47!important;border-radius:0!important;background:#000!important}
+.lcars.theme-tos .content .update-panel>header{display:grid;grid-template-columns:25px minmax(0,1fr) auto;gap:12px;min-height:0;padding:0 0 6px!important;border:0!important;background:#000!important}
+.lcars.theme-tos .content .update-panel>header>i{display:block;padding:4px 0 0!important;width:auto;height:auto;min-height:0;border:0!important;border-top:6px solid #f1bc5b!important;background:#000!important;color:#fff4d4!important;border-radius:0!important;font:9px ui-monospace,monospace}
+.lcars.theme-tos .content .update-panel>header>b{padding:0!important;background:#000!important;color:#f1bc5b!important;font:12px ui-monospace,monospace;border:0!important;border-radius:0!important}
+.lcars.theme-tos .content .update-panel>header small{font:8px ui-monospace,monospace;letter-spacing:.09em;color:#c6c8c1}
+.lcars.theme-tos .content .update-panel h4{font:15px Roddenberry,Arial,sans-serif;margin:3px 0;color:#fff4d4}
+.lcars.theme-tos .content .update-panel>p{font:10px/1.5 ui-monospace,monospace;color:#c6c8c1;margin:3px 0}
+.lcars.theme-tos .content .update-summary>strong{font:16px ui-monospace,monospace!important;background:#000!important;color:#f1bc5b!important;padding:0!important}
+.lcars.theme-tos .content .optional-components{border:0!important;padding:5px 0!important;background:#000!important}
+.lcars.theme-tos .content .optional-components>div>article{padding:7px 0!important;border:0!important;border-bottom:1px solid #4b4e47!important;background:#000!important}
+.lcars.theme-tos .content .optional-components>div>article>i{background:#000!important;color:#f1bc5b!important;border:0!important;border-radius:0!important;font:10px ui-monospace,monospace}
+.lcars.theme-tos .content .network-diagnostics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
+.lcars.theme-tos .content .network-diagnostics>header{grid-column:1/-1}
+@media(max-width:760px){.lcars.theme-tos .content .network-diagnostics{grid-template-columns:1fr}}
