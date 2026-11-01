@@ -23,6 +23,7 @@ import "../app/v31-4.css";
 import "../app/v31-5.css";
 import "../app/tos.css";
 import "../app/tos-surfaces.css";
+import "../app/tos-banks.css";
 
 const nativeFetch: typeof window.fetch = window.fetch.bind(window);
 const compatFallback = {

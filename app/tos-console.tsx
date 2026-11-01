@@ -1,15 +1,16 @@
 "use client";
-import { Children, cloneElement, createContext, isValidElement, useCallback, useContext, useEffect, useId, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type ComponentPropsWithRef, type HTMLAttributes, type InputHTMLAttributes, type ReactElement, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { Children, cloneElement, createContext, isValidElement, useCallback, useContext, useEffect, useId, useLayoutEffect, useRef, useState, type AnchorHTMLAttributes, type ButtonHTMLAttributes, type ComponentPropsWithRef, type HTMLAttributes, type InputHTMLAttributes, type ReactElement, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { createPortal } from "react-dom";
+import { consoleControlPages } from "./tos-deck";
 import { subscribeConsoleDialogs, type ConsoleDialogRequest } from "./console-dialogs";
 
 type Group={id:string;label:string};
-type ConsoleContext={enabled:boolean;targets:Record<string,HTMLDivElement>;register:((group:Group,token:string)=>()=>void)|null;rename:((id:string,label:string)=>void)|null;group:Group;inBank:boolean};
+type ConsoleContext={enabled:boolean;targets:Record<string,HTMLDivElement>;register:((group:Group,token:string)=>()=>void)|null;rename:((id:string,label:string)=>void)|null;group:Group;inBank:boolean;activate?:(id:string)=>void};
 const defaultGroup={id:"station",label:"STATION CONTROLS"};
 const Context=createContext<ConsoleContext>({enabled:false,targets:{},register:null,rename:null,group:defaultGroup,inBank:false});
 function caption(value:ReactNode):string{return Children.toArray(value).map(item=>typeof item==="string"||typeof item==="number"?String(item):isValidElement(item)?caption((item.props as {children?:ReactNode}).children):"").join(" ").replace(/\s+/g," ").trim().slice(0,64);}
-function useDeck(enabled:boolean,initialGroup:Group=defaultGroup){
-  const [groups,setGroups]=useState<Group[]>([]),[targets,setTargets]=useState<Record<string,HTMLDivElement>>({});
+function useDeck(enabled:boolean,initialGroup:Group=defaultGroup,close?:()=>void){
+  const [groups,setGroups]=useState<Group[]>([]),[targets,setTargets]=useState<Record<string,HTMLDivElement>>({}),[selected,setSelected]=useState("");
   const members=useRef(new Map<string,Set<string>>());
   const register=useCallback((group:Group,token:string)=>{
     let tokens=members.current.get(group.id);
@@ -19,13 +20,51 @@ function useDeck(enabled:boolean,initialGroup:Group=defaultGroup){
   },[]);
   const attach=useCallback((id:string,node:HTMLDivElement|null)=>setTargets(old=>{if(old[id]===node||(!node&&!old[id]))return old;const next={...old};if(node)next[id]=node;else delete next[id];return next;}),[]);
   const rename=useCallback((id:string,label:string)=>setGroups(old=>old.some(group=>group.id===id&&group.label!==label)?old.map(group=>group.id===id?{...group,label}:group):old),[]);
-  const value:ConsoleContext={enabled,targets,register,rename,group:initialGroup,inBank:false};
-  return {value,deck:<div className="tos-command-deck" role="region" aria-label="Console control deck">{groups.map(group=><ControlBank key={group.id} group={group} attach={attach}/>)}</div>};
+  const value:ConsoleContext={enabled,targets,register,rename,group:initialGroup,inBank:false,activate:setSelected};
+  const active=groups.some(group=>group.id===selected)?selected:groups[0]?.id||"";
+  return {value,deck:<FixedControlDeck groups={groups} active={active} select={setSelected} attach={attach} close={close}/>};
 }
-function ControlBank({group,attach}:{group:Group;attach:(id:string,node:HTMLDivElement|null)=>void}){
-  const ref=useCallback((node:HTMLDivElement|null)=>attach(group.id,node),[attach,group.id]);
-  return <section className="tos-control-group"><h4>{group.label}</h4><div className="tos-command-bank" ref={ref}/></section>;
+function FixedControlDeck({groups,active,select,attach,close}:{groups:Group[];active:string;select:(id:string)=>void;attach:(id:string,node:HTMLDivElement|null)=>void;close?:()=>void}){
+  const index=groups.findIndex(group=>group.id===active);
+  if(!groups.length)return null;
+  return <div className="tos-command-deck tos-fixed-deck" role="region" aria-label="Console control deck" hidden={!groups.length}>
+    <nav className={`tos-bank-selector ${close?"has-close":""}`} aria-label="Console bank selector">
+      <button aria-label="Previous control bank" disabled={index<=0} onClick={()=>select(groups[index-1].id)}>◀ BANK</button>
+      <select aria-label="Control bank" value={active} onChange={event=>select(event.target.value)}>{groups.map((group,index)=><option key={group.id} value={group.id}>{String(index+1).padStart(2,"0")} · {group.label}</option>)}</select>
+      <button aria-label="Next control bank" disabled={index>=groups.length-1} onClick={()=>select(groups[index+1].id)}>BANK ▶</button>{close&&<button onClick={close}>CLOSE ×</button>}
+    </nav>
+    {groups.map(group=><ControlBank key={group.id} group={group} active={active===group.id} attach={attach}/>)}
+  </div>;
 }
+/** Keep the original controls mounted, but expose only one bounded bank at a time. */
+function ControlBank({group,active,attach}:{group:Group;active:boolean;attach:(id:string,node:HTMLDivElement|null)=>void}){
+  const node=useRef<HTMLDivElement|null>(null),[page,setPage]=useState(0),[pages,setPages]=useState(1);
+  const ref=useCallback((element:HTMLDivElement|null)=>{node.current=element;attach(group.id,element);},[attach,group.id]);
+  useLayoutEffect(()=>{
+    const bank=node.current;if(!bank)return;
+    const layout=()=>{
+      const capacity=(bank.closest(".tos-command-deck")?.getBoundingClientRect().width||800)<700?3:6;
+      const units:HTMLElement[]=[];
+      const visit=(element:HTMLElement)=>{
+        if(element.matches("nav,form")||element.matches("div:not(.lcars-calendar-grid)")&&element.querySelector("button,input,select,textarea,a")){
+          element.dataset.tosUnitWrapper="";Array.from(element.children).forEach(child=>visit(child as HTMLElement));
+        }else units.push(element);
+      };
+      Array.from(bank.children).forEach(child=>visit(child as HTMLElement));
+      const costs=units.map(element=>element.matches("textarea,.lcars-calendar-grid")?capacity:element.matches("label,input,select")?Math.min(3,capacity):1);
+      const assignments=consoleControlPages(costs,capacity),count=(assignments.at(-1)??0)+1,current=Math.min(page,count-1);
+      units.forEach((element,index)=>{element.dataset.tosUnit="";element.dataset.tosPageVisible=String(assignments[index]===current);element.style.setProperty("--tos-unit-span",String(costs[index]));});
+      setPages(count);if(page!==current)setPage(current);
+    };
+    layout();
+    const changes=new MutationObserver(layout),resize=new ResizeObserver(layout);
+    changes.observe(bank,{childList:true,subtree:true,characterData:true});
+    const deck=bank.closest(".tos-command-deck");if(deck)resize.observe(deck);
+    return()=>{changes.disconnect();resize.disconnect();};
+  },[page,active]);
+  return <section className="tos-control-group" hidden={!active}><h4>{group.label}</h4><div className="tos-command-bank" ref={ref}/>{pages>1&&<nav className="tos-key-pages" aria-label={`${group.label} key pages`}><button aria-label="Previous keys" disabled={page===0} onClick={()=>setPage(value=>value-1)}>◀ KEYS</button><output aria-live="polite">KEY BANK {page+1} / {pages}</output><button aria-label="Next keys" disabled={page===pages-1} onClick={()=>setPage(value=>value+1)}>KEYS ▶</button></nav>}</section>;
+}
+export function useTosConsole(){return useContext(Context).enabled;}
 export function ConsoleThemeProvider({tos,children,onFeedback}:{tos:boolean;children:ReactNode;onFeedback?:(cancel?:boolean)=>void}){
   const [dialogs,setDialogs]=useState<ConsoleDialogRequest[]>([]);
   useEffect(()=>{if(!tos){setDialogs([]);return;}return subscribeConsoleDialogs(request=>setDialogs(current=>[...current,request]));},[tos]);
@@ -53,8 +92,13 @@ export function ConsoleControls({children}:{children:ReactNode}){
   const active=context.enabled&&!context.inBank&&Boolean(context.register);
   useEffect(()=>active?context.register?.(context.group,token):undefined,[active,context.register,context.group.id,token]);
   useEffect(()=>{if(active)context.rename?.(context.group.id,context.group.label);},[active,context.rename,context.group.id,context.group.label]);
-  if(!active)return <>{children}</>;
   const target=context.targets[context.group.id];
+  useEffect(()=>{
+    if(!active||!target)return;
+    const find=(value:ReactNode):boolean=>Children.toArray(value).some(item=>isValidElement(item)&&Boolean((item.props as {autoFocus?:boolean}).autoFocus||find((item.props as {children?:ReactNode}).children)));
+    if(find(children)){context.activate?.(context.group.id);const frame=requestAnimationFrame(()=>target.querySelector<HTMLElement>("input,textarea,select")?.focus());return()=>cancelAnimationFrame(frame);}
+  },[active,target,context.group.id]);
+  if(!active)return <>{children}</>;
   return target?createPortal(<Context.Provider value={{...context,inBank:true}}>{children}</Context.Provider>,target):null;
 }
 export function ConsoleDisplay({tos,children}:{tos:boolean;children:ReactNode}){
@@ -63,8 +107,8 @@ export function ConsoleDisplay({tos,children}:{tos:boolean;children:ReactNode}){
   return <div className="tos-station"><Context.Provider value={value}><div className="tos-monitor">{children}</div>{deck}</Context.Provider></div>;
 }
 /** Modal controls stay in their own window and inside its focus boundary. */
-export function ConsoleWindowControls({children}:{children:ReactNode}){
-  const {enabled,group}=useContext(Context),{value,deck}=useDeck(enabled,{id:"window",label:group.id==="station"?"WINDOW CONTROLS":group.label});
+export function ConsoleWindowControls({children,close}:{children:ReactNode;close?:()=>void}){
+  const {enabled,group}=useContext(Context),{value,deck}=useDeck(enabled,{id:"window",label:group.id==="station"?"WINDOW CONTROLS":group.label},close);
   if(!enabled)return <>{children}</>;
   return <Context.Provider value={value}>{children}{deck}</Context.Provider>;
 }

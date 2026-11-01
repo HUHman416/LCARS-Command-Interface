@@ -12,7 +12,9 @@ const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const main=read('desktop/main.cjs'),page=read('app/page.tsx');
 const dialogExports={};
 runInNewContext(ts.transpileModule(read('app/console-dialogs.ts'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:dialogExports});
-const consoleRequire=name=>name==='./console-dialogs'?dialogExports:require(name);
+const deckExports={};
+runInNewContext(ts.transpileModule(read("app/tos-deck.ts"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:deckExports});
+const consoleRequire=name=>name==="./tos-deck"?deckExports:name==='./console-dialogs'?dialogExports:require(name);
 
 const bootstrap=runInNewContext(main.slice(main.indexOf('const startupAudioBootstrap='),main.indexOf('function createWindow'))+';startupAudioBootstrap');
 function audioHarness(theme,prefs={}){
@@ -82,4 +84,26 @@ test('themed prompts wait for an operator decision and cancel safely when their 
  const name=exports.consolePrompt('Workstation name','Current name');assert.equal(received[1].initial,'Current name');received[1].finish('Bridge watch');assert.equal(await name,'Bridge watch');
  const pending=exports.consoleConfirm('Continue routine?');unsubscribe();assert.equal(await pending,false);
  tos=false;assert.equal(await exports.consolePrompt('Rename'),'native name');assert.equal(await exports.consoleConfirm('Confirm'),true);assert.equal(native.length,2);
+});
+
+test('control pages preserve order and keep whole fields within wide and compact bank capacities',()=>{
+ const {consoleControlPages}=deckExports;
+ assert.deepEqual(Array.from(consoleControlPages([1,1,1,3,3,1,6,1],6)),[0,0,0,0,1,1,2,3]);
+ for(const capacity of [3,6]){
+  const costs=[1,3,1,1,6,3,3,1,1,1,1,1],pages=consoleControlPages(costs,capacity),totals=new Map();
+  assert.equal(pages.length,costs.length);
+  pages.forEach((page,index)=>totals.set(page,(totals.get(page)||0)+Math.min(capacity,costs[index])));
+  assert.ok([...totals.values()].every(total=>total<=capacity));
+  assert.ok(pages.every((page,index)=>index===0?page===0:page===pages[index-1]||page===pages[index-1]+1));
+ }
+});
+test('TOS Search shows bounded passive records while other families keep all native result actions',()=>{
+ const helpers={};runInNewContext(ts.transpileModule(read('app/tos-console.tsx'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports:helpers,require:consoleRequire,URLSearchParams});
+ const search={};runInNewContext(ts.transpileModule(read('app/v30-search.tsx'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports:search,require:name=>name==='./tos-console'?helpers:require(name)});
+ const results=Array.from({length:12},(_,i)=>({id:String(i),category:'applications',title:`Record ${String(i+1).padStart(2,'0')}`,detail:'LOCAL APPLICATION'}));
+ const props={query:'',results,devices:[],procedures:[],fabric:null,filesLoading:false};
+ const render=tos=>renderToStaticMarkup(React.createElement(helpers.ConsoleThemeProvider,{tos},React.createElement(search.UniversalSearch,props)));
+ const tos=render(true),classic=render(false);
+ assert.match(tos,/Record 08/);assert.doesNotMatch(tos,/Record 09/);assert.doesNotMatch(tos,/<button/);assert.match(tos,/SELECTED RECORD 1 \/ 12/);
+ assert.match(classic,/Record 12/);assert.equal((classic.match(/>OPEN<\/button>/g)||[]).length,12);
 });

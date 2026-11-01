@@ -81,3 +81,5 @@ Implemented in Version 31.5: a continuously numbered Utilities page provides opt
 The final release is named **Version 31**, with no decimal. Version 30 remains Stable until all applicable Version 31 milestones and the Release Candidate gate pass.
 
 Supplementary 31.5.7 audits TOS display/control separation, connected and uniform key banks, horizontal captain’s-chair rockers, keyboard feedback, and the operator-supplied ten-second faded startup cue. It does not consume the reserved 31.6 milestone.
+
+31.5.8 supplementary TOS refinement: fixed selectable hardware banks replace console scrolling; Search/Data Fabric use an attached control deck and selected-record actions. The 31.6 milestone remains reserved.

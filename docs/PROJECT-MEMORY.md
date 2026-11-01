@@ -79,3 +79,9 @@ Physical number/numpad section navigation and accepted command/mapped shortcuts 
 Audit details and scope limits live in [31.5.7 audit](VERSION-31.5.7-TOS-AUDIT.md). Version 31.6 stays reserved, and Version 30 stays Stable.
 
 Publication authorization: the operator explicitly approved publishing the edited ten-second startup recording together with this update to the public HUHman416/LCARS-Command-Interface repository and Development release. Local validation passed both renderer builds, 207 JavaScript tests, and 69 Python tests.
+
+## Fixed TOS control banks — 31.5.8 Development
+
+The operator explicitly rejects scrolling any physical console deck to find buttons. Use fixed selectable banks and explicit key pages; information glass may still scroll. The supplied additional bridge/helm/resin-key references reinforce mounted hardware inside a continuous housing and do not supersede the earlier palette restrictions or uniform key geometry.
+
+31.5.8 keeps original controls mounted, presents one logical bank at a time, and packs whole fields and keys into bounded pages. Bank selectors and Previous/Next keys replace hardware scrolling, including portrait and short landscape. Forms retain native ownership and values persist across bank changes. The short desktop sidebar fits all eleven station keys. Search and Data Fabric use a continuous gray frame/header/deck and a persistent Close key. TOS Search uses eight passive display records per page and one selected-record action bank with Previous/Next Record keys; other families retain the complete original result list. Fonts, audio, earlier accessibility behavior, horizontal rockers, and existing functions remain. See [31.5.8 notes](VERSION-31.5.8-TOS-CONTROL-BANKS.md). Version 31.6 stays reserved; Version 30 stays Stable.
