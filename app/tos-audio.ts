@@ -24,3 +24,6 @@ export function createTosKeyPlayer(makeAudio: (path: string) => KeyAudio = path 
 }
 
 export const createTosEventPlayer = (makeAudio?: (path: string) => KeyAudio) => createTosKeyPlayer(makeAudio, tosEventAsset);
+
+/** Startup uses the selected console family; ordinary LCARS families retain their recording. */
+export const startupSoundAsset=(theme:string|null)=>theme==="tos"?"assets/sounds/tos-startup-10s.mp3":"assets/sounds/power-up.mp3";

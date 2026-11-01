@@ -197,7 +197,7 @@
 .theme-tos .tray-strip-trigger{background:#070b08;border:1px solid #435146;border-radius:2px!important;color:#eee4ba}
 .theme-tos .tray-strip-trigger>span i{background:#eac770;border-radius:2px}
 .lcars.theme-tos button:not([class*="theme-preview-"]){border-radius:3px!important}
-.theme-tos .experience-grid>article,.experience-grid>section,.theme-tos .settings-columns>section{background:#050a07;border:1px solid #53634f;padding:12px}
+.theme-tos .experience-grid>article,.theme-tos .experience-grid>section,.theme-tos .settings-columns>section{background:#050a07;border:1px solid #53634f;padding:12px}
 .theme-tos .lcars-toggle{grid-template-columns:42px minmax(0,1fr);column-gap:10px}
 .theme-tos .lcars-toggle>span{min-width:0}
 .theme-tos .experience-settings>header{border-bottom:2px solid #768265;background:#040805;padding:8px;color:#efe5c1}

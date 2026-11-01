@@ -1,0 +1,246 @@
+/* TOS surface audit: black information glass and separate physical control banks.
+   Keep these rules scoped to the optional television-series console family. */
+.lcars.theme-tos{
+  --panel:#000;--panel2:#000;--text:#fff;--muted:#c6c8c1;
+  --orange:#f1bc5b;--yellow:#f1bc5b;--purple:#fff4d4;--green:#fff4d4;
+  --blue:#fff4d4;--violet:#fff4d4;--peach:#fff4d4;--accent:#f1bc5b;
+  --tos-key-blue:#1c9bc7;--tos-key-ivory:#fff4d4;--tos-rule:#555e5b;
+  --tos-key-sheen:linear-gradient(175deg,#ffffff60,transparent 48%,#0003);
+}
+/* No luminous frame around the information screen. */
+.lcars.theme-tos .tos-monitor::before{display:none}
+.lcars.theme-tos .tos-monitor{padding:8px;background:#000;box-shadow:none}
+.lcars.theme-tos.detached-peek-shell{box-shadow:none;padding:8px!important}
+.lcars.theme-tos :is(.content,.resizable-popup,[role=dialog],[role=alertdialog],.display-menu,.overview-editor,.file-command-dialog,.whats-new-v26,.lock-screen) :is(section,article,header,footer,aside,nav,dl,main){
+  background-color:#000!important;background-image:none!important;border-radius:0!important;
+  border-width:0 0 1px!important;border-color:var(--tos-rule)!important;box-shadow:none!important;
+}
+.lcars.theme-tos :is(.content,.resizable-popup,[role=dialog],[role=alertdialog],.display-menu,.overview-editor,.file-command-dialog,.whats-new-v26) :is(div:not([style]),dl>div,pre,textarea){background-color:#000!important}
+.lcars.theme-tos :is(.content,.resizable-popup,[role=dialog],[role=alertdialog],.display-menu,.overview-editor,.file-command-dialog,.whats-new-v26) :is(h2,h3,h4){color:#fff;font-family:Roddenberry,Arial,sans-serif;letter-spacing:.06em;line-height:1.25}
+.lcars.theme-tos .content :is(h3,h4){font-size:18px}
+.lcars.theme-tos :is(.content,.resizable-popup,[role=dialog],[role=alertdialog],.display-menu,.overview-editor) :is(header>strong,header>b,article>i,header>i,button>i,button>em){border-radius:2px!important}
+.lcars.theme-tos :is(.content,.resizable-popup,[role=dialog],[role=alertdialog],.display-menu,.overview-editor) :is(header>strong,article>i){font-family:ui-monospace,monospace}
+.lcars.theme-tos .content :is(.utility-command-header,.software-command-header,.connectivity-command-header,.commissioning-hero,.system-control-toolbar,.console-cap,.update-summary,.version-stamp,.terminal-output,.file-explorer,.file-inspector,.lock-password-control,.utility-approval,.document-find,.document-recovery){border-left-width:0!important;border-bottom-width:1px!important;border-color:var(--tos-rule)!important;box-shadow:none!important;background:#000!important}
+.lcars.theme-tos .content :is(.utility-command-header,.software-command-header,.connectivity-command-header,.commissioning-hero,.portal-center>header,.system-control-matrix>header){min-height:52px;padding:8px 10px!important}
+.lcars.theme-tos .content :is(.utility-command-header,.software-command-header,.connectivity-command-header)>span>b{font:20px Roddenberry,Arial,sans-serif;color:#fff}
+.lcars.theme-tos :is(.commissioning-hero,.portal-center>header)>strong{background:#000!important;color:#fff4d4;border-radius:0!important;font:28px ui-monospace,monospace}
+.lcars.theme-tos :is(.commissioning-readiness>span,.file-properties div,.document-stage>aside dl div,.module-detail-strip>span,.health-grid>span){background:#000!important;border-radius:0!important;color:#fff}
+/* Caps use black legends. Disabled controls remain legible, with a dimmed lamp. */
+.lcars.theme-tos button:not([class*="theme-preview-"]):not(.nav,.brand,.clock,.app-launch-button,.all-apps,.tos-tray-key,.task-trigger,.power){
+  background-color:var(--tos-key-ivory)!important;background-image:var(--tos-key-sheen)!important;color:#080b0c!important;
+  border:3px solid #252d2f!important;border-radius:4px!important;
+  box-shadow:inset 0 1px 1px #fff9,inset 0 -2px 2px #0004,0 1px 0 #ffffff20!important;
+  font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:.035em;line-height:1.3;
+}
+.lcars.theme-tos button:not([class*="theme-preview-"]):not(.nav,.brand,.clock,.app-launch-button,.all-apps,.tos-tray-key,.task-trigger,.power) :is(b,small,span,i,em,strong){color:inherit!important}
+.lcars.theme-tos button:is(.active,.selected,.primary,[aria-selected="true"],[aria-pressed="true"]):not(.nav,.brand,.clock,[class*="theme-preview-"]){background-color:#f1bc5b!important;outline:1px solid #fff;outline-offset:-4px}
+.lcars.theme-tos button:is(.danger,.poweroff,.reboot){background-color:#e95740!important}
+.lcars.theme-tos button:disabled{opacity:.65;filter:saturate(.4);cursor:not-allowed}
+.lcars.theme-tos button:not(:disabled):hover{filter:brightness(1.1)}
+.lcars.theme-tos :is(button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid #fff!important;outline-offset:2px}
+/* The blue resin belongs to the hardware, never to screen graphics. */
+.lcars.theme-tos :is(.top>.command-button,.top>.audio,.mobile-command-bar>button:nth-child(3),.mobile-command-bar>button:nth-child(4),.tos-instrument-controls>button:nth-child(2)){background-color:var(--tos-key-blue)!important}
+.lcars.theme-tos :is(.content,.resizable-popup,[role=dialog],[role=alertdialog],.display-menu,.overview-editor) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]),select,textarea){border:2px inset #77817b!important;border-radius:2px!important;background:#000!important;color:#fff4d4!important;font-family:Arial,Helvetica,sans-serif}
+.lcars.theme-tos input:is([type=checkbox],[type=radio]){accent-color:#f1bc5b}
+.lcars.theme-tos input[type=range]{accent-color:#fff4d4}
+.lcars.theme-tos input[type=range]::-webkit-slider-thumb{background:#fff4d4!important;border:3px solid #49514f!important;border-radius:2px!important;box-shadow:inset 0 1px 0 #fff}
+/* Selector banks and command rows are mounted on continuous console material. */
+.lcars.theme-tos .content :is(.heading-actions,.overview-toolbar nav,.apps,.settings-area-tabs,.update-area-tabs,.file-mode-bar,.file-tab-bar,.file-path-bar,.file-tools,.terminal-tabs,.terminal-input,.system-control-tab-deck,.system-control-tabs,.system-control-toolbar,.media-console-tabs,.media-command-toolbar,.utility-modes,.utility-integrations>div,.software-modes,.software-inventory-command,.connectivity-modes,.connectivity-quick,.commissioning-tabs,.commissioning-actions,.portal-center>nav,.network-actions,.tos-instrument-controls),
+.lcars.theme-tos .resizable-popup :is(.universal-search-tabs,.computer-core-tabs,.operations-filters,.operations-routing,.routine-preview>nav,.power-confirm-actions){
+  background:var(--tos-frame-face)!important;border:0!important;border-top:3px solid var(--tos-frame-shadow)!important;border-bottom:3px solid #222b2d!important;padding:7px!important;box-shadow:inset 0 1px 0 #ffffff25!important;border-radius:0!important;
+}
+.lcars.theme-tos .content :is(.utility-modes,.software-modes,.connectivity-modes,.system-control-tabs,.portal-center>nav)>button>i{background:#0000!important;color:inherit!important;border-radius:0!important;font:10px ui-monospace,monospace}
+.lcars.theme-tos .tos-instrument-controls{grid-column:1/-1;display:flex;align-items:center;gap:10px}
+.lcars.theme-tos .tos-instrument-controls>span{font:italic 10px Roddenberry,Arial,sans-serif;color:#fff;margin-right:auto}
+.lcars.theme-tos .tos-instrument-controls>button{min-width:100px;min-height:34px;padding:5px 12px}
+/* Informational lists are black glass; discrete numbered keycaps carry the action. */
+.lcars.theme-tos :is(.power-options,.app-list,.universal-search-results,.portal-queue,.file-grid,.routine-center-layout>aside,.media-source-list) button{
+  background:#000!important;border:0!important;border-bottom:1px solid var(--tos-rule)!important;border-radius:0!important;box-shadow:none!important;color:#fff!important;text-align:left;
+}
+.lcars.theme-tos :is(.power-options,.app-list,.universal-search-results,.portal-queue,.file-grid,.media-source-list) button :is(b,small,span,em,strong){color:#fff!important}
+.lcars.theme-tos :is(.power-options,.app-list,.universal-search-results,.portal-queue,.file-grid) button>i{display:grid;place-items:center;min-width:34px;min-height:30px;border:4px solid var(--tos-frame-face)!important;border-radius:4px!important;background:var(--tos-key-sheen),var(--tos-key-ivory)!important;color:#000!important;box-shadow:inset 0 1px 0 #fff8;font:10px ui-monospace,monospace}
+.lcars.theme-tos :is(.power-options,.app-list,.portal-queue,.file-grid) button:nth-child(3n+2)>i{background-color:var(--tos-key-blue)!important}
+.lcars.theme-tos :is(.power-options,.app-list,.portal-queue,.file-grid) button:nth-child(3n)>i{background-color:#f1bc5b!important}
+.lcars.theme-tos .power-options{gap:12px;padding:12px;background:var(--tos-frame-face)!important}
+.lcars.theme-tos .power-options button{padding:7px 10px;grid-template-columns:44px minmax(0,1fr);gap:12px;background:var(--tos-frame-face)!important;border:0!important}
+.lcars.theme-tos .power-options button>i{min-height:34px}
+.lcars.theme-tos .power-options button small{font:11px/1.4 Arial,sans-serif}
+.lcars.theme-tos .power-options button:nth-child(2)>i,.lcars.theme-tos .power-options button:nth-child(3)>i{background-color:#e95740!important}
+/* Every LCARS-owned popup is a separate physical monitor, including permission dialogs. */
+.lcars.theme-tos :is(.resizable-popup,.file-command-dialog,.whats-new-v26,.mobile-command-sheet){
+  border:8px solid!important;border-color:var(--tos-frame-light) var(--tos-frame-shadow) var(--tos-frame-shadow) var(--tos-frame-mid)!important;
+  border-radius:0!important;background:#000!important;color:#fff;box-shadow:0 12px 35px #0009!important;padding:10px;
+}
+.lcars.theme-tos :is(.resizable-popup,.file-command-dialog,.whats-new-v26,.mobile-command-sheet)>header{
+  background:var(--tos-frame-face)!important;border:0!important;border-bottom:3px solid var(--tos-frame-shadow)!important;border-radius:0!important;color:#fff;padding:10px 12px!important;
+}
+.lcars.theme-tos :is(.resizable-popup,.file-command-dialog,.whats-new-v26)>header :is(h2,h3){font-size:24px;color:#fff;margin:5px 0}
+.lcars.theme-tos :is(.resizable-popup,.file-command-dialog,.whats-new-v26)>header :is(small,p){color:#fff4d4;font-family:Arial,sans-serif}
+.lcars.theme-tos .resizable-popup>.workspace-window-controls{background:var(--tos-frame-face)!important;border:0!important}
+.lcars.theme-tos .workspace-window-controls button{font:700 12px ui-monospace,monospace;min-height:24px}
+.lcars.theme-tos .resizable-popup>footer{background:var(--tos-frame-face)!important;padding:9px!important;border:0!important;border-top:3px solid var(--tos-frame-shadow)!important}
+.lcars.theme-tos .popup-resize-grip{background:repeating-linear-gradient(135deg,transparent 0 3px,#aeb6af 3px 5px)!important}
+.lcars.theme-tos :is(.backdrop,.file-command-scrim,.mobile-sheet-scrim){background:#0009!important;backdrop-filter:none}
+.lcars.theme-tos .detached :is(header,footer){-webkit-app-region:drag}
+.lcars.theme-tos .detached :is(button,input,select,textarea,a){-webkit-app-region:no-drag}
+.lcars.theme-tos.detached-peek-shell>.resizable-popup{border:0!important;padding:0!important;max-width:none!important;width:100%!important;max-height:none!important;height:100%!important}
+.lcars.theme-tos.detached-peek-shell>.document-v31{height:100%!important;min-height:0!important;background:#000!important;border:0!important}
+.lcars.theme-tos.detached-peek-shell .document-stage{min-height:0}
+.lcars.theme-tos .document-stage>aside{background:#000!important;border-left:1px solid var(--tos-rule)!important}
+.lcars.theme-tos :is(.first-run,.whats-new-v26) :is(.setup-progress,.setup-progress span,.setup-progress i){border-radius:2px!important}
+.lcars.theme-tos :is(.toast,.startup-telemetry,.compat-banner){background:#000!important;color:#fff;border:3px solid var(--tos-frame-mid)!important;border-radius:0!important;box-shadow:none}
+.lcars.theme-tos .lock-screen{border:8px solid var(--tos-frame-mid);background:#000!important}
+.lcars.theme-tos .lock-screen :is(header,footer){background:var(--tos-frame-face)!important;border:0!important}
+.lcars.theme-tos .lock-screen :is(header>div,footer>div){background:none!important}
+.lcars.theme-tos .renderer-recovery-panel{max-width:900px;margin:auto;padding:24px;background:#000}
+.lcars.theme-tos.renderer-recovery{height:auto;min-height:100vh;overflow:auto;padding:20px}
+.lcars.theme-tos.renderer-recovery h1{font:30px Roddenberry,Arial,sans-serif;color:#fff}
+/* Restore the familiar compact key bank; labels do not split into stray letters. */
+.lcars.theme-tos .tos-navigation-bank{gap:8px 6px;padding:7px 0;scrollbar-color:#c9b993 var(--tos-frame-face);scrollbar-gutter:stable}
+.lcars.theme-tos .tos-navigation-bank .nav{padding:0 0 4px!important;gap:4px;min-height:59px}
+.lcars.theme-tos .tos-navigation-bank .nav span{font-size:7px;letter-spacing:0;white-space:nowrap;overflow-wrap:normal}
+.lcars.theme-tos .tos-instrument-bank{flex:0 0 auto;min-height:24px;max-height:24px}
+.lcars.theme-tos .tos-instrument-bank>div{flex:0 0 auto}
+.lcars.theme-tos .tos-instrument-bank i{flex:0 0 auto}
+.lcars.theme-tos :is(.tos-load-screen,.tos-allocation-screen){cursor:default}
+.lcars.theme-tos .tos-numeric-bank>article{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;align-items:center;gap:4px 8px;min-height:55px;padding:3px;border:0!important;background:#000!important}
+.lcars.theme-tos .tos-numeric-bank>article>span{grid-column:2;display:flex;gap:5px;align-items:center;font:700 9px Arial,sans-serif}
+.lcars.theme-tos .tos-numeric-bank>article strong{grid-column:1;grid-row:1/3;background:#fff4d4;color:#000;font:700 25px ui-monospace,monospace;padding:4px 7px;min-width:66px}
+.lcars.theme-tos .tos-numeric-bank>article:nth-child(2) strong{background:#f1bc5b}
+.lcars.theme-tos .tos-numeric-bank>article strong small{color:#000;font-size:12px}
+.lcars.theme-tos .tos-numeric-bank>article em{grid-column:2;color:#fff;font:8px Arial,sans-serif;overflow:hidden;text-overflow:ellipsis}
+.lcars.theme-tos .tos-numeric-bank>article i{font:8px ui-monospace,monospace}
+/* Accessibility is independent of palette; keep labels and state marks explicit. */
+.lcars.theme-tos.accessibility-contrast{--tos-rule:#c6c8c1;--muted:#fff}
+.lcars.theme-tos.accessibility-contrast :is(.content,.resizable-popup,[role=dialog],[role=alertdialog],.display-menu,.overview-editor) :is(p,small,label){color:#fff}
+.lcars.theme-tos.accessibility-contrast button:not(:disabled) :is(small,b,span,i,em){color:inherit!important}
+.lcars.theme-tos.color-safe button:is(.active,.selected,[aria-selected=true]){outline:3px double #fff;outline-offset:1px}
+.lcars.theme-tos.reduced-motion :is(button,.resizable-popup){transition:none;animation:none}
+@media(prefers-reduced-motion:reduce){.lcars.theme-tos :is(button,.resizable-popup){transition:none;animation:none}}
+@media(max-width:900px){.lcars.theme-tos .tos-numeric-bank>article{grid-template-columns:1fr}.lcars.theme-tos .tos-numeric-bank>article :is(span,strong,em){grid-column:1;grid-row:auto}}
+@media(max-width:760px),(max-width:900px) and (orientation:landscape) and (max-height:520px){
+  .lcars.theme-tos .tos-monitor{padding:4px}
+  .lcars.theme-tos :is(.resizable-popup,.file-command-dialog,.whats-new-v26,.mobile-command-sheet){border-width:6px!important;padding:6px}
+  .lcars.theme-tos .resizable-popup>header :is(h2,h3){font-size:20px}
+  .lcars.theme-tos .tos-instrument-controls{flex-wrap:wrap;gap:6px}
+  .lcars.theme-tos .tos-instrument-controls>span{width:100%}
+  .lcars.theme-tos .tos-instrument-controls>button{min-width:0;flex:1}
+  .lcars.theme-tos .tos-numeric-bank>article strong{font-size:18px;min-width:0}
+  .lcars.theme-tos .tos-numeric-bank>article em{font-size:7px}
+  .lcars.theme-tos .mobile-command-sheet{background:var(--tos-frame-face)!important}
+}
+/* Preserve numeric legends against the dark sockets in the outer hardware. */
+.lcars.theme-tos .top .header-operator>i,.lcars.theme-tos .system-tray.speed-dial button>i{background:#000!important;color:#fff4d4!important;border-radius:2px!important}
+.lcars.theme-tos .settings-themes>button{border:1px solid #747c77!important;border-radius:2px!important;background:#000!important;color:#fff!important}
+.lcars.theme-tos .settings-themes>button.active{border-color:#fff4d4!important}
+.lcars.theme-tos :is(.content,.resizable-popup,[role=dialog],[role=alertdialog],.display-menu,.overview-editor) :is(.online,.ok,.connected,.ready,.enabled,.granted){color:#fff4d4}
+.lcars.theme-tos.detached-peek-shell :is(.document-v31,.speed-dial-page-peek)>header{-webkit-app-region:drag}
+.lcars.theme-tos.detached-peek-shell :is(button,input,select,textarea,a){-webkit-app-region:no-drag}
+.lcars.theme-tos :is(.routine-center,.routine-preview,.universal-search,.computer-core-console,.operator-center,.lcars-calendar,.first-run,.overview-editor,.display-menu,.compat-center){border:8px solid!important;border-color:var(--tos-frame-light) var(--tos-frame-shadow) var(--tos-frame-shadow) var(--tos-frame-mid)!important;border-radius:0!important;background:#000!important;color:#fff;box-shadow:0 12px 35px #0009!important}
+.lcars.theme-tos :is(.routine-center,.routine-preview,.universal-search,.computer-core-console,.operator-center,.lcars-calendar,.first-run,.overview-editor,.display-menu,.compat-center)>header{background:var(--tos-frame-face)!important;border:0!important;border-bottom:3px solid var(--tos-frame-shadow)!important;padding:10px 12px!important}
+/* Connected station layout. Existing controls render on the adjoining physical deck. */
+.lcars.theme-tos .tos-station{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;overflow:hidden;background:var(--tos-frame-face)}
+.lcars.theme-tos .tos-station>.tos-monitor{flex:1 1 auto;min-height:0;min-width:0}
+.lcars.theme-tos .tos-command-deck.tos-command-deck{container-type:inline-size;--tos-key-width:clamp(100px,calc((100cqw - 100px)/6),128px);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));align-content:start;align-items:start;gap:9px 10px;flex:0 0 auto;min-width:0;max-height:35dvh;overflow:auto;padding:10px;background:var(--tos-frame-face)!important;border:0!important;border-top:6px solid var(--tos-frame-shadow)!important;box-shadow:inset 0 1px 0 #ffffff30;scrollbar-width:thin;scrollbar-color:#c9b993 var(--tos-frame-face)}
+.lcars.theme-tos .tos-command-deck:empty{display:none}
+.lcars.theme-tos .tos-command-deck>.tos-control-group{display:flex;flex-direction:column;gap:5px;grid-column:span 6!important;min-width:0;margin:0;padding:3px 7px 5px;background:transparent!important;border:0!important;border-left:1px solid #6b7570!important;border-radius:0!important;box-shadow:none}
+.lcars.theme-tos .tos-control-group>h4{margin:0;padding:0;color:#fff4d4;font:italic 700 9px/1.3 Roddenberry,Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.lcars.theme-tos .tos-control-group>.tos-command-bank{display:grid;grid-template-columns:repeat(3,var(--tos-key-width))!important;justify-content:space-between;align-items:start;gap:5px;width:100%;max-width:100%;min-width:0;padding:0;background:transparent!important;border:0!important;box-shadow:none}
+.lcars.theme-tos .tos-control-group:has(>.tos-command-bank>button:nth-child(6)),.lcars.theme-tos .tos-control-group:has(>.tos-command-bank>nav>button:nth-child(6)){grid-column:1/-1!important}
+.lcars.theme-tos .tos-control-group:has(>.tos-command-bank>button:nth-child(6))>.tos-command-bank,.lcars.theme-tos .tos-control-group:has(>.tos-command-bank>nav>button:nth-child(6))>.tos-command-bank{grid-template-columns:repeat(6,var(--tos-key-width))!important}
+.lcars.theme-tos .tos-control-group:has(>.tos-command-bank>button:only-child){grid-column:span 3!important}
+.lcars.theme-tos .tos-control-group:has(>.tos-command-bank>button:only-child)>.tos-command-bank{grid-template-columns:minmax(0,1fr)!important}
+.lcars.theme-tos .tos-command-bank>nav{display:contents!important;background:transparent!important;border:0!important;box-shadow:none!important}
+.lcars.theme-tos .tos-command-bank>button,.lcars.theme-tos .tos-command-bank>nav>button{display:flex;align-items:center;justify-content:center;gap:6px;flex:0 1 auto;width:var(--tos-key-width)!important;min-width:0;max-width:none;height:46px!important;min-height:46px!important;max-height:46px!important;margin:0;padding:6px 8px;background-color:#fff4d4!important;background-image:var(--tos-key-sheen)!important;color:#080b0c!important;border:3px solid #20292c!important;border-radius:4px!important;box-shadow:inset 0 1px 1px #fff9,inset 0 -2px 2px #0004,0 1px 0 #ffffff20!important;font:700 9px/1.3 Arial,sans-serif!important;letter-spacing:.035em;white-space:normal;overflow-wrap:normal;word-break:normal;text-align:center}
+.lcars.theme-tos .tos-command-bank>button :is(b,span,small,i,em),.lcars.theme-tos .tos-command-bank>nav>button :is(b,span,small,i,em){color:#080b0c!important}
+.lcars.theme-tos .tos-command-bank>button>span,.lcars.theme-tos .tos-command-bank>nav>button>span{display:grid;gap:2px;min-width:0;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+.lcars.theme-tos .tos-command-bank>button>i,.lcars.theme-tos .tos-command-bank>nav>button>i{flex:0 0 14px;width:14px;min-width:0;min-height:0;background:transparent!important;border:0!important;border-radius:0!important;font:9px ui-monospace,monospace;box-shadow:none!important}
+.lcars.theme-tos .tos-command-bank>button:nth-child(5n+2):not(.active,.selected,.danger),.lcars.theme-tos .tos-command-bank>nav>button:nth-child(5n+2):not(.active,.selected,.danger){background-color:var(--tos-key-blue)!important}
+.lcars.theme-tos .tos-command-bank>button:is(.active,.selected,.primary,[aria-pressed=true],[aria-selected=true]),.lcars.theme-tos .tos-command-bank>nav>button:is(.active,.selected){background-color:#f1bc5b!important;outline:1px solid #fff;outline-offset:-3px}
+.lcars.theme-tos .tos-command-bank>button.danger{background-color:#e95740!important}
+.lcars.theme-tos .tos-command-bank>button:disabled{opacity:.65;filter:saturate(.4)}
+.lcars.theme-tos .tos-control-group:has(>.tos-command-bank>button:only-child)>.tos-command-bank>button{width:100%!important;height:32px!important;min-height:32px!important;max-height:32px!important}
+.lcars.theme-tos .tos-command-bank button img{width:24px;height:24px;object-fit:contain}
+.lcars.theme-tos .tos-control-group:has(>.tos-command-bank>label)>.tos-command-bank{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.lcars.theme-tos .tos-command-bank>label{display:grid;gap:5px;min-width:0;max-width:none;margin:0;padding:3px;color:#fff;font:11px/1.4 Arial,sans-serif;background:transparent!important}
+.lcars.theme-tos .tos-command-bank label :is(small,b){color:#fff}
+.lcars.theme-tos .tos-command-bank>label.lcars-toggle{grid-template-columns:56px minmax(0,1fr)!important;min-height:44px;align-items:start}
+.lcars.theme-tos .tos-command-bank :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){min-width:100px;max-width:100%;border:2px inset #7f8986!important;border-radius:2px!important;background:#000!important;color:#fff4d4!important;padding:7px;font:12px/1.4 Arial,sans-serif}
+.lcars.theme-tos .tos-command-bank>textarea{width:min(100%,600px);min-height:80px;max-height:22dvh;resize:vertical;grid-column:1/-1}
+.lcars.theme-tos .tos-control-group:has(>.tos-command-bank>form){grid-column:1/-1!important}
+.lcars.theme-tos .tos-command-bank>form{display:flex;flex-wrap:wrap;gap:7px;align-items:center;grid-column:1/-1;padding:0;background:transparent}
+.lcars.theme-tos .tos-command-bank>form>button{width:var(--tos-key-width)!important;min-width:0;max-width:var(--tos-key-width);height:46px!important;min-height:46px!important;max-height:46px!important;font:700 9px/1.3 Arial,sans-serif!important}
+.lcars.theme-tos .tos-command-bank :is(a,.import-config){display:block;min-height:32px;padding:7px 10px;border:3px solid #20292c;border-radius:3px!important;background:var(--tos-key-sheen),#fff4d4;color:#000;text-align:center;font:700 10px/1.3 Arial,sans-serif;text-decoration:none}
+/* Horizontal captain's-chair rocker faces. */
+.lcars.theme-tos .lcars-toggle>i{width:46px;height:27px;border-radius:1px;margin-top:2px;border:2px solid;border-color:#818a82 #13191b #13191b #818a82;background:#090c0d;box-shadow:inset 0 0 0 1px #000}
+.lcars.theme-tos .lcars-toggle>i::after{content:"";left:3px;top:2px;width:36px;height:19px;border-radius:1px;background:linear-gradient(90deg,#b6b9ac 0 48%,#6e756d 48% 51%,#fff4d4 51%);transform:perspective(70px) rotateY(14deg);box-shadow:-2px 0 0 #7a8177,inset 0 1px 0 #fff8}
+.lcars.theme-tos .lcars-toggle input:checked+i::after{background:linear-gradient(90deg,#fff4d4 0 48%,#6e756d 48% 51%,#b6b9ac 51%);transform:perspective(70px) rotateY(-14deg);box-shadow:2px 0 0 #7a8177,inset 0 1px 0 #fff8}
+.lcars.theme-tos .lcars-toggle>i::before{top:29px;left:0;width:42px;font:700 8px/1 Arial,sans-serif;letter-spacing:.08em}
+/* Read-only information and window layout. */
+.lcars.theme-tos .tos-monitor>.content{display:flex;flex-direction:column;gap:6px;min-height:0;overflow:auto!important}
+.lcars.theme-tos .tos-monitor>.content>.heading{flex:0 0 auto}
+.lcars.theme-tos .tos-monitor>.content>:is(.files-v31,.document-v31,.daily-utilities,.software-logistics,.connectivity-hardware,.system-control-matrix,.portal-center,.media-console){flex:1 1 auto;height:auto!important;min-height:0!important}
+.lcars.theme-tos .tos-monitor>.content>.files-v31{overflow:hidden!important}
+.lcars.theme-tos .tos-monitor .file-browser-body{min-height:0;overflow:auto;flex:1}
+.lcars.theme-tos .tos-monitor .content :is(nav,div,section):empty{display:none!important}
+.lcars.theme-tos .tos-monitor .content .apps{background:#000!important;border:0!important;padding:0!important;box-shadow:none!important}
+.lcars.theme-tos .tos-monitor .heading-actions:has(>span:only-child){background:#000!important;border:0!important;box-shadow:none!important;padding:0!important}
+.lcars.theme-tos .content :is(header,.commissioning-hero)>div>:is(b,h2){font:22px/1.2 Roddenberry,Arial,sans-serif;color:#fff}
+.lcars.theme-tos .tos-display-choice{color:#fff;background:#000!important;border:0!important;border-bottom:1px solid var(--tos-rule)!important;padding:7px;text-align:left;font:12px/1.4 Arial,sans-serif}
+.lcars.theme-tos .tos-display-choice.selected{border-left:3px solid #fff4d4!important}
+.lcars.theme-tos .tos-display-choice.tos-display-choice :is(i,em){background:#000!important;color:#fff4d4!important;border:0!important;border-radius:0!important;box-shadow:none!important;font-style:normal}
+.lcars.theme-tos .tos-display-choice img{filter:grayscale(1)}
+.lcars.theme-tos .file-grid>.tos-display-choice{display:grid;grid-template-columns:20px 38px minmax(0,1fr);align-items:center;gap:7px;min-height:54px}
+.lcars.theme-tos .tos-display-choice>span{min-width:0;overflow-wrap:anywhere}
+.lcars.theme-tos .tos-display-choice>span :is(b,small){display:block}
+.lcars.theme-tos .tos-document-information{white-space:pre-wrap;overflow:auto;min-height:120px;padding:12px;color:#fff4d4;background:#000;font:13px/1.5 ui-monospace,monospace}
+.lcars.theme-tos :is(.resizable-popup,[role=dialog],[role=alertdialog],.display-menu,.overview-editor):has(>.tos-command-deck){display:flex!important;flex-direction:column;min-height:0;overflow:hidden!important}
+.lcars.theme-tos :is(.resizable-popup,[role=dialog],[role=alertdialog],.display-menu,.overview-editor):has(>.tos-command-deck)>:not(header,.tos-command-deck,.popup-resize-edge,.popup-resize-corner,.popup-resize-grip){min-height:0;overflow:auto;flex:1 1 auto}
+.lcars.theme-tos :is(.resizable-popup,[role=dialog],[role=alertdialog])>.tos-command-deck{margin-top:auto;max-height:36dvh}
+.lcars.theme-tos.detached-peek-shell>.tos-station{width:100%;height:100%;min-height:0}
+.lcars.theme-tos.detached-peek-shell .tos-station>.tos-monitor{border:0;padding:0}
+.lcars.theme-tos .tos-command-deck .workspace-window-controls{position:static!important;display:flex;gap:4px;background:transparent!important}
+.lcars.theme-tos .top button.header-operator>i{color:#fff4d4!important}
+@media(max-width:760px),(max-width:900px) and (orientation:landscape) and (max-height:520px){
+ .lcars.theme-tos .tos-command-deck{--tos-key-width:clamp(90px,calc((100cqw - 44px)/3),128px);grid-template-columns:repeat(6,minmax(0,1fr));padding:6px;gap:6px;max-height:33dvh;border-top-width:4px!important}
+ .lcars.theme-tos .tos-command-deck>.tos-control-group{grid-column:1/-1!important}
+ .lcars.theme-tos .tos-control-group:has(>.tos-command-bank>button:only-child){grid-column:span 3!important}
+ .lcars.theme-tos .tos-control-group:has(>.tos-command-bank>button:nth-child(6))>.tos-command-bank,.lcars.theme-tos .tos-control-group:has(>.tos-command-bank>nav>button:nth-child(6))>.tos-command-bank{grid-template-columns:repeat(3,var(--tos-key-width))!important}
+ .lcars.theme-tos .tos-control-group:has(>.tos-command-bank>label)>.tos-command-bank{grid-template-columns:1fr!important}
+}
+/* Form fields are readable at the bank width; theme selectors use concise key legends. */
+.lcars.theme-tos .tos-command-bank>:is(input,select,textarea){grid-column:1/-1;width:100%}
+.lcars.theme-tos .tos-command-bank button[class*="theme-preview-"] .theme-preview-screen{display:none!important}
+.lcars.theme-tos .tos-command-bank button[class*="theme-preview-"] .theme-preview-copy :is(small,p,code,strong){display:none!important}
+.lcars.theme-tos .tos-command-bank button[class*="theme-preview-"] .theme-preview-copy b{font:700 9px/1.3 Arial,sans-serif!important;letter-spacing:.02em}
+@container(max-width:700px){
+ .lcars.theme-tos .tos-command-deck>.tos-control-group{--tos-key-width:clamp(90px,calc((100cqw - 44px)/3),128px);grid-column:1/-1!important}
+ .lcars.theme-tos .tos-control-group:has(>.tos-command-bank>button:nth-child(6))>.tos-command-bank,.lcars.theme-tos .tos-control-group:has(>.tos-command-bank>nav>button:nth-child(6))>.tos-command-bank{grid-template-columns:repeat(3,var(--tos-key-width))!important}
+}
+.lcars.theme-tos .tos-control-group:has(.lcars-calendar-grid){grid-column:1/-1!important}
+.lcars.theme-tos .tos-control-group:has(.lcars-calendar-grid)>.tos-command-bank{grid-template-columns:1fr!important}
+.lcars.theme-tos .tos-command-deck .lcars-calendar-grid{grid-column:1/-1;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;border:0!important;border-radius:0!important;padding:0;background:transparent!important}
+.lcars.theme-tos .tos-command-deck .lcars-calendar-grid>button{width:100%;min-width:0;min-height:46px;height:46px;border-radius:3px!important;font:700 11px ui-monospace,monospace}
+.lcars.theme-tos .tos-command-deck .lcars-calendar-grid>i{color:#fff;font:9px Arial,sans-serif;text-align:center}
+.lcars.theme-tos .tos-command-deck label[data-console-toggle]:has(>input[type=checkbox]){position:relative;display:grid;grid-template-columns:56px minmax(0,1fr);gap:6px;min-height:44px;align-items:start}
+.lcars.theme-tos .tos-command-deck label[data-console-toggle]>input[type=checkbox]{appearance:none;position:relative;opacity:1;display:block;width:46px;height:27px;min-width:46px;min-height:27px;margin:0;border:4px solid #20292c;border-radius:1px;background:linear-gradient(90deg,#b6b9ac 0 48%,#6e756d 48% 51%,#fff4d4 51%);box-shadow:inset 0 1px 1px #fff8}
+.lcars.theme-tos .tos-command-deck label[data-console-toggle]>input[type=checkbox]:checked{background:linear-gradient(90deg,#fff4d4 0 48%,#6e756d 48% 51%,#b6b9ac 51%)}
+.lcars.theme-tos .tos-command-deck label[data-console-toggle]>input[type=checkbox]::after{content:"OFF";position:absolute;left:-4px;top:25px;width:46px;color:#fff;text-align:center;font:700 8px/1 Arial,sans-serif}
+.lcars.theme-tos .tos-command-deck label[data-console-toggle]>input[type=checkbox]:checked::after{content:"ON"}
+.lcars.theme-tos .integrated-media-hud{opacity:1!important;visibility:visible!important;transform:none!important;background:#000!important}
+/* Existing application prompts use an owned console, without touching OS security dialogs. */
+.lcars.theme-tos.tos-dialog-host{position:fixed;inset:0;z-index:10000;min-height:0;height:100dvh;border:0!important;padding:0!important;background:transparent!important;box-shadow:none!important}
+.lcars.theme-tos.tos-dialog-host::after{display:none}
+.lcars.theme-tos .tos-prompt-dialog{display:flex;flex-direction:column;width:min(660px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:0;border:8px solid;border-color:var(--tos-frame-light) var(--tos-frame-shadow) var(--tos-frame-shadow) var(--tos-frame-mid);background:#000;color:#fff}
+.lcars.theme-tos .tos-prompt-dialog>header{background:var(--tos-frame-face)!important;padding:12px;border:0!important}
+.lcars.theme-tos .tos-prompt-dialog h2{margin:4px 0;font:24px Roddenberry,Arial,sans-serif;color:#fff}
+.lcars.theme-tos .tos-prompt-dialog>p{white-space:pre-wrap;overflow:auto;min-height:80px;margin:0;padding:20px;font:13px/1.5 Arial,sans-serif;color:#fff4d4}
+.lcars.theme-tos .tos-prompt-dialog .tos-command-bank>input{grid-column:1/-1}
+.lcars.theme-tos .tos-prompt-dialog .tos-command-bank>button{height:46px!important;min-height:46px!important;max-height:46px!important}
+
+/* Printed key legends use the same scale regardless of their source page. */
+.lcars.theme-tos .tos-command-bank>button :is(b,strong),.lcars.theme-tos .tos-command-bank>nav>button :is(b,strong){font:inherit!important;letter-spacing:inherit!important}
+.lcars.theme-tos .tos-command-bank>button small,.lcars.theme-tos .tos-command-bank>nav>button small{font:8px/1.15 Arial,sans-serif!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden!important}
+
+.lcars.theme-tos .tos-command-bank>button :is(span,b,strong,small),.lcars.theme-tos .tos-command-bank>nav>button :is(span,b,strong,small){width:auto!important;min-width:0!important;max-width:none!important;padding:0!important;white-space:normal!important;text-overflow:clip!important}
+.lcars.theme-tos .tos-command-bank>button :is(b,strong),.lcars.theme-tos .tos-command-bank>nav>button :is(b,strong){overflow:visible!important}

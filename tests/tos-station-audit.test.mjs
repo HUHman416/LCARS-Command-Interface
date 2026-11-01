@@ -1,0 +1,85 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire} from 'node:module';
+import {runInNewContext} from 'node:vm';
+import ts from 'typescript';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {startupSoundAsset} from '../app/tos-audio.ts';
+const require=createRequire(import.meta.url);
+const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const main=read('desktop/main.cjs'),page=read('app/page.tsx');
+const dialogExports={};
+runInNewContext(ts.transpileModule(read('app/console-dialogs.ts'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:dialogExports});
+const consoleRequire=name=>name==='./console-dialogs'?dialogExports:require(name);
+
+const bootstrap=runInNewContext(main.slice(main.indexOf('const startupAudioBootstrap='),main.indexOf('function createWindow'))+';startupAudioBootstrap');
+function audioHarness(theme,prefs={}){
+ const values=new Map([['lcars-theme',theme],['lcars-shell-prefs',JSON.stringify(prefs)]]),made=[],assets=[],revoked=[];
+ class Audio{constructor(url){this.url=url;this.plays=0;this.pauses=0;made.push(this);}async play(){this.plays++;}pause(){this.pauses++;}}
+ class AudioURL extends URL{static createObjectURL(){return 'blob:'+made.length;}static revokeObjectURL(url){revoked.push(url);}}
+ const window={location:{href:'lcars://app/index.html'},addEventListener(){},dispatchEvent(){}};
+ runInNewContext(bootstrap,{window,Audio,URL:AudioURL,CustomEvent:class{constructor(type,props){this.type=type;this.detail=props.detail;}},localStorage:{getItem:key=>values.get(key)||null},fetch:async asset=>{assets.push(asset);return{ok:true,blob:async()=>({type:'audio/mpeg'})};}});
+ return{window,values,made,assets,revoked};
+}
+test('startup chooses the TOS fade recording and preserves mute, once-only playback, and forced testing',async()=>{
+ const h=audioHarness('tos');
+ assert.equal((await h.window.__lcarsPlayStartupSound()).status,'PLAYING');
+ assert.match(h.assets[0],/tos-startup-10s\.mp3$/);assert.equal(h.made[0].volume,.42);
+ assert.equal((await h.window.__lcarsPlayStartupSound()).status,'ALREADY PLAYED');assert.equal(h.made[0].plays,1);
+ await h.window.__lcarsPlayStartupSound(true);assert.equal(h.made.length,1);assert.equal(h.made[0].plays,2);
+ h.values.set('lcars-theme','classic');await h.window.__lcarsPlayStartupSound(true);
+ assert.match(h.assets[1],/power-up\.mp3$/);assert.equal(h.made.length,2);assert.equal(h.revoked.length,1);
+ const muted=audioHarness('tos',{startupSound:false});assert.equal((await muted.window.__lcarsPlayStartupSound()).status,'DISABLED');assert.equal(muted.assets.length,0);
+ await muted.window.__lcarsPlayStartupSound(true);assert.equal(muted.assets.length,1);
+ for(const family of ['classic','voyager','nemesis','picard','lower-decks','defiant',null])assert.equal(startupSoundAsset(family),'assets/sounds/power-up.mp3');
+ assert.ok(readFileSync(new URL('../public/'+startupSoundAsset('tos'),import.meta.url)).length>10000);
+});
+test('real page-shortcut handler plays one cue for number/numpad navigation and command shortcuts',()=>{
+ const start=page.indexOf('    const key = (e: KeyboardEvent) => {'),end=page.indexOf('    window.addEventListener("keydown", key, true);',start);
+ assert.ok(start>=0&&end>start);
+ const calls=[],context={visibleNav:[['overview'],['terminal'],['files']],shortcutTargetIsEditable:target=>Boolean(target?.editable),setSection:value=>calls.push(['section',value]),setPaletteOpen:value=>calls.push(['palette',value]),playTosKey:()=>calls.push(['sound']),setComputerSeed(){},setComputerSource(){},setComputerVoiceAuthorized(){},setComputerOpen(){},setPaletteQuery(){},setLocked(){}};
+ const handler=runInNewContext(ts.transpileModule(page.slice(start,end)+';key;',{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText,context);
+ const event=(code,key,extra={})=>({code,key,ctrlKey:false,metaKey:false,altKey:false,shiftKey:false,repeat:false,target:null,preventDefault(){},...extra});
+ handler(event('Digit3','3'));assert.deepEqual(calls,[['section','files'],['palette',false],['sound']]);calls.length=0;
+ handler(event('Numpad2','2'));assert.equal(calls.filter(x=>x[0]==='sound').length,1);calls.length=0;
+ handler(event('Digit1','1',{repeat:true}));assert.equal(calls.some(x=>x[0]==='sound'),false);calls.length=0;
+ handler(event('Digit2','2',{target:{editable:true}}));assert.equal(calls.length,0);
+ handler(event('KeyF','f',{ctrlKey:true}));handler(event('KeyK','k',{ctrlKey:true}));assert.equal(calls.filter(x=>x[0]==='sound').length,2);
+});
+test('only an explicitly themed LCARS-owned detached document or peek loses native window chrome',()=>{
+ const {isTosDetachedWorkspace}=require('../desktop/tos-window.cjs');
+ assert.equal(isTosDetachedWorkspace('lcars://app/index.html?tool=document&console=tos&path=%2Ftmp%2Fnote.txt'),true);
+ assert.equal(isTosDetachedWorkspace('lcars://app/index.html?tool=page-peek&console=tos&page=overview'),true);
+ for(const value of ['https://example.com/?tool=document&console=tos','lcars://other/index.html?tool=document&console=tos','lcars://app/index.html?tool=document','lcars://app/index.html?tool=unknown&console=tos','invalid'])assert.equal(isTosDetachedWorkspace(value),false,value);
+ assert.match(read('electron-builder.yml'),/desktop\/tos-window\.cjs/);
+});
+test('other families retain native controls and TOS information renders without screen buttons',()=>{
+ const source=ts.transpileModule(read('app/tos-console.tsx'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+ const exports={};runInNewContext(source,{exports,require:consoleRequire,URLSearchParams});
+ const {ConsoleThemeProvider,ConsoleDisplay,ConsoleButton,ConsoleControls}=exports;
+ const tree=tos=>React.createElement(ConsoleThemeProvider,{tos},React.createElement(ConsoleDisplay,{tos},React.createElement('section',null,React.createElement('p',null,'CURRENT INFORMATION'),React.createElement(ConsoleControls,null,React.createElement(ConsoleButton,null,'COMMAND')),React.createElement(ConsoleButton,{consoleChoice:true},React.createElement('span',null,'DOCUMENT NAME')))));
+ const classic=renderToStaticMarkup(tree(false));assert.equal(classic,'<section><p>CURRENT INFORMATION</p><button>COMMAND</button><button><span>DOCUMENT NAME</span></button></section>');
+ const tos=renderToStaticMarkup(tree(true));assert.match(tos,/tos-monitor/);assert.match(tos,/CURRENT INFORMATION/);assert.match(tos,/DOCUMENT NAME/);assert.doesNotMatch(tos,/<button/);
+ const url=exports.detachedWorkspaceUrl('document',{path:'/tmp/a b.txt'},true);assert.equal(new URL(url).searchParams.get('path'),'/tmp/a b.txt');assert.equal(new URL(url).searchParams.get('console'),'tos');
+});
+test('the integrated media station renders its empty state without an undefined drag flag',()=>{
+ const exports={};runInNewContext(ts.transpileModule(read('app/tos-console.tsx'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,require:consoleRequire,URLSearchParams});
+ const start=page.indexOf('const formatMediaTime ='),end=page.indexOf('function MediaConsole(',start);
+ const playerSource=ts.transpileModule(page.slice(start,end)+';exports.Player=IntegratedLcarsPlayer;',{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+ const result={};runInNewContext(playerSource,{exports:result,require,...exports,useState:React.useState,useRef:React.useRef,useEffect:React.useEffect});
+ const html=renderToStaticMarkup(React.createElement(result.Player,{notify(){},event(){},request:null,browse(){}}));
+ assert.match(html,/OPEN AUDIO OR VIDEO/);assert.match(html,/integrated-media-stage paused/);
+});
+test('themed prompts wait for an operator decision and cancel safely when their host closes',async()=>{
+ let tos=true;const received=[],native=[];const exports={};
+ const code=ts.transpileModule(read('app/console-dialogs.ts'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+ runInNewContext(code,{exports,document:{querySelector:()=>tos?{}:null},window:{prompt:(...args)=>{native.push(['prompt',...args]);return 'native name';},confirm:()=>{native.push(['confirm']);return true;},alert:message=>native.push(['alert',message])}});
+ const unsubscribe=exports.subscribeConsoleDialogs(item=>received.push(item));
+ let completed=false;const permission=exports.consoleConfirm('Grant module capabilities?').then(value=>{completed=true;return value;});
+ await Promise.resolve();assert.equal(completed,false);assert.equal(native.length,0);received[0].finish(null);assert.equal(await permission,false);
+ const name=exports.consolePrompt('Workstation name','Current name');assert.equal(received[1].initial,'Current name');received[1].finish('Bridge watch');assert.equal(await name,'Bridge watch');
+ const pending=exports.consoleConfirm('Continue routine?');unsubscribe();assert.equal(await pending,false);
+ tos=false;assert.equal(await exports.consolePrompt('Rename'),'native name');assert.equal(await exports.consoleConfirm('Confirm'),true);assert.equal(native.length,2);
+});

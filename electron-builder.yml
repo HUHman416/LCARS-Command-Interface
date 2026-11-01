@@ -5,6 +5,7 @@ directories:
   output: release-desktop
 files:
   - desktop/main.cjs
+  - desktop/tos-window.cjs
   - desktop-dist/**/*
   - package.json
   - '!node_modules/**/*'

@@ -37,8 +37,8 @@ test("Version 30.14 preserves integrated file streaming and all Continuum roles 
   assert.match(home,/Intent\.ACTION_DOCK_EVENT/);
   assert.match(companion,/setContinuumRole/);
   assert.match(padd,/continuumRole/);
-  assert.equal(JSON.parse(pkg).version,"31.5.6");
-  assert.match(gradle,/versionCode 3105006/);
+  assert.equal(JSON.parse(pkg).version,"31.5.7");
+  assert.match(gradle,/versionCode 3105007/);
   assert.match(workflow,/gh release (?:view|create) v30\.14/);
   assert.match(workflow,/LCARS-Mobile-Environment-v30\.14-Android\.apk/);
 });

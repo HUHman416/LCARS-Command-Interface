@@ -1,7 +1,9 @@
 "use client";
-import { createTosKeyPlayer, createTosEventPlayer, isTosCancelKey } from "./tos-audio";
+
+import { createTosKeyPlayer, createTosEventPlayer, isTosCancelKey, startupSoundAsset } from "./tos-audio";
+import { consolePrompt, consoleConfirm } from "./console-dialogs";
 import { TosLoadInstrument } from "./tos-instruments";
-import { ConsoleDisplay } from "./tos-console";
+import { ConsoleVideo, ConsoleDisplay, detachedWorkspaceUrl, ConsoleControls, ConsoleButton, ConsoleThemeProvider, ConsoleField, ConsoleTextarea, ConsoleWindowControls, ConsoleGroup, ConsoleDisclosure, ConsoleSelect, ConsoleLink } from "./tos-console";
 import { Component, useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import lcarsEmblem from "../desktop/icons/512x512.png";
@@ -71,7 +73,7 @@ import { DocumentWorkspace as DocumentWorkspaceV31, FileExplorer as FileExplorer
 import { DailyUtilities } from "./v31-utilities";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="31.5.6";
+const LCARS_VERSION="31.5.7";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -335,7 +337,7 @@ const widgetInfo: Record<BuiltinWidgetId, { name: string; description: string }>
 };
 const defaultWidgets: WidgetId[] = ["system", "favorites", "operations"];
 const themes = [
-  {id:"tos",name:"Enterprise · The Original Series",code:"NCC-1701",era:"2266–2269",family:"CONSTITUTION-CLASS",description:"A beveled console housing, black screen with blue trim, resin keys, and physical rocker switches."},
+  {id:"tos",name:"Enterprise · The Original Series",code:"NCC-1701",era:"2266–2269",family:"CONSTITUTION-CLASS",description:"Black information displays, connected physical key decks, and horizontal captain’s-chair rocker switches."},
   {id:"classic",name:"Enterprise-D",code:"NCC-1701-D",era:"2364–2370",family:"TNG GALAXY-CLASS",description:"Warm, broad Okudagram bands and high-contrast rounded control bays."},
   {id:"voyager",name:"Voyager",code:"NCC-74656",era:"2371–2378",family:"INTREPID-CLASS",description:"Compact late-24th-century panels with cooler blue structure and dense data rails."},
   {id:"nemesis",name:"Enterprise-E",code:"NCC-1701-E",era:"2379",family:"NEMESIS LCARS",description:"Predominantly blue tactical framing, thin cyan divisions, and squared information panes."},
@@ -637,8 +639,8 @@ function ResizablePopup({as="section",popupKey,className="",floating=false,minWi
     window.addEventListener("pointermove",move);window.addEventListener("pointerup",finish,{once:true});window.addEventListener("pointercancel",finish,{once:true});
   };
   const popupClass=`resizable-popup${floating?" resizable-popup-floating workspace-window":""}${minimized?" workspace-minimized":""}${snap!=="none"?` workspace-snapped workspace-snap-${snap}`:""}${className?` ${className}`:""}`;
-  const controls=floating?<nav className="workspace-window-controls" aria-label={`${ariaLabel||popupKey} window controls`}><button title="Minimize or restore" aria-label={minimized?"Restore window":"Minimize window"} onClick={toggleMinimize}>{minimized?"▣":"—"}</button><button title="Snap left" aria-label="Snap window left" onClick={()=>applySnap("left")}>◧</button><button title="Snap right" aria-label="Snap window right" onClick={()=>applySnap("right")}>◨</button><button title="Maximize" aria-label="Maximize window" onClick={()=>applySnap("full")}>□</button></nav>:null;
-  const contents=<>{controls}{children}<span className="popup-resize-edge popup-resize-edge-n" onPointerDown={(event)=>beginResize("n",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-e" onPointerDown={(event)=>beginResize("e",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-s" onPointerDown={(event)=>beginResize("s",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-w" onPointerDown={(event)=>beginResize("w",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-nw" onPointerDown={(event)=>beginResize("nw",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-ne" onPointerDown={(event)=>beginResize("ne",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-sw" onPointerDown={(event)=>beginResize("sw",event)} aria-hidden="true"/><span className="popup-resize-grip" onPointerDown={(event)=>beginResize("se",event)} aria-hidden="true"/></>;
+  const controls=floating?<ConsoleControls><nav className="workspace-window-controls" aria-label={`${ariaLabel||popupKey} window controls`}><ConsoleButton title="Minimize or restore" aria-label={minimized?"Restore window":"Minimize window"} onClick={toggleMinimize}>{minimized?"▣":"—"}</ConsoleButton><ConsoleButton title="Snap left" aria-label="Snap window left" onClick={()=>applySnap("left")}>◧</ConsoleButton><ConsoleButton title="Snap right" aria-label="Snap window right" onClick={()=>applySnap("right")}>◨</ConsoleButton><ConsoleButton title="Maximize" aria-label="Maximize window" onClick={()=>applySnap("full")}>□</ConsoleButton></nav></ConsoleControls>:null;
+  const contents=<ConsoleWindowControls>{controls}{children}<span className="popup-resize-edge popup-resize-edge-n" onPointerDown={(event)=>beginResize("n",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-e" onPointerDown={(event)=>beginResize("e",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-s" onPointerDown={(event)=>beginResize("s",event)} aria-hidden="true"/><span className="popup-resize-edge popup-resize-edge-w" onPointerDown={(event)=>beginResize("w",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-nw" onPointerDown={(event)=>beginResize("nw",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-ne" onPointerDown={(event)=>beginResize("ne",event)} aria-hidden="true"/><span className="popup-resize-corner popup-resize-corner-sw" onPointerDown={(event)=>beginResize("sw",event)} aria-hidden="true"/><span className="popup-resize-grip" onPointerDown={(event)=>beginResize("se",event)} aria-hidden="true"/></ConsoleWindowControls>;
   if(as==="aside")return <aside ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel} onPointerDownCapture={bringToFront} onPointerDown={beginDrag}>{contents}</aside>;
   return <section ref={ref} className={popupClass} role={role} aria-modal={ariaModal} aria-label={ariaLabel} onPointerDownCapture={bringToFront} onPointerDown={beginDrag}>{contents}</section>;
 }
@@ -897,7 +899,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-6"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-7"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1029,7 +1031,7 @@ export default function Home() {
     const reportAudio=(event:Event)=>{const result=(event as CustomEvent).detail;if(result)setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);};
     const power = async () => {
       if (sound && !powered) {
-        const result=window.__lcarsPlayStartupSound?await window.__lcarsPlayStartupSound():await (async()=>{const asset=new URL("assets/sounds/power-up.mp3",window.location.href).href;try{const response=await fetch(asset,{cache:"no-store"});if(!response.ok)throw new Error(`Audio asset returned HTTP ${response.status}`);const blob=await response.blob();if(!blob.type.startsWith("audio/"))throw new Error(`Audio asset returned ${blob.type||"an unknown content type"}`);const objectUrl=URL.createObjectURL(blob);const a=new Audio(objectUrl);a.volume=.42;a.addEventListener("ended",()=>URL.revokeObjectURL(objectUrl),{once:true});await a.play();return{ok:true,status:"PLAYING",asset,output:"SYSTEM DEFAULT"};}catch(error){return{ok:false,status:"FAILED",error:String(error),asset,output:"SYSTEM DEFAULT"};}})();
+        const result=window.__lcarsPlayStartupSound?await window.__lcarsPlayStartupSound():await (async()=>{const asset=new URL(startupSoundAsset(localStorage.getItem("lcars-theme")),window.location.href).href;try{const response=await fetch(asset,{cache:"no-store"});if(!response.ok)throw new Error(`Audio asset returned HTTP ${response.status}`);const blob=await response.blob();if(!blob.type.startsWith("audio/"))throw new Error(`Audio asset returned ${blob.type||"an unknown content type"}`);const objectUrl=URL.createObjectURL(blob);const a=new Audio(objectUrl);a.volume=.42;a.addEventListener("ended",()=>URL.revokeObjectURL(objectUrl),{once:true});await a.play();return{ok:true,status:"PLAYING",asset,output:"SYSTEM DEFAULT"};}catch(error){return{ok:false,status:"FAILED",error:String(error),asset,output:"SYSTEM DEFAULT"};}})();
         powered=result.ok;setStartupAudioStatus(`${result.status} · ${result.output||"SYSTEM DEFAULT"}${result.error?` · ${result.error}`:""}`);
       }
     };
@@ -1092,18 +1094,19 @@ export default function Home() {
   }, [section, sessionRestore]);
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
+      if(typeof document!=="undefined"&&document.querySelector(".tos-prompt-dialog"))return;
       const digit=e.code.match(/^(?:Digit|Numpad)([1-9])$/)?.[1];
       const pageShortcut=digit&&!e.metaKey&&!e.altKey&&!e.shiftKey&&(e.ctrlKey||!shortcutTargetIsEditable(e.target));
       if (pageShortcut) {
-        const destination=visibleNav[Number(digit)-1];if(destination){e.preventDefault();setSection(destination[0]);setPaletteOpen(false);return;}
+        const destination=visibleNav[Number(digit)-1];if(destination){e.preventDefault();setSection(destination[0]);setPaletteOpen(false);if(!e.repeat)playTosKey();return;}
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);
-        setComputerOpen((v) => !v);
+        setComputerOpen((v) => !v);if(!e.repeat)playTosKey();
       }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "f") {
-        e.preventDefault();setPaletteQuery("");setPaletteOpen(true);
+        e.preventDefault();setPaletteQuery("");setPaletteOpen(true);if(!e.repeat)playTosKey();
       }
       if (e.key === "Escape") {setPaletteOpen(false);setComputerOpen(false);}
       if (
@@ -1117,9 +1120,9 @@ export default function Home() {
     };
     window.addEventListener("keydown", key, true);
     return () => window.removeEventListener("keydown", key, true);
-  }, [visibleNav]);
+  }, [visibleNav,theme,sound,access.soundVolume]);
   useEffect(()=>{
-    const closePeek=(event:KeyboardEvent)=>{if(event.key!=="Escape")return;setSpeedDialPages((current)=>{const target=[...current].reverse().find((peek)=>!peek.pinned);if(!target)return current;const next=current.filter((peek)=>peek.id!==target.id);localStorage.setItem(openPeeksStorageKey,JSON.stringify(next));return next;});};
+    const closePeek=(event:KeyboardEvent)=>{if(document.querySelector(".tos-prompt-dialog"))return;if(event.key!=="Escape")return;setSpeedDialPages((current)=>{const target=[...current].reverse().find((peek)=>!peek.pinned);if(!target)return current;const next=current.filter((peek)=>peek.id!==target.id);localStorage.setItem(openPeeksStorageKey,JSON.stringify(next));return next;});};
     window.addEventListener("keydown",closePeek,true);return()=>window.removeEventListener("keydown",closePeek,true);
   },[]);
   const filtered = useMemo(
@@ -1149,6 +1152,14 @@ export default function Home() {
     const key = event.target.closest("button,[role='button'],input[type='checkbox'],input[type='radio'],select");
     if (!key || key.hasAttribute("disabled") || key.getAttribute("aria-disabled") === "true") return;
     playTosKey(isTosCancelKey(key.getAttribute("aria-label") || key.textContent || ""));
+  };
+  const tosConsoleKeyboardKey=(event:ReactKeyboardEvent<HTMLElement>)=>{
+    if(event.repeat)return;
+    if(event.key==="Escape"){playTosKey(true);return;}
+    if(!(event.target instanceof Element))return;
+    const field=event.target.closest("input,select");
+    if(!field||field.hasAttribute("disabled")||field.matches("input[type=checkbox],input[type=radio]"))return;
+    if(event.key==="Enter"||(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown","Home","End"].includes(event.key)&&field.matches("select,input[type=range]")))playTosKey();
   };
   const beep = (ok = false) => {
     if (!sound || theme === "tos") return;
@@ -1647,9 +1658,9 @@ export default function Home() {
       layoutPreset,
     };
   };
-  const createProfile = (preset:WorkspaceProfile["layoutPreset"]="auto") => {
+  const createProfile = async (preset:WorkspaceProfile["layoutPreset"]="auto") => {
     const label=preset==="auto"?"Automatic":preset.replace("-"," ");
-    const name = prompt(`${label} Workstation name`)?.trim();
+    const name = (await consolePrompt(`${label} Workstation name`))?.trim();
     if (!name) return;
     const profile = captureProfile(name,preset);
     saveProfiles([...profiles, profile]);
@@ -1713,7 +1724,7 @@ export default function Home() {
     if (activeProfile === id) setActiveProfile("");
     if (defaultWorkstation === id) chooseDefaultWorkstation("");
   };
-  const renameProfile=(id:string)=>{const profile=profiles.find((item)=>item.id===id);if(!profile)return;const name=prompt("Rename Workstation",profile.name)?.trim();if(name)saveProfiles(profiles.map((item)=>item.id===id?{...item,name:name.slice(0,48)}:item));};
+  const renameProfile=async(id:string)=>{const profile=profiles.find((item)=>item.id===id);if(!profile)return;const name=(await consolePrompt("Rename Workstation",profile.name))?.trim();if(name)saveProfiles(profiles.map((item)=>item.id===id?{...item,name:name.slice(0,48)}:item));};
   const duplicateProfile=(id:string)=>{const profile=profiles.find((item)=>item.id===id);if(!profile)return;const copy={...profile,id:Date.now().toString(),name:`${profile.name} COPY`.slice(0,48),widgets:[...profile.widgets],favoriteIds:[...profile.favoriteIds],widgetSizes:{...profile.widgetSizes},applications:profile.applications?.map((item)=>({...item})),pagePeeks:profile.pagePeeks?.map((item)=>({...item})),popupLayout:profile.popupLayout?normalizePopupLayouts(profile.popupLayout):undefined,speedDial:profile.speedDial?[...profile.speedDial]:undefined};saveProfiles([...profiles,copy]);notify(`${copy.name} created`);};
   const exportProfile=(profile:WorkspaceProfile)=>{const blob=new Blob([JSON.stringify({schema:1,kind:"lcars-workstation",version:"26.2",workstation:profile},null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download=`lcars-workstation-${profile.name.toLowerCase().replace(/[^a-z0-9]+/g,"-")||profile.id}.json`;link.click();URL.revokeObjectURL(url);notify(`${profile.name} exported`);};
   const captureOperatorWorkspace=():OperatorWorkspace=>normalizeOperatorWorkspace({theme,section,doNotDisturb,favoriteIds,pinnedPlayers,widgets,widgetSizes,prefs,accessibility:access,workstations:profiles,activeWorkstation:activeProfile,defaultWorkstation,routines,trayShortcuts,controlMappings,customPages,appDestinations,pagePeeks:speedDialPages,popupLayout:readPopupLayouts()});
@@ -1797,7 +1808,7 @@ export default function Home() {
     } else if(step.kind==="command"){
       const response=await fetch("http://127.0.0.1:8765/api/routine-command",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({command:step.target,approved:true})});const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||"Approved command was rejected");
     } else if(step.kind==="prompt"){
-      if(!window.confirm(step.prompt||step.target||"Continue this Operations routine?"))throw new Error("Operator declined the routine prompt");
+      if(!await consoleConfirm(step.prompt||step.target||"Continue this Operations routine?"))throw new Error("Operator declined the routine prompt");
     } else await new Promise((resolve)=>window.setTimeout(resolve,Math.max(0,Math.min(30000,Number(step.value??step.target)||0))));
   };
   const executeRoutine=async(routine:Routine,steps=routine.steps,testRun=false,dryRun=false)=>{
@@ -1956,7 +1967,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"31.5.6",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.5.7",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2018,9 +2029,10 @@ export default function Home() {
   },[bridge,locked,sessionRestore,defaultWorkstation,profiles]);
   useEffect(()=>{
     const mapped=(event:KeyboardEvent)=>{
+      if(document.querySelector(".tos-prompt-dialog"))return;
       const target=event.target as HTMLElement|null;if(target&&(target.matches("input,textarea,select")||target.isContentEditable))return;
       const shortcut=eventShortcut(event),mapping=controlMappings.find((candidate)=>candidate.enabled&&candidate.shortcut===shortcut);if(!mapping)return;
-      event.preventDefault();event.stopPropagation();
+      event.preventDefault();event.stopPropagation();if(!event.repeat)playTosKey();
       if(mapping.target.startsWith("routine:")){const routine=routines.find((candidate)=>candidate.id===mapping.target.slice(8));if(routine)requestRoutine(routine);}
       else if(mapping.target.startsWith("page:"))setSection(mapping.target.slice(5));
       else if(mapping.target==="action:routines")setRoutineCenterOpen(true);
@@ -2029,7 +2041,7 @@ export default function Home() {
       else if(mapping.target==="action:dnd")setDoNotDisturb((value)=>!value);
     };
     window.addEventListener("keydown",mapped,true);return()=>window.removeEventListener("keydown",mapped,true);
-  },[controlMappings,routines]);
+  },[controlMappings,routines,theme,sound,access.soundVolume]);
   const saveAccess = (next: AccessibilityPrefs) => {
     createRecoverySnapshot("Before accessibility setting change");
     setAccess(next);
@@ -2418,26 +2430,28 @@ export default function Home() {
       );
     if (id === "favorites")
       return (
-        <section className="overview-widget wide-widget">
+        <ConsoleGroup label={<>
+            {theme === "tos" ? "PROGRAM SELECTOR" : "FAVORITE APPLICATIONS"} <small>APP-02</small>
+          </>}><section className="overview-widget wide-widget">
           <h3>
             {theme === "tos" ? "PROGRAM SELECTOR" : "FAVORITE APPLICATIONS"} <small>APP-02</small>
           </h3>
           <div className="apps">
             {favorites.slice(0, 20).map((a, i) => {const embedded=embeddedPageForApp(a),destination=appDestinations[a.id]||(embedded?"embedded":"native");return (
-              <article className="favorite-app" key={a.id}><button className="app-launch-button" title={embedded?"Click for the selected destination · Shift+Click for a native window":"Open native application window"} onClick={(event) => launch(a,event.shiftKey?"native":undefined)}>
+              <ConsoleGroup key={a.id} label={<>{a.comment || "APPLICATION"}</>}><article className="favorite-app" key={a.id}><ConsoleButton className="app-launch-button" title={embedded?"Click for the selected destination · Shift+Click for a native window":"Open native application window"} onClick={(event) => launch(a,event.shiftKey?"native":undefined)}>
                 <i className={"c" + i}>{a.icon ? <img src={a.icon} alt="" /> : a.name.slice(0, 2).toUpperCase()}</i>
                 <span><b>{a.name}</b><small>{a.comment || "APPLICATION"}</small></span>
-              </button>{embedded?<button className="app-destination-toggle" onClick={()=>chooseAppDestination(a,destination==="embedded"?"native":"embedded")} title="Choose the normal-click destination">{destination==="embedded"?"LCARS":"WINDOW"}</button>:<small className="native-only">NATIVE</small>}</article>
+              </ConsoleButton>{embedded?<ConsoleButton className="app-destination-toggle" onClick={()=>chooseAppDestination(a,destination==="embedded"?"native":"embedded")} title="Choose the normal-click destination">{destination==="embedded"?"LCARS":"WINDOW"}</ConsoleButton>:<small className="native-only">NATIVE</small>}</article></ConsoleGroup>
             );})}
-            <button className="all-apps" onClick={() => setAllOpen(true)}>
+            <ConsoleButton className="all-apps" onClick={() => setAllOpen(true)}>
               <i>•••</i>
               <span>
                 <b>All Applications</b>
                 <small>SEARCH INSTALLED SOFTWARE</small>
               </span>
-            </button>
+            </ConsoleButton>
           </div>
-        </section>
+        </section></ConsoleGroup>
       );
     if (id === "operations")
       return (
@@ -2461,10 +2475,10 @@ export default function Home() {
           </div>
         </section>
       );
-    if(id==="routines")return <section className="overview-widget v25-widget routine-widget"><h3>OPERATIONS ROUTINES <small>AUTO-26</small></h3><div className="v25-widget-list">{routines.filter((routine)=>routine.enabled).slice(0,4).map((routine)=><button key={routine.id} onClick={()=>requestRoutine(routine)}><i>▶</i><span><b>{routine.name}</b><small>{routine.steps.length} STEPS · {routine.trigger.type.toUpperCase()}</small></span></button>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</div><button className="widget-launch" onClick={()=>setRoutineCenterOpen(true)}>OPEN AUTOMATION CENTER</button></section>;
-    if(id==="engineering")return <section className="overview-widget v25-widget engineering-widget"><h3>ENGINEERING WATCH <small>ENG-26</small></h3><div className="engineering-glance">{engineering.sensors.filter((sensor)=>sensor.status!=="unavailable").slice(0,4).map((sensor)=><span key={sensor.id}><small>{sensor.name}</small><b>{sensor.value}</b></span>)}</div><div className="v25-widget-list">{engineering.processes.slice(0,3).map((process)=><span key={process.pid}><b>{process.name}</b><small>CPU {process.cpu.toFixed(1)}% · MEM {process.memory.toFixed(1)}%</small></span>)}</div><button className="widget-launch" onClick={()=>setSection("system")}>OPEN ENGINEERING CONSOLE</button></section>;
-    if(id==="communications")return <section className="overview-widget v25-widget communications-widget"><h3>COMMUNICATIONS <small>COM-26</small></h3><div className="v25-widget-list">{notices.slice(0,4).map((notice)=><span key={Math.abs(notice.id)}><b>{notice.source||"LCARS CORE"}</b><small>{notice.text}</small></span>)}{!notices.length&&<p>NO COMMUNICATION TRAFFIC</p>}</div><button className="widget-launch" onClick={()=>setHistoryOpen(true)}>OPEN COMMUNICATIONS CENTER</button></section>;
-    if(id==="activity")return <section className="overview-widget v25-widget activity-widget"><h3>COMMAND ACTIVITY <small>LOG-26</small></h3><div className="v25-widget-list">{activityLog.slice(0,4).map((entry)=><span key={entry.id}><b>{entry.title}</b><small>{entry.source} · {entry.status.toUpperCase()}</small></span>)}{!activityLog.length&&<p>NO COMMANDS RECORDED</p>}</div><button className="widget-launch" onClick={()=>setHistoryOpen(true)}>OPEN ACTIVITY LOG</button></section>;
+    if(id==="routines")return <ConsoleGroup label={<>OPERATIONS ROUTINES <small>AUTO-26</small></>}><section className="overview-widget v25-widget routine-widget"><h3>OPERATIONS ROUTINES <small>AUTO-26</small></h3><div className="v25-widget-list">{routines.filter((routine)=>routine.enabled).slice(0,4).map((routine)=><ConsoleButton key={routine.id} onClick={()=>requestRoutine(routine)}><i>▶</i><span><b>{routine.name}</b><small>{routine.steps.length} STEPS · {routine.trigger.type.toUpperCase()}</small></span></ConsoleButton>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</div><ConsoleButton className="widget-launch" onClick={()=>setRoutineCenterOpen(true)}>OPEN AUTOMATION CENTER</ConsoleButton></section></ConsoleGroup>;
+    if(id==="engineering")return <ConsoleGroup label={<>ENGINEERING WATCH <small>ENG-26</small></>}><section className="overview-widget v25-widget engineering-widget"><h3>ENGINEERING WATCH <small>ENG-26</small></h3><div className="engineering-glance">{engineering.sensors.filter((sensor)=>sensor.status!=="unavailable").slice(0,4).map((sensor)=><span key={sensor.id}><small>{sensor.name}</small><b>{sensor.value}</b></span>)}</div><div className="v25-widget-list">{engineering.processes.slice(0,3).map((process)=><span key={process.pid}><b>{process.name}</b><small>CPU {process.cpu.toFixed(1)}% · MEM {process.memory.toFixed(1)}%</small></span>)}</div><ConsoleButton className="widget-launch" onClick={()=>setSection("system")}>OPEN ENGINEERING CONSOLE</ConsoleButton></section></ConsoleGroup>;
+    if(id==="communications")return <ConsoleGroup label={<>COMMUNICATIONS <small>COM-26</small></>}><section className="overview-widget v25-widget communications-widget"><h3>COMMUNICATIONS <small>COM-26</small></h3><div className="v25-widget-list">{notices.slice(0,4).map((notice)=><span key={Math.abs(notice.id)}><b>{notice.source||"LCARS CORE"}</b><small>{notice.text}</small></span>)}{!notices.length&&<p>NO COMMUNICATION TRAFFIC</p>}</div><ConsoleButton className="widget-launch" onClick={()=>setHistoryOpen(true)}>OPEN COMMUNICATIONS CENTER</ConsoleButton></section></ConsoleGroup>;
+    if(id==="activity")return <ConsoleGroup label={<>COMMAND ACTIVITY <small>LOG-26</small></>}><section className="overview-widget v25-widget activity-widget"><h3>COMMAND ACTIVITY <small>LOG-26</small></h3><div className="v25-widget-list">{activityLog.slice(0,4).map((entry)=><span key={entry.id}><b>{entry.title}</b><small>{entry.source} · {entry.status.toUpperCase()}</small></span>)}{!activityLog.length&&<p>NO COMMANDS RECORDED</p>}</div><ConsoleButton className="widget-launch" onClick={()=>setHistoryOpen(true)}>OPEN ACTIVITY LOG</ConsoleButton></section></ConsoleGroup>;
     if (id === "media")
       return (
         <section className="overview-widget wide-widget">
@@ -2492,21 +2506,25 @@ export default function Home() {
       );
     if (id === "terminal")
       return (
-        <section className="overview-widget">
+        <ConsoleGroup label={<>
+            TERMINAL <small>PTY-04</small>
+          </>}><section className="overview-widget">
           <h3>
             TERMINAL <small>PTY-04</small>
           </h3>
-          <button
+          <ConsoleButton
             className="widget-launch"
             onClick={() => setSection("terminal")}
           >
             OPEN EMBEDDED TERMINAL <b>›</b>
-          </button>
-        </section>
+          </ConsoleButton>
+        </section></ConsoleGroup>
       );
     if (id === "network")
       return (
-        <section className="overview-widget">
+        <ConsoleGroup label={<>
+            NETWORK <small>NET-05</small>
+          </>}><section className="overview-widget">
           <h3>
             NETWORK <small>NET-05</small>
           </h3>
@@ -2520,16 +2538,18 @@ export default function Home() {
               <b>ACTIVE</b>
             </p>
           </div>
-          <button
+          <ConsoleButton
             className="widget-launch"
             onClick={() => setSection("network")}
           >
             OPEN CONTROLS
-          </button>
-        </section>
+          </ConsoleButton>
+        </section></ConsoleGroup>
       );
     return (
-      <section className="overview-widget">
+      <ConsoleGroup label={<>
+          UPDATES <small>DNF-06</small>
+        </>}><section className="overview-widget">
         <h3>
           UPDATES <small>DNF-06</small>
         </h3>
@@ -2539,15 +2559,15 @@ export default function Home() {
             <b>SCAN READY</b>
           </p>
         </div>
-        <button className="widget-launch" onClick={() => setSection("updates")}>
+        <ConsoleButton className="widget-launch" onClick={() => setSection("updates")}>
           CHECK SOFTWARE
-        </button>
-      </section>
+        </ConsoleButton>
+      </section></ConsoleGroup>
     );
   };
   const activeCustomPage=section.startsWith("custom:")?customPages.find((page)=>page.id===section.slice(7)):undefined;
   const renderCustomPage=()=>{
-    if(!activeCustomPage)return <section className="detail-view custom-page-missing"><h3>CUSTOM PAGE UNAVAILABLE</h3><p>This sidebar destination was removed or its source is no longer installed.</p><button onClick={()=>setSection("settings")}>OPEN PAGE CONFIGURATION</button></section>;
+    if(!activeCustomPage)return <ConsoleGroup label={<>CUSTOM PAGE UNAVAILABLE</>}><section className="detail-view custom-page-missing"><h3>CUSTOM PAGE UNAVAILABLE</h3><p>This sidebar destination was removed or its source is no longer installed.</p><ConsoleButton onClick={()=>setSection("settings")}>OPEN PAGE CONFIGURATION</ConsoleButton></section></ConsoleGroup>;
     if(activeCustomPage.kind==="module")return <section className="detail-view custom-page-view"><header className="custom-page-cap"><small>USER-ASSIGNED MODULE</small><h3>{activeCustomPage.name}</h3></header><div className="custom-module-host">{renderWidget(activeCustomPage.target as WidgetId)}</div></section>;
     if(activeCustomPage.kind==="extension"){
       const [extensionId,placementId]=activeCustomPage.target.split("::"),extension=extensions.find((item)=>item.id===extensionId),placement=extension?.placements.find((item)=>item.id===placementId);
@@ -2558,7 +2578,7 @@ export default function Home() {
   };
   const consoleNavigation = <>
 {visibleNav.map((n, i) => (
-            <button
+            <ConsoleButton
               key={n[0]}
               className={"nav n" + i + (section === n[0] ? " active" : "")}
               onClick={() => {
@@ -2568,18 +2588,18 @@ export default function Home() {
             >
               <i>{n[1]}</i>
               <span>{n[2]}</span>
-            </button>
+            </ConsoleButton>
           ))}
-          {customPages.map((page,index)=><button title={`${page.kind.toUpperCase()} · ${page.name}`} key={page.id} className={`nav custom-nav n${(index+2)%6}${section===`custom:${page.id}`?" active":""}`} onClick={()=>{beep();setSection(`custom:${page.id}`);}}><i>{String(visibleNav.length+index+1).padStart(2,"0")}</i><span>{page.name}</span></button>)}
+          {customPages.map((page,index)=><ConsoleButton title={`${page.kind.toUpperCase()} · ${page.name}`} key={page.id} className={`nav custom-nav n${(index+2)%6}${section===`custom:${page.id}`?" active":""}`} onClick={()=>{beep();setSection(`custom:${page.id}`);}}><i>{String(visibleNav.length+index+1).padStart(2,"0")}</i><span>{page.name}</span></ConsoleButton>)}
   </>;
   const detachedConsoleClass = `lcars detached-peek-shell theme-${theme}${access.highContrast?" accessibility-contrast":""}${access.reducedMotion?" reduced-motion":""}${access.colorSafe?" color-safe":""}${alertCondition!=="normal"?` alert-${alertCondition}`:""}`;
   const detachedParams=typeof window!=="undefined"?new URLSearchParams(window.location.search):null;
-  if(detachedParams?.get("tool")==="document"&&detachedParams.get("path"))return <main onClickCapture={tosConsoleKey} onKeyDownCapture={(event)=>{if(event.key==="Escape")playTosKey(true);}} className={detachedConsoleClass} style={{fontSize:access.fontScale+"%"}}><DocumentWorkspaceV31 path={detachedParams.get("path")||""} detached close={()=>window.close()} notify={notify}/></main>;
-  if(detachedParams?.get("tool")==="page-peek"&&detachedParams.get("page")){const page=detachedParams.get("page")||"overview";return <main onClickCapture={tosConsoleKey} onKeyDownCapture={(event)=>{if(event.key==="Escape")playTosKey(true);}} className={detachedConsoleClass} style={{fontSize:access.fontScale+"%"}}><SpeedDialPagePeek detached popupKey="detached-page-peek" page={page} pinned={false} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>{}} close={()=>window.close()} openFull={(target)=>{window.location.href=`lcars://app/index.html?section=${encodeURIComponent(target)}`;}}/></main>;}
+  if(detachedParams?.get("tool")==="document"&&detachedParams.get("path"))return <ConsoleThemeProvider tos={theme==="tos"} onFeedback={playTosKey}><main onClickCapture={tosConsoleKey} onKeyDownCapture={tosConsoleKeyboardKey} className={detachedConsoleClass} style={{fontSize:access.fontScale+"%"}}><ConsoleWindowControls><DocumentWorkspaceV31 path={detachedParams.get("path")||""} detached close={()=>window.close()} notify={notify}/></ConsoleWindowControls></main></ConsoleThemeProvider>;
+  if(detachedParams?.get("tool")==="page-peek"&&detachedParams.get("page")){const page=detachedParams.get("page")||"overview";return <ConsoleThemeProvider tos={theme==="tos"} onFeedback={playTosKey}><main onClickCapture={tosConsoleKey} onKeyDownCapture={tosConsoleKeyboardKey} className={detachedConsoleClass} style={{fontSize:access.fontScale+"%"}}><ConsoleWindowControls><SpeedDialPagePeek detached popupKey="detached-page-peek" page={page} pinned={false} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>{}} close={()=>window.close()} openFull={(target)=>{window.location.href=`lcars://app/index.html?section=${encodeURIComponent(target)}`;}}/></ConsoleWindowControls></main></ConsoleThemeProvider>;}
   return (
-    <main
+    <ConsoleThemeProvider tos={theme==="tos"} onFeedback={playTosKey}><main
       onClickCapture={tosConsoleKey}
-      onKeyDownCapture={(event)=>{if(event.key==="Escape")playTosKey(true);}}
+      onKeyDownCapture={tosConsoleKeyboardKey}
       style={{ fontSize: access.fontScale + "%" }}
       className={
         "lcars theme-" +
@@ -2591,15 +2611,15 @@ export default function Home() {
       }
     >
       <header className="top">
-        <button className="brand" onClick={() => setSection("overview")}>
+        <ConsoleButton className="brand" onClick={() => setSection("overview")}>
           <span>{theme === "tos" ? "STARFLEET" : "LCARS"}</span>
-          <small>31.5.6 DEV</small>
-        </button>
+          <small>31.5.7 DEV</small>
+        </ConsoleButton>
         <div className="title">
           <div className="title-copy">
             <div className={`title-kicker${prefs.voiceEnabled?" voice-active":""}`}>
               <small>{theme === "tos" ? "USS ENTERPRISE · NCC-1701 · COMPUTER CONTROL" : "FEDERATION OPERATING ENVIRONMENT"}</small>
-              <button className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></button>
+              <ConsoleButton className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></ConsoleButton>
               {prefs.voiceEnabled&&<VoiceControl prefs={prefs} computer={dispatchVoiceComputer} notify={notify} />}
             </div>
             <h1>
@@ -2608,7 +2628,7 @@ export default function Home() {
           </div>
         </div>
         {extensions.filter((extension)=>!quarantinedExtensions.includes(extension.id)&&!disabledExtensions.includes(extension.id)).flatMap((extension)=>extension.placements.filter((placement)=>placement.type==="header").map((placement)=><ExtensionBoundary key={`${extension.id}:${placement.id}`} id={extension.id} name={extension.name} onFailure={recordExtensionFailure}><ExtensionHeader extension={extension} placement={placement} now={clock||new Date()}/></ExtensionBoundary>))}
-        <button type="button" className="clock" aria-label="Open LCARS calendar" aria-expanded={calendarOpen} onClick={()=>setCalendarOpen(true)}>
+        <ConsoleButton type="button" className="clock" aria-label="Open LCARS calendar" aria-expanded={calendarOpen} onClick={()=>setCalendarOpen(true)}>
           <b>
             {clock
               ? clock.toLocaleTimeString([], {
@@ -2618,11 +2638,11 @@ export default function Home() {
               : "--:--"}
           </b>
           <small>{bridge ? "LOCAL CORE ONLINE" : "DEMO CORE"}</small>
-        </button>
-        <button className="command-button" onClick={() => {setPaletteQuery("");setPaletteOpen(true);}}>
+        </ConsoleButton>
+        <ConsoleButton className="command-button" onClick={() => {setPaletteQuery("");setPaletteOpen(true);}}>
           SEARCH ⌘F
-        </button>
-        <button
+        </ConsoleButton>
+        <ConsoleButton
           className="audio notice-button"
           onClick={() => setHistoryOpen(!historyOpen)}
         >
@@ -2631,14 +2651,14 @@ export default function Home() {
             : sound
               ? "AUDIO 04"
               : "MUTED"}
-        </button>
+        </ConsoleButton>
       </header>
       {theme === "tos" && <div className="tos-instrument-bank" aria-hidden="true"><span>USS ENTERPRISE · NCC-1701</span><div>{Array.from({length:12},(_,i)=><i key={i}/>)}</div><span>COMPUTER CONTROL · 2266</span></div>}
-      {alertCondition!=="normal"&&<button className="alert-condition-banner" onClick={()=>{setAlertCondition("normal");localStorage.setItem("lcars-alert-condition","normal");}}><b>{alertCondition.toUpperCase()} ALERT</b><span>{alertCondition==="red"?"EMERGENCY CONDITION ACTIVE":"HEIGHTENED READINESS CONDITION"} · PRESS FOR NO ALERT</span></button>}
-      {safeMode&&<button className="safe-mode-banner" onClick={()=>setSection("settings")}><b>SAFE STARTUP ACTIVE</b><span>SAVED VISUAL SETTINGS AND EXTENSIONS ARE TEMPORARILY BYPASSED · OPEN RECOVERY</span></button>}
+      {alertCondition!=="normal"&&<ConsoleButton className="alert-condition-banner" onClick={()=>{setAlertCondition("normal");localStorage.setItem("lcars-alert-condition","normal");}}><b>{alertCondition.toUpperCase()} ALERT</b><span>{alertCondition==="red"?"EMERGENCY CONDITION ACTIVE":"HEIGHTENED READINESS CONDITION"} · PRESS FOR NO ALERT</span></ConsoleButton>}
+      {safeMode&&<ConsoleButton className="safe-mode-banner" onClick={()=>setSection("settings")}><b>SAFE STARTUP ACTIVE</b><span>SAVED VISUAL SETTINGS AND EXTENSIONS ARE TEMPORARILY BYPASSED · OPEN RECOVERY</span></ConsoleButton>}
       <div className="shell">
         <aside>
-          {prefs.trayPresentation==="header"?<button className="elbow header-tray-trigger" aria-expanded={trayOpen} onClick={()=>setTrayOpen((value)=>!value)}><span>TRAY</span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small></button>:<div className="elbow"><span>SYS</span><small>47</small></div>}
+          {prefs.trayPresentation==="header"?<ConsoleButton className="elbow header-tray-trigger" aria-expanded={trayOpen} onClick={()=>setTrayOpen((value)=>!value)}><span>TRAY</span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small></ConsoleButton>:<div className="elbow"><span>SYS</span><small>47</small></div>}
           <div className="nav-gap" />
           {theme==="tos"?<div className="tos-navigation-bank">{consoleNavigation}</div>:consoleNavigation}
           <div
@@ -2650,8 +2670,8 @@ export default function Home() {
             onMouseEnter={taskEnter}
             onMouseLeave={taskLeave}
           >
-            {prefs.trayPresentation==="rail"&&theme!=="tos"&&<button className="tray-strip-trigger" aria-label="Open system tray" title="Tray Command Deck" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><span aria-hidden="true"><i/><i/><i/></span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small><b aria-hidden="true">›</b></button>}
-            <button className="task-trigger" onClick={toggleTaskLock}>
+            {prefs.trayPresentation==="rail"&&theme!=="tos"&&<ConsoleButton className="tray-strip-trigger" aria-label="Open system tray" title="Tray Command Deck" aria-expanded={trayOpen} onClick={(event) => { event.stopPropagation(); setTrayOpen((value) => !value); }}><span aria-hidden="true"><i/><i/><i/></span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small><b aria-hidden="true">›</b></ConsoleButton>}
+            <ConsoleButton className="task-trigger" onClick={toggleTaskLock}>
               <i aria-hidden="true">{taskRailNumber}</i>
               <span>
                 {compat?.capabilities?.windowControl === false
@@ -2662,7 +2682,7 @@ export default function Home() {
                       ? "LOCK TASKS"
                       : "OPEN TASKS"}
               </span>
-            </button>
+            </ConsoleButton>
             {(taskRail || taskLocked || prefs.taskPinned) && (
               <TaskRail
                 tasks={tasks}
@@ -2677,14 +2697,14 @@ export default function Home() {
                 }}
               />
             )}
-            {theme==="tos"&&prefs.trayPresentation==="rail"&&<button className="tos-tray-key" aria-label="Open system tray" title="Tray Command Deck" aria-expanded={trayOpen} onClick={(event)=>{event.stopPropagation();setTrayOpen((value)=>!value);}}><i aria-hidden="true">≡</i><span>SYSTEM TRAY</span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small></button>}
+            {theme==="tos"&&prefs.trayPresentation==="rail"&&<ConsoleButton className="tos-tray-key" aria-label="Open system tray" title="Tray Command Deck" aria-expanded={trayOpen} onClick={(event)=>{event.stopPropagation();setTrayOpen((value)=>!value);}}><i aria-hidden="true">≡</i><span>SYSTEM TRAY</span><small>{(trayItems.length+trayShortcuts.length).toString().padStart(2,"0")}</small></ConsoleButton>}
             <div className="filler-codes">
               <i>47-219</i>
               <i>85-302</i>
               <i>19-775</i>
             </div>
           </div>
-          <button
+          <ConsoleButton
             className="nav power"
             onClick={() => {
               beep();
@@ -2693,11 +2713,17 @@ export default function Home() {
           >
             <i>{powerNumber}</i>
             <span>POWER</span>
-          </button>
+          </ConsoleButton>
           <div className="foot-elbow" />
         </aside>
         <ConsoleDisplay tos={theme==="tos"}>
-        <section className={"content page-" + section}>
+        <ConsoleGroup label={<>
+                {section === "overview"
+                  ? (theme === "tos" ? "PRIMARY SYSTEMS" : "SYSTEM OVERVIEW")
+                  : section === "bay"
+                    ? "APPLICATION BAY"
+                    : activeCustomPage?.name.toUpperCase() || section.toUpperCase()}
+              </>}><section className={"content page-" + section}>
           <div className="heading">
             <div>
               <small>{theme === "tos" ? "STARFLEET COMPUTER / " : "LCARS / "}{themes.find((candidate) => candidate.id === theme)?.code}</small>
@@ -2710,20 +2736,20 @@ export default function Home() {
               </h2>
             </div>
             <div className="heading-actions">
-              <button className={portalPending ? "portal-pending" : ""} onClick={() => setSection("portals")}>PORTALS <b>{portalPending}</b></button>
+              <ConsoleButton className={portalPending ? "portal-pending" : ""} onClick={() => setSection("portals")}>PORTALS <b>{portalPending}</b></ConsoleButton>
               <span>
                 ●{" "}
                 {bridge ? "LOCAL SYSTEM CONNECTED" : "INTERFACE DEMONSTRATION"}
               </span>
               {compat && (
-                <button
+                <ConsoleButton
                   className={compat.restrictions.length ? "compat-warning" : ""}
                   onClick={() => setCompatOpen(true)}
                 >
                   COMPATIBILITY <b>{compat.restrictions.length}</b>
-                </button>
+                </ConsoleButton>
               )}
-              <button
+              <ConsoleButton
                 disabled={compat?.capabilities?.displayControl === false}
                 title={
                   compat?.capabilities?.displayControl === false
@@ -2733,8 +2759,8 @@ export default function Home() {
                 onClick={() => setDisplayMenu(!displayMenu)}
               >
                 DISPLAYS <b>{displays.length}</b>
-              </button>
-              <button
+              </ConsoleButton>
+              <ConsoleButton
                 onClick={() =>
                   displayAction(
                     "terminal",
@@ -2743,7 +2769,7 @@ export default function Home() {
                 }
               >
                 REMOTE TERMINAL
-              </button>
+              </ConsoleButton>
             </div>
             {displayMenu && (
               <DisplayMenu
@@ -2772,12 +2798,12 @@ export default function Home() {
               </div>
               <div className="overview-toolbar">
                 <span>{widgets.length} MODULES ACTIVE</span>
-                <nav><button onClick={()=>setRoutineCenterOpen(true)}>OPERATIONS AUTOMATION</button><button
+                <ConsoleControls><nav><ConsoleButton onClick={()=>setRoutineCenterOpen(true)}>OPERATIONS AUTOMATION</ConsoleButton><ConsoleButton
                   className={overviewEdit ? "editing" : ""}
                   onClick={() => setOverviewEdit(!overviewEdit)}
                 >
                   {overviewEdit ? "FINISH EDITING" : "CONFIGURE OVERVIEW"}
-                </button></nav>
+                </ConsoleButton></nav></ConsoleControls>
               </div>
               {overviewEdit && (
                 <OverviewEditor
@@ -2802,18 +2828,18 @@ export default function Home() {
                     {overviewEdit && (
                       <div className="widget-controls">
                         <span>⠿ {widgetMeta(id).name}</span>
-                        <button onClick={() => moveWidget(id, -1)}>▲</button>
-                        <button onClick={() => moveWidget(id, 1)}>▼</button>
-                        <button onClick={() => cycleSize(id)}>
+                        <ConsoleButton onClick={() => moveWidget(id, -1)}>▲</ConsoleButton>
+                        <ConsoleButton onClick={() => moveWidget(id, 1)}>▼</ConsoleButton>
+                        <ConsoleButton onClick={() => cycleSize(id)}>
                           {(widgetSizes[id] || "standard").toUpperCase()}
-                        </button>
-                        <button
+                        </ConsoleButton>
+                        <ConsoleButton
                           onClick={() =>
                             saveWidgets(widgets.filter((x) => x !== id))
                           }
                         >
                           REMOVE
-                        </button>
+                        </ConsoleButton>
                       </div>
                     )}
                     {renderWidget(id)}
@@ -2896,16 +2922,16 @@ export default function Home() {
           )}
           {section.startsWith("custom:") && renderCustomPage()}
           {section === "settings" && (
-            <section className="detail-view settings-view">
+            <ConsoleGroup label={<>INTERFACE CONFIGURATION</>}><section className="detail-view settings-view">
               <h3>INTERFACE CONFIGURATION</h3>
-              <nav className="settings-area-tabs" aria-label="Settings categories">
+              <ConsoleControls><nav className="settings-area-tabs" aria-label="Settings categories">
                 {([
                   ["interface","INTERFACE","Themes, profiles, access"],
                   ["workspace","WORKSPACE","Windows, controls, pages"],
                   ["connected","CONNECTED","PADD and modules"],
                   ["system","SYSTEM","Shell and recovery"],
-                ] as [SettingsArea,string,string][]).map(([area,label,detail],index)=><button type="button" key={area} className={settingsArea===area?"active":""} aria-current={settingsArea===area?"page":undefined} onClick={()=>setSettingsArea(area)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label}</b><small>{detail}</small></span></button>)}
-              </nav>
+                ] as [SettingsArea,string,string][]).map(([area,label,detail],index)=><ConsoleButton type="button" key={area} className={settingsArea===area?"active":""} aria-current={settingsArea===area?"page":undefined} onClick={()=>setSettingsArea(area)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label}</b><small>{detail}</small></span></ConsoleButton>)}
+              </nav></ConsoleControls>
               <div className={`settings-area-body settings-area-${settingsArea}`}>
               {settingsArea==="interface"&&<>
                 <div className="setting-block settings-display-matrix">
@@ -2914,18 +2940,18 @@ export default function Home() {
                     <small>SELECT STARFLEET CONSOLE FAMILY</small>
                   </header>
                   <p className="display-matrix-brief">Choose a Starfleet console: the physical switch banks of the Original Series Enterprise, or the LCARS display families of later eras. Each changes framing, controls, navigation, and instrument styling.</p>
-                  <div className="settings-themes">
+                  <ConsoleGroup label="DISPLAY FAMILY"><div className="settings-themes">
                     {themes.map((t, i) => (
-                      <button
+                      <ConsoleButton
                         className={`${theme === t.id ? "selected" : ""} theme-preview-${t.id}`}
                         key={t.id}
                         onClick={() => choose(t.id)}
                       >
                         <i>0{i + 1}</i><span className="theme-preview-screen" aria-hidden="true"><em/><em/><em/><em/></span>
                         <span className="theme-preview-copy"><small>{t.family} · {t.era}</small><b>{t.name}</b><strong>{t.code}</strong><p>{t.description}</p></span>
-                      </button>
+                      </ConsoleButton>
                     ))}
-                  </div>
+                  </div></ConsoleGroup>
                 </div>
                 <DesktopExperience
                 profiles={profiles}
@@ -2994,18 +3020,18 @@ export default function Home() {
                 clearExtensionQuarantine={clearExtensionQuarantine}
               />
                 <div className="settings-grid settings-quick-grid">
-                <button onClick={()=>{setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);}}><b>COMPUTER CORE</b><small>PLANS, DRY RUNS, AUDIT, AND UNDO</small></button>
-                <button onClick={()=>setRoutineCenterOpen(true)}><b>PROCEDURE BUILDER</b><small>BUILD, PREVIEW, AND TRIGGER MULTI-STEP PROCEDURES</small></button>
-                <button onClick={()=>setHistoryOpen(true)}><b>COMMUNICATIONS CENTER</b><small>NOTICES, PRIORITIES, AND COMMAND ACTIVITY</small></button>
-                <button onClick={() => setEditOpen(true)}>
+                <ConsoleButton onClick={()=>{setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);}}><b>COMPUTER CORE</b><small>PLANS, DRY RUNS, AUDIT, AND UNDO</small></ConsoleButton>
+                <ConsoleButton onClick={()=>setRoutineCenterOpen(true)}><b>PROCEDURE BUILDER</b><small>BUILD, PREVIEW, AND TRIGGER MULTI-STEP PROCEDURES</small></ConsoleButton>
+                <ConsoleButton onClick={()=>setHistoryOpen(true)}><b>COMMUNICATIONS CENTER</b><small>NOTICES, PRIORITIES, AND COMMAND ACTIVITY</small></ConsoleButton>
+                <ConsoleButton onClick={() => setEditOpen(true)}>
                   <b>FAVORITE APPLICATIONS</b>
                   <small>CHOOSE UP TO 20 RESPONSIVE LAUNCHERS</small>
-                </button>
-                <button onClick={() => setAllOpen(true)}>
+                </ConsoleButton>
+                <ConsoleButton onClick={() => setAllOpen(true)}>
                   <b>APPLICATION LIBRARY</b>
                   <small>SEARCH INSTALLED SOFTWARE</small>
-                </button>
-                <button
+                </ConsoleButton>
+                <ConsoleButton
                   onClick={() => {
                     setOverviewEdit(true);
                     setSection("overview");
@@ -3013,33 +3039,33 @@ export default function Home() {
                 >
                   <b>OVERVIEW MODULES</b>
                   <small>ADD, REMOVE AND POSITION WIDGETS</small>
-                </button>
-                <button onClick={() => setSound(!sound)}>
+                </ConsoleButton>
+                <ConsoleButton onClick={() => setSound(!sound)}>
                   <b>LCARS AUDIO</b>
                   <small>{sound ? "ENABLED" : "DISABLED"}</small>
-                </button>
-                <button onClick={() => setFirstRun(true)}>
+                </ConsoleButton>
+                <ConsoleButton onClick={() => setFirstRun(true)}>
                   <b>RUN GUIDED TOUR</b>
                   <small>LEARN THE LCARS DESKTOP CONTROLS</small>
-                </button>
-                <button onClick={()=>setWhatsNewOpen(true)}>
+                </ConsoleButton>
+                <ConsoleButton onClick={()=>setWhatsNewOpen(true)}>
                   <b>WHAT&apos;S NEW IN VERSION 30</b>
                   <small>NATIVE SYSTEM CONTROLS · NO HOST SETTINGS WINDOWS</small>
-                </button>
-                <button onClick={() => coreAction("shell-mode-off")}>
+                </ConsoleButton>
+                <ConsoleButton onClick={() => coreAction("shell-mode-off")}>
                   <b>RECOVERY CONTROL</b>
                   <small>
                     {platform.includes("WINDOWS")
                       ? "RESTORE WINDOWS EXPLORER"
                       : "RESTORE PLASMA PANELS"}
                   </small>
-                </button>
+                </ConsoleButton>
               </div>
               </>}
               </div>
-            </section>
+            </section></ConsoleGroup>
           )}
-        </section>
+        </section></ConsoleGroup>
         </ConsoleDisplay>
       </div>
       {allOpen && (
@@ -3084,8 +3110,8 @@ export default function Home() {
       />
       <MobileCommandBar section={section} sheet={mobileSheet} navigate={(page)=>{setSection(page);setMobileSheet(null);}} applications={()=>{setAllOpen(true);setMobileSheet(null);}} commands={()=>setMobileSheet((current)=>current==="commands"?null:"commands")} communications={()=>{setHistoryOpen(true);setMobileSheet(null);}} more={()=>setMobileSheet((current)=>current==="more"?null:"more")} computer={()=>{setComputerSeed("");setComputerSource("operator");setComputerVoiceAuthorized(false);setComputerOpen(true);setMobileSheet(null);}} routines={()=>{setRoutineCenterOpen(true);setMobileSheet(null);}} tray={()=>{setTrayOpen(true);setMobileSheet(null);}} displays={()=>{setDisplayMenu(true);setMobileSheet(null);}} power={()=>{setPowerOpen(true);setMobileSheet(null);}} close={()=>setMobileSheet(null)}/>
       <TrayDrawer open={trayOpen} items={trayItems} shortcuts={trayShortcuts} close={() => setTrayOpen(false)} execute={runTrayShortcut} />
-      {speedDialModule&&<div className="backdrop module-spotlight" onMouseDown={(event)=>event.target===event.currentTarget&&setSpeedDialModule(null)}><ResizablePopup popupKey="speed-dial-module" ariaModal={true}><header><div><small>SPEED DIAL MODULE</small><h3>{widgetMeta(speedDialModule).name}</h3></div><button onClick={()=>setSpeedDialModule(null)}>CLOSE ×</button></header>{renderWidget(speedDialModule)}</ResizablePopup></div>}
-      {speedDialPages.map((peek)=><SpeedDialPagePeek key={peek.id} popupKey={`speed-dial-page-peek:${peek.id}`} page={peek.page} pinned={peek.pinned} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>savePagePeeks(speedDialPages.map((item)=>item.id===peek.id?{...item,pinned:!item.pinned}:item))} detach={()=>{window.open(`lcars://app/index.html?tool=page-peek&page=${encodeURIComponent(peek.page)}`,"_blank");savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id));}} close={()=>savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id))} openFull={(page)=>{savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id));setSection(page);}} />)}
+      {speedDialModule&&<div className="backdrop module-spotlight" onMouseDown={(event)=>event.target===event.currentTarget&&setSpeedDialModule(null)}><ResizablePopup popupKey="speed-dial-module" ariaModal={true}><header><div><small>SPEED DIAL MODULE</small><h3>{widgetMeta(speedDialModule).name}</h3></div><ConsoleButton onClick={()=>setSpeedDialModule(null)}>CLOSE ×</ConsoleButton></header>{renderWidget(speedDialModule)}</ResizablePopup></div>}
+      {speedDialPages.map((peek)=><SpeedDialPagePeek key={peek.id} popupKey={`speed-dial-page-peek:${peek.id}`} page={peek.page} pinned={peek.pinned} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>savePagePeeks(speedDialPages.map((item)=>item.id===peek.id?{...item,pinned:!item.pinned}:item))} detach={()=>{window.open(detachedWorkspaceUrl("page-peek",{page:peek.page}),"_blank");savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id));}} close={()=>savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id))} openFull={(page)=>{savePagePeeks(speedDialPages.filter((item)=>item.id!==peek.id));setSection(page);}} />)}
       {routineCenterOpen&&<ProcedureCenter
         routines={routines}
         apps={apps}
@@ -3114,7 +3140,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-6","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-6","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-7","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-7","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -3182,7 +3208,7 @@ export default function Home() {
         doNotDisturb={doNotDisturb}
         toggleDnd={() => setDoNotDisturb((v) => !v)}
       />
-    </main>
+    </main></ConsoleThemeProvider>
   );
 }
 
@@ -3276,8 +3302,8 @@ function FileExplorer({
         notify(e.message || "File operation failed", "error", !transfer);
       });
   };
-  const newFolder = () => {
-    const name = prompt("New folder name")?.trim();
+  const newFolder = async () => {
+    const name = (await consolePrompt("New folder name"))?.trim();
     if (name) act("/api/file-folder", { path, name }, "Folder created");
   };
   const size = (n: number) =>
@@ -3296,7 +3322,7 @@ function FileExplorer({
   },[requestedFile]);
   if(documentPath)return <DocumentWorkspace path={documentPath} close={()=>setDocumentPath("")} notify={notify}/>;
   return (
-    <section className="file-explorer">
+    <ConsoleGroup label="FILE OPERATIONS"><section className="file-explorer">
       <header>
         <div>
           <small>LOCAL HOME DIRECTORY</small>
@@ -3304,37 +3330,37 @@ function FileExplorer({
         </div>
         <span>{loading ? "PROCESSING…" : visible.length + " ITEMS"}</span>
       </header>
-      <nav>
-        <button onClick={() => load("~")}>HOME</button>
-        <button onClick={() => load("~/Documents")}>DOCUMENTS</button>
-        <button onClick={() => load("~/Downloads")}>DOWNLOADS</button>
-        <button disabled={!parent} onClick={() => parent && load(parent)}>
+      <ConsoleControls><nav>
+        <ConsoleButton onClick={() => load("~")}>HOME</ConsoleButton>
+        <ConsoleButton onClick={() => load("~/Documents")}>DOCUMENTS</ConsoleButton>
+        <ConsoleButton onClick={() => load("~/Downloads")}>DOWNLOADS</ConsoleButton>
+        <ConsoleButton disabled={!parent} onClick={() => parent && load(parent)}>
           ‹ UP
-        </button>
-        <button onClick={() => load(path)}>REFRESH</button>
-        <button onClick={newFolder}>NEW FOLDER</button>
-        <label>
+        </ConsoleButton>
+        <ConsoleButton onClick={() => load(path)}>REFRESH</ConsoleButton>
+        <ConsoleButton onClick={newFolder}>NEW FOLDER</ConsoleButton>
+        <ConsoleControls><label data-console-toggle="">
           <input
             type="checkbox"
             checked={showHidden}
             onChange={(e) => setShowHidden(e.target.checked)}
           />{" "}
           HIDDEN
-        </label>
-        <input
+        </label></ConsoleControls>
+        <ConsoleField
           aria-label="Search files"
           placeholder="SEARCH FILES…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
-      </nav>
+      </nav></ConsoleControls>
       {pending && (
         <div className="transfer-strip">
           <span>
             {pending.move ? "MOVE" : "COPY"} <b>{pending.file.name}</b>
           </span>
           <small>Navigate to the destination folder.</small>
-          <button
+          <ConsoleButton
             onClick={() =>
               act(
                 "/api/file-transfer",
@@ -3349,14 +3375,14 @@ function FileExplorer({
             }
           >
             TRANSFER HERE
-          </button>
-          <button onClick={() => setPending(null)}>CANCEL</button>
+          </ConsoleButton>
+          <ConsoleButton onClick={() => setPending(null)}>CANCEL</ConsoleButton>
         </div>
       )}
       <div className="file-browser-body">
         <div className="file-grid">
           {visible.map((file) => (
-            <button
+            <ConsoleButton consoleChoice
               className={selected?.path === file.path ? "selected" : ""}
               key={file.path}
               onClick={() => setSelected(file)}
@@ -3374,7 +3400,7 @@ function FileExplorer({
                   {new Date(file.modified * 1000).toLocaleDateString()}
                 </small>
               </span>
-            </button>
+            </ConsoleButton>
           ))}
         </div>
         <aside className="file-inspector">
@@ -3387,7 +3413,7 @@ function FileExplorer({
               </small>
               {preview.kind === "image" && <img className="file-preview-image" src={preview.content} alt="Selected file preview" />}
               {preview.kind === "text" && <pre className="file-preview-text">{preview.content}</pre>}
-              <button
+              <ConsoleButton
                 onClick={() =>
                   selected.directory
                     ? load(selected.path)
@@ -3395,24 +3421,24 @@ function FileExplorer({
                 }
               >
                 {selected.directory ? "OPEN FOLDER" : "OPEN FILE"}
-              </button>
-              <button
+              </ConsoleButton>
+              <ConsoleButton
                 onClick={() => setPending({ file: selected, move: false })}
               >
                 COPY TO…
-              </button>
-              <button
+              </ConsoleButton>
+              <ConsoleButton
                 onClick={() => setPending({ file: selected, move: true })}
               >
                 MOVE TO…
-              </button>
+              </ConsoleButton>
             </>
           ) : (
             <p>SELECT A FILE OR FOLDER FOR DETAILS</p>
           )}
         </aside>
       </div>
-    </section>
+    </section></ConsoleGroup>
   );
 }
 
@@ -3422,24 +3448,24 @@ function DocumentWorkspace({path,close,detached=false,notify}:{path:string;close
   const load=()=>{setLoading(true);setError("");fetch("http://127.0.0.1:8765/api/document?path="+encodeURIComponent(path)).then(async(response)=>{const result=await response.json();if(!response.ok||result.error)throw Error(result.error||"Document unavailable");setDocumentData(result);setContent(result.content);setDirty(false);}).catch((failure)=>{setError(failure.message);notify(failure.message,"error");}).finally(()=>setLoading(false));};
   useEffect(load,[path]);
   const save=async()=>{const response=await fetch("http://127.0.0.1:8765/api/document",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({path,content})});const result=await response.json();if(!response.ok||result.error)return notify(result.error||"Document could not be saved","error");setDirty(false);notify("Document saved");};
-  const detach=()=>window.open(`lcars://app/index.html?tool=document&path=${encodeURIComponent(path)}`,"_blank","popup=yes");
-  return <section className="document-workspace"><header draggable={!detached} onDragEnd={(event)=>{if(!detached&&(event.screenX<=1||event.screenY<=1||event.screenX>=window.screen.availWidth-1||event.screenY>=window.screen.availHeight-1))detach();}}><div><small>LCARS DOCUMENT WORKSPACE</small><h3>{documentData?.name||"DOCUMENT LINK"}</h3></div><nav>{documentData?.editable&&<button disabled={!dirty} onClick={save}>SAVE</button>}<button onClick={detached?()=>window.close():detach}>{detached?"REATTACH / CLOSE":"DETACH ↗"}</button><button onClick={close}>{detached?"CLOSE":"BACK TO FILES"}</button></nav></header>{loading?<div className="document-loading">PROCESSING DOCUMENT…</div>:error?<div className="document-error"><b>LCARS READER UNAVAILABLE</b><p>{error}</p><button onClick={close}>BACK TO FILES</button></div>:documentData?.kind==="pdf"?<iframe title={documentData.name} src={documentData.content}/>:documentData?.editable?<textarea value={content} onChange={(event)=>{setContent(event.target.value);setDirty(true);}} spellCheck/>:<article className="document-reader"><pre>{content}</pre></article>}<footer><span>{documentData?.kind?.toUpperCase()||"UNKNOWN FORMAT"}</span><small>{documentData?.editable?dirty?"UNSAVED CHANGES":"EDITABLE / SAVED":"READ-ONLY LCARS VIEW"}</small></footer></section>;
+  const detach=()=>window.open(detachedWorkspaceUrl("document",{path}),"_blank","popup=yes");
+  return <ConsoleGroup label="DOCUMENT CONTROLS"><section className="document-workspace"><header draggable={!detached} onDragEnd={(event)=>{if(!detached&&(event.screenX<=1||event.screenY<=1||event.screenX>=window.screen.availWidth-1||event.screenY>=window.screen.availHeight-1))detach();}}><div><small>LCARS DOCUMENT WORKSPACE</small><h3>{documentData?.name||"DOCUMENT LINK"}</h3></div><ConsoleControls><nav>{documentData?.editable&&<ConsoleButton disabled={!dirty} onClick={save}>SAVE</ConsoleButton>}<ConsoleButton onClick={detached?()=>window.close():detach}>{detached?"REATTACH / CLOSE":"DETACH ↗"}</ConsoleButton><ConsoleButton onClick={close}>{detached?"CLOSE":"BACK TO FILES"}</ConsoleButton></nav></ConsoleControls></header>{loading?<div className="document-loading">PROCESSING DOCUMENT…</div>:error?<div className="document-error"><b>LCARS READER UNAVAILABLE</b><p>{error}</p><ConsoleButton onClick={close}>BACK TO FILES</ConsoleButton></div>:documentData?.kind==="pdf"?<iframe title={documentData.name} src={documentData.content}/>:documentData?.editable?<ConsoleTextarea value={content} onChange={(event)=>{setContent(event.target.value);setDirty(true);}} spellCheck/>:<article className="document-reader"><pre>{content}</pre></article>}<footer><span>{documentData?.kind?.toUpperCase()||"UNKNOWN FORMAT"}</span><small>{documentData?.editable?dirty?"UNSAVED CHANGES":"EDITABLE / SAVED":"READ-ONLY LCARS VIEW"}</small></footer></section></ConsoleGroup>;
 }
 
 function CustomApplicationPage({page,app,embedded,launch,navigate}:{page:CustomPage;app:App|undefined;embedded:string|null;launch:()=>void;navigate:(page:string)=>void}) {
-  return <section className="detail-view custom-page-view application-destination"><header className="custom-page-cap"><small>ASSIGNED APPLICATION DESTINATION</small><h3>{page.name}</h3></header>{app?<div className="application-destination-card"><i>{app.icon?<img src={app.icon} alt=""/>:app.name.slice(0,2).toUpperCase()}</i><span><small>INSTALLED APPLICATION</small><h4>{app.name}</h4><p>{app.comment||"Local desktop application"}</p></span><nav>{embedded&&<button onClick={()=>navigate(embedded)}>OPEN LCARS {embedded.toUpperCase()} VIEW</button>}<button onClick={launch}>OPEN NATIVE WINDOW ↗</button></nav></div>:<div className="adaptive-empty"><b>APPLICATION NOT FOUND</b><small>The application may have been removed or its launcher identifier changed. Edit this custom page in Settings.</small></div>}<footer>{embedded?"LCARS-COMPATIBLE DESTINATION AVAILABLE":"THE OPERATING SYSTEM DOES NOT ALLOW THIS APPLICATION TO BE RE-PARENTED INSIDE LCARS"}</footer></section>;
+  return <ConsoleGroup label={<>{page.name}</>}><section className="detail-view custom-page-view application-destination"><header className="custom-page-cap"><small>ASSIGNED APPLICATION DESTINATION</small><h3>{page.name}</h3></header>{app?<div className="application-destination-card"><i>{app.icon?<img src={app.icon} alt=""/>:app.name.slice(0,2).toUpperCase()}</i><span><small>INSTALLED APPLICATION</small><h4>{app.name}</h4><p>{app.comment||"Local desktop application"}</p></span><ConsoleControls><nav>{embedded&&<ConsoleButton onClick={()=>navigate(embedded)}>OPEN LCARS {embedded.toUpperCase()} VIEW</ConsoleButton>}<ConsoleButton onClick={launch}>OPEN NATIVE WINDOW ↗</ConsoleButton></nav></ConsoleControls></div>:<div className="adaptive-empty"><b>APPLICATION NOT FOUND</b><small>The application may have been removed or its launcher identifier changed. Edit this custom page in Settings.</small></div>}<footer>{embedded?"LCARS-COMPATIBLE DESTINATION AVAILABLE":"THE OPERATING SYSTEM DOES NOT ALLOW THIS APPLICATION TO BE RE-PARENTED INSIDE LCARS"}</footer></section></ConsoleGroup>;
 }
 
 function NetworkConsole({info,action,refresh}:{info:NetworkInfo;action:(value:string)=>void;refresh:()=>void}) {
   const amount=(value:number)=>value>1073741824?(value/1073741824).toFixed(1)+" GB":value>1048576?(value/1048576).toFixed(1)+" MB":(value/1024).toFixed(0)+" KB";
   const diagnostics=[['GATEWAY',info.diagnostics.gateway],['DNS',info.diagnostics.dns],['EXTERNAL LINK',info.diagnostics.internet]] as const;
-  return <section className="detail-view lcars-console network-console"><header className="console-cap"><div><small>NET / SUBSPACE OPERATIONS</small><h3>NETWORK OPERATIONS</h3></div><strong>{info.interfaces.length.toString().padStart(2,'0')}</strong></header><div className="network-grid">{info.interfaces.length?info.interfaces.map((link,index)=><article className="network-tile" key={link.id}><i>{String(index+1).padStart(2,'0')}</i><header><small>{link.kind.toUpperCase()} INTERFACE</small><b>{link.name}</b><em className={link.state==='connected'?'online':''}>{link.state.toUpperCase()}</em></header><div className="network-address"><span><small>ADDRESS</small><b>{link.address||'UNASSIGNED'}</b></span><span><small>GATEWAY</small><b>{link.gateway||'LOCAL ONLY'}</b></span></div><div className="network-flow"><span>RX {amount(link.received)}</span><i><em style={{width:Math.min(100,(link.received%100000000)/1000000)+'%'}} /></i><span>TX {amount(link.sent)}</span></div><footer><span>{link.speed||'LINK SPEED UNKNOWN'}</span>{typeof link.signal==='number'&&<b>SIGNAL {link.signal}%</b>}</footer></article>):<div className="adaptive-empty"><b>NO NETWORK INTERFACES REPORTED</b><small>The platform adapter did not return an active data link.</small></div>}</div><section className="network-diagnostics"><header><small>CONNECTION DIAGNOSTICS</small><b>{info.diagnostics.latency===null?'NO LATENCY':info.diagnostics.latency+' MS'}</b></header>{diagnostics.map(([name,ok],index)=><article key={name}><i>{String(index+1).padStart(2,'0')}</i><span>{name}</span><b className={ok?'ok':'bad'}>{ok?'ONLINE':'OFFLINE'}</b></article>)}<article><i>04</i><span>BLUETOOTH</span><b className={info.bluetooth?'ok':'bad'}>{info.bluetooth?'ACTIVE':'INACTIVE'}</b></article></section><nav className="network-actions"><button onClick={()=>action('network-settings')}>NETWORK SETTINGS</button><button onClick={()=>action('wifi')}>WI-FI CONTROL</button><button onClick={()=>action('bluetooth')}>BLUETOOTH CONTROL</button><button onClick={refresh}>REFRESH & TEST</button></nav></section>;
+  return <ConsoleGroup label="NETWORK FUNCTIONS"><section className="detail-view lcars-console network-console"><header className="console-cap"><div><small>NET / SUBSPACE OPERATIONS</small><h3>NETWORK OPERATIONS</h3></div><strong>{info.interfaces.length.toString().padStart(2,'0')}</strong></header><div className="network-grid">{info.interfaces.length?info.interfaces.map((link,index)=><article className="network-tile" key={link.id}><i>{String(index+1).padStart(2,'0')}</i><header><small>{link.kind.toUpperCase()} INTERFACE</small><b>{link.name}</b><em className={link.state==='connected'?'online':''}>{link.state.toUpperCase()}</em></header><div className="network-address"><span><small>ADDRESS</small><b>{link.address||'UNASSIGNED'}</b></span><span><small>GATEWAY</small><b>{link.gateway||'LOCAL ONLY'}</b></span></div><div className="network-flow"><span>RX {amount(link.received)}</span><i><em style={{width:Math.min(100,(link.received%100000000)/1000000)+'%'}} /></i><span>TX {amount(link.sent)}</span></div><footer><span>{link.speed||'LINK SPEED UNKNOWN'}</span>{typeof link.signal==='number'&&<b>SIGNAL {link.signal}%</b>}</footer></article>):<div className="adaptive-empty"><b>NO NETWORK INTERFACES REPORTED</b><small>The platform adapter did not return an active data link.</small></div>}</div><section className="network-diagnostics"><header><small>CONNECTION DIAGNOSTICS</small><b>{info.diagnostics.latency===null?'NO LATENCY':info.diagnostics.latency+' MS'}</b></header>{diagnostics.map(([name,ok],index)=><article key={name}><i>{String(index+1).padStart(2,'0')}</i><span>{name}</span><b className={ok?'ok':'bad'}>{ok?'ONLINE':'OFFLINE'}</b></article>)}<article><i>04</i><span>BLUETOOTH</span><b className={info.bluetooth?'ok':'bad'}>{info.bluetooth?'ACTIVE':'INACTIVE'}</b></article></section><ConsoleControls><nav className="network-actions"><ConsoleButton onClick={()=>action('network-settings')}>NETWORK SETTINGS</ConsoleButton><ConsoleButton onClick={()=>action('wifi')}>WI-FI CONTROL</ConsoleButton><ConsoleButton onClick={()=>action('bluetooth')}>BLUETOOTH CONTROL</ConsoleButton><ConsoleButton onClick={refresh}>REFRESH & TEST</ConsoleButton></nav></ConsoleControls></section></ConsoleGroup>;
 }
 
 function TrayDrawer({open,items,shortcuts,close,execute}:{open:boolean;items:TrayItem[];shortcuts:TrayShortcut[];close:()=>void;execute:(shortcut:TrayShortcut)=>void}) {
   if(!open)return null;
   const action=(id:string,kind:"activate"|"context",event?:{screenX:number;screenY:number})=>fetch("http://127.0.0.1:8765/api/tray-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id,action:kind,x:Math.round(event?.screenX||0),y:Math.round(event?.screenY||0)})}).catch(()=>{});
-  return <ResizablePopup as="aside" popupKey="tray-command-deck" className="tray-drawer tray-command-deck" floating minWidth={340} minHeight={300} ariaModal={false} ariaLabel="Tray Command Deck"><header><div><small>LOCAL STATUSNOTIFIER & COMMAND MATRIX</small><h3>TRAY COMMAND DECK</h3></div><button onClick={close}>CLOSE ×</button></header><div className="tray-scroll-region" tabIndex={0}><section className="tray-shortcut-grid" aria-label="Configured tray shortcuts">{shortcuts.map((shortcut,index)=><button className={`tray-shortcut tray-kind-${shortcut.kind}`} key={shortcut.id} onClick={()=>execute(shortcut)} title={`${shortcut.kind}: ${shortcut.label}`}><i>{String(index+1).padStart(2,"0")}</i><span><b>{shortcut.label}</b><small>{shortcut.kind.toUpperCase()}</small></span><em>›</em></button>)}{!shortcuts.length&&<p>NO COMMAND BUTTONS ASSIGNED · ADD THEM IN SETTINGS</p>}</section><section className="tray-service-list" aria-label="Desktop tray services"><header><b>DESKTOP SERVICES</b><small>RIGHT-CLICK FOR APP ACTIONS · {items.length} ACTIVE</small></header>{items.length?items.map((item)=><article className="tray-service-entry" key={item.id}><button className="tray-service-primary" onClick={()=>action(item.id,"activate")} onContextMenu={(event)=>{event.preventDefault();action(item.id,"context",event);}} onKeyDown={(event)=>{if(event.key==="ContextMenu"||(event.shiftKey&&event.key==="F10")){event.preventDefault();action(item.id,"context");}}} title={`${item.name} · Right-click for application actions`}><i>{item.icon?<img src={item.icon} alt=""/>:<b>{item.name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TR"}</b>}</i><span><b>{item.name}</b><small>{item.status||"ACTIVE"}</small></span><em>›</em></button><button className="tray-service-context" disabled={item.hasContextMenu===false} onClick={(event)=>action(item.id,"context",event)} aria-label={`Open ${item.name} context actions`}>ACTIONS</button></article>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</section></div><footer><span>SCROLL MATRIX</span><small>{shortcuts.length} COMMANDS · {items.length} SERVICES</small></footer></ResizablePopup>;
+  return <ResizablePopup as="aside" popupKey="tray-command-deck" className="tray-drawer tray-command-deck" floating minWidth={340} minHeight={300} ariaModal={false} ariaLabel="Tray Command Deck"><header><div><small>LOCAL STATUSNOTIFIER & COMMAND MATRIX</small><h3>TRAY COMMAND DECK</h3></div><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></header><div className="tray-scroll-region" tabIndex={0}><ConsoleGroup label="SECTION CONTROLS"><section className="tray-shortcut-grid" aria-label="Configured tray shortcuts">{shortcuts.map((shortcut,index)=><ConsoleButton className={`tray-shortcut tray-kind-${shortcut.kind}`} key={shortcut.id} onClick={()=>execute(shortcut)} title={`${shortcut.kind}: ${shortcut.label}`}><i>{String(index+1).padStart(2,"0")}</i><span><b>{shortcut.label}</b><small>{shortcut.kind.toUpperCase()}</small></span><em>›</em></ConsoleButton>)}{!shortcuts.length&&<p>NO COMMAND BUTTONS ASSIGNED · ADD THEM IN SETTINGS</p>}</section></ConsoleGroup><ConsoleGroup label={<>DESKTOP SERVICES</>}><section className="tray-service-list" aria-label="Desktop tray services"><header><b>DESKTOP SERVICES</b><small>RIGHT-CLICK FOR APP ACTIONS · {items.length} ACTIVE</small></header>{items.length?items.map((item)=><ConsoleGroup key={item.id} label={<>{item.status||"ACTIVE"}</>}><article className="tray-service-entry" key={item.id}><ConsoleButton className="tray-service-primary" onClick={()=>action(item.id,"activate")} onContextMenu={(event)=>{event.preventDefault();action(item.id,"context",event);}} onKeyDown={(event)=>{if(event.key==="ContextMenu"||(event.shiftKey&&event.key==="F10")){event.preventDefault();action(item.id,"context");}}} title={`${item.name} · Right-click for application actions`}><i>{item.icon?<img src={item.icon} alt=""/>:<b>{item.name.replace(/[^A-Za-z0-9]/g,"").slice(0,2).toUpperCase()||"TR"}</b>}</i><span><b>{item.name}</b><small>{item.status||"ACTIVE"}</small></span><em>›</em></ConsoleButton><ConsoleButton className="tray-service-context" disabled={item.hasContextMenu===false} onClick={(event)=>action(item.id,"context",event)} aria-label={`Open ${item.name} context actions`}>ACTIONS</ConsoleButton></article></ConsoleGroup>):<p>NO EXTERNAL TRAY SERVICES REPORTED</p>}</section></ConsoleGroup></div><footer><span>SCROLL MATRIX</span><small>{shortcuts.length} COMMANDS · {items.length} SERVICES</small></footer></ResizablePopup>;
 }
 
 function StartupTelemetry({bridge,reduced}:{bridge:boolean;reduced:boolean}) { return <aside className={'startup-telemetry '+(reduced?'instant':'')} aria-live="polite"><i /><span><small>LCARS INITIALIZATION</small><b>{bridge?'LOCAL CORE SYNCHRONIZED':'LOCAL CORE LINK PENDING'}</b></span><em>SYS 47 · DISPLAY MATRIX · AUDIO BUS</em></aside>; }
@@ -3483,7 +3509,7 @@ function TaskRail({
     : [["OPEN APPLICATIONS", filtered] as const];
   const iconFor = (task: WindowTask) => task.icon || apps.find((app) => (app.name + " " + app.id).toLowerCase().includes(task.app.toLowerCase()) || task.app.toLowerCase().includes(app.name.toLowerCase()))?.icon;
   return (
-    <section className="task-rail">
+    <ConsoleGroup label={<>ACTIVE TASKS</>}><section className="task-rail">
       <header>
         <b>ACTIVE TASKS</b>
         <small>{tasks.length} WINDOWS</small>
@@ -3498,7 +3524,7 @@ function TaskRail({
         </div>
       )}
       {tasks.length >= 5 && (
-        <input
+        <ConsoleField
           aria-label="Search open tasks"
           placeholder="SEARCH TASKS…"
           value={query}
@@ -3510,7 +3536,7 @@ function TaskRail({
           <small>{name}</small>
           {items.length ? (
             items.map((t) => (
-              <article
+              <ConsoleGroup key={t.id} label={<>{t.minimized ? "MINIMIZED" : t.name}</>}><article
                 className={
                   (t.active ? "active " : "") + (t.attention ? "attention" : "")
                 }
@@ -3522,7 +3548,7 @@ function TaskRail({
                   }
                 }}
               >
-                <button
+                <ConsoleButton
                   disabled={restricted}
                   onClick={() => {
                     action(t.id, "activate");
@@ -3534,51 +3560,51 @@ function TaskRail({
                     <b>{t.app}</b>
                     <small>{t.minimized ? "MINIMIZED" : t.name}</small>
                   </span>
-                </button>
-                <nav>
-                  <button
+                </ConsoleButton>
+                <ConsoleControls><nav>
+                  <ConsoleButton
                     disabled={restricted}
                     aria-label={"Minimize " + t.app}
                     onClick={() => action(t.id, "minimize")}
                   >
                     —
-                  </button>
-                  <button
+                  </ConsoleButton>
+                  <ConsoleButton
                     disabled={restricted}
                     aria-label={"Close " + t.app}
                     onClick={() => action(t.id, "close")}
                   >
                     ×
-                  </button>
-                </nav>
+                  </ConsoleButton>
+                </nav></ConsoleControls>
                 {menu === t.id && !restricted && (
                   <div className="task-context">
-                    <button onClick={() => action(t.id, "activate")}>
+                    <ConsoleButton onClick={() => action(t.id, "activate")}>
                       FOCUS
-                    </button>
-                    <button onClick={() => action(t.id, "minimize")}>
+                    </ConsoleButton>
+                    <ConsoleButton onClick={() => action(t.id, "minimize")}>
                       MINIMIZE
-                    </button>
+                    </ConsoleButton>
                     {displays.map((d) => (
-                      <button
+                      <ConsoleButton
                         key={d.id}
                         onClick={() => action(t.id, "move", d.name)}
                       >
                         MOVE TO {d.name}
-                      </button>
+                      </ConsoleButton>
                     ))}
-                    {decks.length>1&&<div className="task-context-decks"><small>ROUTE TO LCARS DECK</small>{decks.map((deck)=><button className={deck.active?"active":""} key={deck.id} onClick={()=>action(t.id,"move-deck",String(deck.id))}>DECK {String(deck.id).padStart(2,"0")} · {deck.name}</button>)}</div>}
-                    <button onClick={() => action(t.id, "close")}>CLOSE</button>
+                    {decks.length>1&&<div className="task-context-decks"><small>ROUTE TO LCARS DECK</small>{decks.map((deck)=><ConsoleButton className={deck.active?"active":""} key={deck.id} onClick={()=>action(t.id,"move-deck",String(deck.id))}>DECK {String(deck.id).padStart(2,"0")} · {deck.name}</ConsoleButton>)}</div>}
+                    <ConsoleButton onClick={() => action(t.id, "close")}>CLOSE</ConsoleButton>
                   </div>
                 )}
-              </article>
+              </article></ConsoleGroup>
             ))
           ) : (
             <em>NO WINDOWS</em>
           )}
         </div>
       ))}
-    </section>
+    </section></ConsoleGroup>
   );
 }
 
@@ -3648,7 +3674,7 @@ function UpdateCenter({
   };
   const downloadBlocked=Boolean(updateBusy)||(downloadLocked&&Boolean(update?.available)&&!update?.downloaded);
   return (
-    <section className="detail-view update-center">
+    <ConsoleGroup label={<>SOFTWARE UPDATE CONTROL</>}><section className="detail-view update-center">
       <h3>SOFTWARE UPDATE CONTROL</h3>
       <header className="update-summary">
         <div>
@@ -3661,13 +3687,13 @@ function UpdateCenter({
         </div>
         <i>03</i>
       </header>
-      <nav className="update-area-tabs" aria-label="Update categories">
+      <ConsoleControls><nav className="update-area-tabs" aria-label="Update categories">
         {([
           ["releases","RELEASES","System, LCARS, integrations"],
           ["modules","MODULES","Official and community repositories"],
           ["diagnostics","DIAGNOSTICS","Health, repair, support export"],
-        ] as [UpdateArea,string,string][]).map(([next,label,detail],index)=><button type="button" key={next} className={area===next?"active":""} aria-current={area===next?"page":undefined} onClick={()=>setArea(next)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label}</b><small>{detail}</small></span></button>)}
-      </nav>
+        ] as [UpdateArea,string,string][]).map(([next,label,detail],index)=><ConsoleButton type="button" key={next} className={area===next?"active":""} aria-current={area===next?"page":undefined} onClick={()=>setArea(next)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label}</b><small>{detail}</small></span></ConsoleButton>)}
+      </nav></ConsoleControls>
       {area==="releases"&&<>
       <div className="update-grid update-release-grid">
         <UpdatePanel
@@ -3719,16 +3745,16 @@ function UpdateCenter({
       <aside className="optional-components">
         <header><div><small>NONESSENTIAL SOFTWARE BAY</small><h4>OPTIONAL COMPONENTS</h4></div><em>SKIPPED ITEMS DO NOT AFFECT LCARS STATUS</em></header>
         <div>
-          <article><i className={health.voice?.available ? "ready" : ""}>V</i><span><b>OFFLINE VOICE ENGINE</b><small>{health.voice?.available ? "BUNDLED WHISPER.CPP + PCM RECORDER READY" : "NOT INSTALLED · LCARS REMAINS FULLY USABLE"}</small></span><button onClick={configureVoice}>{health.voice?.available ? "CONFIGURE" : "SET UP"}</button></article>
-          <article><i className={health.voice?.available || prefs.voiceModel ? "ready" : ""}>M</i><span><b>LOCAL SPEECH MODEL</b><small>{prefs.voiceModel ? "CUSTOM MODEL PATH CONFIGURED" : health.voice?.available ? "BUNDLED ENGLISH COMMAND MODEL READY" : "OPTIONAL GGML MODEL NOT SELECTED"}</small></span><button onClick={configureVoice}>{health.voice?.available || prefs.voiceModel ? "CHANGE" : "SELECT"}</button></article>
-          <article><i className="ready">M</i><span><b>MODULE PLATFORM</b><small>STABLE API V3 · SIGNED · PERMISSIONED · ISOLATED</small></span><button onClick={() => action("extension-folder")}>OPEN MODULES</button></article>
+          <ConsoleGroup label={<>{health.voice?.available ? "BUNDLED WHISPER.CPP + PCM RECORDER READY" : "NOT INSTALLED · LCARS REMAINS FULLY USABLE"}</>}><article><i className={health.voice?.available ? "ready" : ""}>V</i><span><b>OFFLINE VOICE ENGINE</b><small>{health.voice?.available ? "BUNDLED WHISPER.CPP + PCM RECORDER READY" : "NOT INSTALLED · LCARS REMAINS FULLY USABLE"}</small></span><ConsoleButton onClick={configureVoice}>{health.voice?.available ? "CONFIGURE" : "SET UP"}</ConsoleButton></article></ConsoleGroup>
+          <ConsoleGroup label={<>{prefs.voiceModel ? "CUSTOM MODEL PATH CONFIGURED" : health.voice?.available ? "BUNDLED ENGLISH COMMAND MODEL READY" : "OPTIONAL GGML MODEL NOT SELECTED"}</>}><article><i className={health.voice?.available || prefs.voiceModel ? "ready" : ""}>M</i><span><b>LOCAL SPEECH MODEL</b><small>{prefs.voiceModel ? "CUSTOM MODEL PATH CONFIGURED" : health.voice?.available ? "BUNDLED ENGLISH COMMAND MODEL READY" : "OPTIONAL GGML MODEL NOT SELECTED"}</small></span><ConsoleButton onClick={configureVoice}>{health.voice?.available || prefs.voiceModel ? "CHANGE" : "SELECT"}</ConsoleButton></article></ConsoleGroup>
+          <ConsoleGroup label={<>STABLE API V3 · SIGNED · PERMISSIONED · ISOLATED</>}><article><i className="ready">M</i><span><b>MODULE PLATFORM</b><small>STABLE API V3 · SIGNED · PERMISSIONED · ISOLATED</small></span><ConsoleButton onClick={() => action("extension-folder")}>OPEN MODULES</ConsoleButton></article></ConsoleGroup>
         </div>
       </aside>
-      {update?.notes && <details className="release-notes"><summary>RELEASE NOTES · VERSION {update.version}</summary><pre>{update.notes}</pre></details>}
+      {update?.notes && <ConsoleDisclosure className="release-notes"><summary>RELEASE NOTES · VERSION {update.version}</summary><pre>{update.notes}</pre></ConsoleDisclosure>}
       </>}
       {area==="modules"&&<ExtensionHub openByDefault installed={extensions} catalog={catalog} sources={sources} setCatalog={setCatalog} setSources={setSources} disabled={disabled} setDisabled={setDisabled} refresh={refreshExtensions} notify={notify} openFolder={()=>action("extension-folder")}/>}
       {area==="diagnostics"&&<DiagnosticsCenter health={health} notify={notify} action={action} />}
-    </section>
+    </section></ConsoleGroup>
   );
 }
 
@@ -3742,27 +3768,27 @@ function ExtensionHub({installed,catalog,sources,setCatalog,setSources,disabled,
   const repositoryEntries=catalog.filter((entry)=>entry.repository&&(entry.channel||"stable")===catalogChannel),updateCount=repositoryEntries.filter((entry)=>entry.updateAvailable).length;
   const post=async(path:string,body:Record<string,unknown>)=>{const response=await fetch(`http://127.0.0.1:8765${path}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}),result=await response.json();if(!response.ok||result.ok===false)throw new Error(result.error||"Module Platform operation failed");return result;};
   const reloadCatalog=async()=>{const response=await fetch("http://127.0.0.1:8765/api/extension-catalog"),result=await response.json();if(!response.ok)throw new Error(result.error||"Module repositories could not be refreshed");setCatalog(result.catalog||[]);setSources(result.sources||[]);refresh();};
-  const operate=async(entry:ExtensionCatalogEntry,operation:"install"|"update"|"remove")=>{const requested=entry.capabilities||[],current=installed.find((item)=>item.id===entry.id)?.grantedCapabilities||entry.grantedCapabilities||[],approved=operation==="remove"?[]:current.length===requested.length&&requested.every((name)=>current.includes(name))?current:requested;if(operation!=="remove"&&requested.length&&!window.confirm(`${entry.name} requests:\n\n${requested.map((name)=>`• ${capabilityLabels[name]||name}`).join("\n")}\n\nGrant these capabilities?`))return;setBusy(entry.id);try{const result=await post("/api/extension-install",{id:entry.id,operation,sourceId:entry.sourceId||"",approvedCapabilities:approved});notify(result.message||`${entry.name} ${operation} complete`);await reloadCatalog();}catch(error){notify(error instanceof Error?error.message:"Module operation failed","error");}finally{setBusy("");}};
+  const operate=async(entry:ExtensionCatalogEntry,operation:"install"|"update"|"remove")=>{const requested=entry.capabilities||[],current=installed.find((item)=>item.id===entry.id)?.grantedCapabilities||entry.grantedCapabilities||[],approved=operation==="remove"?[]:current.length===requested.length&&requested.every((name)=>current.includes(name))?current:requested;if(operation!=="remove"&&requested.length&&!await consoleConfirm(`${entry.name} requests:\n\n${requested.map((name)=>`• ${capabilityLabels[name]||name}`).join("\n")}\n\nGrant these capabilities?`))return;setBusy(entry.id);try{const result=await post("/api/extension-install",{id:entry.id,operation,sourceId:entry.sourceId||"",approvedCapabilities:approved});notify(result.message||`${entry.name} ${operation} complete`);await reloadCatalog();}catch(error){notify(error instanceof Error?error.message:"Module operation failed","error");}finally{setBusy("");}};
   const platformOperation=async(operation:"rollback"|"permissions",entry:ExtensionCatalogEntry,capabilities:string[]=[])=>{setBusy(`${operation}:${entry.id}`);try{const result=await post("/api/module-platform",{operation,id:entry.id,capabilities});notify(result.message||"Module Platform updated");await reloadCatalog();}catch(error){notify(error instanceof Error?error.message:"Module Platform operation failed","error");}finally{setBusy("");}};
   const sourceOperation=async(operation:"add"|"enable"|"disable"|"remove"|"refresh"|"channel",source?:ModuleRepositorySource,channel=sourceChannel)=>{const key=source?.id||"add";setBusy(key);try{const result=await post("/api/module-source",{operation,id:source?.id||"",url:sourceUrl,channel});if(operation==="add")setSourceUrl("");notify(result.message||"Module source updated");await reloadCatalog();}catch(error){notify(error instanceof Error?error.message:"Module source operation failed","error");}finally{setBusy("");}};
   const preparePublisher=async()=>{setBusy("publisher");try{const result=await post("/api/module-publisher",{id:publisherModule,repository:publisherRepository});setPublisherResult(result);notify(result.message||"Signed publisher package prepared");}catch(error){notify(error instanceof Error?error.message:"Module Forge publisher failed","error");}finally{setBusy("");}};
   const createDraft=async()=>{setBusy("forge");try{const result=await post("/api/module-forge",forge);notify(result.message||"Module draft created");setPublisherModule(result.id);setPackageModule(result.id);await reloadCatalog();}catch(error){notify(error instanceof Error?error.message:"Module Forge draft failed","error");}finally{setBusy("");}};
   const exportPackage=async()=>{setBusy("export");try{const result=await post("/api/module-package",{operation:"export",id:packageModule});setPackageResult(result);notify(result.message||"Signed module package exported");}catch(error){notify(error instanceof Error?error.message:"Module export failed","error");}finally{setBusy("");}};
-  const importPackage=async()=>{setBusy("import");try{const inspection=await post("/api/module-package",{operation:"inspect",path:importPath}),requested:string[]=inspection.capabilities||[];if(requested.length&&!window.confirm(`${inspection.name} requests:\n\n${requested.map((name)=>`• ${capabilityLabels[name]||name}`).join("\n")}\n\nVerify the signature and import with these capabilities?`))return;const result=await post("/api/module-package",{operation:"import",path:importPath,approvedCapabilities:requested});setPackageResult(result);notify(result.message||"Signed module package imported");await reloadCatalog();}catch(error){notify(error instanceof Error?error.message:"Module import failed","error");}finally{setBusy("");}};
+  const importPackage=async()=>{setBusy("import");try{const inspection=await post("/api/module-package",{operation:"inspect",path:importPath}),requested:string[]=inspection.capabilities||[];if(requested.length&&!await consoleConfirm(`${inspection.name} requests:\n\n${requested.map((name)=>`• ${capabilityLabels[name]||name}`).join("\n")}\n\nVerify the signature and import with these capabilities?`))return;const result=await post("/api/module-package",{operation:"import",path:importPath,approvedCapabilities:requested});setPackageResult(result);notify(result.message||"Signed module package imported");await reloadCatalog();}catch(error){notify(error instanceof Error?error.message:"Module import failed","error");}finally{setBusy("");}};
   const isInstalled=(id:string)=>installed.some((extension)=>extension.id===id);
-  return <section className={`extension-hub module-repository-panel ${expanded?"repository-open":"repository-closed"}`}>
-    <button className="module-repository-toggle" onClick={()=>setExpanded(!expanded)} aria-expanded={expanded}><i>03</i><span><small>STABLE MODULE API V3 · SIGNED PACKAGES · ISOLATED HOST RENDERER</small><b>MODULE PLATFORM</b><p>Install, permission, monitor, roll back, import, export, and build LCARS modules.</p></span><strong>{String(repositoryEntries.length).padStart(2,"0")}<small> {catalogChannel.toUpperCase()}</small>{updateCount>0&&<em>{updateCount} UPDATE{updateCount===1?"":"S"}</em>}</strong><u>{expanded?"CLOSE MODULES":"OPEN PLATFORM"}</u></button>
+  return <ConsoleGroup label={<>MODULE PLATFORM</>}><section className={`extension-hub module-repository-panel ${expanded?"repository-open":"repository-closed"}`}>
+    <ConsoleButton className="module-repository-toggle" onClick={()=>setExpanded(!expanded)} aria-expanded={expanded}><i>03</i><span><small>STABLE MODULE API V3 · SIGNED PACKAGES · ISOLATED HOST RENDERER</small><b>MODULE PLATFORM</b><p>Install, permission, monitor, roll back, import, export, and build LCARS modules.</p></span><strong>{String(repositoryEntries.length).padStart(2,"0")}<small> {catalogChannel.toUpperCase()}</small>{updateCount>0&&<em>{updateCount} UPDATE{updateCount===1?"":"S"}</em>}</strong><u>{expanded?"CLOSE MODULES":"OPEN PLATFORM"}</u></ConsoleButton>
     {expanded&&<>
-      <nav><input aria-label="Search Module Platform" placeholder="SEARCH MODULE PLATFORM…" value={query} onChange={(event)=>setQuery(event.target.value)}/><select aria-label="Module repository channel" value={catalogChannel} onChange={(event)=>setCatalogChannel(event.target.value as "stable"|"development")}><option value="stable">STABLE CHANNEL</option><option value="development">DEVELOPMENT CHANNEL</option></select><button onClick={reloadCatalog}>REFRESH</button><button onClick={()=>setSourceBay(!sourceBay)}>SOURCES · {sources.length}</button><button onClick={()=>setForgeOpen(!forgeOpen)}>MODULE FORGE</button><button onClick={()=>setPackageOpen(!packageOpen)}>IMPORT / EXPORT</button><button onClick={()=>setPublisherOpen(!publisherOpen)}>SIGNED PUBLISHER</button><button onClick={openFolder}>OPEN FOLDER</button></nav>
+      <ConsoleControls><nav><ConsoleField aria-label="Search Module Platform" placeholder="SEARCH MODULE PLATFORM…" value={query} onChange={(event)=>setQuery(event.target.value)}/><ConsoleSelect aria-label="Module repository channel" value={catalogChannel} onChange={(event)=>setCatalogChannel(event.target.value as "stable"|"development")}><option value="stable">STABLE CHANNEL</option><option value="development">DEVELOPMENT CHANNEL</option></ConsoleSelect><ConsoleButton onClick={reloadCatalog}>REFRESH</ConsoleButton><ConsoleButton onClick={()=>setSourceBay(!sourceBay)}>SOURCES · {sources.length}</ConsoleButton><ConsoleButton onClick={()=>setForgeOpen(!forgeOpen)}>MODULE FORGE</ConsoleButton><ConsoleButton onClick={()=>setPackageOpen(!packageOpen)}>IMPORT / EXPORT</ConsoleButton><ConsoleButton onClick={()=>setPublisherOpen(!publisherOpen)}>SIGNED PUBLISHER</ConsoleButton><ConsoleButton onClick={openFolder}>OPEN FOLDER</ConsoleButton></nav></ConsoleControls>
       <div className="module-repository-status"><b>HOST-RENDERED DECLARATIVE SANDBOX</b><span>API V3 STABLE · V2 COMPATIBLE · EXECUTABLE REPOSITORY CODE BLOCKED</span><em>{String(installed.length).padStart(2,"0")} INSTALLED · {String(installed.filter((item)=>item.moduleHealth?.health==="isolated").length).padStart(2,"0")} ISOLATED</em></div>
-      {sourceBay&&<section className="module-source-bay"><header><span><small>PUBLIC GITHUB ONLY · CHANNEL-AWARE · NO TOKENS</small><b>REPOSITORY SOURCES</b></span><strong>{sources.length}/25</strong></header><div className="module-source-add"><input aria-label="Public GitHub repository URL" placeholder="https://github.com/OWNER/REPOSITORY" value={sourceUrl} onChange={(event)=>setSourceUrl(event.target.value)}/><select aria-label="New source channel" value={sourceChannel} onChange={(event)=>setSourceChannel(event.target.value as "stable"|"development")}><option value="stable">STABLE</option><option value="development">DEVELOPMENT</option></select><button disabled={!sourceUrl.trim()||busy==="add"} onClick={()=>sourceOperation("add")}>{busy==="add"?"VALIDATING…":"ADD SOURCE"}</button></div>{sources.map((source)=><article className={`source-${source.status||"ready"}`} key={source.id}><i>{source.official?"★":"◇"}</i><span><b>{source.name}</b><small>{source.official?"OFFICIAL LCARS SOURCE":"COMMUNITY SOURCE"} · {(source.channel||"stable").toUpperCase()} · {source.enabled?`${source.count||0} VALIDATED MODULES`:"DISABLED"}</small>{source.error&&<em>{source.error}</em>}</span><nav><button disabled={busy===source.id} onClick={()=>sourceOperation("refresh",source)}>REFRESH</button>{!source.official&&<button onClick={()=>sourceOperation("channel",source,source.channel==="development"?"stable":"development")}>USE {source.channel==="development"?"STABLE":"DEV"}</button>}{!source.official&&<button onClick={()=>sourceOperation(source.enabled?"disable":"enable",source)}>{source.enabled?"DISABLE":"ENABLE"}</button>}{!source.official&&<button className="danger" onClick={()=>sourceOperation("remove",source)}>REMOVE</button>}</nav></article>)}</section>}
-      {forgeOpen&&<section className="module-forge"><header><span><small>DESIGN · VALIDATE · PREVIEW · PACKAGE</small><b>MODULE FORGE</b></span><strong>API V3</strong></header><div className="module-forge-fields"><label>MODULE ID<input value={forge.id} placeholder="my-lcars-module" onChange={(event)=>setForge({...forge,id:event.target.value.toLowerCase().replace(/[^a-z0-9-]/g,"")})}/></label><label>NAME<input value={forge.name} placeholder="MY LCARS MODULE" onChange={(event)=>setForge({...forge,name:event.target.value})}/></label><label>VERSION<input value={forge.version} onChange={(event)=>setForge({...forge,version:event.target.value})}/></label><label>AUTHOR<input value={forge.author} onChange={(event)=>setForge({...forge,author:event.target.value})}/></label><label>PLACEMENT<select value={forge.placement} onChange={(event)=>setForge({...forge,placement:event.target.value})}>{["overview","page","header","tray","panel"].map((value)=><option key={value}>{value}</option>)}</select></label><label>FIRST DISPLAY TEXT<input value={forge.text} onChange={(event)=>setForge({...forge,text:event.target.value})}/></label><label className="forge-description">DESCRIPTION<input value={forge.description} onChange={(event)=>setForge({...forge,description:event.target.value})}/></label></div><div className="module-capability-grid">{Object.entries(capabilityLabels).map(([id,label])=><button className={forge.capabilities.includes(id)?"selected":""} key={id} onClick={()=>setForge({...forge,capabilities:forge.capabilities.includes(id)?forge.capabilities.filter((item)=>item!==id):[...forge.capabilities,id]})}>{forge.capabilities.includes(id)?"✓ ":"+ "}{label}</button>)}</div><aside className="module-forge-preview"><i>03</i><span><small>{forge.placement.toUpperCase()} · API V3 · {forge.version}</small><b>{forge.name||"MODULE PREVIEW"}</b><p>{forge.text||"MODULE READY"}</p></span><em>{forge.capabilities.length} CAPABILIT{forge.capabilities.length===1?"Y":"IES"}</em></aside><button disabled={!forge.id||!forge.name||busy==="forge"} onClick={createDraft}>{busy==="forge"?"VALIDATING CONTRACT…":"CREATE + INSTALL DRAFT"}</button></section>}
-      {packageOpen&&<section className="module-package-bay"><header><span><small>SIGNED PORTABLE PACKAGES</small><b>IMPORT / EXPORT</b></span><strong>.LCARS-MODULE</strong></header><div><label>EXPORT INSTALLED MODULE<select value={packageModule} onChange={(event)=>setPackageModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><button disabled={!packageModule||busy==="export"} onClick={exportPackage}>{busy==="export"?"SIGNING…":"EXPORT SIGNED PACKAGE"}</button><label>IMPORT PACKAGE PATH<input value={importPath} placeholder="/path/to/module.lcars-module" onChange={(event)=>setImportPath(event.target.value)}/></label><button disabled={!importPath||busy==="import"} onClick={importPackage}>{busy==="import"?"VERIFYING…":"VERIFY + IMPORT"}</button></div>{packageResult&&<aside><b>PACKAGE OPERATION COMPLETE</b><span>{packageResult.path}</span>{packageResult.sha256&&<small>SHA-256 {packageResult.sha256.toUpperCase()}</small>}{packageResult.signerKeyId&&<em>SIGNER {packageResult.signerKeyId.toUpperCase()}</em>}</aside>}</section>}
-      {publisherOpen&&<section className="module-publisher"><header><span><small>RSA-SHA256 · STABLE + DEVELOPMENT CATALOGS</small><b>SIGNED MODULE PUBLISHER</b></span><a href="https://github.com/new" target="_blank" rel="noreferrer">CREATE GITHUB REPOSITORY ↗</a></header><p>LCARS validates the stable API contract, signs the package metadata with your local publisher identity, and generates both repository channels. The private signing key never leaves the local Module Forge folder.</p><div><label>MODULE<select value={publisherModule} onChange={(event)=>setPublisherModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</select></label><label>GITHUB OWNER / REPOSITORY<input value={publisherRepository} onChange={(event)=>setPublisherRepository(event.target.value)} placeholder="OWNER/REPOSITORY"/></label><button disabled={!publisherModule||busy==="publisher"} onClick={preparePublisher}>{busy==="publisher"?"SIGNING…":"GENERATE SIGNED REPOSITORY"}</button></div>{publisherResult&&<aside><b>SIGNED PACKAGE READY</b><span>{publisherResult.path}</span><small>SHA-256 {publisherResult.sha256?.toUpperCase()}</small><em>SIGNER {publisherResult.signerKeyId?.toUpperCase()} · {publisherResult.files?.join(" · ")}</em></aside>}</section>}
-      <div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id),remote=entry,health=manifest?.moduleHealth||entry.moduleHealth,requested=manifest?.capabilities||entry.capabilities,granted=manifest?.grantedCapabilities||entry.grantedCapabilities||[],showDetails=details===entry.id;return <article className={`${disabledNow?"disabled":""} ${remote.repository?"repository-module":"local-module"} module-health-${health?.health||"ready"}`} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{remote.repository?`${remote.official?"OFFICIAL":"COMMUNITY"} · ${(remote.channel||"stable").toUpperCase()} · ${remote.sourceName||"MODULE REPOSITORY"}`:entry.bundled?"BUNDLED MODULE":"LOCAL MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · API {manifest?.apiVersion||health?.apiVersion||"?"} {health?.apiStatus?.toUpperCase()||""} · V{entry.version}{installedNow?` / INSTALLED V${manifest?.version||remote.installedVersion||entry.version}`:""} · {health?.health?.toUpperCase()||"READY"}</em>{showDetails&&<><div className="module-detail-strip"><span><b>PACKAGE TRUST</b>{(remote.signatureStatus||health?.signed||"local").toUpperCase()}</span><span><b>SIGNER</b>{remote.signerKeyId||health?.signerKeyId||"LOCAL / BUNDLED"}</span><span><b>MINIMUM LCARS</b>{remote.minimumLcarsVersion||manifest?.minimumLcarsVersion||"COMPATIBLE"}</span><span><b>HEALTH</b>{health?.failureCount?`${health.failureCount} FAILURE(S) · ${health.lastFailure||"RECORDED"}`:"READY · NO RECORDED FAILURES"}</span><span><b>ROLLBACK</b>{health?.rollbackAvailable||remote.rollbackAvailable?"PREVIOUS VERSION AVAILABLE":"NO PREVIOUS VERSION"}</span><span><b>SOURCE</b>{remote.official?"LCARS OFFICIAL":remote.sourceName||health?.sourceId||"LOCAL"}</span></div>{installedNow&&requested.length>0&&<div className="module-permission-matrix"><b>CAPABILITY PERMISSIONS</b>{requested.map((capability)=><button className={granted.includes(capability)?"granted":"revoked"} key={capability} onClick={()=>platformOperation("permissions",entry,granted.includes(capability)?granted.filter((item)=>item!==capability):[...granted,capability])}>{granted.includes(capability)?"✓ GRANTED":"○ REVOKED"}<small>{capabilityLabels[capability]||capability}</small></button>)}</div>}</>}</span><nav><button onClick={()=>setDetails(showDetails?"":entry.id)}>{showDetails?"LESS":"DETAILS"}</button>{installedNow?<><button onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</button>{(health?.rollbackAvailable||remote.rollbackAvailable)&&<button disabled={busy===`rollback:${entry.id}`} onClick={()=>platformOperation("rollback",entry)}>ROLL BACK</button>}{remote.updateAvailable&&<button className="update" disabled={busy===entry.id} onClick={()=>operate(entry,"update")}>{busy===entry.id?"VERIFYING…":"UPDATE"}</button>}{!entry.bundled&&<button className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</button>}</>:remote.repository?<button className="install" disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"VERIFYING…":"INSTALL"}</button>:null}</nav></article>;})}{!inventory.length&&<p className="extension-empty">NO MATCHING MODULES ON THE {catalogChannel.toUpperCase()} CHANNEL</p>}</div>
+      {sourceBay&&<ConsoleGroup label={<>REPOSITORY SOURCES</>}><section className="module-source-bay"><header><span><small>PUBLIC GITHUB ONLY · CHANNEL-AWARE · NO TOKENS</small><b>REPOSITORY SOURCES</b></span><strong>{sources.length}/25</strong></header><div className="module-source-add"><ConsoleField aria-label="Public GitHub repository URL" placeholder="https://github.com/OWNER/REPOSITORY" value={sourceUrl} onChange={(event)=>setSourceUrl(event.target.value)}/><ConsoleSelect aria-label="New source channel" value={sourceChannel} onChange={(event)=>setSourceChannel(event.target.value as "stable"|"development")}><option value="stable">STABLE</option><option value="development">DEVELOPMENT</option></ConsoleSelect><ConsoleButton disabled={!sourceUrl.trim()||busy==="add"} onClick={()=>sourceOperation("add")}>{busy==="add"?"VALIDATING…":"ADD SOURCE"}</ConsoleButton></div>{sources.map((source)=><ConsoleGroup key={source.id} label={<>{source.official?"OFFICIAL LCARS SOURCE":"COMMUNITY SOURCE"} · {(source.channel||"stable").toUpperCase()} · {source.enabled?`${source.count||0} VALIDATED MODULES`:"DISABLED"}</>}><article className={`source-${source.status||"ready"}`} key={source.id}><i>{source.official?"★":"◇"}</i><span><b>{source.name}</b><small>{source.official?"OFFICIAL LCARS SOURCE":"COMMUNITY SOURCE"} · {(source.channel||"stable").toUpperCase()} · {source.enabled?`${source.count||0} VALIDATED MODULES`:"DISABLED"}</small>{source.error&&<em>{source.error}</em>}</span><ConsoleControls><nav><ConsoleButton disabled={busy===source.id} onClick={()=>sourceOperation("refresh",source)}>REFRESH</ConsoleButton>{!source.official&&<ConsoleButton onClick={()=>sourceOperation("channel",source,source.channel==="development"?"stable":"development")}>USE {source.channel==="development"?"STABLE":"DEV"}</ConsoleButton>}{!source.official&&<ConsoleButton onClick={()=>sourceOperation(source.enabled?"disable":"enable",source)}>{source.enabled?"DISABLE":"ENABLE"}</ConsoleButton>}{!source.official&&<ConsoleButton className="danger" onClick={()=>sourceOperation("remove",source)}>REMOVE</ConsoleButton>}</nav></ConsoleControls></article></ConsoleGroup>)}</section></ConsoleGroup>}
+      {forgeOpen&&<ConsoleGroup label={<>MODULE FORGE</>}><section className="module-forge"><header><span><small>DESIGN · VALIDATE · PREVIEW · PACKAGE</small><b>MODULE FORGE</b></span><strong>API V3</strong></header><div className="module-forge-fields"><ConsoleControls><label>MODULE ID<input value={forge.id} placeholder="my-lcars-module" onChange={(event)=>setForge({...forge,id:event.target.value.toLowerCase().replace(/[^a-z0-9-]/g,"")})}/></label></ConsoleControls><ConsoleControls><label>NAME<input value={forge.name} placeholder="MY LCARS MODULE" onChange={(event)=>setForge({...forge,name:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>VERSION<input value={forge.version} onChange={(event)=>setForge({...forge,version:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>AUTHOR<input value={forge.author} onChange={(event)=>setForge({...forge,author:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>PLACEMENT<ConsoleSelect value={forge.placement} onChange={(event)=>setForge({...forge,placement:event.target.value})}>{["overview","page","header","tray","panel"].map((value)=><option key={value}>{value}</option>)}</ConsoleSelect></label></ConsoleControls><ConsoleControls><label>FIRST DISPLAY TEXT<input value={forge.text} onChange={(event)=>setForge({...forge,text:event.target.value})}/></label></ConsoleControls><ConsoleControls><label className="forge-description">DESCRIPTION<input value={forge.description} onChange={(event)=>setForge({...forge,description:event.target.value})}/></label></ConsoleControls></div><div className="module-capability-grid">{Object.entries(capabilityLabels).map(([id,label])=><ConsoleButton className={forge.capabilities.includes(id)?"selected":""} key={id} onClick={()=>setForge({...forge,capabilities:forge.capabilities.includes(id)?forge.capabilities.filter((item)=>item!==id):[...forge.capabilities,id]})}>{forge.capabilities.includes(id)?"✓ ":"+ "}{label}</ConsoleButton>)}</div><aside className="module-forge-preview"><i>03</i><span><small>{forge.placement.toUpperCase()} · API V3 · {forge.version}</small><b>{forge.name||"MODULE PREVIEW"}</b><p>{forge.text||"MODULE READY"}</p></span><em>{forge.capabilities.length} CAPABILIT{forge.capabilities.length===1?"Y":"IES"}</em></aside><ConsoleButton disabled={!forge.id||!forge.name||busy==="forge"} onClick={createDraft}>{busy==="forge"?"VALIDATING CONTRACT…":"CREATE + INSTALL DRAFT"}</ConsoleButton></section></ConsoleGroup>}
+      {packageOpen&&<ConsoleGroup label={<>IMPORT / EXPORT</>}><section className="module-package-bay"><header><span><small>SIGNED PORTABLE PACKAGES</small><b>IMPORT / EXPORT</b></span><strong>.LCARS-MODULE</strong></header><div><ConsoleControls><label>EXPORT INSTALLED MODULE<ConsoleSelect value={packageModule} onChange={(event)=>setPackageModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</ConsoleSelect></label></ConsoleControls><ConsoleButton disabled={!packageModule||busy==="export"} onClick={exportPackage}>{busy==="export"?"SIGNING…":"EXPORT SIGNED PACKAGE"}</ConsoleButton><ConsoleControls><label>IMPORT PACKAGE PATH<input value={importPath} placeholder="/path/to/module.lcars-module" onChange={(event)=>setImportPath(event.target.value)}/></label></ConsoleControls><ConsoleButton disabled={!importPath||busy==="import"} onClick={importPackage}>{busy==="import"?"VERIFYING…":"VERIFY + IMPORT"}</ConsoleButton></div>{packageResult&&<aside><b>PACKAGE OPERATION COMPLETE</b><span>{packageResult.path}</span>{packageResult.sha256&&<small>SHA-256 {packageResult.sha256.toUpperCase()}</small>}{packageResult.signerKeyId&&<em>SIGNER {packageResult.signerKeyId.toUpperCase()}</em>}</aside>}</section></ConsoleGroup>}
+      {publisherOpen&&<ConsoleGroup label={<>SIGNED MODULE PUBLISHER</>}><section className="module-publisher"><header><span><small>RSA-SHA256 · STABLE + DEVELOPMENT CATALOGS</small><b>SIGNED MODULE PUBLISHER</b></span><ConsoleLink href="https://github.com/new" target="_blank" rel="noreferrer">CREATE GITHUB REPOSITORY ↗</ConsoleLink></header><p>LCARS validates the stable API contract, signs the package metadata with your local publisher identity, and generates both repository channels. The private signing key never leaves the local Module Forge folder.</p><div><ConsoleControls><label>MODULE<ConsoleSelect value={publisherModule} onChange={(event)=>setPublisherModule(event.target.value)}>{installed.map((extension)=><option value={extension.id} key={extension.id}>{extension.name} · V{extension.version}</option>)}</ConsoleSelect></label></ConsoleControls><ConsoleControls><label>GITHUB OWNER / REPOSITORY<input value={publisherRepository} onChange={(event)=>setPublisherRepository(event.target.value)} placeholder="OWNER/REPOSITORY"/></label></ConsoleControls><ConsoleButton disabled={!publisherModule||busy==="publisher"} onClick={preparePublisher}>{busy==="publisher"?"SIGNING…":"GENERATE SIGNED REPOSITORY"}</ConsoleButton></div>{publisherResult&&<aside><b>SIGNED PACKAGE READY</b><span>{publisherResult.path}</span><small>SHA-256 {publisherResult.sha256?.toUpperCase()}</small><em>SIGNER {publisherResult.signerKeyId?.toUpperCase()} · {publisherResult.files?.join(" · ")}</em></aside>}</section></ConsoleGroup>}
+      <div className="extension-catalog">{inventory.map((entry,index)=>{const installedNow=isInstalled(entry.id),disabledNow=disabled.includes(entry.id),manifest=installed.find((item)=>item.id===entry.id),remote=entry,health=manifest?.moduleHealth||entry.moduleHealth,requested=manifest?.capabilities||entry.capabilities,granted=manifest?.grantedCapabilities||entry.grantedCapabilities||[],showDetails=details===entry.id;return <ConsoleGroup key={entry.id} label={<>{remote.repository?`${remote.official?"OFFICIAL":"COMMUNITY"} · ${(remote.channel||"stable").toUpperCase()} · ${remote.sourceName||"MODULE REPOSITORY"}`:entry.bundled?"BUNDLED MODULE":"LOCAL MODULE"}</>}><article className={`${disabledNow?"disabled":""} ${remote.repository?"repository-module":"local-module"} module-health-${health?.health||"ready"}`} key={entry.id}><i>{String(index+1).padStart(2,"0")}</i><span><small>{remote.repository?`${remote.official?"OFFICIAL":"COMMUNITY"} · ${(remote.channel||"stable").toUpperCase()} · ${remote.sourceName||"MODULE REPOSITORY"}`:entry.bundled?"BUNDLED MODULE":"LOCAL MODULE"}</small><b>{entry.name}</b><p>{entry.description}</p><em>{entry.author} · API {manifest?.apiVersion||health?.apiVersion||"?"} {health?.apiStatus?.toUpperCase()||""} · V{entry.version}{installedNow?` / INSTALLED V${manifest?.version||remote.installedVersion||entry.version}`:""} · {health?.health?.toUpperCase()||"READY"}</em>{showDetails&&<><div className="module-detail-strip"><span><b>PACKAGE TRUST</b>{(remote.signatureStatus||health?.signed||"local").toUpperCase()}</span><span><b>SIGNER</b>{remote.signerKeyId||health?.signerKeyId||"LOCAL / BUNDLED"}</span><span><b>MINIMUM LCARS</b>{remote.minimumLcarsVersion||manifest?.minimumLcarsVersion||"COMPATIBLE"}</span><span><b>HEALTH</b>{health?.failureCount?`${health.failureCount} FAILURE(S) · ${health.lastFailure||"RECORDED"}`:"READY · NO RECORDED FAILURES"}</span><span><b>ROLLBACK</b>{health?.rollbackAvailable||remote.rollbackAvailable?"PREVIOUS VERSION AVAILABLE":"NO PREVIOUS VERSION"}</span><span><b>SOURCE</b>{remote.official?"LCARS OFFICIAL":remote.sourceName||health?.sourceId||"LOCAL"}</span></div>{installedNow&&requested.length>0&&<div className="module-permission-matrix"><b>CAPABILITY PERMISSIONS</b>{requested.map((capability)=><ConsoleButton className={granted.includes(capability)?"granted":"revoked"} key={capability} onClick={()=>platformOperation("permissions",entry,granted.includes(capability)?granted.filter((item)=>item!==capability):[...granted,capability])}>{granted.includes(capability)?"✓ GRANTED":"○ REVOKED"}<small>{capabilityLabels[capability]||capability}</small></ConsoleButton>)}</div>}</>}</span><ConsoleControls><nav><ConsoleButton onClick={()=>setDetails(showDetails?"":entry.id)}>{showDetails?"LESS":"DETAILS"}</ConsoleButton>{installedNow?<><ConsoleButton onClick={()=>setDisabled(disabledNow?disabled.filter((id)=>id!==entry.id):[...disabled,entry.id])}>{disabledNow?"ENABLE":"DISABLE"}</ConsoleButton>{(health?.rollbackAvailable||remote.rollbackAvailable)&&<ConsoleButton disabled={busy===`rollback:${entry.id}`} onClick={()=>platformOperation("rollback",entry)}>ROLL BACK</ConsoleButton>}{remote.updateAvailable&&<ConsoleButton className="update" disabled={busy===entry.id} onClick={()=>operate(entry,"update")}>{busy===entry.id?"VERIFYING…":"UPDATE"}</ConsoleButton>}{!entry.bundled&&<ConsoleButton className="danger" disabled={busy===entry.id} onClick={()=>operate(entry,"remove")}>{busy===entry.id?"WORKING…":"REMOVE"}</ConsoleButton>}</>:remote.repository?<ConsoleButton className="install" disabled={busy===entry.id} onClick={()=>operate(entry,"install")}>{busy===entry.id?"VERIFYING…":"INSTALL"}</ConsoleButton>:null}</nav></ConsoleControls></article></ConsoleGroup>;})}{!inventory.length&&<p className="extension-empty">NO MATCHING MODULES ON THE {catalogChannel.toUpperCase()} CHANNEL</p>}</div>
       <footer><b>VERSION 30 MODULE SAFETY</b> · Signed API v3 packages, explicit capability grants, per-module health records, automatic render isolation, two-version rollback, bounded portable imports, and channel-aware repositories. Repository code is never executed.</footer>
     </>}
-  </section>;
+  </section></ConsoleGroup>;
 }
 
 function DiagnosticsCenter({health,notify,action}:{health:Health;notify:(text:string,kind?:"info"|"error")=>void;action:(value:string)=>void}) {
@@ -3772,7 +3798,7 @@ function DiagnosticsCenter({health,notify,action}:{health:Health;notify:(text:st
   const matrix=report?.health||health, ready=Object.values(matrix).filter((item)=>item.available).length,total=Object.keys(matrix).length;
   return <aside className="diagnostics-center">
     <header><div><small>OPERATIONS & RECOVERY</small><h4>DIAGNOSTICS CENTER</h4><p>Checks local adapters and creates a privacy-scrubbed support file without collecting personal content.</p></div><strong>{String(ready).padStart(2,"0")}<small>/ {String(total).padStart(2,"0")} READY</small></strong></header>
-    <nav><button disabled={busy} onClick={scan}>{busy?"SCANNING…":"RUN FULL CHECK"}</button><button disabled={busy} onClick={exportReport}>EXPORT SAFE SUPPORT REPORT</button><button onClick={()=>action("repair-installation")}>REPAIR INSTALLATION</button><button onClick={()=>setExpanded(!expanded)}>{expanded?"COLLAPSE MATRIX":"SHOW MATRIX"}</button></nav>
+    <ConsoleControls><nav><ConsoleButton disabled={busy} onClick={scan}>{busy?"SCANNING…":"RUN FULL CHECK"}</ConsoleButton><ConsoleButton disabled={busy} onClick={exportReport}>EXPORT SAFE SUPPORT REPORT</ConsoleButton><ConsoleButton onClick={()=>action("repair-installation")}>REPAIR INSTALLATION</ConsoleButton><ConsoleButton onClick={()=>setExpanded(!expanded)}>{expanded?"COLLAPSE MATRIX":"SHOW MATRIX"}</ConsoleButton></nav></ConsoleControls>
     {expanded&&<div className="diagnostic-matrix">{Object.entries(matrix).map(([name,item],index)=><article className={item.available?"ready":"attention"} key={name}><i>{String(index+1).padStart(2,"0")}</i><span><b>{name.replaceAll("_"," ").toUpperCase()}</b><small>{item.detail}</small>{!item.available&&item.remedy&&<em>{item.remedy}</em>}</span><strong>{item.available?"READY":"ACTION"}</strong></article>)}</div>}
     <footer><b>PRIVACY FILTER ACTIVE</b><span>{report?.privacy||"The export excludes usernames, home paths, file names, credentials, terminal history, window titles, and media titles."}</span>{report?.generatedUtc&&<small>LAST FULL CHECK · {new Date(report.generatedUtc).toLocaleString()}</small>}</footer>
   </aside>;
@@ -3812,7 +3838,7 @@ function UpdatePanel({
   stamp?: string;
 }) {
   return (
-    <article className="update-panel">
+    <ConsoleGroup label={<>{title}</>}><article className="update-panel">
       <header>
         <i>{number}</i>
         <span>
@@ -3829,11 +3855,11 @@ function UpdatePanel({
         </div>
       )}
       <div className="update-actions">
-        <button disabled={primaryDisabled} onClick={primaryAction}>{primary}</button>
-        <button disabled={secondaryDisabled} onClick={secondaryAction}>{secondary}</button>
-        {tertiary&&tertiaryAction&&<button disabled={tertiaryDisabled} onClick={tertiaryAction}>{tertiary}</button>}
+        <ConsoleButton disabled={primaryDisabled} onClick={primaryAction}>{primary}</ConsoleButton>
+        <ConsoleButton disabled={secondaryDisabled} onClick={secondaryAction}>{secondary}</ConsoleButton>
+        {tertiary&&tertiaryAction&&<ConsoleButton disabled={tertiaryDisabled} onClick={tertiaryAction}>{tertiary}</ConsoleButton>}
       </div>
-    </article>
+    </article></ConsoleGroup>
   );
 }
 
@@ -3872,7 +3898,7 @@ function PowerDialog({
                 : "The entire computer will enter sleep mode. LCARS and your applications will remain open for resume."}
           </p>
           <div className="power-confirm-actions">
-            <button autoFocus onClick={() => action(confirmPower)}>
+            <ConsoleButton autoFocus onClick={() => action(confirmPower)}>
               {confirmPower === "poweroff"
                 ? "SHUT DOWN COMPUTER"
                 : confirmPower === "reboot"
@@ -3880,8 +3906,8 @@ function PowerDialog({
                   : confirmPower === "logout"
                     ? "LOG OUT SESSION"
                   : "SLEEP COMPUTER"}
-            </button>
-            <button onClick={() => setConfirmPower(null)}>GO BACK</button>
+            </ConsoleButton>
+            <ConsoleButton onClick={() => setConfirmPower(null)}>GO BACK</ConsoleButton>
           </div>
         </ResizablePopup>
       </div>
@@ -3902,45 +3928,45 @@ function PowerDialog({
           </p>
         </header>
         <div className="power-options">
-          <button autoFocus onClick={() => action("exit")}>
+          <ConsoleButton autoFocus onClick={() => action("exit")}>
             <i>01</i>
             <span>
               <b>EXIT LCARS</b>
               <small>Close the interface; leave the computer running</small>
             </span>
-          </button>
-          <button onClick={() => setConfirmPower("poweroff")}>
+          </ConsoleButton>
+          <ConsoleButton onClick={() => setConfirmPower("poweroff")}>
             <i>02</i>
             <span>
               <b>SHUT DOWN COMPUTER</b>
               <small>Close applications and turn off the PC</small>
             </span>
-          </button>
-          <button onClick={() => setConfirmPower("reboot")}>
+          </ConsoleButton>
+          <ConsoleButton onClick={() => setConfirmPower("reboot")}>
             <i>03</i>
             <span>
               <b>RESTART COMPUTER</b>
               <small>Close applications and reboot the PC</small>
             </span>
-          </button>
-          <button onClick={() => setConfirmPower("sleep")}>
+          </ConsoleButton>
+          <ConsoleButton onClick={() => setConfirmPower("sleep")}>
             <i>04</i>
             <span>
               <b>SLEEP COMPUTER</b>
               <small>Suspend the whole PC and resume this session later</small>
             </span>
-          </button>
-          <button onClick={() => setConfirmPower("logout")}>
+          </ConsoleButton>
+          <ConsoleButton onClick={() => setConfirmPower("logout")}>
             <i>05</i>
             <span><b>LOG OUT SESSION</b><small>End the current Linux desktop session</small></span>
-          </button>
-          <button className="power-cancel" onClick={close}>
+          </ConsoleButton>
+          <ConsoleButton className="power-cancel" onClick={close}>
             <i>06</i>
             <span>
               <b>CANCEL</b>
               <small>Return to the LCARS interface</small>
             </span>
-          </button>
+          </ConsoleButton>
         </div>
       </ResizablePopup>
     </div>
@@ -3981,7 +4007,7 @@ function DisplayMenu({
       </header>
       <div className="monitor-map">
         {displays.map((d, i) => (
-          <button
+          <ConsoleButton
             className={d.primary ? "current" : ""}
             key={d.id}
             onClick={() => move(d)}
@@ -3989,11 +4015,14 @@ function DisplayMenu({
             <i>{i + 1}</i>
             <b>{d.name}</b>
             <small>{d.enabled ? "CONNECTED" : "DISABLED"}</small>
-          </button>
+          </ConsoleButton>
         ))}
       </div>
       {displays.map((d, i) => (
-        <article key={d.id}>
+        <ConsoleGroup key={d.id} label={<>
+              {d.geometry}
+              {d.primary ? " · PRIMARY" : ""}
+            </>}><article key={d.id}>
           <i>{i + 1}</i>
           <span>
             <b>{d.name}</b>
@@ -4002,22 +4031,22 @@ function DisplayMenu({
               {d.primary ? " · PRIMARY" : ""}
             </small>
           </span>
-          <nav>
-            <button disabled={!d.enabled} onClick={() => move(d)}>
+          <ConsoleControls><nav>
+            <ConsoleButton disabled={!d.enabled} onClick={() => move(d)}>
               MOVE LCARS HERE
-            </button>
-            <button disabled={!d.enabled} onClick={() => terminal(d)}>
+            </ConsoleButton>
+            <ConsoleButton disabled={!d.enabled} onClick={() => terminal(d)}>
               OPEN TERMINAL
-            </button>
-          </nav>
-        </article>
+            </ConsoleButton>
+          </nav></ConsoleControls>
+        </article></ConsoleGroup>
       ))}
-      <button
+      <ConsoleButton
         className="diagnostic-toggle"
         onClick={() => setDiagnostics(!diagnostics)}
       >
         {diagnostics ? "HIDE" : "SHOW"} DISPLAY DIAGNOSTICS
-      </button>
+      </ConsoleButton>
       {diagnostics && (
         <div className="display-diagnostics">
           {displays.map((d) => (
@@ -4032,13 +4061,13 @@ function DisplayMenu({
               </small>
             </p>
           ))}
-          <button onClick={copy}>COPY DIAGNOSTIC REPORT</button>
+          <ConsoleButton onClick={copy}>COPY DIAGNOSTIC REPORT</ConsoleButton>
         </div>
       )}
       <footer>
-        <button onClick={refresh}>REFRESH DISPLAYS</button>
-        <button onClick={identify}>IDENTIFY</button>
-        <button onClick={configure}>CONFIGURE</button>
+        <ConsoleButton onClick={refresh}>REFRESH DISPLAYS</ConsoleButton>
+        <ConsoleButton onClick={identify}>IDENTIFY</ConsoleButton>
+        <ConsoleButton onClick={configure}>CONFIGURE</ConsoleButton>
       </footer>
     </ResizablePopup>
   );
@@ -4052,14 +4081,14 @@ function CompatibilityBanner({
   open: () => void;
 }) {
   return (
-    <section className="compat-banner">
+    <ConsoleGroup label={<>{items.map((x) => x.feature).join(" + ")} RESTRICTED</>}><section className="compat-banner">
       <i>!</i>
       <span>
         <b>{items.map((x) => x.feature).join(" + ")} RESTRICTED</b>
         <small>{items[0].reason}</small>
       </span>
-      <button onClick={open}>DETAILS</button>
-    </section>
+      <ConsoleButton onClick={open}>DETAILS</ConsoleButton>
+    </section></ConsoleGroup>
   );
 }
 
@@ -4078,7 +4107,7 @@ function CompatibilityCenter({
             <small>UNIVERSAL LINUX ADAPTER</small>
             <h2>COMPATIBILITY REPORT</h2>
           </div>
-          <button onClick={close}>CLOSE ×</button>
+          <ConsoleButton onClick={close}>CLOSE ×</ConsoleButton>
         </header>
         <div className="compat-environment">
           <p>
@@ -4138,12 +4167,12 @@ function CompatibilityCenter({
 
 function WorkspaceWindowPanel({windows,peeks,arrange,reset,closePeeks,command}:{windows:string[];peeks:number;arrange:()=>void;reset:()=>void;closePeeks:()=>void;command:(popupKey:string,command:"focus"|"toggle-minimize")=>void}){
   const layouts=typeof window==="undefined"?{}:readPopupLayouts(),label=(key:string)=>key.startsWith("speed-dial-page-peek:")?key.split(":").at(-1)?.replace(/^peek-/,"").replaceAll("-"," ")||"PAGE PEEK":key.replaceAll("-"," ");
-  return <section className="workspace-window-panel"><header><span><small>VERSION 29 WINDOW MATRIX</small><b>POPUP WORKSPACE</b></span><strong>{String(windows.length).padStart(2,"0")}<small>ACTIVE</small></strong></header><p>Drag popup headers, resize from every edge, or use the window controls to minimize and snap. Live placement previews show each snap zone. Positions, dimensions, and stacking restore with the selected Workstation.</p><div><button onClick={arrange}><b>AUTO ARRANGE</b><small>TILE OPEN WINDOWS</small></button><button onClick={reset}><b>RESET LAYOUT</b><small>RESTORE SAFE DEFAULTS</small></button><button disabled={!peeks} onClick={closePeeks}><b>CLOSE PAGE PEEKS</b><small>{peeks} OPEN PREVIEW{peeks===1?"":"S"}</small></button></div>{windows.length>0&&<section className="workspace-window-manager"><header><b>LIVE WINDOW MANAGER</b><small>FOCUS OR MINIMIZE WITHOUT HUNTING THROUGH THE STACK</small></header>{windows.map((key,index)=><article key={key}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label(key).toUpperCase()}</b><small>{layouts[key]?.minimized?"MINIMIZED":layouts[key]?.snap&&layouts[key].snap!=="none"?`SNAPPED ${layouts[key].snap.toUpperCase()}`:"FLOATING"}</small></span><button onClick={()=>command(key,"focus")}>FOCUS</button><button onClick={()=>command(key,"toggle-minimize")}>{layouts[key]?.minimized?"RESTORE":"MINIMIZE"}</button></article>)}</section>}</section>;
+  return <ConsoleGroup label={<>POPUP WORKSPACE</>}><section className="workspace-window-panel"><header><span><small>VERSION 29 WINDOW MATRIX</small><b>POPUP WORKSPACE</b></span><strong>{String(windows.length).padStart(2,"0")}<small>ACTIVE</small></strong></header><p>Drag popup headers, resize from every edge, or use the window controls to minimize and snap. Live placement previews show each snap zone. Positions, dimensions, and stacking restore with the selected Workstation.</p><div><ConsoleButton onClick={arrange}><b>AUTO ARRANGE</b><small>TILE OPEN WINDOWS</small></ConsoleButton><ConsoleButton onClick={reset}><b>RESET LAYOUT</b><small>RESTORE SAFE DEFAULTS</small></ConsoleButton><ConsoleButton disabled={!peeks} onClick={closePeeks}><b>CLOSE PAGE PEEKS</b><small>{peeks} OPEN PREVIEW{peeks===1?"":"S"}</small></ConsoleButton></div>{windows.length>0&&<ConsoleGroup label={<>LIVE WINDOW MANAGER</>}><section className="workspace-window-manager"><header><b>LIVE WINDOW MANAGER</b><small>FOCUS OR MINIMIZE WITHOUT HUNTING THROUGH THE STACK</small></header>{windows.map((key,index)=><ConsoleGroup key={key} label={<>{layouts[key]?.minimized?"MINIMIZED":layouts[key]?.snap&&layouts[key].snap!=="none"?`SNAPPED ${layouts[key].snap.toUpperCase()}`:"FLOATING"}</>}><article key={key}><i>{String(index+1).padStart(2,"0")}</i><span><b>{label(key).toUpperCase()}</b><small>{layouts[key]?.minimized?"MINIMIZED":layouts[key]?.snap&&layouts[key].snap!=="none"?`SNAPPED ${layouts[key].snap.toUpperCase()}`:"FLOATING"}</small></span><ConsoleButton onClick={()=>command(key,"focus")}>FOCUS</ConsoleButton><ConsoleButton onClick={()=>command(key,"toggle-minimize")}>{layouts[key]?.minimized?"RESTORE":"MINIMIZE"}</ConsoleButton></article></ConsoleGroup>)}</section></ConsoleGroup>}</section></ConsoleGroup>;
 }
 
 function MobileCommandBar({section,sheet,navigate,applications,commands,communications,more,computer,routines,tray,displays,power,close}:{section:string;sheet:"commands"|"more"|null;navigate:(page:string)=>void;applications:()=>void;commands:()=>void;communications:()=>void;more:()=>void;computer:()=>void;routines:()=>void;tray:()=>void;displays:()=>void;power:()=>void;close:()=>void}){
-  const item=(page:string,label:string,code:string)=><button className={section===page?"active":""} onClick={()=>navigate(page)}><i>{code}</i><span>{label}</span></button>;
-  return <><nav className="mobile-command-bar" aria-label="PADD navigation">{item("overview","STATUS","01")}<button onClick={applications}><i>02</i><span>APPS</span></button><button className={sheet==="commands"?"active":""} onClick={commands}><i>03</i><span>COMMAND</span></button><button onClick={communications}><i>04</i><span>COMMS</span></button><button className={sheet==="more"?"active":""} onClick={more}><i>05</i><span>MORE</span></button></nav>{sheet&&<div className="mobile-sheet-scrim" onPointerDown={(event)=>event.target===event.currentTarget&&close()}><section className="mobile-command-sheet" aria-label={sheet==="commands"?"PADD command sheet":"PADD page sheet"}><header><span><small>LCARS PADD</small><b>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</b></span><button onClick={close}>CLOSE ×</button></header>{sheet==="commands"?<div className="mobile-sheet-grid"><button onClick={computer}><i>01</i><b>COMPUTER CORE</b><small>NATURAL LANGUAGE PLANS</small></button><button onClick={routines}><i>02</i><b>PROCEDURES</b><small>OPERATIONS AUTOMATION</small></button><button onClick={tray}><i>03</i><b>TRAY DECK</b><small>APPLICATIONS & SERVICES</small></button><button onClick={displays}><i>04</i><b>DISPLAYS</b><small>MONITOR ROUTING</small></button><button onClick={power}><i>05</i><b>POWER</b><small>PROTECTED CONTROLS</small></button></div>:<div className="mobile-sheet-grid page-grid">{item("terminal","TERMINAL","02")}{item("files","FILES","03")}{item("system","SYSTEMS","04")}{item("media","MEDIA","05")}{item("network","NETWORK","06")}{item("updates","UPDATES","07")}{item("settings","SETTINGS","08")}{item("portals","PORTALS","09")}{item("utilities","UTILITIES","10")}{item("commissioning","COMMISSION","11")}</div>}</section></div>}</>;
+  const item=(page:string,label:string,code:string)=><ConsoleButton className={section===page?"active":""} onClick={()=>navigate(page)}><i>{code}</i><span>{label}</span></ConsoleButton>;
+  return <><ConsoleControls><nav className="mobile-command-bar" aria-label="PADD navigation">{item("overview","STATUS","01")}<ConsoleButton onClick={applications}><i>02</i><span>APPS</span></ConsoleButton><ConsoleButton className={sheet==="commands"?"active":""} onClick={commands}><i>03</i><span>COMMAND</span></ConsoleButton><ConsoleButton onClick={communications}><i>04</i><span>COMMS</span></ConsoleButton><ConsoleButton className={sheet==="more"?"active":""} onClick={more}><i>05</i><span>MORE</span></ConsoleButton></nav></ConsoleControls>{sheet&&<div className="mobile-sheet-scrim" onPointerDown={(event)=>event.target===event.currentTarget&&close()}><ConsoleGroup label={<>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</>}><section className="mobile-command-sheet" aria-label={sheet==="commands"?"PADD command sheet":"PADD page sheet"}><header><span><small>LCARS PADD</small><b>{sheet==="commands"?"COMMAND DECK":"ALL STATIONS"}</b></span><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></header>{sheet==="commands"?<div className="mobile-sheet-grid"><ConsoleButton onClick={computer}><i>01</i><b>COMPUTER CORE</b><small>NATURAL LANGUAGE PLANS</small></ConsoleButton><ConsoleButton onClick={routines}><i>02</i><b>PROCEDURES</b><small>OPERATIONS AUTOMATION</small></ConsoleButton><ConsoleButton onClick={tray}><i>03</i><b>TRAY DECK</b><small>APPLICATIONS & SERVICES</small></ConsoleButton><ConsoleButton onClick={displays}><i>04</i><b>DISPLAYS</b><small>MONITOR ROUTING</small></ConsoleButton><ConsoleButton onClick={power}><i>05</i><b>POWER</b><small>PROTECTED CONTROLS</small></ConsoleButton></div>:<div className="mobile-sheet-grid page-grid">{item("terminal","TERMINAL","02")}{item("files","FILES","03")}{item("system","SYSTEMS","04")}{item("media","MEDIA","05")}{item("network","NETWORK","06")}{item("updates","UPDATES","07")}{item("settings","SETTINGS","08")}{item("portals","PORTALS","09")}{item("utilities","UTILITIES","10")}{item("commissioning","COMMISSION","11")}</div>}</section></ConsoleGroup></div>}</>;
 }
 
 function DesktopExperience({
@@ -4207,13 +4236,13 @@ function DesktopExperience({
     value: AccessibilityPrefs[K],
   ) => saveAccess({ ...access, [key]: value });
   return (
-    <section className="experience-settings">
+    <ConsoleGroup label="INTERFACE SETTINGS"><section className="experience-settings">
       <header>
         <b>LCARS DESKTOP EXPERIENCE</b>
         <small>PROFILES · ACCESSIBILITY · CONTINUITY · SECURITY</small>
       </header>
       <div className="experience-grid">
-        <article>
+        <ConsoleGroup label={<>WORKSPACE PROFILES</>}><article>
           <h4>WORKSPACE PROFILES</h4>
           <p>
             Save complete layouts for gaming, work, media, or any other
@@ -4225,38 +4254,38 @@ function DesktopExperience({
                 className={activeProfile === p.id ? "active" : ""}
                 key={p.id}
               >
-                <button onClick={() => applyProfile(p)}>
+                <ConsoleButton onClick={() => applyProfile(p)}>
                   <b>{p.name}</b>
                   <small>
                     {p.widgets.length} MODULES · {p.pagePeeks?.length||0} PEEKS · {p.theme.toUpperCase()}
                   </small>
-                </button>
-                <button
+                </ConsoleButton>
+                <ConsoleButton
                   className={defaultWorkstation === p.id ? "workstation-default" : ""}
                   aria-label={defaultWorkstation === p.id ? "Clear default workstation" : "Set default workstation to " + p.name}
                   onClick={() => setDefaultWorkstation(defaultWorkstation === p.id ? "" : p.id)}
                 >
                   {defaultWorkstation === p.id ? "★" : "☆"}
-                </button>
-                <button
+                </ConsoleButton>
+                <ConsoleButton
                   aria-label={"Delete " + p.name}
                   onClick={() => deleteProfile(p.id)}
                 >
                   ×
-                </button>
-                <nav className="workstation-actions"><button onClick={()=>setWorkstationPreview(p)}>PREVIEW</button><button onClick={()=>renameProfile(p.id)}>RENAME</button><button onClick={()=>duplicateProfile(p.id)}>DUPLICATE</button><button onClick={()=>exportProfile(p)}>EXPORT</button></nav>
+                </ConsoleButton>
+                <ConsoleControls><nav className="workstation-actions"><ConsoleButton onClick={()=>setWorkstationPreview(p)}>PREVIEW</ConsoleButton><ConsoleButton onClick={()=>renameProfile(p.id)}>RENAME</ConsoleButton><ConsoleButton onClick={()=>duplicateProfile(p.id)}>DUPLICATE</ConsoleButton><ConsoleButton onClick={()=>exportProfile(p)}>EXPORT</ConsoleButton></nav></ConsoleControls>
               </div>
             ))}
           </div>
-          {workstationPreview&&<aside className="workstation-preview"><header><span><small>{(workstationPreview.layoutPreset||"desktop").toUpperCase()} PRESET</small><b>{workstationPreview.name}</b></span><button onClick={()=>setWorkstationPreview(null)}>×</button></header><div><span><b>{workstationPreview.widgets.length}</b> MODULES</span><span><b>{workstationPreview.pagePeeks?.length||0}</b> PAGE PEEKS</span><span><b>{workstationPreview.speedDial?.length||0}</b> SPEED DIALS</span><span><b>{Object.keys(workstationPreview.popupLayout||{}).length}</b> WINDOWS</span></div><p>{workstationPreview.applications?.length||0} applications · {workstationPreview.theme.toUpperCase()} theme · audio, devices, DND, tray, popup state, and page state preserved.</p><button onClick={()=>{applyProfile(workstationPreview);setWorkstationPreview(null);}}>RESTORE THIS WORKSTATION</button></aside>}
-          <button className="lcars-action" onClick={()=>createProfile("auto")}>
+          {workstationPreview&&<aside className="workstation-preview"><header><span><small>{(workstationPreview.layoutPreset||"desktop").toUpperCase()} PRESET</small><b>{workstationPreview.name}</b></span><ConsoleButton onClick={()=>setWorkstationPreview(null)}>×</ConsoleButton></header><div><span><b>{workstationPreview.widgets.length}</b> MODULES</span><span><b>{workstationPreview.pagePeeks?.length||0}</b> PAGE PEEKS</span><span><b>{workstationPreview.speedDial?.length||0}</b> SPEED DIALS</span><span><b>{Object.keys(workstationPreview.popupLayout||{}).length}</b> WINDOWS</span></div><p>{workstationPreview.applications?.length||0} applications · {workstationPreview.theme.toUpperCase()} theme · audio, devices, DND, tray, popup state, and page state preserved.</p><ConsoleButton onClick={()=>{applyProfile(workstationPreview);setWorkstationPreview(null);}}>RESTORE THIS WORKSTATION</ConsoleButton></aside>}
+          <ConsoleButton className="lcars-action" onClick={()=>createProfile("auto")}>
             SAVE CURRENT WORKSPACE
-          </button>
-          <div className="workstation-preset-grid"><button onClick={()=>createProfile("portrait")}>PORTRAIT PADD</button><button onClick={()=>createProfile("landscape")}>LANDSCAPE PADD</button><button onClick={()=>createProfile("desktop")}>DESKTOP</button><button onClick={()=>createProfile("multi-monitor")}>MULTI-MONITOR</button></div>
-        </article>
-        <article>
+          </ConsoleButton>
+          <div className="workstation-preset-grid"><ConsoleButton onClick={()=>createProfile("portrait")}>PORTRAIT PADD</ConsoleButton><ConsoleButton onClick={()=>createProfile("landscape")}>LANDSCAPE PADD</ConsoleButton><ConsoleButton onClick={()=>createProfile("desktop")}>DESKTOP</ConsoleButton><ConsoleButton onClick={()=>createProfile("multi-monitor")}>MULTI-MONITOR</ConsoleButton></div>
+        </article></ConsoleGroup>
+        <ConsoleGroup label={<>ACCESSIBILITY</>}><article>
           <h4>ACCESSIBILITY</h4>
-          <label>
+          <ConsoleControls><label>
             INTERFACE SCALE <b>{access.fontScale}%</b>
             <small>
               Enlarges LCARS text while preserving the console layout.
@@ -4269,8 +4298,8 @@ function DesktopExperience({
               value={access.fontScale}
               onChange={(e) => set("fontScale", +e.target.value)}
             />
-          </label>
-          <label>
+          </label></ConsoleControls>
+          <ConsoleControls><label>
             INTERFACE SOUND <b>{access.soundVolume}%</b>
             <small>Controls LCARS cues separately from system audio.</small>
             <input
@@ -4280,7 +4309,7 @@ function DesktopExperience({
               value={access.soundVolume}
               onChange={(e) => set("soundVolume", +e.target.value)}
             />
-          </label>
+          </label></ConsoleControls>
           <Toggle
             label="High contrast"
             description="Strengthens borders, labels, and focus indicators."
@@ -4299,8 +4328,8 @@ function DesktopExperience({
             checked={access.colorSafe}
             change={(v) => set("colorSafe", v)}
           />
-        </article>
-        <article>
+        </article></ConsoleGroup>
+        <ConsoleGroup label={<>SESSION & NOTIFICATIONS</>}><article>
           <h4>SESSION & NOTIFICATIONS</h4>
           <Toggle
             label="Restore previous session"
@@ -4314,40 +4343,40 @@ function DesktopExperience({
             checked={doNotDisturb}
             change={setDoNotDisturb}
           />
-          <button className="lcars-action" onClick={command}>
+          <ConsoleButton className="lcars-action" onClick={command}>
             OPEN COMMAND PALETTE
-          </button>
+          </ConsoleButton>
           <small>Keyboard shortcut: Ctrl + K</small>
-        </article>
-        <article>
+        </article></ConsoleGroup>
+        <ConsoleGroup label={<>OPERATOR & SECURITY</>}><article>
           <h4>OPERATOR & SECURITY</h4>
-          <label>
+          <ConsoleControls><label>
             OPERATOR NAME
             <small>Displayed on the local LCARS lock screen.</small>
             <input
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
             />
-          </label>
-          <button className="lcars-action" onClick={lock}>
+          </label></ConsoleControls>
+          <ConsoleButton className="lcars-action" onClick={lock}>
             LOCK LCARS
-          </button>
+          </ConsoleButton>
           <small>Keyboard shortcut: Ctrl + Shift + L</small>
           <LockPasswordControl credential={lockCredential} save={saveLockPassword} remove={removeLockPassword} />
           <p>
             The optional password protects LCARS locally. Use your operating-system lock screen for full account security.
           </p>
-        </article>
-        <article>
+        </article></ConsoleGroup>
+        <ConsoleGroup label={<>BACKUP & TRANSFER</>}><article>
           <h4>BACKUP & TRANSFER</h4>
           <p>
             Move themes, layouts, favorites, profiles, and interface settings
             between installations.
           </p>
-          <button className="lcars-action" onClick={exportConfig}>
+          <ConsoleButton className="lcars-action" onClick={exportConfig}>
             EXPORT CONFIGURATION
-          </button>
-          <label className="import-config">
+          </ConsoleButton>
+          <ConsoleControls><label className="import-config">
             IMPORT CONFIGURATION
             <input
               type="file"
@@ -4356,10 +4385,10 @@ function DesktopExperience({
                 e.target.files?.[0] && importConfig(e.target.files[0])
               }
             />
-          </label>
-        </article>
+          </label></ConsoleControls>
+        </article></ConsoleGroup>
       </div>
-    </section>
+    </section></ConsoleGroup>
   );
 }
 
@@ -4389,9 +4418,9 @@ function CommandPalette({
         <header>
           <small>UNIVERSAL COMPUTER ACCESS</small>
           <b>{findMode ? "FIND IN LCARS" : "COMMAND PALETTE"}</b>
-          <button onClick={close}>ESC</button>
+          <ConsoleButton onClick={close}>ESC</ConsoleButton>
         </header>
-        <input
+        <ConsoleField
           autoFocus
           placeholder={findMode ? "FIND A SETTING, MODULE, APPLICATION OR PAGE…" : "TYPE A PAGE, APPLICATION, FILE OR COMMAND…"}
           value={query}
@@ -4410,7 +4439,7 @@ function CommandPalette({
         />
         <div>
           {commands.map((c, i) => (
-            <button
+            <ConsoleButton
               className={i === index ? "selected" : ""}
               key={c.id}
               onMouseEnter={() => setIndex(i)}
@@ -4421,7 +4450,7 @@ function CommandPalette({
                 <small>{c.detail}</small>
               </span>
               <i>›</i>
-            </button>
+            </ConsoleButton>
           ))}
           {!commands.length && <p>NO MATCHING COMMANDS</p>}
         </div>
@@ -4438,13 +4467,13 @@ function CommandPalette({
 function LockPasswordControl({credential,save,remove}:{credential:LockCredential|null;save:(password:string)=>Promise<void>;remove:()=>void}) {
   const [password,setPassword]=useState(""),[confirm,setConfirm]=useState(""),[status,setStatus]=useState("");
   const submit=async()=>{if(password.length<4)return setStatus("USE AT LEAST 4 CHARACTERS");if(password!==confirm)return setStatus("PASSWORDS DO NOT MATCH");await save(password);setPassword("");setConfirm("");setStatus("LOCAL PASSWORD SAVED");};
-  return <div className="lock-password-control"><small>{credential?"PASSWORD PROTECTION ACTIVE":"PASSWORD PROTECTION OPTIONAL"}</small><input type="password" autoComplete="new-password" placeholder={credential?"NEW PASSWORD":"CREATE PASSWORD"} value={password} onChange={(e)=>setPassword(e.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={confirm} onChange={(e)=>setConfirm(e.target.value)}/><nav><button onClick={submit}>{credential?"CHANGE PASSWORD":"ENABLE PASSWORD"}</button>{credential&&<button onClick={()=>{remove();setStatus("PASSWORD REMOVED");}}>REMOVE</button>}</nav>{status&&<em>{status}</em>}</div>;
+  return <div className="lock-password-control"><small>{credential?"PASSWORD PROTECTION ACTIVE":"PASSWORD PROTECTION OPTIONAL"}</small><ConsoleField type="password" autoComplete="new-password" placeholder={credential?"NEW PASSWORD":"CREATE PASSWORD"} value={password} onChange={(e)=>setPassword(e.target.value)}/><ConsoleField type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={confirm} onChange={(e)=>setConfirm(e.target.value)}/><ConsoleControls><nav><ConsoleButton onClick={submit}>{credential?"CHANGE PASSWORD":"ENABLE PASSWORD"}</ConsoleButton>{credential&&<ConsoleButton onClick={()=>{remove();setStatus("PASSWORD REMOVED");}}>REMOVE</ConsoleButton>}</nav></ConsoleControls>{status&&<em>{status}</em>}</div>;
 }
 
 function VoiceAuthorizationControl({enabled,credential,change}:{enabled:boolean;credential:LockCredential|null;change:(enabled:boolean,credential:LockCredential|null)=>void}){
   const [phrase,setPhrase]=useState(""),[confirm,setConfirm]=useState(""),[status,setStatus]=useState("");
   const save=async()=>{const normalized=phrase.trim().toLowerCase();if(normalized.length<4)return setStatus("USE AT LEAST 4 CHARACTERS");if(normalized!==confirm.trim().toLowerCase())return setStatus("AUTHORIZATION PHRASES DO NOT MATCH");const next=await createLockCredential(normalized);change(true,next);setPhrase("");setConfirm("");setStatus("VOCAL AUTHORIZATION CODE HASH SAVED");};
-  return <div className="lock-password-control voice-authorization-control"><small>{credential?enabled?"VOCAL AUTHORIZATION GATE ACTIVE":"VOCAL CODE SAVED · GATE DISABLED":"VOCAL AUTHORIZATION OPTIONAL"}</small><p>For protected voice plans, say “authorization” followed by this private phrase. LCARS stores only a salted hash. The phrase is a secondary gate and never becomes an operating-system or sudo password.</p><input type="password" autoComplete="new-password" placeholder={credential?"NEW VOCAL CODE PHRASE":"CREATE VOCAL CODE PHRASE"} value={phrase} onChange={(event)=>setPhrase(event.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM VOCAL CODE PHRASE" value={confirm} onChange={(event)=>setConfirm(event.target.value)}/><nav><button onClick={()=>void save()}>{credential?"CHANGE CODE":"SET CODE + ENABLE"}</button>{credential&&<button onClick={()=>change(!enabled,credential)}>{enabled?"DISABLE GATE":"ENABLE GATE"}</button>}{credential&&<button onClick={()=>{change(false,null);setStatus("VOCAL CODE REMOVED");}}>REMOVE</button>}</nav>{status&&<em>{status}</em>}</div>;
+  return <div className="lock-password-control voice-authorization-control"><small>{credential?enabled?"VOCAL AUTHORIZATION GATE ACTIVE":"VOCAL CODE SAVED · GATE DISABLED":"VOCAL AUTHORIZATION OPTIONAL"}</small><p>For protected voice plans, say “authorization” followed by this private phrase. LCARS stores only a salted hash. The phrase is a secondary gate and never becomes an operating-system or sudo password.</p><ConsoleField type="password" autoComplete="new-password" placeholder={credential?"NEW VOCAL CODE PHRASE":"CREATE VOCAL CODE PHRASE"} value={phrase} onChange={(event)=>setPhrase(event.target.value)}/><ConsoleField type="password" autoComplete="new-password" placeholder="CONFIRM VOCAL CODE PHRASE" value={confirm} onChange={(event)=>setConfirm(event.target.value)}/><ConsoleControls><nav><ConsoleButton onClick={()=>void save()}>{credential?"CHANGE CODE":"SET CODE + ENABLE"}</ConsoleButton>{credential&&<ConsoleButton onClick={()=>change(!enabled,credential)}>{enabled?"DISABLE GATE":"ENABLE GATE"}</ConsoleButton>}{credential&&<ConsoleButton onClick={()=>{change(false,null);setStatus("VOCAL CODE REMOVED");}}>REMOVE</ConsoleButton>}</nav></ConsoleControls>{status&&<em>{status}</em>}</div>;
 }
 
 function LockScreen({userName,credential,profiles,activeProfile,defaultWorkstation,chooseProfile,setDefaultWorkstation,power,unlock}:{userName:string;credential:LockCredential|null;profiles:WorkspaceProfile[];activeProfile:string;defaultWorkstation:string;chooseProfile:(profile:WorkspaceProfile)=>void;setDefaultWorkstation:(id:string)=>void;power:()=>void;unlock:()=>void}) {
@@ -4455,12 +4484,12 @@ function LockScreen({userName,credential,profiles,activeProfile,defaultWorkstati
     <main>
       <img src={lcarsEmblem} alt="Federation emblem"/>
       <h1>LCARS COMPUTER NETWORK</h1><h2>AUTHORIZED ACCESS ONLY</h2>
-      <form onSubmit={(event)=>{event.preventDefault();authorize();}}>
-        <div className="lock-operator-code">47</div><label><b>{userName||"LCARS OPERATOR"}</b><small>{credential?"ENTER LOCAL AUTHORIZATION CODE":"PASSWORD PROTECTION IS NOT ENABLED"}</small><input autoFocus type="password" disabled={!credential||busy} autoComplete="current-password" value={password} onChange={(event)=>setPassword(event.target.value)} placeholder={credential?"PASSWORD":"DIRECT ACCESS"}/></label><button type="submit">{busy?"VERIFYING":"ENTER"}</button>
-      </form>{error&&<p className="lock-error">{error}</p>}
+      <ConsoleControls><form onSubmit={(event)=>{event.preventDefault();authorize();}}>
+        <div className="lock-operator-code">47</div><ConsoleControls><label><b>{userName||"LCARS OPERATOR"}</b><small>{credential?"ENTER LOCAL AUTHORIZATION CODE":"PASSWORD PROTECTION IS NOT ENABLED"}</small><input autoFocus type="password" disabled={!credential||busy} autoComplete="current-password" value={password} onChange={(event)=>setPassword(event.target.value)} placeholder={credential?"PASSWORD":"DIRECT ACCESS"}/></label></ConsoleControls><ConsoleButton type="submit">{busy?"VERIFYING":"ENTER"}</ConsoleButton>
+      </form></ConsoleControls>{error&&<p className="lock-error">{error}</p>}
     </main>
-    <section className="lock-workstations"><header><span>AVAILABLE WORKSTATIONS</span><small>SELECT PROFILE · ★ DEFAULT</small></header><div>{profiles.length?profiles.map((profile,index)=><article className={activeProfile===profile.id?"active":""} key={profile.id}><button onClick={()=>chooseProfile(profile)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{profile.name}</b><small>{profile.theme.toUpperCase()} · {profile.widgets.length} MODULES</small></span></button><button className={defaultWorkstation===profile.id?"default":""} aria-label={"Set "+profile.name+" as default"} onClick={()=>setDefaultWorkstation(profile.id)}>{defaultWorkstation===profile.id?"★":"☆"}</button></article>):<p>NO SAVED WORKSTATIONS · CREATE ONE IN SETTINGS</p>}</div></section>
-    <footer><i/><button onClick={power}>POWER / EXIT OPTIONS</button><div/><span>{credential?"AUTHORIZATION REQUIRED":"DIRECT LOCAL ACCESS"}</span><b/></footer>
+    <ConsoleGroup label={<>SELECT PROFILE · ★ DEFAULT</>}><section className="lock-workstations"><header><span>AVAILABLE WORKSTATIONS</span><small>SELECT PROFILE · ★ DEFAULT</small></header><div>{profiles.length?profiles.map((profile,index)=><ConsoleGroup key={profile.id} label={<>{profile.theme.toUpperCase()} · {profile.widgets.length} MODULES</>}><article className={activeProfile===profile.id?"active":""} key={profile.id}><ConsoleButton onClick={()=>chooseProfile(profile)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{profile.name}</b><small>{profile.theme.toUpperCase()} · {profile.widgets.length} MODULES</small></span></ConsoleButton><ConsoleButton className={defaultWorkstation===profile.id?"default":""} aria-label={"Set "+profile.name+" as default"} onClick={()=>setDefaultWorkstation(profile.id)}>{defaultWorkstation===profile.id?"★":"☆"}</ConsoleButton></article></ConsoleGroup>):<p>NO SAVED WORKSTATIONS · CREATE ONE IN SETTINGS</p>}</div></section></ConsoleGroup>
+    <footer><i/><ConsoleButton onClick={power}>POWER / EXIT OPTIONS</ConsoleButton><div/><span>{credential?"AUTHORIZATION REQUIRED":"DIRECT LOCAL ACCESS"}</span><b/></footer>
   </div>;
 }
 
@@ -4473,23 +4502,23 @@ function LcarsSessionControl({bridge,platform,notify}:{bridge:boolean;platform:s
   const updateConfig=(change:Partial<LcarsSessionStatus["config"]>)=>status&&setStatus({...status,config:{...status.config,...change}});
   const addRule=()=>{if(!status||!ruleMatch.trim())return;const rules=[...status.config.windowRules,{match:ruleMatch.trim(),deck:ruleDeck}].slice(0,20);setRuleMatch("");updateConfig({windowRules:rules});void configure({...status.config,windowRules:rules});};
   if(!platform.includes("LINUX"))return <section className="lcars-session-control unavailable"><header><span><small>VERSION 30.10 COMPUTER ENVIRONMENT</small><b>LINUX LCARS SESSION</b></span><em>LINUX ONLY</em></header><p>The selectable LCARS login session is a Linux desktop feature. Normal Windows and Android operation is unchanged.</p></section>;
-  return <section className={`lcars-session-control ${status?.active?"active":""}`}>
+  return <ConsoleGroup label={<>LINUX LCARS LOGIN SESSION</>}><section className={`lcars-session-control ${status?.active?"active":""}`}>
     <header><span><small>VERSION 30.10 AUTHORITATIVE SESSION · EXPLICIT OPT-IN</small><b>LINUX LCARS LOGIN SESSION</b></span><em>{status?.authoritativeActive?"LCARS IN COMMAND":status?.active?"ACTIVE SESSION":status?.installed?"INSTALLED / OPTIONAL":"APPLICATION MODE"}</em></header>
     <p>Use the existing Wayland/X11 session foundation as a real LCARS-led workspace. Authoritative mode removes the supported host shell from view while retaining its compositor, applications, and a deliberately tested recovery route.</p>
     <div className="lcars-session-readiness">
       {(["loginSession","authoritativeShell","windowTasking","deckTaskRouting","multiMonitor","continuousPlacement","emergencyEscape","crashRecovery","safeMode","normalDesktopFallback"] as const).map((name)=><span className={status?.capabilities?.[name]?"ready":"limited"} key={name}><i>{status?.capabilities?.[name]?"✓":"!"}</i>{name.replace(/([A-Z])/g," $1").toUpperCase()}</span>)}
     </div>
     {!bridge?<div className="lcars-session-offline"><b>LOCAL CORE REQUIRED</b><small>Install and open the native Linux desktop build to register a login session.</small></div>:!status?<div className="lcars-session-offline"><b>SESSION ADAPTER UNAVAILABLE</b><small>Reinstall Version 30.10 to add the optional session resources.</small></div>:<>
-      <div className="lcars-session-actions"><button disabled={Boolean(busy)} onClick={()=>operate(status.installed?"uninstall":"install")}>{busy==="install"||busy==="uninstall"?"WAITING FOR AUTHORIZATION…":status.installed?"REMOVE LOGIN SESSION":"INSTALL LCARS LOGIN SESSION"}</button><button onClick={refresh}>REFRESH STATUS</button>{status.active&&<button className="escape" disabled={Boolean(busy)} onClick={()=>operate("escape")}>EXIT TO NORMAL DESKTOP</button>}</div>
+      <div className="lcars-session-actions"><ConsoleButton disabled={Boolean(busy)} onClick={()=>operate(status.installed?"uninstall":"install")}>{busy==="install"||busy==="uninstall"?"WAITING FOR AUTHORIZATION…":status.installed?"REMOVE LOGIN SESSION":"INSTALL LCARS LOGIN SESSION"}</ConsoleButton><ConsoleButton onClick={refresh}>REFRESH STATUS</ConsoleButton>{status.active&&<ConsoleButton className="escape" disabled={Boolean(busy)} onClick={()=>operate("escape")}>EXIT TO NORMAL DESKTOP</ConsoleButton>}</div>
       <small className="lcars-session-note">Administrator authorization is requested only when adding or removing display-manager session entries. Settings and the LCARS application remain in your account.</small>
       <div className="lcars-session-grid">
-        <article><h4>STARTUP & RECOVERY</h4><label>BASE DESKTOP<select value={status.config.baseDesktop} onChange={(event)=>updateConfig({baseDesktop:event.target.value})}><option value="auto">AUTOMATIC</option><option value="plasma">KDE PLASMA</option><option value="gnome">GNOME</option><option value="cinnamon">CINNAMON</option><option value="xfce">XFCE</option><option value="lxqt">LXQT</option></select></label><Toggle label="Authoritative LCARS session" description="Opt in to hiding the supported host shell after LCARS login. Takes effect at the next LCARS session sign-in." checked={status.config.authoritative} change={(value)=>updateConfig({authoritative:value,kiosk:value})}/><Toggle label="Recover after an LCARS crash" description="Restarts LCARS after an unexpected exit, with bounded retries before revealing the host desktop." checked={status.config.crashRecovery} change={(value)=>updateConfig({crashRecovery:value})}/><Toggle label="Use safe mode after repeated failure" description="The second recovery attempt bypasses extensions and saved visual settings." checked={status.config.safeModeOnFailure} change={(value)=>updateConfig({safeModeOnFailure:value})}/><button onClick={()=>configure(status.config)}>SAVE SESSION CONFIGURATION</button></article>
-        <article><h4>LCARS DECKS</h4><p>Virtual desktops become numbered command decks. Saved Workstations continue to restore applications, displays, LCARS windows, audio, and page arrangements.</p><div className="lcars-deck-grid">{status.decks.map((deck)=><button className={deck.active?"active":""} key={deck.id} onClick={()=>operate("switch-deck",{deck:deck.id})}><i>{String(deck.id).padStart(2,"0")}</i><span>{deck.name||`DECK ${String(deck.id).padStart(2,"0")}`}</span></button>)}</div></article>
-        <article><h4>WINDOW PLACEMENT RULES</h4><p>Match a window class or title and route it to a deck through KWin on KDE Wayland or wmctrl on X11. Other Wayland compositors retain their security boundaries.</p><Toggle label="Continuously enforce placement" description="In authoritative sessions, LCARS reapplies these rules as new application windows appear." checked={status.config.continuousPlacement} change={(value)=>updateConfig({continuousPlacement:value})}/><div className="lcars-rule-entry"><input value={ruleMatch} maxLength={80} placeholder="APP CLASS OR WINDOW TITLE" onChange={(event)=>setRuleMatch(event.target.value)}/><input aria-label="Target deck" type="number" min="1" max="20" value={ruleDeck} onChange={(event)=>setRuleDeck(Math.max(1,Math.min(20,+event.target.value||1)))}/><button disabled={!ruleMatch.trim()} onClick={addRule}>ADD RULE</button></div><div className="lcars-rule-list">{status.config.windowRules.map((rule,index)=><span key={`${rule.match}-${index}`}><b>{rule.match}</b><small>DECK {String(rule.deck).padStart(2,"0")}</small><button aria-label={`Remove ${rule.match} rule`} onClick={()=>{const rules=status.config.windowRules.filter((_,item)=>item!==index);updateConfig({windowRules:rules});void configure({...status.config,windowRules:rules});}}>×</button></span>)}{!status.config.windowRules.length&&<small>NO AUTOMATIC PLACEMENT RULES</small>}</div><button disabled={!status.config.windowRules.length||Boolean(busy)} onClick={()=>operate("apply-rules")}>APPLY RULES NOW</button></article>
+        <ConsoleGroup label={<>STARTUP & RECOVERY</>}><article><h4>STARTUP & RECOVERY</h4><ConsoleControls><label>BASE DESKTOP<ConsoleSelect value={status.config.baseDesktop} onChange={(event)=>updateConfig({baseDesktop:event.target.value})}><option value="auto">AUTOMATIC</option><option value="plasma">KDE PLASMA</option><option value="gnome">GNOME</option><option value="cinnamon">CINNAMON</option><option value="xfce">XFCE</option><option value="lxqt">LXQT</option></ConsoleSelect></label></ConsoleControls><Toggle label="Authoritative LCARS session" description="Opt in to hiding the supported host shell after LCARS login. Takes effect at the next LCARS session sign-in." checked={status.config.authoritative} change={(value)=>updateConfig({authoritative:value,kiosk:value})}/><Toggle label="Recover after an LCARS crash" description="Restarts LCARS after an unexpected exit, with bounded retries before revealing the host desktop." checked={status.config.crashRecovery} change={(value)=>updateConfig({crashRecovery:value})}/><Toggle label="Use safe mode after repeated failure" description="The second recovery attempt bypasses extensions and saved visual settings." checked={status.config.safeModeOnFailure} change={(value)=>updateConfig({safeModeOnFailure:value})}/><ConsoleButton onClick={()=>configure(status.config)}>SAVE SESSION CONFIGURATION</ConsoleButton></article></ConsoleGroup>
+        <ConsoleGroup label={<>LCARS DECKS</>}><article><h4>LCARS DECKS</h4><p>Virtual desktops become numbered command decks. Saved Workstations continue to restore applications, displays, LCARS windows, audio, and page arrangements.</p><div className="lcars-deck-grid">{status.decks.map((deck)=><ConsoleButton className={deck.active?"active":""} key={deck.id} onClick={()=>operate("switch-deck",{deck:deck.id})}><i>{String(deck.id).padStart(2,"0")}</i><span>{deck.name||`DECK ${String(deck.id).padStart(2,"0")}`}</span></ConsoleButton>)}</div></article></ConsoleGroup>
+        <ConsoleGroup label={<>WINDOW PLACEMENT RULES</>}><article><h4>WINDOW PLACEMENT RULES</h4><p>Match a window class or title and route it to a deck through KWin on KDE Wayland or wmctrl on X11. Other Wayland compositors retain their security boundaries.</p><Toggle label="Continuously enforce placement" description="In authoritative sessions, LCARS reapplies these rules as new application windows appear." checked={status.config.continuousPlacement} change={(value)=>updateConfig({continuousPlacement:value})}/><div className="lcars-rule-entry"><ConsoleField value={ruleMatch} maxLength={80} placeholder="APP CLASS OR WINDOW TITLE" onChange={(event)=>setRuleMatch(event.target.value)}/><ConsoleField aria-label="Target deck" type="number" min="1" max="20" value={ruleDeck} onChange={(event)=>setRuleDeck(Math.max(1,Math.min(20,+event.target.value||1)))}/><ConsoleButton disabled={!ruleMatch.trim()} onClick={addRule}>ADD RULE</ConsoleButton></div><div className="lcars-rule-list">{status.config.windowRules.map((rule,index)=><span key={`${rule.match}-${index}`}><b>{rule.match}</b><small>DECK {String(rule.deck).padStart(2,"0")}</small><ConsoleButton aria-label={`Remove ${rule.match} rule`} onClick={()=>{const rules=status.config.windowRules.filter((_,item)=>item!==index);updateConfig({windowRules:rules});void configure({...status.config,windowRules:rules});}}>×</ConsoleButton></span>)}{!status.config.windowRules.length&&<small>NO AUTOMATIC PLACEMENT RULES</small>}</div><ConsoleButton disabled={!status.config.windowRules.length||Boolean(busy)} onClick={()=>operate("apply-rules")}>APPLY RULES NOW</ConsoleButton></article></ConsoleGroup>
         <article className="session-authority-card"><h4>SESSION AUTHORITY</h4><p><b>LCARS ALREADY PROVIDES</b><span>Application launching and tasking</span><span>Lock, logout, power, displays, decks, and Workstations</span><span>Crash recovery, safe mode, and normal-desktop fallback</span></p><p><b>30.10 CLOSES THE CONTROL GAP</b><span>Reliable shell ownership without disabling the compositor</span><span>Task routing directly to numbered decks</span><span>Continuous placement and a real Meta+Shift+Escape route</span></p><small>Desktop notification and security portals remain host services until their dedicated integration milestone; 30.10 does not claim to replace them.</small></article>
       </div><footer>{status.message} · {status.mode.toUpperCase()} · EMERGENCY ESCAPE: META+SHIFT+ESCAPE · THE HOST DESKTOP IS PRESERVED AS A RECOVERY LAYER.</footer>
     </>}
-  </section>;
+  </section></ConsoleGroup>;
 }
 
 function ShellSettings({
@@ -4534,19 +4563,19 @@ function ShellSettings({
         <small>TASK RAIL · TERMINAL · RECOVERY</small>
       </header>
       <div className="settings-columns">
-        <section>
+        <ConsoleGroup label={<>TASK RAIL & NOTICES</>}><section>
           <h4>TASK RAIL & NOTICES</h4>
           <div className="page-density-settings">
-            <label>PAGE SIZE CONTROL<small>Uses one layout size everywhere or remembers a separate Compact, Standard, or Wide layout for each major page.</small><select value={prefs.pageDensityScope} onChange={(event)=>set("pageDensityScope",event.target.value as ShellPrefs["pageDensityScope"])}><option value="global">ONE SIZE FOR ALL PAGES</option><option value="per-page">CHOOSE EACH PAGE</option></select></label>
-            <label>DEFAULT PAGE SIZE<small>Compact shows more controls, Standard balances space, and Wide gives panels more breathing room.</small><select value={prefs.pageDensity} onChange={(event)=>set("pageDensity",event.target.value as PageDensity)}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></select></label>
-            {prefs.pageDensityScope==="per-page"&&<div className="page-density-matrix">{nav.map((item)=><label key={item[0]}><span>{item[1]} {item[2]}</span><select value={prefs.pageDensities[item[0]]||prefs.pageDensity} onChange={(event)=>set("pageDensities",{...prefs.pageDensities,[item[0]]:event.target.value as PageDensity})}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></select></label>)}</div>}
+            <ConsoleControls><label>PAGE SIZE CONTROL<small>Uses one layout size everywhere or remembers a separate Compact, Standard, or Wide layout for each major page.</small><ConsoleSelect value={prefs.pageDensityScope} onChange={(event)=>set("pageDensityScope",event.target.value as ShellPrefs["pageDensityScope"])}><option value="global">ONE SIZE FOR ALL PAGES</option><option value="per-page">CHOOSE EACH PAGE</option></ConsoleSelect></label></ConsoleControls>
+            <ConsoleControls><label>DEFAULT PAGE SIZE<small>Compact shows more controls, Standard balances space, and Wide gives panels more breathing room.</small><ConsoleSelect value={prefs.pageDensity} onChange={(event)=>set("pageDensity",event.target.value as PageDensity)}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></ConsoleSelect></label></ConsoleControls>
+            {prefs.pageDensityScope==="per-page"&&<div className="page-density-matrix">{nav.map((item)=><ConsoleControls><label key={item[0]}><span>{item[1]} {item[2]}</span><ConsoleSelect value={prefs.pageDensities[item[0]]||prefs.pageDensity} onChange={(event)=>set("pageDensities",{...prefs.pageDensities,[item[0]]:event.target.value as PageDensity})}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></ConsoleSelect></label></ConsoleControls>)}</div>}
           </div>
-          <Toggle label="Play startup power sequence" description="Plays the bundled LCARS power-up sound when the desktop app opens. It never delays the interface." checked={prefs.startupSound} change={(v) => set("startupSound", v)} />
-          <div className="startup-audio-diagnostic"><button onClick={testStartupAudio}>TEST POWER-UP AUDIO</button><small>{startupAudioStatus}</small><em>ASSET: LCARS BUNDLED MP3 · OUTPUT: OPERATING-SYSTEM DEFAULT</em></div>
+          <Toggle label="Play startup power sequence" description="Plays the selected console’s startup recording when the desktop app opens. It never delays the interface." checked={prefs.startupSound} change={(v) => set("startupSound", v)} />
+          <div className="startup-audio-diagnostic"><ConsoleButton onClick={testStartupAudio}>TEST POWER-UP AUDIO</ConsoleButton><small>{startupAudioStatus}</small><em>ASSET: LCARS BUNDLED MP3 · OUTPUT: OPERATING-SYSTEM DEFAULT</em></div>
           <Toggle label="Show background startup telemetry" description="Shows a small nonblocking system-check strip while LCARS connects to local services." checked={prefs.startupSequence} change={(v) => set("startupSequence", v)} />
-          <label>SYSTEM TRAY PRESENTATION<small>Places the same tray drawer trigger in the side rail or the compact SYS 47 header position.</small><select value={prefs.trayPresentation} onChange={(event)=>set("trayPresentation",event.target.value as ShellPrefs["trayPresentation"])}><option value="rail">SIDE RAIL</option><option value="header">HEADER / SYS 47</option></select></label>
+          <ConsoleControls><label>SYSTEM TRAY PRESENTATION<small>Places the same tray drawer trigger in the side rail or the compact SYS 47 header position.</small><ConsoleSelect value={prefs.trayPresentation} onChange={(event)=>set("trayPresentation",event.target.value as ShellPrefs["trayPresentation"])}><option value="rail">SIDE RAIL</option><option value="header">HEADER / SYS 47</option></ConsoleSelect></label></ConsoleControls>
           <SpeedDialEditor items={prefs.speedDial} extensions={extensions} customPages={customPages} routines={routines} change={(items)=>set("speedDial",items)} />
-          <label>LCARS UPDATE CHANNEL<small>Stable receives whole-number public releases. Development opts into dot-number test builds for the next major release.</small><select value={prefs.updateChannel} onChange={(event)=>set("updateChannel",event.target.value as ShellPrefs["updateChannel"])}><option value="stable">STABLE · WHOLE-NUMBER RELEASES</option><option value="development">DEVELOPMENT · TEST BUILDS</option></select></label>
+          <ConsoleControls><label>LCARS UPDATE CHANNEL<small>Stable receives whole-number public releases. Development opts into dot-number test builds for the next major release.</small><ConsoleSelect value={prefs.updateChannel} onChange={(event)=>set("updateChannel",event.target.value as ShellPrefs["updateChannel"])}><option value="stable">STABLE · WHOLE-NUMBER RELEASES</option><option value="development">DEVELOPMENT · TEST BUILDS</option></ConsoleSelect></label></ConsoleControls>
           <Toggle label="Show lock screen on startup" description="Opens normal LCARS windows at the themed authorization screen. Remote Terminal windows always bypass it." checked={prefs.lockOnLaunch} change={(v) => set("lockOnLaunch", v)} />
           {prefs.lockOnLaunch && <div className="subordinate-setting"><Toggle label="Quick boot when no password is set" description="Enters LCARS directly only when no local lock password exists." checked={prefs.quickBootWithoutPassword} change={(v) => set("quickBootWithoutPassword", v)} /></div>}
           <Toggle
@@ -4573,7 +4602,7 @@ function ShellSettings({
             checked={prefs.groupByMonitor}
             change={(v) => set("groupByMonitor", v)}
           />
-          <label>
+          <ConsoleControls><label>
             HOVER DELAY <b>{prefs.hoverDelay} MS</b>
             <small>
               How long the pointer must rest over the rail before it opens.
@@ -4586,8 +4615,8 @@ function ShellSettings({
               value={prefs.hoverDelay}
               onChange={(e) => set("hoverDelay", +e.target.value)}
             />
-          </label>
-          <label>
+          </label></ConsoleControls>
+          <ConsoleControls><label>
             NOTIFICATION DURATION <b>{prefs.notificationSeconds} SEC</b>
             <small>How long notices stay visible unless closed early.</small>
             <input
@@ -4597,24 +4626,24 @@ function ShellSettings({
               value={prefs.notificationSeconds}
               onChange={(e) => set("notificationSeconds", +e.target.value)}
             />
-          </label>
-        </section>
-        <section>
+          </label></ConsoleControls>
+        </section></ConsoleGroup>
+        <ConsoleGroup label={<>OFFLINE VOICE CONTROL</>}><section>
           <h4>OFFLINE VOICE CONTROL</h4>
           <Toggle label="Enable offline voice commands" description="Audio stays on this station and is processed by the bundled whisper.cpp Computer Core." checked={prefs.voiceEnabled} change={(v) => set("voiceEnabled", v)} />
           <Toggle label="Use push-to-talk" description="When disabled, LCARS keeps a local hands-free microphone watch active. Switching to hands-free automatically enables the Computer wake word." checked={prefs.voicePushToTalk} change={(v) => {const old=prefs;setPrefs({...old,voicePushToTalk:v,voiceWakePhrase:v?old.voiceWakePhrase:true});}} />
           <Toggle label="Require 'Computer' wake word" description={prefs.voicePushToTalk?"Optional in push-to-talk mode. Commands without Computer are ignored when enabled.":"Recommended for hands-free operation. Disable this only if every recognized phrase should be treated as a command."} checked={prefs.voiceWakePhrase} change={(v) => set("voiceWakePhrase", v)} />
           <Toggle label="Execute recognized voice commands immediately" description="Opt-in Version 30 mode. Valid commands within the selected Voice Authority skip the Computer Core preview. Protected actions only run immediately after the configured vocal authorization code is verified; otherwise the confirmation screen opens." checked={prefs.voiceImmediateExecution} change={(v) => set("voiceImmediateExecution", v)} />
-          <label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label>
-          <label>LOCAL MODEL FILE · OPTIONAL OVERRIDE<small>The bundled English command model works out of the box. A custom GGML model remains entirely local.</small><input value={prefs.voiceModel} placeholder="BUNDLED TINY.EN MODEL (AUTOMATIC)" onChange={(e) => set("voiceModel", e.target.value)} /></label>
+          <ConsoleControls><label>WHISPER.CPP EXECUTABLE · OPTIONAL OVERRIDE<small>Version 30 includes a verified local whisper.cpp runtime. Enter a full path only to replace it.</small><input value={prefs.voiceEngine} placeholder="BUNDLED RUNTIME (AUTOMATIC)" onChange={(e) => set("voiceEngine", e.target.value)} /></label></ConsoleControls>
+          <ConsoleControls><label>LOCAL MODEL FILE · OPTIONAL OVERRIDE<small>The bundled English command model works out of the box. A custom GGML model remains entirely local.</small><input value={prefs.voiceModel} placeholder="BUNDLED TINY.EN MODEL (AUTOMATIC)" onChange={(e) => set("voiceModel", e.target.value)} /></label></ConsoleControls>
           <VoiceDeviceSelect value={prefs.voiceDevice} change={(value) => set("voiceDevice", value)} />
-          <label>VOICE AUTHORITY<small>Higher levels permit more command categories; power and unmount commands always require confirmation.</small><select value={prefs.voiceSecurity} onChange={(e) => set("voiceSecurity", e.target.value as ShellPrefs["voiceSecurity"])}><option value="navigation">NAVIGATION ONLY</option><option value="applications">NAVIGATION + APPLICATIONS</option><option value="system">SYSTEM CONTROL</option></select></label>
+          <ConsoleControls><label>VOICE AUTHORITY<small>Higher levels permit more command categories; power and unmount commands always require confirmation.</small><ConsoleSelect value={prefs.voiceSecurity} onChange={(e) => set("voiceSecurity", e.target.value as ShellPrefs["voiceSecurity"])}><option value="navigation">NAVIGATION ONLY</option><option value="applications">NAVIGATION + APPLICATIONS</option><option value="system">SYSTEM CONTROL</option></ConsoleSelect></label></ConsoleControls>
           <VoiceAuthorizationControl enabled={prefs.voiceAuthorizationEnabled} credential={prefs.voiceAuthorizationCredential} change={(voiceAuthorizationEnabled,voiceAuthorizationCredential)=>setPrefs({...prefs,voiceAuthorizationEnabled,voiceAuthorizationCredential})}/>
           <div className="voice-training"><small>COMMAND TRAINING · STARFLEET VOCABULARY</small><p>“Computer, pause the music” · “Resume playback” · “Status report” · “Locate Settings” · “Open hailing frequencies” · “Red alert” · “Green alert” · “No alert” · “What is the stardate?”</p><p>Self Destruct closes only LCARS and is always treated as a protected plan. Lock, logout, restart, sleep, shutdown, approved commands, and protected Procedures retain their authorization gates.</p><p>{prefs.voiceAuthorizationEnabled?"For a protected plan, append: authorization [your private code phrase]. The code is removed before the command enters history.":"Protected voice plans require the visible confirmation gate. Optional vocal authorization can be enabled above."}</p></div>
-        </section>
-        <section>
+        </section></ConsoleGroup>
+        <ConsoleGroup label={<>EMBEDDED TERMINAL</>}><section>
           <h4>EMBEDDED TERMINAL</h4>
-          <label>
+          <ConsoleControls><label>
             DEFAULT SHELL
             <small>
               The command interpreter used for every new terminal tab.
@@ -4623,8 +4652,8 @@ function ShellSettings({
               value={prefs.terminalShell}
               onChange={(e) => set("terminalShell", e.target.value)}
             />
-          </label>
-          <label>
+          </label></ConsoleControls>
+          <ConsoleControls><label>
             STARTING DIRECTORY
             <small>
               The folder new terminal sessions open inside; ~ means your home
@@ -4634,8 +4663,8 @@ function ShellSettings({
               value={prefs.terminalDirectory}
               onChange={(e) => set("terminalDirectory", e.target.value)}
             />
-          </label>
-          <label>
+          </label></ConsoleControls>
+          <ConsoleControls><label>
             FONT SIZE <b>{prefs.terminalFontSize} PX</b>
             <small>
               Changes the terminal text size without affecting the rest of
@@ -4648,35 +4677,35 @@ function ShellSettings({
               value={prefs.terminalFontSize}
               onChange={(e) => set("terminalFontSize", +e.target.value)}
             />
-          </label>
-          <label>
+          </label></ConsoleControls>
+          <ConsoleControls><label>
             CURSOR STYLE
             <small>
               Selects the shape of the blinking terminal input cursor.
             </small>
-            <select
+            <ConsoleSelect
               value={prefs.terminalCursor}
               onChange={(e) => set("terminalCursor", e.target.value)}
             >
               <option value="block">BLOCK</option>
               <option value="bar">BAR</option>
               <option value="underline">UNDERLINE</option>
-            </select>
-          </label>
-          <label>
+            </ConsoleSelect>
+          </label></ConsoleControls>
+          <ConsoleControls><label>
             NEW TERMINAL TARGET
             <small>
               Chooses whether New Session stays here or opens on the other
               monitor.
             </small>
-            <select
+            <ConsoleSelect
               value={prefs.terminalTarget}
               onChange={(e) => set("terminalTarget", e.target.value)}
             >
               <option value="current">CURRENT DISPLAY</option>
               <option value="other">OTHER DISPLAY</option>
-            </select>
-          </label>
+            </ConsoleSelect>
+          </label></ConsoleControls>
           <Toggle
             label="Confirm before ending a session"
             description="Asks before closing a tab so running commands are not stopped accidentally."
@@ -4689,8 +4718,8 @@ function ShellSettings({
             checked={prefs.terminalHistory}
             change={(v) => set("terminalHistory", v)}
           />
-        </section>
-        <section>
+        </section></ConsoleGroup>
+        <ConsoleGroup label={<>SHELL & RECOVERY</>}><section>
           <h4>SHELL & RECOVERY</h4>
           <p>
             LCARS uses safe full-screen application mode. Separate Shell Mode
@@ -4728,14 +4757,14 @@ function ShellSettings({
               </p>
             ))}
           </div>
-          <button className="recheck" onClick={recheck}>
+          <ConsoleButton className="recheck" onClick={recheck}>
             RECHECK / REPAIR
-          </button>
-        </section>
+          </ConsoleButton>
+        </section></ConsoleGroup>
       </div>
-      <button className="settings-save" onClick={save}>
+      <ConsoleButton className="settings-save" onClick={save}>
         {saved ? "SETTINGS SAVED ✓" : "SAVE INTERFACE SETTINGS"}
-      </button>
+      </ConsoleButton>
     </div>
   );
 }
@@ -4748,13 +4777,13 @@ function RecoveryControls({safeMode,quarantinedExtensions,clearExtensionQuaranti
   const startSafe=()=>{sessionStorage.setItem("lcars-safe-mode","1");location.reload();};
   const leaveSafe=()=>{sessionStorage.removeItem("lcars-safe-mode");location.reload();};
   const restoreLastGood=()=>{try{const value=JSON.parse(localStorage.getItem("lcars-last-known-good")||"null");if(!value?.values)throw new Error();createRecoverySnapshot("Before last-known-good restore");void restoreAndReload(value.values);}catch{setStatus("NO LAST-KNOWN-GOOD CONFIGURATION IS AVAILABLE");}};
-  return <section className="recovery-controls">
+  return <ConsoleGroup label={<>SAFE STARTUP</>}><section className="recovery-controls">
     <header><span><b>SAFE STARTUP</b><small>{status}</small></span><i className={safeMode?"attention":"ready"}>{safeMode?"SAFE":"READY"}</i></header>
     <p>Safe Mode starts with the built-in theme, default layout, and no extensions. Your saved configuration remains untouched.</p>
-    <nav>{safeMode?<button onClick={leaveSafe}>RETURN TO NORMAL MODE</button>:<button onClick={startSafe}>RESTART IN SAFE MODE</button>}<button onClick={restoreLastGood}>RESTORE LAST KNOWN GOOD</button><button onClick={snapshot}>CREATE RECOVERY POINT</button></nav>
-    <div className="recovery-snapshots"><small>AUTOMATIC CONFIGURATION SNAPSHOTS · MAXIMUM 5</small>{snapshots.length?snapshots.map((item)=><article key={item.id}><span><b>{item.reason}</b><small>{new Date(item.created).toLocaleString()}</small></span><button onClick={()=>restore(item)}>RESTORE</button></article>):<p>NO SNAPSHOTS YET · ONE IS CREATED BEFORE SAVES, IMPORTS, AND WORKSTATION CHANGES</p>}</div>
-    <div className="extension-quarantine"><span><b>EXTENSION QUARANTINE</b><small>{quarantinedExtensions.length?`${quarantinedExtensions.length} MODULE(S) ISOLATED · ${quarantinedExtensions.join(", ")}`:"NO EXTENSION FAILURES ISOLATED"}</small></span><button disabled={!quarantinedExtensions.length} onClick={clearExtensionQuarantine}>RETRY MODULES</button></div>
-  </section>;
+    <ConsoleControls><nav>{safeMode?<ConsoleButton onClick={leaveSafe}>RETURN TO NORMAL MODE</ConsoleButton>:<ConsoleButton onClick={startSafe}>RESTART IN SAFE MODE</ConsoleButton>}<ConsoleButton onClick={restoreLastGood}>RESTORE LAST KNOWN GOOD</ConsoleButton><ConsoleButton onClick={snapshot}>CREATE RECOVERY POINT</ConsoleButton></nav></ConsoleControls>
+    <div className="recovery-snapshots"><small>AUTOMATIC CONFIGURATION SNAPSHOTS · MAXIMUM 5</small>{snapshots.length?snapshots.map((item)=><ConsoleGroup key={item.id} label={<>{new Date(item.created).toLocaleString()}</>}><article key={item.id}><span><b>{item.reason}</b><small>{new Date(item.created).toLocaleString()}</small></span><ConsoleButton onClick={()=>restore(item)}>RESTORE</ConsoleButton></article></ConsoleGroup>):<p>NO SNAPSHOTS YET · ONE IS CREATED BEFORE SAVES, IMPORTS, AND WORKSTATION CHANGES</p>}</div>
+    <div className="extension-quarantine"><span><b>EXTENSION QUARANTINE</b><small>{quarantinedExtensions.length?`${quarantinedExtensions.length} MODULE(S) ISOLATED · ${quarantinedExtensions.join(", ")}`:"NO EXTENSION FAILURES ISOLATED"}</small></span><ConsoleButton disabled={!quarantinedExtensions.length} onClick={clearExtensionQuarantine}>RETRY MODULES</ConsoleButton></div>
+  </section></ConsoleGroup>;
 }
 
 function SpeedDialEditor({items,extensions,customPages,routines,change}:{items:SpeedDialItem[];extensions:ExtensionManifest[];customPages:CustomPage[];routines:Routine[];change:(items:SpeedDialItem[])=>void}) {
@@ -4762,7 +4791,7 @@ function SpeedDialEditor({items,extensions,customPages,routines,change}:{items:S
   const replace=(index:number,value:SpeedDialItem)=>change(items.map((item,itemIndex)=>itemIndex===index?value:item));
   const move=(index:number,direction:number)=>{const target=index+direction;if(target<0||target>=items.length)return;const next=[...items];[next[index],next[target]]=[next[target],next[index]];change(next);};
   const add=()=>{const unused=choices.find((choice)=>!items.includes(choice.id))?.id||"page:settings";change([...items,unused].slice(0,8));};
-  return <section className="speed-dial-editor"><header><span><b>SPEED DIAL MODULES</b><small>Choose two to eight Page Peeks, focused modules, routines, or actions for the bottom-right control strip and arrange their order.</small></span><em>{items.length}/8</em></header><div>{items.map((item,index)=><article key={`${index}:${item}`}><i>{String(index+1).padStart(2,"0")}</i><label><span>SLOT {index+1}</span><select aria-label={`Speed Dial slot ${index+1}`} value={item} onChange={(event)=>replace(index,event.target.value as SpeedDialItem)}>{choices.map((choice)=><option value={choice.id} key={choice.id}>{choice.label} — {choice.description}</option>)}</select></label><nav><button aria-label="Move shortcut left" disabled={index===0} onClick={()=>move(index,-1)}>‹</button><button aria-label="Move shortcut right" disabled={index===items.length-1} onClick={()=>move(index,1)}>›</button><button aria-label="Remove shortcut" disabled={items.length<=2} onClick={()=>change(items.filter((_,itemIndex)=>itemIndex!==index))}>×</button></nav></article>)}</div><button disabled={items.length>=8} onClick={add}>+ ADD SPEED DIAL SLOT</button></section>;
+  return <ConsoleGroup label={<>SPEED DIAL MODULES</>}><section className="speed-dial-editor"><header><span><b>SPEED DIAL MODULES</b><small>Choose two to eight Page Peeks, focused modules, routines, or actions for the bottom-right control strip and arrange their order.</small></span><em>{items.length}/8</em></header><div>{items.map((item,index)=><ConsoleGroup key={`${index}:${item}`} label="SECTION CONTROLS"><article key={`${index}:${item}`}><i>{String(index+1).padStart(2,"0")}</i><ConsoleControls><label><span>SLOT {index+1}</span><ConsoleSelect aria-label={`Speed Dial slot ${index+1}`} value={item} onChange={(event)=>replace(index,event.target.value as SpeedDialItem)}>{choices.map((choice)=><option value={choice.id} key={choice.id}>{choice.label} — {choice.description}</option>)}</ConsoleSelect></label></ConsoleControls><ConsoleControls><nav><ConsoleButton aria-label="Move shortcut left" disabled={index===0} onClick={()=>move(index,-1)}>‹</ConsoleButton><ConsoleButton aria-label="Move shortcut right" disabled={index===items.length-1} onClick={()=>move(index,1)}>›</ConsoleButton><ConsoleButton aria-label="Remove shortcut" disabled={items.length<=2} onClick={()=>change(items.filter((_,itemIndex)=>itemIndex!==index))}>×</ConsoleButton></nav></ConsoleControls></article></ConsoleGroup>)}</div><ConsoleButton disabled={items.length>=8} onClick={add}>+ ADD SPEED DIAL SLOT</ConsoleButton></section></ConsoleGroup>;
 }
 
 function TrayCommandDeckEditor({shortcuts,apps,routines,customPages,change}:{shortcuts:TrayShortcut[];apps:App[];routines:Routine[];customPages:CustomPage[];change:(items:TrayShortcut[])=>void}){
@@ -4772,14 +4801,14 @@ function TrayCommandDeckEditor({shortcuts,apps,routines,customPages,change}:{sho
   const add=()=>{if(shortcuts.length>=24||!target)return;change([...shortcuts,{id:createV25Id("tray"),kind,target,label:(label.trim()||choices(kind).find((item)=>item.value===target)?.label||"COMMAND").slice(0,24)}]);};
   const update=(id:string,patch:Partial<TrayShortcut>)=>change(shortcuts.map((item)=>item.id===id?{...item,...patch}:item));
   const move=(index:number,direction:number)=>{const destination=index+direction;if(destination<0||destination>=shortcuts.length)return;const next=[...shortcuts];[next[index],next[destination]]=[next[destination],next[index]];change(next);};
-  return <section className="tray-command-editor v25-settings-panel"><header><div><small>STATUSNOTIFIER + OPERATOR COMMANDS</small><h4>TRAY COMMAND DECK</h4><p>Mix desktop tray services with up to 24 application, routine, and LCARS page buttons. The live deck scrolls whenever the combined list exceeds its bay.</p></div><b>{shortcuts.length}/24</b></header><div className="tray-command-create"><label>COMMAND TYPE<select value={kind} onChange={(event)=>setSource(event.target.value as TrayShortcut["kind"])}><option value="page">LCARS PAGE</option><option value="app">APPLICATION</option><option value="routine">ROUTINE</option></select></label><label>DESTINATION<select value={target} onChange={(event)=>{setTarget(event.target.value);const match=choices(kind).find((item)=>item.value===event.target.value);if(match)setLabel(match.label.toUpperCase().slice(0,24));}}>{choices(kind).map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</select></label><label>BUTTON LABEL<input maxLength={24} value={label} onChange={(event)=>setLabel(event.target.value)}/></label><button disabled={!target||shortcuts.length>=24} onClick={add}>ADD COMMAND</button></div><div className="tray-command-list">{shortcuts.map((shortcut,index)=>{const options=choices(shortcut.kind),targetPresent=options.some((item)=>item.value===shortcut.target);return <article key={shortcut.id}><i>{String(index+1).padStart(2,"0")}</i><input aria-label={`Label for tray command ${index+1}`} maxLength={24} value={shortcut.label} onChange={(event)=>update(shortcut.id,{label:event.target.value})}/><select aria-label={`Type for tray command ${index+1}`} value={shortcut.kind} onChange={(event)=>{const nextKind=event.target.value as TrayShortcut["kind"],first=choices(nextKind)[0];update(shortcut.id,{kind:nextKind,target:first?.value||"",label:(first?.label||nextKind).toUpperCase().slice(0,24)});}}><option value="page">PAGE</option><option value="app">APP</option><option value="routine">ROUTINE</option></select><select aria-label={`Destination for tray command ${index+1}`} value={shortcut.target} onChange={(event)=>update(shortcut.id,{target:event.target.value})}>{!targetPresent&&<option value={shortcut.target}>UNAVAILABLE · {shortcut.target}</option>}{options.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</select><nav><button disabled={index===0} onClick={()=>move(index,-1)}>↑</button><button disabled={index===shortcuts.length-1} onClick={()=>move(index,1)}>↓</button><button onClick={()=>change(shortcuts.filter((item)=>item.id!==shortcut.id))}>REMOVE</button></nav></article>;})}{!shortcuts.length&&<p>NO OPERATOR COMMANDS ASSIGNED · DESKTOP SERVICES WILL STILL APPEAR</p>}</div></section>;
+  return <ConsoleGroup label={<>TRAY COMMAND DECK</>}><section className="tray-command-editor v25-settings-panel"><header><div><small>STATUSNOTIFIER + OPERATOR COMMANDS</small><h4>TRAY COMMAND DECK</h4><p>Mix desktop tray services with up to 24 application, routine, and LCARS page buttons. The live deck scrolls whenever the combined list exceeds its bay.</p></div><b>{shortcuts.length}/24</b></header><div className="tray-command-create"><ConsoleControls><label>COMMAND TYPE<ConsoleSelect value={kind} onChange={(event)=>setSource(event.target.value as TrayShortcut["kind"])}><option value="page">LCARS PAGE</option><option value="app">APPLICATION</option><option value="routine">ROUTINE</option></ConsoleSelect></label></ConsoleControls><ConsoleControls><label>DESTINATION<ConsoleSelect value={target} onChange={(event)=>{setTarget(event.target.value);const match=choices(kind).find((item)=>item.value===event.target.value);if(match)setLabel(match.label.toUpperCase().slice(0,24));}}>{choices(kind).map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</ConsoleSelect></label></ConsoleControls><ConsoleControls><label>BUTTON LABEL<input maxLength={24} value={label} onChange={(event)=>setLabel(event.target.value)}/></label></ConsoleControls><ConsoleButton disabled={!target||shortcuts.length>=24} onClick={add}>ADD COMMAND</ConsoleButton></div><div className="tray-command-list">{shortcuts.map((shortcut,index)=>{const options=choices(shortcut.kind),targetPresent=options.some((item)=>item.value===shortcut.target);return <ConsoleGroup key={shortcut.id} label="SECTION CONTROLS"><article key={shortcut.id}><i>{String(index+1).padStart(2,"0")}</i><ConsoleField aria-label={`Label for tray command ${index+1}`} maxLength={24} value={shortcut.label} onChange={(event)=>update(shortcut.id,{label:event.target.value})}/><ConsoleSelect aria-label={`Type for tray command ${index+1}`} value={shortcut.kind} onChange={(event)=>{const nextKind=event.target.value as TrayShortcut["kind"],first=choices(nextKind)[0];update(shortcut.id,{kind:nextKind,target:first?.value||"",label:(first?.label||nextKind).toUpperCase().slice(0,24)});}}><option value="page">PAGE</option><option value="app">APP</option><option value="routine">ROUTINE</option></ConsoleSelect><ConsoleSelect aria-label={`Destination for tray command ${index+1}`} value={shortcut.target} onChange={(event)=>update(shortcut.id,{target:event.target.value})}>{!targetPresent&&<option value={shortcut.target}>UNAVAILABLE · {shortcut.target}</option>}{options.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</ConsoleSelect><ConsoleControls><nav><ConsoleButton disabled={index===0} onClick={()=>move(index,-1)}>↑</ConsoleButton><ConsoleButton disabled={index===shortcuts.length-1} onClick={()=>move(index,1)}>↓</ConsoleButton><ConsoleButton onClick={()=>change(shortcuts.filter((item)=>item.id!==shortcut.id))}>REMOVE</ConsoleButton></nav></ConsoleControls></article></ConsoleGroup>;})}{!shortcuts.length&&<p>NO OPERATOR COMMANDS ASSIGNED · DESKTOP SERVICES WILL STILL APPEAR</p>}</div></section></ConsoleGroup>;
 }
 
 function ControlMappingEditor({mappings,routines,change}:{mappings:ControlMapping[];routines:Routine[];change:(items:ControlMapping[])=>void}){
   const targets=[...nav.map((page)=>({value:`page:${page[0]}`,label:`OPEN ${page[2]}`})),{value:"action:routines",label:"OPERATIONS AUTOMATION"},{value:"action:communications",label:"COMMUNICATIONS CENTER"},{value:"action:tray",label:"TRAY COMMAND DECK"},{value:"action:dnd",label:"TOGGLE DO NOT DISTURB"},...routines.map((routine)=>({value:`routine:${routine.id}`,label:`RUN ${routine.name}`}))];
   const update=(id:string,patch:Partial<ControlMapping>)=>change(mappings.map((item)=>item.id===id?{...item,...patch}:item));
   const add=()=>{if(mappings.length>=24)return;change([...mappings,{id:createV25Id("mapping"),shortcut:`CTRL+ALT+${Math.min(9,mappings.length+1)}`,target:"action:routines",label:"OPERATIONS AUTOMATION",enabled:true}]);};
-  return <section className="control-mapping-editor v25-settings-panel"><header><div><small>KEYBOARD / CONTROL SURFACE ADAPTER</small><h4>CONTROL MAPPINGS</h4><p>Assign keyboard combinations to pages, routines, and command centers. Select a key field, then press the complete combination you want to use.</p></div><b>{mappings.length}/24</b></header><div>{mappings.map((mapping,index)=><article key={mapping.id}><label className="mapping-enabled"><input type="checkbox" checked={mapping.enabled} onChange={(event)=>update(mapping.id,{enabled:event.target.checked})}/><span>{String(index+1).padStart(2,"0")}</span></label><input className="mapping-shortcut" readOnly value={mapping.shortcut} aria-label={`Keyboard mapping ${index+1}`} onKeyDown={(event)=>{event.preventDefault();event.stopPropagation();const shortcut=eventShortcut(event.nativeEvent);if(shortcut&&!shortcut.endsWith("CTRL")&&!shortcut.endsWith("ALT")&&!shortcut.endsWith("SHIFT")&&!shortcut.endsWith("META"))update(mapping.id,{shortcut});}}/><select value={mapping.target} onChange={(event)=>{const selected=targets.find((item)=>item.value===event.target.value);update(mapping.id,{target:event.target.value,label:selected?.label||mapping.label});}}>{!targets.some((item)=>item.value===mapping.target)&&<option value={mapping.target}>UNAVAILABLE · {mapping.label}</option>}{targets.map((target)=><option value={target.value} key={target.value}>{target.label}</option>)}</select><button onClick={()=>change(mappings.filter((item)=>item.id!==mapping.id))}>REMOVE</button></article>)}</div><button disabled={mappings.length>=24} onClick={add}>+ ADD CONTROL MAPPING</button></section>;
+  return <ConsoleGroup label={<>CONTROL MAPPINGS</>}><section className="control-mapping-editor v25-settings-panel"><header><div><small>KEYBOARD / CONTROL SURFACE ADAPTER</small><h4>CONTROL MAPPINGS</h4><p>Assign keyboard combinations to pages, routines, and command centers. Select a key field, then press the complete combination you want to use.</p></div><b>{mappings.length}/24</b></header><div>{mappings.map((mapping,index)=><ConsoleGroup key={mapping.id} label="SECTION CONTROLS"><article key={mapping.id}><ConsoleControls><label data-console-toggle="" className="mapping-enabled"><input type="checkbox" checked={mapping.enabled} onChange={(event)=>update(mapping.id,{enabled:event.target.checked})}/><span>{String(index+1).padStart(2,"0")}</span></label></ConsoleControls><ConsoleField className="mapping-shortcut" readOnly value={mapping.shortcut} aria-label={`Keyboard mapping ${index+1}`} onKeyDown={(event)=>{event.preventDefault();event.stopPropagation();const shortcut=eventShortcut(event.nativeEvent);if(shortcut&&!shortcut.endsWith("CTRL")&&!shortcut.endsWith("ALT")&&!shortcut.endsWith("SHIFT")&&!shortcut.endsWith("META"))update(mapping.id,{shortcut});}}/><ConsoleSelect value={mapping.target} onChange={(event)=>{const selected=targets.find((item)=>item.value===event.target.value);update(mapping.id,{target:event.target.value,label:selected?.label||mapping.label});}}>{!targets.some((item)=>item.value===mapping.target)&&<option value={mapping.target}>UNAVAILABLE · {mapping.label}</option>}{targets.map((target)=><option value={target.value} key={target.value}>{target.label}</option>)}</ConsoleSelect><ConsoleButton onClick={()=>change(mappings.filter((item)=>item.id!==mapping.id))}>REMOVE</ConsoleButton></article></ConsoleGroup>)}</div><ConsoleButton disabled={mappings.length>=24} onClick={add}>+ ADD CONTROL MAPPING</ConsoleButton></section></ConsoleGroup>;
 }
 
 function ProcedureCenter({routines,apps,profiles,devices,players,running,history,save,request,testStep,close}:{routines:Routine[];apps:App[];profiles:WorkspaceProfile[];devices:AudioDevice[];players:Player[];running:string;history:ActivityEntry[];save:(items:Routine[])=>void;request:(routine:Routine)=>void;testStep:(routine:Routine,step:RoutineStep)=>void;close:()=>void}){
@@ -4796,44 +4825,44 @@ function ProcedureCenter({routines,apps,profiles,devices,players,running,history
   const triggerValue=procedure&&!["manual","startup"].includes(procedure.trigger.type),triggerType=procedure?.trigger.type==="time"?"time":procedure?.trigger.type==="battery-below"||procedure?.trigger.type==="interval"?"number":"text";
   const triggerPlaceholder=procedure?.trigger.type==="app"?"APPLICATION NAME":procedure?.trigger.type==="device"?"AUDIO DEVICE":procedure?.trigger.type==="battery-below"?"BATTERY PERCENT":procedure?.trigger.type==="network"?"NETWORK NAME OR BLANK":procedure?.trigger.type==="notice"?"NOTICE TEXT OR SOURCE":procedure?.trigger.type==="media"?"PLAYER, ARTIST, OR TITLE":procedure?.trigger.type==="station"?"PADD NAME OR BLANK":procedure?.trigger.type==="interval"?"MINUTES":"TRIGGER VALUE";
   return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}>
-    <section className="routine-center procedure-center" role="dialog" aria-modal="true" aria-label="Computer Core Procedure Builder">
-      <header><div><small>VERSION 30 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header>
+    <ConsoleGroup label={<>PROCEDURE BUILDER</>}><section className="routine-center procedure-center" role="dialog" aria-modal="true" aria-label="Computer Core Procedure Builder"><ConsoleWindowControls>
+      <header><div><small>VERSION 30 COMPUTER CORE</small><h2>PROCEDURE BUILDER</h2><p>Build local workflows with conditional steps, expanded event triggers, cooldowns, runtime limits, dry runs, retry paths, and explicit confirmation for protected operations.</p></div><ConsoleControls><nav><ConsoleButton onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</ConsoleButton><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></nav></ConsoleControls></header>
       <div className="routine-center-layout">
-        <aside><button onClick={add}>+ NEW PROCEDURE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO PROCEDURES CONFIGURED</p>}</aside>
+        <aside><ConsoleButton onClick={add}>+ NEW PROCEDURE</ConsoleButton>{routines.map((item,index)=><ConsoleButton className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></ConsoleButton>)}{!routines.length&&<p>NO PROCEDURES CONFIGURED</p>}</aside>
         {showHistory?<main className="routine-run-history"><header><small>COMPUTER CORE EXECUTION JOURNAL</small><h3>PROCEDURE HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO PROCEDURE EXECUTIONS RECORDED</p>}</main>:procedure?<main>
           <div className="routine-fields procedure-fields">
-            <label>PROCEDURE NAME<input maxLength={40} value={procedure.name} onChange={(event)=>update({name:event.target.value})}/></label>
-            <label>FOLDER<input maxLength={40} value={procedure.folder||"GENERAL"} onChange={(event)=>update({folder:event.target.value})}/></label>
-            <label>DESCRIPTION<input maxLength={160} value={procedure.description} onChange={(event)=>update({description:event.target.value})}/></label>
-            <label>COLOR<select value={procedure.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></select></label>
-            <label>TRIGGER<select value={procedure.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="interval">REPEATING INTERVAL</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option><option value="battery-below">BATTERY BELOW</option><option value="network">NETWORK CONNECTED</option><option value="notice">NOTICE RECEIVED</option><option value="media">MEDIA PLAYING</option><option value="station">PADD STATION ONLINE</option></select></label>
-            {triggerValue&&<label>TRIGGER VALUE<input type={triggerType} min={procedure.trigger.type==="battery-below"?1:procedure.trigger.type==="interval"?1:undefined} max={procedure.trigger.type==="battery-below"?100:procedure.trigger.type==="interval"?1440:undefined} value={procedure.trigger.value||""} placeholder={triggerPlaceholder} onChange={(event)=>update({trigger:{...procedure.trigger,value:event.target.value}})}/></label>}
-            <label>COOLDOWN SECONDS<input type="number" min="0" max="86400" value={procedure.cooldownSeconds||0} onChange={(event)=>update({cooldownSeconds:+event.target.value})}/></label>
-            <label>MAXIMUM RUNTIME SECONDS<input type="number" min="5" max="3600" value={procedure.maxRuntimeSeconds||120} onChange={(event)=>update({maxRuntimeSeconds:+event.target.value})}/></label>
+            <ConsoleControls><label>PROCEDURE NAME<input maxLength={40} value={procedure.name} onChange={(event)=>update({name:event.target.value})}/></label></ConsoleControls>
+            <ConsoleControls><label>FOLDER<input maxLength={40} value={procedure.folder||"GENERAL"} onChange={(event)=>update({folder:event.target.value})}/></label></ConsoleControls>
+            <ConsoleControls><label>DESCRIPTION<input maxLength={160} value={procedure.description} onChange={(event)=>update({description:event.target.value})}/></label></ConsoleControls>
+            <ConsoleControls><label>COLOR<ConsoleSelect value={procedure.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></ConsoleSelect></label></ConsoleControls>
+            <ConsoleControls><label>TRIGGER<ConsoleSelect value={procedure.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="interval">REPEATING INTERVAL</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option><option value="battery-below">BATTERY BELOW</option><option value="network">NETWORK CONNECTED</option><option value="notice">NOTICE RECEIVED</option><option value="media">MEDIA PLAYING</option><option value="station">PADD STATION ONLINE</option></ConsoleSelect></label></ConsoleControls>
+            {triggerValue&&<ConsoleControls><label>TRIGGER VALUE<input type={triggerType} min={procedure.trigger.type==="battery-below"?1:procedure.trigger.type==="interval"?1:undefined} max={procedure.trigger.type==="battery-below"?100:procedure.trigger.type==="interval"?1440:undefined} value={procedure.trigger.value||""} placeholder={triggerPlaceholder} onChange={(event)=>update({trigger:{...procedure.trigger,value:event.target.value}})}/></label></ConsoleControls>}
+            <ConsoleControls><label>COOLDOWN SECONDS<input type="number" min="0" max="86400" value={procedure.cooldownSeconds||0} onChange={(event)=>update({cooldownSeconds:+event.target.value})}/></label></ConsoleControls>
+            <ConsoleControls><label>MAXIMUM RUNTIME SECONDS<input type="number" min="5" max="3600" value={procedure.maxRuntimeSeconds||120} onChange={(event)=>update({maxRuntimeSeconds:+event.target.value})}/></label></ConsoleControls>
             <Toggle label="Procedure enabled" checked={procedure.enabled} change={(enabled)=>update({enabled})}/>
             <Toggle label="Trigger performs a dry run" description="Evaluate and log the path without changing system state." checked={Boolean(procedure.dryRunByDefault)} change={(dryRunByDefault)=>update({dryRunByDefault})}/>
           </div>
-          <section className="procedure-attachments"><header><span><small>DATA FABRIC RESOURCES</small><h3>ATTACHED FILES</h3></span><b>{procedure.attachments?.length||0}/20</b></header><p>Files found through Universal LCARS Search can be attached here as versioned procedure resources.</p><div>{procedure.attachments?.map((attachment,index)=><article key={attachment.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{attachment.name}</b><small>{attachment.path} · {new Date(attachment.addedAt).toLocaleString()}</small></span><button onClick={()=>update({attachments:procedure.attachments?.filter((item)=>item.id!==attachment.id)})}>REMOVE</button></article>)}{!procedure.attachments?.length&&<em>NO FILE RESOURCES ATTACHED</em>}</div></section>
-          <section className="routine-steps"><header><div><small>EXECUTION ORDER · CONDITIONS · FAILURE PATHS</small><h3>PROCEDURE STEPS</h3></div><b>{procedure.steps.length}/48</b></header>
-            {procedure.steps.map((step,index)=>{const stepChoices=choices(step.kind),selectable=stepChoices.length>0;return <article className="routine-step-v26" key={step.id}>
+          <ConsoleGroup label={<>ATTACHED FILES</>}><section className="procedure-attachments"><header><span><small>DATA FABRIC RESOURCES</small><h3>ATTACHED FILES</h3></span><b>{procedure.attachments?.length||0}/20</b></header><p>Files found through Universal LCARS Search can be attached here as versioned procedure resources.</p><div>{procedure.attachments?.map((attachment,index)=><ConsoleGroup key={attachment.id} label={<>{attachment.path} · {new Date(attachment.addedAt).toLocaleString()}</>}><article key={attachment.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{attachment.name}</b><small>{attachment.path} · {new Date(attachment.addedAt).toLocaleString()}</small></span><ConsoleButton onClick={()=>update({attachments:procedure.attachments?.filter((item)=>item.id!==attachment.id)})}>REMOVE</ConsoleButton></article></ConsoleGroup>)}{!procedure.attachments?.length&&<em>NO FILE RESOURCES ATTACHED</em>}</div></section></ConsoleGroup>
+          <ConsoleGroup label={<>PROCEDURE STEPS</>}><section className="routine-steps"><header><div><small>EXECUTION ORDER · CONDITIONS · FAILURE PATHS</small><h3>PROCEDURE STEPS</h3></div><b>{procedure.steps.length}/48</b></header>
+            {procedure.steps.map((step,index)=>{const stepChoices=choices(step.kind),selectable=stepChoices.length>0;return <ConsoleGroup key={step.id} label="SECTION CONTROLS"><article className="routine-step-v26" key={step.id}>
               <i>{String(index+1).padStart(2,"0")}</i>
-              <select value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=choices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined,prompt:kind==="prompt"?"Continue this procedure?":undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="prompt">OPERATOR PROMPT</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></select>
-              {step.kind==="prompt"?<input aria-label="Operator prompt" value={step.prompt||""} placeholder="ASK THE OPERATOR…" onChange={(event)=>updateStep(step.id,{prompt:event.target.value,target:event.target.value})}/>:selectable?<select value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!stepChoices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{stepChoices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</select>:<label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label>}
-              <nav><button title="Test this step" disabled={Boolean(running)} onClick={()=>testStep(procedure,step)}>TEST</button><button disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</button><button disabled={index===procedure.steps.length-1} onClick={()=>moveStep(index,1)}>↓</button><button disabled={procedure.steps.length<=1} onClick={()=>update({steps:procedure.steps.filter((item)=>item.id!==step.id)})}>×</button></nav>
-              <details><summary>CONDITION / TIMING / FAILURE</summary><div><label>RUN WHEN<select value={step.condition?.source||""} onChange={(event)=>updateStep(step.id,{condition:event.target.value?{source:event.target.value as NonNullable<RoutineStep["condition"]>["source"],operator:"available"}:undefined})}><option value="">ALWAYS</option><option value="bridge">LOCAL CORE</option><option value="media">MEDIA</option><option value="application">APPLICATION</option><option value="device">AUDIO DEVICE</option><option value="dnd">DO NOT DISTURB</option></select></label>{step.condition&&<><label>CONDITION<select value={step.condition.operator} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,operator:event.target.value as NonNullable<RoutineStep["condition"]>["operator"]}})}><option value="available">AVAILABLE</option><option value="unavailable">UNAVAILABLE</option><option value="equals">EQUALS</option><option value="not-equals">DOES NOT EQUAL</option></select></label><label>MATCH VALUE<input value={step.condition.value||""} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,value:event.target.value}})}/></label></>}<label>DELAY MS<input type="number" min="0" max="30000" value={step.delayMs||0} onChange={(event)=>updateStep(step.id,{delayMs:+event.target.value})}/></label><label>RETRIES<input type="number" min="0" max="5" value={step.retries||0} onChange={(event)=>updateStep(step.id,{retries:+event.target.value})}/></label><label>IF FAILED<select value={step.onFailure||"stop"} onChange={(event)=>updateStep(step.id,{onFailure:event.target.value as "stop"|"continue"})}><option value="stop">STOP PROCEDURE</option><option value="continue">CONTINUE TO NEXT STEP</option></select></label></div></details>
-            </article>;})}
-            <button disabled={procedure.steps.length>=48} onClick={addStep}>+ ADD STEP</button>
-          </section>
-          <footer><button className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==procedure.id));setSelected("");}}>DELETE PROCEDURE</button><button onClick={duplicate}>DUPLICATE</button><button disabled={!procedure.steps.length||running===procedure.id} onClick={()=>request(procedure)}>{running===procedure.id?"PROCEDURE RUNNING…":"PREVIEW PROCEDURE"}</button></footer>
+              <ConsoleSelect value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=choices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined,prompt:kind==="prompt"?"Continue this procedure?":undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="prompt">OPERATOR PROMPT</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></ConsoleSelect>
+              {step.kind==="prompt"?<ConsoleField aria-label="Operator prompt" value={step.prompt||""} placeholder="ASK THE OPERATOR…" onChange={(event)=>updateStep(step.id,{prompt:event.target.value,target:event.target.value})}/>:selectable?<ConsoleSelect value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!stepChoices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{stepChoices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</ConsoleSelect>:<ConsoleControls><label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label></ConsoleControls>}
+              <ConsoleControls><nav><ConsoleButton title="Test this step" disabled={Boolean(running)} onClick={()=>testStep(procedure,step)}>TEST</ConsoleButton><ConsoleButton disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</ConsoleButton><ConsoleButton disabled={index===procedure.steps.length-1} onClick={()=>moveStep(index,1)}>↓</ConsoleButton><ConsoleButton disabled={procedure.steps.length<=1} onClick={()=>update({steps:procedure.steps.filter((item)=>item.id!==step.id)})}>×</ConsoleButton></nav></ConsoleControls>
+              <ConsoleDisclosure><summary>CONDITION / TIMING / FAILURE</summary><div><ConsoleControls><label>RUN WHEN<ConsoleSelect value={step.condition?.source||""} onChange={(event)=>updateStep(step.id,{condition:event.target.value?{source:event.target.value as NonNullable<RoutineStep["condition"]>["source"],operator:"available"}:undefined})}><option value="">ALWAYS</option><option value="bridge">LOCAL CORE</option><option value="media">MEDIA</option><option value="application">APPLICATION</option><option value="device">AUDIO DEVICE</option><option value="dnd">DO NOT DISTURB</option></ConsoleSelect></label></ConsoleControls>{step.condition&&<><ConsoleControls><label>CONDITION<ConsoleSelect value={step.condition.operator} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,operator:event.target.value as NonNullable<RoutineStep["condition"]>["operator"]}})}><option value="available">AVAILABLE</option><option value="unavailable">UNAVAILABLE</option><option value="equals">EQUALS</option><option value="not-equals">DOES NOT EQUAL</option></ConsoleSelect></label></ConsoleControls><ConsoleControls><label>MATCH VALUE<input value={step.condition.value||""} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,value:event.target.value}})}/></label></ConsoleControls></>}<ConsoleControls><label>DELAY MS<input type="number" min="0" max="30000" value={step.delayMs||0} onChange={(event)=>updateStep(step.id,{delayMs:+event.target.value})}/></label></ConsoleControls><ConsoleControls><label>RETRIES<input type="number" min="0" max="5" value={step.retries||0} onChange={(event)=>updateStep(step.id,{retries:+event.target.value})}/></label></ConsoleControls><ConsoleControls><label>IF FAILED<ConsoleSelect value={step.onFailure||"stop"} onChange={(event)=>updateStep(step.id,{onFailure:event.target.value as "stop"|"continue"})}><option value="stop">STOP PROCEDURE</option><option value="continue">CONTINUE TO NEXT STEP</option></ConsoleSelect></label></ConsoleControls></div></ConsoleDisclosure>
+            </article></ConsoleGroup>;})}
+            <ConsoleButton disabled={procedure.steps.length>=48} onClick={addStep}>+ ADD STEP</ConsoleButton>
+          </section></ConsoleGroup>
+          <footer><ConsoleButton className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==procedure.id));setSelected("");}}>DELETE PROCEDURE</ConsoleButton><ConsoleButton onClick={duplicate}>DUPLICATE</ConsoleButton><ConsoleButton disabled={!procedure.steps.length||running===procedure.id} onClick={()=>request(procedure)}>{running===procedure.id?"PROCEDURE RUNNING…":"PREVIEW PROCEDURE"}</ConsoleButton></footer>
         </main>:<div className="adaptive-empty"><b>CREATE A COMPUTER CORE PROCEDURE</b><small>Start with a page change, then add conditions, applications, audio controls, workstation restore, operator prompts, or guarded system actions.</small></div>}
       </div>
-    </section>
+    </ConsoleWindowControls></section></ConsoleGroup>
   </div>;
 }
 
 function ProcedurePreview({routine,describe,running,cancel,dryRun,run}:{routine:Routine;describe:(step:RoutineStep)=>string;running:boolean;cancel:()=>void;dryRun:()=>void;run:()=>void}){
   const risk=computerProcedureRisk(routine),protectedSteps=risk==="protected",reversible=computerProcedureReversible(routine);
-  return <div className="backdrop routine-preview-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&!running&&cancel()}><section className="routine-preview" role="alertdialog" aria-modal="true"><header><div><small>{protectedSteps?"PROTECTED OPERATOR CONFIRMATION":"COMPUTER CORE PROCEDURE PREVIEW"}</small><h2>{routine.name}</h2><p>{routine.description||"Operator-defined Computer Core procedure"}</p></div><i className={protectedSteps?"protected":"ready"}>{protectedSteps?"CONFIRM":risk==="attention"?"OPERATING":"SAFE"}</i></header><ol>{routine.steps.map((step,index)=><li key={step.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{describe(step)}</b><small>{step.kind.toUpperCase()}{step.kind==="system"||step.kind==="command"?" · PROTECTED":""}{["page","theme","dnd","volume"].includes(step.kind)?" · REVERSIBLE":""}</small></span></li>)}</ol><footer><span>{reversible?"THIS PROCEDURE CAN BE UNDONE":"ONE OR MORE STEPS CANNOT BE AUTOMATICALLY REVERSED"}</span><button disabled={running} onClick={cancel}>CANCEL</button><button disabled={running} onClick={dryRun}>DRY RUN</button><button className={protectedSteps?"protected":""} disabled={running} onClick={run}>{running?"EXECUTING…":protectedSteps?"CONFIRM & RUN":"RUN PROCEDURE"}</button></footer></section></div>;
+  return <div className="backdrop routine-preview-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&!running&&cancel()}><ConsoleGroup label={<>{routine.name}</>}><section className="routine-preview" role="alertdialog" aria-modal="true"><ConsoleWindowControls><header><div><small>{protectedSteps?"PROTECTED OPERATOR CONFIRMATION":"COMPUTER CORE PROCEDURE PREVIEW"}</small><h2>{routine.name}</h2><p>{routine.description||"Operator-defined Computer Core procedure"}</p></div><i className={protectedSteps?"protected":"ready"}>{protectedSteps?"CONFIRM":risk==="attention"?"OPERATING":"SAFE"}</i></header><ol>{routine.steps.map((step,index)=><li key={step.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{describe(step)}</b><small>{step.kind.toUpperCase()}{step.kind==="system"||step.kind==="command"?" · PROTECTED":""}{["page","theme","dnd","volume"].includes(step.kind)?" · REVERSIBLE":""}</small></span></li>)}</ol><footer><span>{reversible?"THIS PROCEDURE CAN BE UNDONE":"ONE OR MORE STEPS CANNOT BE AUTOMATICALLY REVERSED"}</span><ConsoleButton disabled={running} onClick={cancel}>CANCEL</ConsoleButton><ConsoleButton disabled={running} onClick={dryRun}>DRY RUN</ConsoleButton><ConsoleButton className={protectedSteps?"protected":""} disabled={running} onClick={run}>{running?"EXECUTING…":protectedSteps?"CONFIRM & RUN":"RUN PROCEDURE"}</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div>;
 }
 
 function RoutineCenter({routines,apps,profiles,devices,players,running,history,save,request,testStep,close}:{routines:Routine[];apps:App[];profiles:WorkspaceProfile[];devices:AudioDevice[];players:Player[];running:string;history:ActivityEntry[];save:(items:Routine[])=>void;request:(routine:Routine)=>void;testStep:(routine:Routine,step:RoutineStep)=>void;close:()=>void}){
@@ -4848,12 +4877,12 @@ function RoutineCenter({routines,apps,profiles,devices,players,running,history,s
   const updateStep=(id:string,patch:Partial<RoutineStep>)=>routine&&update({steps:routine.steps.map((step)=>step.id===id?{...step,...patch}:step)});
   const moveStep=(index:number,direction:number)=>{if(!routine)return;const target=index+direction;if(target<0||target>=routine.steps.length)return;const steps=[...routine.steps];[steps[index],steps[target]]=[steps[target],steps[index]];update({steps});};
   const triggerNeedsValue=routine?.trigger.type!=="manual"&&routine?.trigger.type!=="startup";
-  return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><section className="routine-center" role="dialog" aria-modal="true"><header><div><small>VERSION 29 OPERATIONS AUTOMATION</small><h2>ROUTINE COMMAND CENTER</h2><p>Compose conditional local workflows with delays, retries, failure paths, and operator prompts. Protected actions always retain an explicit confirmation gate.</p></div><nav><button onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</button><button onClick={close}>CLOSE ×</button></nav></header><div className="routine-center-layout"><aside><button onClick={add}>+ NEW ROUTINE</button>{routines.map((item,index)=><button className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></button>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</aside>{showHistory?<main className="routine-run-history"><header><small>LOCAL EXECUTION JOURNAL</small><h3>RUN HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO ROUTINE EXECUTIONS RECORDED</p>}</main>:routine?<main><div className="routine-fields"><label>ROUTINE NAME<input maxLength={40} value={routine.name} onChange={(event)=>update({name:event.target.value})}/></label><label>FOLDER<input maxLength={40} value={routine.folder||"GENERAL"} onChange={(event)=>update({folder:event.target.value})}/></label><label>DESCRIPTION<input maxLength={160} value={routine.description} onChange={(event)=>update({description:event.target.value})}/></label><label>COLOR<select value={routine.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></select></label><label>TRIGGER<select value={routine.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option></select></label>{triggerNeedsValue&&<label>TRIGGER VALUE<input type={routine.trigger.type==="time"?"time":"text"} value={routine.trigger.value||""} placeholder={routine.trigger.type==="app"?"APPLICATION NAME":"DEVICE NAME"} onChange={(event)=>update({trigger:{...routine.trigger,value:event.target.value}})}/></label>}<Toggle label="Routine enabled" checked={routine.enabled} change={(enabled)=>update({enabled})}/></div><section className="routine-steps"><header><div><small>EXECUTION ORDER · CONDITIONAL BRANCHES</small><h3>ROUTINE STEPS</h3></div><b>{routine.steps.length}/24</b></header>{routine.steps.map((step,index)=>{const choices=stepChoices(step.kind),selectable=choices.length>0;return <article className="routine-step-v26" key={step.id}><i>{String(index+1).padStart(2,"0")}</i><select value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=stepChoices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined,prompt:kind==="prompt"?"Continue this routine?":undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="prompt">OPERATOR PROMPT</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></select>{step.kind==="prompt"?<input aria-label="Operator prompt" value={step.prompt||""} placeholder="ASK THE OPERATOR…" onChange={(event)=>updateStep(step.id,{prompt:event.target.value,target:event.target.value})}/>:selectable?<select value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!choices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{choices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</select>:<label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label>}<nav><button title="Test this step" disabled={Boolean(running)} onClick={()=>testStep(routine,step)}>TEST</button><button disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</button><button disabled={index===routine.steps.length-1} onClick={()=>moveStep(index,1)}>↓</button><button disabled={routine.steps.length<=1} onClick={()=>update({steps:routine.steps.filter((item)=>item.id!==step.id)})}>×</button></nav><details><summary>BRANCH / TIMING / FAILURE</summary><div><label>RUN WHEN<select value={step.condition?.source||""} onChange={(event)=>updateStep(step.id,{condition:event.target.value?{source:event.target.value as NonNullable<RoutineStep["condition"]>["source"],operator:"available"}:undefined})}><option value="">ALWAYS</option><option value="bridge">LOCAL CORE</option><option value="media">MEDIA</option><option value="application">APPLICATION</option><option value="device">AUDIO DEVICE</option><option value="dnd">DO NOT DISTURB</option></select></label>{step.condition&&<><label>CONDITION<select value={step.condition.operator} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,operator:event.target.value as NonNullable<RoutineStep["condition"]>["operator"]}})}><option value="available">AVAILABLE</option><option value="unavailable">UNAVAILABLE</option><option value="equals">EQUALS</option><option value="not-equals">DOES NOT EQUAL</option></select></label><label>MATCH VALUE<input value={step.condition.value||""} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,value:event.target.value}})}/></label></>}<label>DELAY MS<input type="number" min="0" max="30000" value={step.delayMs||0} onChange={(event)=>updateStep(step.id,{delayMs:+event.target.value})}/></label><label>RETRIES<input type="number" min="0" max="5" value={step.retries||0} onChange={(event)=>updateStep(step.id,{retries:+event.target.value})}/></label><label>IF FAILED<select value={step.onFailure||"stop"} onChange={(event)=>updateStep(step.id,{onFailure:event.target.value as "stop"|"continue"})}><option value="stop">STOP ROUTINE</option><option value="continue">CONTINUE TO NEXT STEP</option></select></label></div></details></article>;})}<button disabled={routine.steps.length>=24} onClick={addStep}>+ ADD STEP</button></section><footer><button className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==routine.id));setSelected("");}}>DELETE ROUTINE</button><button onClick={duplicate}>DUPLICATE</button><button disabled={!routine.steps.length||running===routine.id} onClick={()=>request(routine)}>{running===routine.id?"ROUTINE RUNNING…":"PREVIEW ROUTINE"}</button></footer></main>:<div className="adaptive-empty"><b>CREATE AN OPERATIONS ROUTINE</b><small>Start with a page change, then add conditions, prompts, applications, audio controls, workstation restore, or guarded system actions.</small></div>}</div></section></div>;
+  return <div className="backdrop routine-center-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><ConsoleGroup label={<>ROUTINE COMMAND CENTER</>}><section className="routine-center" role="dialog" aria-modal="true"><ConsoleWindowControls><header><div><small>VERSION 29 OPERATIONS AUTOMATION</small><h2>ROUTINE COMMAND CENTER</h2><p>Compose conditional local workflows with delays, retries, failure paths, and operator prompts. Protected actions always retain an explicit confirmation gate.</p></div><ConsoleControls><nav><ConsoleButton onClick={()=>setShowHistory(!showHistory)}>{showHistory?"BUILDER":"RUN HISTORY"}</ConsoleButton><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></nav></ConsoleControls></header><div className="routine-center-layout"><aside><ConsoleButton onClick={add}>+ NEW ROUTINE</ConsoleButton>{routines.map((item,index)=><ConsoleButton className={item.id===selected&&!showHistory?"active":""} key={item.id} onClick={()=>{setSelected(item.id);setShowHistory(false);}}><i>{String(index+1).padStart(2,"0")}</i><span><b>{item.name}</b><small>{(item.folder||"GENERAL").toUpperCase()} · {item.steps.length} STEPS · {item.trigger.type.toUpperCase()}</small></span><em className={`routine-color-${item.color}`}/></ConsoleButton>)}{!routines.length&&<p>NO ROUTINES CONFIGURED</p>}</aside>{showHistory?<main className="routine-run-history"><header><small>LOCAL EXECUTION JOURNAL</small><h3>RUN HISTORY</h3></header>{history.length?history.slice(0,80).map((entry)=><article className={`history-${entry.status}`} key={entry.id}><i>{entry.status==="success"?"✓":entry.status==="running"?"▶":"!"}</i><span><b>{entry.title}</b><small>{new Date(entry.time).toLocaleString()} · {entry.status.toUpperCase()}</small><em>{entry.detail}</em></span></article>):<p>NO ROUTINE EXECUTIONS RECORDED</p>}</main>:routine?<main><div className="routine-fields"><ConsoleControls><label>ROUTINE NAME<input maxLength={40} value={routine.name} onChange={(event)=>update({name:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>FOLDER<input maxLength={40} value={routine.folder||"GENERAL"} onChange={(event)=>update({folder:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>DESCRIPTION<input maxLength={160} value={routine.description} onChange={(event)=>update({description:event.target.value})}/></label></ConsoleControls><ConsoleControls><label>COLOR<ConsoleSelect value={routine.color} onChange={(event)=>update({color:event.target.value as Routine["color"]})}><option value="orange">ORANGE</option><option value="gold">GOLD</option><option value="violet">VIOLET</option><option value="blue">BLUE</option><option value="pink">PINK</option></ConsoleSelect></label></ConsoleControls><ConsoleControls><label>TRIGGER<ConsoleSelect value={routine.trigger.type} onChange={(event)=>update({trigger:{type:event.target.value as Routine["trigger"]["type"]}})}><option value="manual">MANUAL ONLY</option><option value="startup">LCARS STARTUP</option><option value="time">DAILY TIME</option><option value="app">APPLICATION DETECTED</option><option value="device">AUDIO DEVICE DETECTED</option></ConsoleSelect></label></ConsoleControls>{triggerNeedsValue&&<ConsoleControls><label>TRIGGER VALUE<input type={routine.trigger.type==="time"?"time":"text"} value={routine.trigger.value||""} placeholder={routine.trigger.type==="app"?"APPLICATION NAME":"DEVICE NAME"} onChange={(event)=>update({trigger:{...routine.trigger,value:event.target.value}})}/></label></ConsoleControls>}<Toggle label="Routine enabled" checked={routine.enabled} change={(enabled)=>update({enabled})}/></div><ConsoleGroup label={<>ROUTINE STEPS</>}><section className="routine-steps"><header><div><small>EXECUTION ORDER · CONDITIONAL BRANCHES</small><h3>ROUTINE STEPS</h3></div><b>{routine.steps.length}/24</b></header>{routine.steps.map((step,index)=>{const choices=stepChoices(step.kind),selectable=choices.length>0;return <ConsoleGroup key={step.id} label="SECTION CONTROLS"><article className="routine-step-v26" key={step.id}><i>{String(index+1).padStart(2,"0")}</i><ConsoleSelect value={step.kind} onChange={(event)=>{const kind=event.target.value as RoutineStepKind,first=stepChoices(kind)[0];updateStep(step.id,{kind,target:first?.value||"",value:undefined,prompt:kind==="prompt"?"Continue this routine?":undefined});}}><option value="page">OPEN PAGE</option><option value="app">LAUNCH APP</option><option value="workstation">RESTORE WORKSTATION</option><option value="theme">CHANGE THEME</option><option value="dnd">DO NOT DISTURB</option><option value="volume">SET VOLUME</option><option value="audio-device">AUDIO DEVICE</option><option value="media">MEDIA CONTROL</option><option value="prompt">OPERATOR PROMPT</option><option value="wait">WAIT</option><option value="command">APPROVED COMMAND</option><option value="system">SYSTEM POWER</option></ConsoleSelect>{step.kind==="prompt"?<ConsoleField aria-label="Operator prompt" value={step.prompt||""} placeholder="ASK THE OPERATOR…" onChange={(event)=>updateStep(step.id,{prompt:event.target.value,target:event.target.value})}/>:selectable?<ConsoleSelect value={step.target} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:event.target.value})}>{!choices.some((choice)=>choice.value===step.target)&&<option value={step.target}>UNAVAILABLE · {step.target}</option>}{choices.map((choice)=><option value={choice.value} key={choice.value}>{choice.label}</option>)}</ConsoleSelect>:<ConsoleControls><label className="step-value"><span>{step.kind==="volume"?"PERCENT":"MILLISECONDS"}</span><input type="number" min="0" max={step.kind==="volume"?100:30000} value={Number(step.value??step.target)||0} onChange={(event)=>updateStep(step.id,{target:event.target.value,value:Number(event.target.value)})}/></label></ConsoleControls>}<ConsoleControls><nav><ConsoleButton title="Test this step" disabled={Boolean(running)} onClick={()=>testStep(routine,step)}>TEST</ConsoleButton><ConsoleButton disabled={index===0} onClick={()=>moveStep(index,-1)}>↑</ConsoleButton><ConsoleButton disabled={index===routine.steps.length-1} onClick={()=>moveStep(index,1)}>↓</ConsoleButton><ConsoleButton disabled={routine.steps.length<=1} onClick={()=>update({steps:routine.steps.filter((item)=>item.id!==step.id)})}>×</ConsoleButton></nav></ConsoleControls><ConsoleDisclosure><summary>BRANCH / TIMING / FAILURE</summary><div><ConsoleControls><label>RUN WHEN<ConsoleSelect value={step.condition?.source||""} onChange={(event)=>updateStep(step.id,{condition:event.target.value?{source:event.target.value as NonNullable<RoutineStep["condition"]>["source"],operator:"available"}:undefined})}><option value="">ALWAYS</option><option value="bridge">LOCAL CORE</option><option value="media">MEDIA</option><option value="application">APPLICATION</option><option value="device">AUDIO DEVICE</option><option value="dnd">DO NOT DISTURB</option></ConsoleSelect></label></ConsoleControls>{step.condition&&<><ConsoleControls><label>CONDITION<ConsoleSelect value={step.condition.operator} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,operator:event.target.value as NonNullable<RoutineStep["condition"]>["operator"]}})}><option value="available">AVAILABLE</option><option value="unavailable">UNAVAILABLE</option><option value="equals">EQUALS</option><option value="not-equals">DOES NOT EQUAL</option></ConsoleSelect></label></ConsoleControls><ConsoleControls><label>MATCH VALUE<input value={step.condition.value||""} onChange={(event)=>updateStep(step.id,{condition:{...step.condition!,value:event.target.value}})}/></label></ConsoleControls></>}<ConsoleControls><label>DELAY MS<input type="number" min="0" max="30000" value={step.delayMs||0} onChange={(event)=>updateStep(step.id,{delayMs:+event.target.value})}/></label></ConsoleControls><ConsoleControls><label>RETRIES<input type="number" min="0" max="5" value={step.retries||0} onChange={(event)=>updateStep(step.id,{retries:+event.target.value})}/></label></ConsoleControls><ConsoleControls><label>IF FAILED<ConsoleSelect value={step.onFailure||"stop"} onChange={(event)=>updateStep(step.id,{onFailure:event.target.value as "stop"|"continue"})}><option value="stop">STOP ROUTINE</option><option value="continue">CONTINUE TO NEXT STEP</option></ConsoleSelect></label></ConsoleControls></div></ConsoleDisclosure></article></ConsoleGroup>;})}<ConsoleButton disabled={routine.steps.length>=24} onClick={addStep}>+ ADD STEP</ConsoleButton></section></ConsoleGroup><footer><ConsoleButton className="danger" onClick={()=>{save(routines.filter((item)=>item.id!==routine.id));setSelected("");}}>DELETE ROUTINE</ConsoleButton><ConsoleButton onClick={duplicate}>DUPLICATE</ConsoleButton><ConsoleButton disabled={!routine.steps.length||running===routine.id} onClick={()=>request(routine)}>{running===routine.id?"ROUTINE RUNNING…":"PREVIEW ROUTINE"}</ConsoleButton></footer></main>:<div className="adaptive-empty"><b>CREATE AN OPERATIONS ROUTINE</b><small>Start with a page change, then add conditions, prompts, applications, audio controls, workstation restore, or guarded system actions.</small></div>}</div></ConsoleWindowControls></section></ConsoleGroup></div>;
 }
 
 function RoutinePreview({routine,describe,running,cancel,run}:{routine:Routine;describe:(step:RoutineStep)=>string;running:boolean;cancel:()=>void;run:()=>void}){
   const protectedSteps=routineNeedsConfirmation(routine);
-  return <div className="backdrop routine-preview-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&!running&&cancel()}><section className="routine-preview" role="alertdialog" aria-modal="true"><header><div><small>{protectedSteps?"PROTECTED OPERATOR CONFIRMATION":"ROUTINE EXECUTION PREVIEW"}</small><h2>{routine.name}</h2><p>{routine.description||"Operator-defined LCARS routine"}</p></div><i className={protectedSteps?"protected":"ready"}>{protectedSteps?"CONFIRM":"READY"}</i></header><ol>{routine.steps.map((step,index)=><li key={step.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{describe(step)}</b><small>{step.kind.toUpperCase()}{step.kind==="system"||step.kind==="command"?" · PROTECTED":""}</small></span></li>)}</ol><footer><button disabled={running} onClick={cancel}>CANCEL</button><button className={protectedSteps?"protected":""} disabled={running} onClick={run}>{running?"EXECUTING…":protectedSteps?"CONFIRM & RUN":"RUN ROUTINE"}</button></footer></section></div>;
+  return <div className="backdrop routine-preview-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&!running&&cancel()}><ConsoleGroup label={<>{routine.name}</>}><section className="routine-preview" role="alertdialog" aria-modal="true"><ConsoleWindowControls><header><div><small>{protectedSteps?"PROTECTED OPERATOR CONFIRMATION":"ROUTINE EXECUTION PREVIEW"}</small><h2>{routine.name}</h2><p>{routine.description||"Operator-defined LCARS routine"}</p></div><i className={protectedSteps?"protected":"ready"}>{protectedSteps?"CONFIRM":"READY"}</i></header><ol>{routine.steps.map((step,index)=><li key={step.id}><i>{String(index+1).padStart(2,"0")}</i><span><b>{describe(step)}</b><small>{step.kind.toUpperCase()}{step.kind==="system"||step.kind==="command"?" · PROTECTED":""}</small></span></li>)}</ol><footer><ConsoleButton disabled={running} onClick={cancel}>CANCEL</ConsoleButton><ConsoleButton className={protectedSteps?"protected":""} disabled={running} onClick={run}>{running?"EXECUTING…":protectedSteps?"CONFIRM & RUN":"RUN ROUTINE"}</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div>;
 }
 
 function SpeedDialMediaPeek({players,streams,volume,muted,control,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute}:{players:Player[];streams:Stream[];volume:number;muted:boolean;control:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void}){
@@ -4863,23 +4892,23 @@ function SpeedDialMediaPeek({players,streams,volume,muted,control,setMasterVolum
   const initials=(name="MEDIA")=>name.split(/\s+/).map((part)=>part[0]).join("").slice(0,2).toUpperCase();
   return <div className="peek-media">
     {selected?<>
-      <article className="peek-media-now">
+      <ConsoleGroup label={<>{selected.name.toUpperCase()} · {selected.status.toUpperCase()}</>}><article className="peek-media-now">
         <i className="peek-media-art">{selected.artUrl?<img src={selected.artUrl} alt={`${selected.title||selected.name} artwork`}/>:selected.icon?<img src={selected.icon} alt=""/>:initials(selected.name)}</i>
         <span><small>{selected.name.toUpperCase()} · {selected.status.toUpperCase()}</small><b>{selected.title||"NO MEDIA TITLE"}</b><em>{selected.artist||"UNKNOWN ARTIST"}{selected.album?` · ${selected.album}`:""}</em></span>
-        <nav className="peek-media-transport" aria-label={`${selected.name} playback controls`}><button aria-label="Previous" onClick={()=>control(selected.id,"previous")}>PREV</button><button className="primary" aria-label="Play or pause" onClick={()=>control(selected.id,"play-pause")}>{selected.status==="Playing"?"PAUSE":"PLAY"}</button><button aria-label="Next" onClick={()=>control(selected.id,"next")}>NEXT</button></nav>
-      </article>
-      {others.length>0&&<div className="peek-media-sources">{others.map((player)=>{const playing=player.status==="Playing";return <article key={player.id}><i>{player.icon?<img src={player.icon} alt=""/>:initials(player.name)}</i><span><b>{player.title||player.name}</b><small>{player.artist||player.status}</small></span><button className={playing?"is-pause":"is-play"} aria-label={`Play or pause ${player.name}`} onClick={()=>control(player.id,"play-pause")}><span aria-hidden="true">{playing?"Ⅱ":""}</span></button></article>;})}</div>}
+        <ConsoleControls><nav className="peek-media-transport" aria-label={`${selected.name} playback controls`}><ConsoleButton aria-label="Previous" onClick={()=>control(selected.id,"previous")}>PREV</ConsoleButton><ConsoleButton className="primary" aria-label="Play or pause" onClick={()=>control(selected.id,"play-pause")}>{selected.status==="Playing"?"PAUSE":"PLAY"}</ConsoleButton><ConsoleButton aria-label="Next" onClick={()=>control(selected.id,"next")}>NEXT</ConsoleButton></nav></ConsoleControls>
+      </article></ConsoleGroup>
+      {others.length>0&&<div className="peek-media-sources">{others.map((player)=>{const playing=player.status==="Playing";return <ConsoleGroup key={player.id} label={<>{player.artist||player.status}</>}><article key={player.id}><i>{player.icon?<img src={player.icon} alt=""/>:initials(player.name)}</i><span><b>{player.title||player.name}</b><small>{player.artist||player.status}</small></span><ConsoleButton className={playing?"is-pause":"is-play"} aria-label={`Play or pause ${player.name}`} onClick={()=>control(player.id,"play-pause")}><span aria-hidden="true">{playing?"Ⅱ":""}</span></ConsoleButton></article></ConsoleGroup>;})}</div>}
     </>:<div className="peek-media-empty"><b>NO ACTIVE MEDIA SOURCES</b><small>MASTER AND APPLICATION AUDIO CONTROLS REMAIN AVAILABLE</small></div>}
-    <section className={`peek-master-audio ${muted?"muted":""}`}><header><span><small>SYSTEM DEFAULT BUS</small><b>MASTER AUDIO</b></span><strong>{muted?"MUTED":`${volume}%`}</strong></header><div><input aria-label="Master audio volume" type="range" min="0" max="100" value={volume} onChange={(event)=>setMasterVolume(+event.target.value)} onPointerUp={commitMasterVolume} onKeyUp={commitMasterVolume} onBlur={commitMasterVolume}/><button className={muted?"active":""} onClick={toggleMasterMute}>{muted?"RESTORE":"MUTE"}</button></div></section>
-    <section className="peek-app-audio"><header><span><small>LIVE AUDIO SESSIONS</small><b>APPLICATION AUDIO</b></span><strong>{String(groups.length).padStart(2,"0")}</strong></header>{groups.length?groups.map((group)=>{const main=group.items[0],isMuted=group.items.every((stream)=>Boolean(stream.muted));return <label className={isMuted?"muted":""} key={group.name}><i>{main.icon?<img src={main.icon} alt=""/>:initials(group.name)}</i><span><b>{group.name}</b><small>{group.items.length===1?"APPLICATION BUS":`${group.items.length} LINKED STREAMS`}</small></span><strong>{main.volume}%</strong><input aria-label={`${group.name} volume`} type="range" min="0" max="100" value={main.volume} onChange={(event)=>group.items.forEach((stream)=>setStreamVolume(stream.id,+event.target.value))}/><button className={isMuted?"active":""} aria-label={`${isMuted?"Unmute":"Mute"} ${group.name}`} onClick={()=>group.items.forEach((stream)=>setStreamMute(stream.id,!isMuted))}>{isMuted?"U":"M"}</button></label>}):<p>NO APPLICATION AUDIO STREAMS</p>}</section>
+    <ConsoleGroup label={<>MASTER AUDIO</>}><section className={`peek-master-audio ${muted?"muted":""}`}><header><span><small>SYSTEM DEFAULT BUS</small><b>MASTER AUDIO</b></span><strong>{muted?"MUTED":`${volume}%`}</strong></header><div><ConsoleField aria-label="Master audio volume" type="range" min="0" max="100" value={volume} onChange={(event)=>setMasterVolume(+event.target.value)} onPointerUp={commitMasterVolume} onKeyUp={commitMasterVolume} onBlur={commitMasterVolume}/><ConsoleButton className={muted?"active":""} onClick={toggleMasterMute}>{muted?"RESTORE":"MUTE"}</ConsoleButton></div></section></ConsoleGroup>
+    <ConsoleGroup label={<>APPLICATION AUDIO</>}><section className="peek-app-audio"><header><span><small>LIVE AUDIO SESSIONS</small><b>APPLICATION AUDIO</b></span><strong>{String(groups.length).padStart(2,"0")}</strong></header>{groups.length?groups.map((group)=>{const main=group.items[0],isMuted=group.items.every((stream)=>Boolean(stream.muted));return <ConsoleControls><label className={isMuted?"muted":""} key={group.name}><i>{main.icon?<img src={main.icon} alt=""/>:initials(group.name)}</i><span><b>{group.name}</b><small>{group.items.length===1?"APPLICATION BUS":`${group.items.length} LINKED STREAMS`}</small></span><strong>{main.volume}%</strong><input aria-label={`${group.name} volume`} type="range" min="0" max="100" value={main.volume} onChange={(event)=>group.items.forEach((stream)=>setStreamVolume(stream.id,+event.target.value))}/><ConsoleButton className={isMuted?"active":""} aria-label={`${isMuted?"Unmute":"Mute"} ${group.name}`} onClick={()=>group.items.forEach((stream)=>setStreamMute(stream.id,!isMuted))}>{isMuted?"U":"M"}</ConsoleButton></label></ConsoleControls>}):<p>NO APPLICATION AUDIO STREAMS</p>}</section></ConsoleGroup>
   </div>;
 }
 
 function SpeedDialPagePeek({popupKey,page,pinned,detached=false,customPages,apps,players,streams,network,meters,update,notices,bridge,volume,muted,doNotDisturb,mediaControl,setMasterVolume,commitMasterVolume,toggleMasterMute,setStreamVolume,setStreamMute,launch,togglePinned,detach,close,openFull}:{popupKey:string;page:string;pinned:boolean;detached?:boolean;customPages:CustomPage[];apps:App[];players:Player[];streams:Stream[];network:NetworkInfo;meters:(string|number)[][];update:UpdateInfo|null;notices:Notice[];bridge:boolean;volume:number;muted:boolean;doNotDisturb:boolean;mediaControl:(player:string,command:string)=>void;setMasterVolume:(value:number)=>void;commitMasterVolume:()=>void;toggleMasterMute:()=>void;setStreamVolume:(id:string,value:number)=>void;setStreamMute:(id:string,muted:boolean)=>void;launch:(app:App)=>void;togglePinned:()=>void;detach?:()=>void;close:()=>void;openFull:(page:string)=>void}){
   const custom=page.startsWith("custom:")?customPages.find((item)=>item.id===page.slice(7)):undefined;
   const title=custom?.name||nav.find((item)=>item[0]===page)?.[2]||page.replace(/^custom:/,"").toUpperCase();
-  const content=page==="overview"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="system"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="media"?<SpeedDialMediaPeek players={players} streams={streams} volume={volume} muted={muted} control={mediaControl} setMasterVolume={setMasterVolume} commitMasterVolume={commitMasterVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={setStreamVolume} setStreamMute={setStreamMute}/>:page==="network"?<div className="peek-network">{network.interfaces.slice(0,4).map((item)=><article key={item.id}><i className={item.state==="connected"?"ready":""}>●</i><span><b>{item.name}</b><small>{item.address||item.state.toUpperCase()}</small></span><em>{item.speed||"LOCAL"}</em></article>)}{!network.interfaces.length&&<p>{bridge?"NO ACTIVE NETWORK INTERFACES":"LOCAL CORE LINK PENDING"}</p>}</div>:page==="updates"?<div className="peek-update"><strong>{update?.available?`V${update.version} AVAILABLE`:"RELEASE CHANNEL READY"}</strong><p>{update?.available?"A verified release can be downloaded from the full Updates page.":"Background checks remain silent when offline."}</p><small>{update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"STABLE / DEVELOPMENT CHANNEL AWARE"}</small></div>:page==="terminal"?<div className="peek-terminal"><pre>LCARS LOCAL COMMAND LINK{`\n`}{bridge?"PTY CORE READY":"LOCAL CORE STANDBY"}{`\n\n`}terminal@lcars:~$ <i>█</i></pre><small>OPEN THE FULL TERMINAL TO TYPE COMMANDS</small></div>:page==="files"?<div className="peek-files"><i><FileGlyph kind="folder"/></i><span><b>LOCAL FILE SYSTEM</b><small>HOME · DOCUMENTS · DOWNLOADS</small><p>Use the full File Browser for previews, transfers, and document editing.</p></span></div>:page==="settings"?<div className="peek-settings"><article><b>LOCAL CORE</b><span>{bridge?"CONNECTED":"STANDBY"}</span></article><article><b>DO NOT DISTURB</b><span>{doNotDisturb?"ACTIVE":"OFF"}</span></article><article><b>NOTICES</b><span>{notices.length}</span></article><p>Open the full page to change themes, workstations, routines, accessibility, and shell behavior.</p></div>:custom?<div className="peek-custom"><i>{custom.kind.toUpperCase()}</i><span><b>{custom.name}</b><small>{custom.target}</small>{custom.kind==="app"&&apps.find((app)=>app.id===custom.target)&&<button onClick={()=>launch(apps.find((app)=>app.id===custom.target)!)}>OPEN APPLICATION ↗</button>}</span></div>:<p>PAGE PREVIEW IS UNAVAILABLE</p>;
-  return <ResizablePopup as="aside" popupKey={popupKey} className={`speed-dial-page-peek ${detached?"detached":pinned?"pinned":"floating"}`} floating={!detached} minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}><header><div><small>{detached?"NATIVE DETACHED PAGE PEEK":pinned?"PINNED PAGE PEEK · ALWAYS ABOVE LCARS":"SPEED DIAL PAGE PEEK"}</small><h3>{title}</h3></div><nav>{!detached&&<button className={pinned?"active":""} onClick={togglePinned}>{pinned?"RELEASE":"PIN"}</button>}{!detached&&detach&&<button onClick={detach}>DETACH ↗</button>}<button aria-label={`Close ${title} Page Peek`} onClick={close}>×</button></nav></header><main>{content}</main><footer><span>{detached?"NATIVE WINDOW":pinned?"PIN LOCK ACTIVE":"FLOATING PREVIEW"}</span><button onClick={()=>openFull(page)}>OPEN FULL PAGE ›</button></footer></ResizablePopup>;
+  const content=page==="overview"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="system"?<div className="peek-meter-list">{meters.map((meter)=><span key={String(meter[0])}><b>{meter[0]}</b><i><em style={{width:`${Number(meter[1])||0}%`}}/></i><strong>{meter[1]}%</strong></span>)}</div>:page==="media"?<SpeedDialMediaPeek players={players} streams={streams} volume={volume} muted={muted} control={mediaControl} setMasterVolume={setMasterVolume} commitMasterVolume={commitMasterVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={setStreamVolume} setStreamMute={setStreamMute}/>:page==="network"?<div className="peek-network">{network.interfaces.slice(0,4).map((item)=><article key={item.id}><i className={item.state==="connected"?"ready":""}>●</i><span><b>{item.name}</b><small>{item.address||item.state.toUpperCase()}</small></span><em>{item.speed||"LOCAL"}</em></article>)}{!network.interfaces.length&&<p>{bridge?"NO ACTIVE NETWORK INTERFACES":"LOCAL CORE LINK PENDING"}</p>}</div>:page==="updates"?<div className="peek-update"><strong>{update?.available?`V${update.version} AVAILABLE`:"RELEASE CHANNEL READY"}</strong><p>{update?.available?"A verified release can be downloaded from the full Updates page.":"Background checks remain silent when offline."}</p><small>{update?.sha256?`SHA-256 ${update.sha256.slice(0,16).toUpperCase()}…`:"STABLE / DEVELOPMENT CHANNEL AWARE"}</small></div>:page==="terminal"?<div className="peek-terminal"><pre>LCARS LOCAL COMMAND LINK{`\n`}{bridge?"PTY CORE READY":"LOCAL CORE STANDBY"}{`\n\n`}terminal@lcars:~$ <i>█</i></pre><small>OPEN THE FULL TERMINAL TO TYPE COMMANDS</small></div>:page==="files"?<div className="peek-files"><i><FileGlyph kind="folder"/></i><span><b>LOCAL FILE SYSTEM</b><small>HOME · DOCUMENTS · DOWNLOADS</small><p>Use the full File Browser for previews, transfers, and document editing.</p></span></div>:page==="settings"?<div className="peek-settings"><article><b>LOCAL CORE</b><span>{bridge?"CONNECTED":"STANDBY"}</span></article><article><b>DO NOT DISTURB</b><span>{doNotDisturb?"ACTIVE":"OFF"}</span></article><article><b>NOTICES</b><span>{notices.length}</span></article><p>Open the full page to change themes, workstations, routines, accessibility, and shell behavior.</p></div>:custom?<div className="peek-custom"><i>{custom.kind.toUpperCase()}</i><span><b>{custom.name}</b><small>{custom.target}</small>{custom.kind==="app"&&apps.find((app)=>app.id===custom.target)&&<ConsoleButton onClick={()=>launch(apps.find((app)=>app.id===custom.target)!)}>OPEN APPLICATION ↗</ConsoleButton>}</span></div>:<p>PAGE PREVIEW IS UNAVAILABLE</p>;
+  return <ResizablePopup as="aside" popupKey={popupKey} className={`speed-dial-page-peek ${detached?"detached":pinned?"pinned":"floating"}`} floating={!detached} minWidth={360} minHeight={300} ariaModal={false} ariaLabel={`${title} Page Peek`}><header><div><small>{detached?"NATIVE DETACHED PAGE PEEK":pinned?"PINNED PAGE PEEK · ALWAYS ABOVE LCARS":"SPEED DIAL PAGE PEEK"}</small><h3>{title}</h3></div><ConsoleControls><nav>{!detached&&<ConsoleButton className={pinned?"active":""} onClick={togglePinned}>{pinned?"RELEASE":"PIN"}</ConsoleButton>}{!detached&&detach&&<ConsoleButton onClick={detach}>DETACH ↗</ConsoleButton>}<ConsoleButton aria-label={`Close ${title} Page Peek`} onClick={close}>×</ConsoleButton></nav></ConsoleControls></header><main>{content}</main><footer><span>{detached?"NATIVE WINDOW":pinned?"PIN LOCK ACTIVE":"FLOATING PREVIEW"}</span><ConsoleButton onClick={()=>openFull(page)}>OPEN FULL PAGE ›</ConsoleButton></footer></ResizablePopup>;
 }
 
 function CustomPageManager({pages,apps,extensions,change}:{pages:CustomPage[];apps:App[];extensions:ExtensionManifest[];change:(pages:CustomPage[])=>void}) {
@@ -4891,7 +4920,7 @@ function CustomPageManager({pages,apps,extensions,change}:{pages:CustomPage[];ap
   useEffect(()=>{if(!sources.some((item)=>item.value===source)&&sources[0])setSource(sources[0].value);},[apps.length,extensions.length]);
   const add=()=>{if(pages.length>=6)return;const selected=sources.find((item)=>item.value===source);if(!selected)return;const separator=source.indexOf("|"),kind=source.slice(0,separator) as CustomPage["kind"],target=source.slice(separator+1);const page:CustomPage={id:`page-${Date.now().toString(36)}`,name:(name.trim()||selected.label).slice(0,24),kind,target};change([...pages,page]);setName("");};
   const move=(index:number,direction:number)=>{const target=index+direction;if(target<0||target>=pages.length)return;const next=[...pages];[next[index],next[target]]=[next[target],next[index]];change(next);};
-  return <section className="custom-page-manager"><header><div><small>SIDEBAR ARCHITECTURE</small><h4>CUSTOM PAGES</h4></div><b>{pages.length}/6</b></header><p>Add a persistent sidebar destination for an application, an Overview module, or a full extension placement. Arbitrary desktop apps open natively when the OS cannot safely embed them.</p><div className="custom-page-create"><label>PAGE SOURCE<select value={source} onChange={(event)=>{setSource(event.target.value);const selected=sources.find((item)=>item.value===event.target.value);if(selected)setName(selected.label);}}><optgroup label="OVERVIEW MODULES">{moduleSources.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</optgroup>{extensionSources.length>0&&<optgroup label="EXTENSION PAGES">{extensionSources.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</optgroup>}<optgroup label="INSTALLED APPLICATIONS">{appSources.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</optgroup></select></label><label>SIDEBAR LABEL<input maxLength={24} placeholder={sources.find((item)=>item.value===source)?.label||"CUSTOM PAGE"} value={name} onChange={(event)=>setName(event.target.value)}/></label><button disabled={pages.length>=6} onClick={add}>ADD PAGE</button></div><div className="custom-page-list">{pages.map((page,index)=><article key={page.id}><i>C{index+1}</i><span><b>{page.name}</b><small>{page.kind.toUpperCase()} · {page.target}</small></span><nav><button disabled={index===0} onClick={()=>move(index,-1)}>↑</button><button disabled={index===pages.length-1} onClick={()=>move(index,1)}>↓</button><button onClick={()=>change(pages.filter((item)=>item.id!==page.id))}>REMOVE</button></nav></article>)}{!pages.length&&<p>NO CUSTOM SIDEBAR PAGES ASSIGNED</p>}</div></section>;
+  return <ConsoleGroup label={<>CUSTOM PAGES</>}><section className="custom-page-manager"><header><div><small>SIDEBAR ARCHITECTURE</small><h4>CUSTOM PAGES</h4></div><b>{pages.length}/6</b></header><p>Add a persistent sidebar destination for an application, an Overview module, or a full extension placement. Arbitrary desktop apps open natively when the OS cannot safely embed them.</p><div className="custom-page-create"><ConsoleControls><label>PAGE SOURCE<ConsoleSelect value={source} onChange={(event)=>{setSource(event.target.value);const selected=sources.find((item)=>item.value===event.target.value);if(selected)setName(selected.label);}}><optgroup label="OVERVIEW MODULES">{moduleSources.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</optgroup>{extensionSources.length>0&&<optgroup label="EXTENSION PAGES">{extensionSources.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</optgroup>}<optgroup label="INSTALLED APPLICATIONS">{appSources.map((item)=><option value={item.value} key={item.value}>{item.label}</option>)}</optgroup></ConsoleSelect></label></ConsoleControls><ConsoleControls><label>SIDEBAR LABEL<input maxLength={24} placeholder={sources.find((item)=>item.value===source)?.label||"CUSTOM PAGE"} value={name} onChange={(event)=>setName(event.target.value)}/></label></ConsoleControls><ConsoleButton disabled={pages.length>=6} onClick={add}>ADD PAGE</ConsoleButton></div><div className="custom-page-list">{pages.map((page,index)=><ConsoleGroup key={page.id} label={<>{page.kind.toUpperCase()} · {page.target}</>}><article key={page.id}><i>C{index+1}</i><span><b>{page.name}</b><small>{page.kind.toUpperCase()} · {page.target}</small></span><ConsoleControls><nav><ConsoleButton disabled={index===0} onClick={()=>move(index,-1)}>↑</ConsoleButton><ConsoleButton disabled={index===pages.length-1} onClick={()=>move(index,1)}>↓</ConsoleButton><ConsoleButton onClick={()=>change(pages.filter((item)=>item.id!==page.id))}>REMOVE</ConsoleButton></nav></ConsoleControls></article></ConsoleGroup>)}{!pages.length&&<p>NO CUSTOM SIDEBAR PAGES ASSIGNED</p>}</div></section></ConsoleGroup>;
 }
 
 function Toggle({
@@ -4906,7 +4935,7 @@ function Toggle({
   change: (v: boolean) => void;
 }) {
   return (
-    <label className="lcars-toggle">
+    <ConsoleControls><label className="lcars-toggle">
       <input
         type="checkbox"
         checked={checked}
@@ -4917,13 +4946,13 @@ function Toggle({
         <b>{label}</b>
         {description && <small>{description}</small>}
       </span>
-    </label>
+    </label></ConsoleControls>
   );
 }
 
 function ExtensionSettings({extensions}:{extensions:ExtensionManifest[]}){const configurable=extensions.filter((extension)=>extension.settings.length);if(!configurable.length)return null;return <section className="extension-settings"><header><b>EXTENSION CONFIGURATION</b><small>HOST-RENDERED · NAMESPACED LOCAL STATE</small></header>{configurable.map((extension)=><ExtensionSettingGroup key={extension.id} extension={extension}/>)}</section>;}
-function ExtensionSettingGroup({extension}:{extension:ExtensionManifest}){const key=`lcars-extension-state:${extension.id}`,[values,setValues]=useState<Record<string,unknown>>(()=>{try{return JSON.parse(localStorage.getItem(key)||"{}");}catch{return{};}});const save=(name:string,value:unknown)=>{const next={...values,[name]:value};setValues(next);localStorage.setItem(key,JSON.stringify(next));fetch("http://127.0.0.1:8765/api/extension-state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:extension.id,state:next})}).catch(()=>{});};return <article><h4>{extension.name.toUpperCase()} <small>API {extension.apiVersion}</small></h4>{extension.settings.map((setting)=>{const value=values[setting.key]??setting.default??"";return <label key={setting.key}>{setting.label}<small>{setting.description}</small>{setting.type==="toggle"?<input type="checkbox" checked={Boolean(value)} onChange={(event)=>save(setting.key,event.target.checked)}/>:setting.type==="select"?<select value={String(value)} onChange={(event)=>save(setting.key,event.target.value)}>{setting.options?.map((option)=><option key={option}>{option}</option>)}</select>:<input type={setting.type==="number"?"number":"text"} value={String(value)} onChange={(event)=>save(setting.key,setting.type==="number"?Number(event.target.value):event.target.value)}/>}</label>;})}</article>;}
-function VoiceDeviceSelect({value,change}:{value:string;change:(value:string)=>void}) { const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);useEffect(()=>{navigator.mediaDevices?.enumerateDevices().then((items)=>setDevices(items.filter((item)=>item.kind==="audioinput"))).catch(()=>{});},[]);return <label>VOICE MICROPHONE<small>Select the input used by push-to-talk or hands-free listening. Grant microphone permission once to reveal device names.</small><select value={value} onChange={(event)=>change(event.target.value)}><option value="">SYSTEM DEFAULT</option>{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`MICROPHONE ${index+1}`}</option>)}</select></label>; }
+function ExtensionSettingGroup({extension}:{extension:ExtensionManifest}){const key=`lcars-extension-state:${extension.id}`,[values,setValues]=useState<Record<string,unknown>>(()=>{try{return JSON.parse(localStorage.getItem(key)||"{}");}catch{return{};}});const save=(name:string,value:unknown)=>{const next={...values,[name]:value};setValues(next);localStorage.setItem(key,JSON.stringify(next));fetch("http://127.0.0.1:8765/api/extension-state",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:extension.id,state:next})}).catch(()=>{});};return <ConsoleGroup label={<>{extension.name.toUpperCase()} <small>API {extension.apiVersion}</small></>}><article><h4>{extension.name.toUpperCase()} <small>API {extension.apiVersion}</small></h4>{extension.settings.map((setting)=>{const value=values[setting.key]??setting.default??"";return <ConsoleControls><label data-console-toggle="" key={setting.key}>{setting.label}<small>{setting.description}</small>{setting.type==="toggle"?<input type="checkbox" checked={Boolean(value)} onChange={(event)=>save(setting.key,event.target.checked)}/>:setting.type==="select"?<ConsoleSelect value={String(value)} onChange={(event)=>save(setting.key,event.target.value)}>{setting.options?.map((option)=><option key={option}>{option}</option>)}</ConsoleSelect>:<input type={setting.type==="number"?"number":"text"} value={String(value)} onChange={(event)=>save(setting.key,setting.type==="number"?Number(event.target.value):event.target.value)}/>}</label></ConsoleControls>;})}</article></ConsoleGroup>;}
+function VoiceDeviceSelect({value,change}:{value:string;change:(value:string)=>void}) { const [devices,setDevices]=useState<MediaDeviceInfo[]>([]);useEffect(()=>{navigator.mediaDevices?.enumerateDevices().then((items)=>setDevices(items.filter((item)=>item.kind==="audioinput"))).catch(()=>{});},[]);return <ConsoleControls><label>VOICE MICROPHONE<small>Select the input used by push-to-talk or hands-free listening. Grant microphone permission once to reveal device names.</small><ConsoleSelect value={value} onChange={(event)=>change(event.target.value)}><option value="">SYSTEM DEFAULT</option>{devices.map((device,index)=><option key={device.deviceId} value={device.deviceId}>{device.label||`MICROPHONE ${index+1}`}</option>)}</ConsoleSelect></label></ConsoleControls>; }
 
 function resampleVoicePcm(frames:Float32Array[],inputRate:number,outputRate=16000){
   const inputLength=frames.reduce((sum,frame)=>sum+frame.length,0),input=new Float32Array(inputLength);let inputOffset=0;
@@ -4955,15 +4984,15 @@ function OperatorCenter({operators,activeId,devices,canManage,close,switchOperat
   useEffect(()=>{if(!operators.some((item)=>item.id===selectedId))setSelectedId(activeId||operators[0]?.id||"");},[operators,selectedId,activeId]);
   const activate=async(identity:OperatorIdentity)=>{setBusy(`switch:${identity.id}`);const accepted=await switchOperator(identity.id,pins[identity.id]||"");setBusy("");if(accepted){setPins((old)=>({...old,[identity.id]:""}));close();}};
   return <div className="backdrop operator-center-backdrop" onMouseDown={(change)=>change.target===change.currentTarget&&close()}><ResizablePopup popupKey="operator-center" className="operator-center" ariaModal={true} minWidth={760} minHeight={560}>
-    <header><div><small>INDIVIDUAL COMMAND ENVIRONMENTS</small><h2>OPERATOR IDENTITIES</h2><p>Switch complete favorites, decks, Display Matrix, layouts, commands, and station preferences without mixing operator configurations.</p></div><button onClick={close}>CLOSE ×</button></header>
-    <section className="operator-center-layout"><aside><header><b>QUICK OPERATOR SWITCH</b><small>{operators.length}/24 IDENTITIES</small></header>{operators.map((identity,index)=><article className={`${identity.id===selected?.id?"selected":""} ${identity.id===activeId?"active":""}`} key={identity.id}><button onClick={()=>setSelectedId(identity.id)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{identity.name}</b><small>{identity.awayTeam?"AWAY TEAM":identity.role.toUpperCase()} · {identity.shared?"SHARED":"PERSONAL"}</small></span><em>{identity.id===activeId?"ACTIVE":identity.credential?"PIN":"OPEN"}</em></button>{identity.id!==activeId&&<div>{identity.credential&&<input type="password" inputMode="numeric" autoComplete="off" placeholder="OPERATOR PIN" value={pins[identity.id]||""} onChange={(change)=>setPins((old)=>({...old,[identity.id]:change.target.value.slice(0,64)}))}/>}<button disabled={busy===`switch:${identity.id}`} onClick={()=>void activate(identity)}>{busy===`switch:${identity.id}`?"VERIFYING…":"ACTIVATE"}</button></div>}</article>)}</aside>
+    <header><div><small>INDIVIDUAL COMMAND ENVIRONMENTS</small><h2>OPERATOR IDENTITIES</h2><p>Switch complete favorites, decks, Display Matrix, layouts, commands, and station preferences without mixing operator configurations.</p></div><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></header>
+    <ConsoleGroup label={<>QUICK OPERATOR SWITCH</>}><section className="operator-center-layout"><aside><header><b>QUICK OPERATOR SWITCH</b><small>{operators.length}/24 IDENTITIES</small></header>{operators.map((identity,index)=><ConsoleGroup key={identity.id} label={<>{identity.awayTeam?"AWAY TEAM":identity.role.toUpperCase()} · {identity.shared?"SHARED":"PERSONAL"}</>}><article className={`${identity.id===selected?.id?"selected":""} ${identity.id===activeId?"active":""}`} key={identity.id}><ConsoleButton onClick={()=>setSelectedId(identity.id)}><i>{String(index+1).padStart(2,"0")}</i><span><b>{identity.name}</b><small>{identity.awayTeam?"AWAY TEAM":identity.role.toUpperCase()} · {identity.shared?"SHARED":"PERSONAL"}</small></span><em>{identity.id===activeId?"ACTIVE":identity.credential?"PIN":"OPEN"}</em></ConsoleButton>{identity.id!==activeId&&<div>{identity.credential&&<ConsoleField type="password" inputMode="numeric" autoComplete="off" placeholder="OPERATOR PIN" value={pins[identity.id]||""} onChange={(change)=>setPins((old)=>({...old,[identity.id]:change.target.value.slice(0,64)}))}/>}<ConsoleButton disabled={busy===`switch:${identity.id}`} onClick={()=>void activate(identity)}>{busy===`switch:${identity.id}`?"VERIFYING…":"ACTIVATE"}</ConsoleButton></div>}</article></ConsoleGroup>)}</aside>
       {selected&&<main><section className="operator-identity-card"><header><i>{selected.awayTeam?"AT":selected.role==="administrator"?"A":selected.role==="operator"?"O":"G"}</i><span><small>{selected.shared?"SHARED WORKSTATION PROFILE":"INDIVIDUAL OPERATOR PROFILE"}</small><h3>{selected.name}</h3><p>{selected.awayTeam?"Temporary restricted access for field operation and borrowed stations.":selected.role==="administrator"?"Full identity, configuration, automation, and protected-system authority.":selected.role==="operator"?"Daily operation, automation, and roaming without protected-system authority.":"Navigation, applications, media, and personal workspace access only."}</p></span><strong>{selected.id===activeId?"ON DUTY":"STANDBY"}</strong></header><div className="operator-profile-stats"><span><b>{selected.workspace.favoriteIds.length}</b> FAVORITES</span><span><b>{selected.workspace.workstations.length}</b> DECKS</span><span><b>{selected.workspace.routines.length}</b> COMMANDS</span><span><b>{Object.keys(selected.stationPreferences).length}</b> STATIONS</span></div></section>
-        <section className="operator-configuration"><header><b>IDENTITY & AUTHORITY</b><small>{canManage?"ADMINISTRATOR CONTROLS AVAILABLE":"READ ONLY FOR THIS OPERATOR"}</small></header><div><label>OPERATOR NAME<input disabled={!canManage} maxLength={48} value={selected.name} onChange={(change)=>updateOperator(selected.id,{name:change.target.value})}/></label><label>ROLE<select disabled={!canManage||selected.awayTeam} value={selected.role} onChange={(change)=>updateOperator(selected.id,{role:change.target.value as OperatorRole})}><option value="guest">GUEST</option><option value="operator">OPERATOR</option><option value="administrator">ADMINISTRATOR</option></select></label><label className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.shared} onChange={(change)=>updateOperator(selected.id,{shared:change.target.checked})}/><span><b>SHARED WORKSTATION PROFILE</b><small>Use this identity as a common household or command-terminal workspace.</small></span></label><label className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.awayTeam} onChange={(change)=>updateOperator(selected.id,{awayTeam:change.target.checked})}/><span><b>AWAY TEAM PROFILE</b><small>Force temporary Guest authority and block automation, configuration, and protected actions.</small></span></label></div><nav><input disabled={!canManage} type="password" inputMode="numeric" autoComplete="new-password" placeholder={selected.credential?"REPLACE OPERATOR PIN":"OPTIONAL NEW PIN"} value={newPin} onChange={(change)=>setNewPin(change.target.value.slice(0,64))}/><button disabled={!canManage||!newPin} onClick={()=>{void setPin(selected.id,newPin);setNewPin("");}}>{selected.credential?"REPLACE PIN":"SET PIN"}</button><button disabled={!canManage||!selected.credential} onClick={()=>void setPin(selected.id,"")}>REMOVE PIN</button><button className="danger" disabled={!canManage||selected.id===activeId||operators.length<=1} onClick={()=>deleteOperator(selected.id)}>REMOVE IDENTITY</button></nav></section>
-        <section className="operator-roaming"><header><span><b>TRUSTED-STATION ROAMING</b><small>Credential data is never included. Federation transport must be encrypted.</small></span><em>{devices.length} TRUSTED</em></header><div>{devices.map((device)=><article key={device.id}><i>{device.online?"●":"○"}</i><span><b>{device.name}</b><small>{device.transport==="aes-256-gcm"?"AES-256-GCM LINK":"SECURE LINK REQUIRED"} · {device.online?"ONLINE":"OFFLINE QUEUE"}</small></span><button disabled={!canManage&&selected.id!==activeId} onClick={()=>saveStationPreference(selected.id,device.id)}>SAVE STATION PREF</button><button disabled={device.transport!=="aes-256-gcm"||!canManage&&selected.id!==activeId} onClick={()=>roamOperator(selected.id,device)}>SEND ROAMING PROFILE</button></article>)}{!devices.length&&<p>PAIR A TRUSTED STATION IN CONNECTED OPERATIONS TO ENABLE ROAMING.</p>}</div></section>
-        <section className="operator-backup"><header><b>ENCRYPTED PROFILE BACKUP</b><small>AES-256-GCM · PBKDF2-SHA256 · PIN CREDENTIAL EXCLUDED</small></header><div><input type="password" autoComplete="new-password" placeholder="BACKUP PASSWORD · 8+ CHARACTERS" value={backupPassword} onChange={(change)=>setBackupPassword(change.target.value)}/><button disabled={backupPassword.length<8||!canManage&&selected.id!==activeId} onClick={()=>void exportOperator(selected.id,backupPassword)}>EXPORT ENCRYPTED</button><label className={backupPassword.length<8?"disabled":""}>IMPORT ENCRYPTED<input type="file" accept="application/json,.json" disabled={backupPassword.length<8||!canManage} onChange={(change)=>{const file=change.target.files?.[0];if(file)void importOperator(file,backupPassword);change.currentTarget.value="";}}/></label></div></section>
-        {canManage&&<section className="operator-create"><header><b>COMMISSION NEW OPERATOR</b><small>NEW IDENTITIES BEGIN WITH A COPY OF THE CURRENT WORKSPACE</small></header><div><input placeholder="OPERATOR NAME" maxLength={48} value={create.name} onChange={(change)=>setCreate({...create,name:change.target.value})}/><select value={create.role} disabled={create.awayTeam} onChange={(change)=>setCreate({...create,role:change.target.value as OperatorRole})}><option value="guest">GUEST</option><option value="operator">OPERATOR</option><option value="administrator">ADMINISTRATOR</option></select><input type="password" inputMode="numeric" autoComplete="new-password" placeholder="OPTIONAL PIN" value={create.pin} onChange={(change)=>setCreate({...create,pin:change.target.value.slice(0,64)})}/><label><input type="checkbox" checked={create.shared} onChange={(change)=>setCreate({...create,shared:change.target.checked})}/> SHARED</label><label><input type="checkbox" checked={create.awayTeam} onChange={(change)=>setCreate({...create,awayTeam:change.target.checked,role:change.target.checked?"guest":create.role})}/> AWAY TEAM</label><button disabled={!create.name.trim()||operators.length>=24} onClick={()=>{void createOperator(create);setCreate({name:"",role:"operator",shared:false,awayTeam:false,pin:""});}}>CREATE IDENTITY</button></div></section>}
+        <ConsoleGroup label={<>IDENTITY & AUTHORITY</>}><section className="operator-configuration"><header><b>IDENTITY & AUTHORITY</b><small>{canManage?"ADMINISTRATOR CONTROLS AVAILABLE":"READ ONLY FOR THIS OPERATOR"}</small></header><div><ConsoleControls><label>OPERATOR NAME<input disabled={!canManage} maxLength={48} value={selected.name} onChange={(change)=>updateOperator(selected.id,{name:change.target.value})}/></label></ConsoleControls><ConsoleControls><label>ROLE<ConsoleSelect disabled={!canManage||selected.awayTeam} value={selected.role} onChange={(change)=>updateOperator(selected.id,{role:change.target.value as OperatorRole})}><option value="guest">GUEST</option><option value="operator">OPERATOR</option><option value="administrator">ADMINISTRATOR</option></ConsoleSelect></label></ConsoleControls><ConsoleControls><label data-console-toggle="" className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.shared} onChange={(change)=>updateOperator(selected.id,{shared:change.target.checked})}/><span><b>SHARED WORKSTATION PROFILE</b><small>Use this identity as a common household or command-terminal workspace.</small></span></label></ConsoleControls><ConsoleControls><label data-console-toggle="" className="operator-check"><input disabled={!canManage} type="checkbox" checked={selected.awayTeam} onChange={(change)=>updateOperator(selected.id,{awayTeam:change.target.checked})}/><span><b>AWAY TEAM PROFILE</b><small>Force temporary Guest authority and block automation, configuration, and protected actions.</small></span></label></ConsoleControls></div><ConsoleControls><nav><ConsoleField disabled={!canManage} type="password" inputMode="numeric" autoComplete="new-password" placeholder={selected.credential?"REPLACE OPERATOR PIN":"OPTIONAL NEW PIN"} value={newPin} onChange={(change)=>setNewPin(change.target.value.slice(0,64))}/><ConsoleButton disabled={!canManage||!newPin} onClick={()=>{void setPin(selected.id,newPin);setNewPin("");}}>{selected.credential?"REPLACE PIN":"SET PIN"}</ConsoleButton><ConsoleButton disabled={!canManage||!selected.credential} onClick={()=>void setPin(selected.id,"")}>REMOVE PIN</ConsoleButton><ConsoleButton className="danger" disabled={!canManage||selected.id===activeId||operators.length<=1} onClick={()=>deleteOperator(selected.id)}>REMOVE IDENTITY</ConsoleButton></nav></ConsoleControls></section></ConsoleGroup>
+        <ConsoleGroup label={<>TRUSTED-STATION ROAMING</>}><section className="operator-roaming"><header><span><b>TRUSTED-STATION ROAMING</b><small>Credential data is never included. Federation transport must be encrypted.</small></span><em>{devices.length} TRUSTED</em></header><div>{devices.map((device)=><ConsoleGroup key={device.id} label={<>{device.transport==="aes-256-gcm"?"AES-256-GCM LINK":"SECURE LINK REQUIRED"} · {device.online?"ONLINE":"OFFLINE QUEUE"}</>}><article key={device.id}><i>{device.online?"●":"○"}</i><span><b>{device.name}</b><small>{device.transport==="aes-256-gcm"?"AES-256-GCM LINK":"SECURE LINK REQUIRED"} · {device.online?"ONLINE":"OFFLINE QUEUE"}</small></span><ConsoleButton disabled={!canManage&&selected.id!==activeId} onClick={()=>saveStationPreference(selected.id,device.id)}>SAVE STATION PREF</ConsoleButton><ConsoleButton disabled={device.transport!=="aes-256-gcm"||!canManage&&selected.id!==activeId} onClick={()=>roamOperator(selected.id,device)}>SEND ROAMING PROFILE</ConsoleButton></article></ConsoleGroup>)}{!devices.length&&<p>PAIR A TRUSTED STATION IN CONNECTED OPERATIONS TO ENABLE ROAMING.</p>}</div></section></ConsoleGroup>
+        <ConsoleGroup label={<>ENCRYPTED PROFILE BACKUP</>}><section className="operator-backup"><header><b>ENCRYPTED PROFILE BACKUP</b><small>AES-256-GCM · PBKDF2-SHA256 · PIN CREDENTIAL EXCLUDED</small></header><div><ConsoleField type="password" autoComplete="new-password" placeholder="BACKUP PASSWORD · 8+ CHARACTERS" value={backupPassword} onChange={(change)=>setBackupPassword(change.target.value)}/><ConsoleButton disabled={backupPassword.length<8||!canManage&&selected.id!==activeId} onClick={()=>void exportOperator(selected.id,backupPassword)}>EXPORT ENCRYPTED</ConsoleButton><ConsoleControls><label className={backupPassword.length<8?"disabled":""}>IMPORT ENCRYPTED<input type="file" accept="application/json,.json" disabled={backupPassword.length<8||!canManage} onChange={(change)=>{const file=change.target.files?.[0];if(file)void importOperator(file,backupPassword);change.currentTarget.value="";}}/></label></ConsoleControls></div></section></ConsoleGroup>
+        {canManage&&<ConsoleGroup label={<>COMMISSION NEW OPERATOR</>}><section className="operator-create"><header><b>COMMISSION NEW OPERATOR</b><small>NEW IDENTITIES BEGIN WITH A COPY OF THE CURRENT WORKSPACE</small></header><div><ConsoleField placeholder="OPERATOR NAME" maxLength={48} value={create.name} onChange={(change)=>setCreate({...create,name:change.target.value})}/><ConsoleSelect value={create.role} disabled={create.awayTeam} onChange={(change)=>setCreate({...create,role:change.target.value as OperatorRole})}><option value="guest">GUEST</option><option value="operator">OPERATOR</option><option value="administrator">ADMINISTRATOR</option></ConsoleSelect><ConsoleField type="password" inputMode="numeric" autoComplete="new-password" placeholder="OPTIONAL PIN" value={create.pin} onChange={(change)=>setCreate({...create,pin:change.target.value.slice(0,64)})}/><ConsoleControls><label data-console-toggle=""><input type="checkbox" checked={create.shared} onChange={(change)=>setCreate({...create,shared:change.target.checked})}/> SHARED</label></ConsoleControls><ConsoleControls><label data-console-toggle=""><input type="checkbox" checked={create.awayTeam} onChange={(change)=>setCreate({...create,awayTeam:change.target.checked,role:change.target.checked?"guest":create.role})}/> AWAY TEAM</label></ConsoleControls><ConsoleButton disabled={!create.name.trim()||operators.length>=24} onClick={()=>{void createOperator(create);setCreate({name:"",role:"operator",shared:false,awayTeam:false,pin:""});}}>CREATE IDENTITY</ConsoleButton></div></section></ConsoleGroup>}
       </main>}
-    </section>
+    </section></ConsoleGroup>
   </ResizablePopup></div>;
 }
 
@@ -5021,7 +5050,7 @@ function VoiceControl({ prefs, computer, notify }: { prefs: ShellPrefs; computer
   if (!prefs.voiceEnabled) return null;
   const handsFree=!prefs.voicePushToTalk,label=confirmation?`CONFIRMED · ${confirmation}`:handsFree?(armed?(commanding?"COMPUTER PROCESSING":listening?(prefs.voiceWakePhrase?"COMPUTER ARMED":"HANDS-FREE LIVE"):"ARMING VOICE"):"VOICE MUTED"):(busy?"PROCESSING":listening?"LISTENING — STOP":"VOICE");
   const detail=[handsFree?(prefs.voiceWakePhrase?'WAKE WORD · "COMPUTER"':'DIRECT COMMAND MODE · WAKE WORD OFF'):"PUSH-TO-TALK",prefs.voiceImmediateExecution?"IMMEDIATE EXECUTION":"CORE PREVIEW",history.length?`LAST: ${history[0]}`:""].filter(Boolean).join(" · ");
-  return <div className={(listening ? "listening " : "")+(handsFree?"hands-free ":"")+"voice-control voice-control-header"} title={detail}><button aria-label={handsFree?(armed?"Mute hands-free voice":"Arm hands-free voice"):(listening?"Stop listening":"Push to talk")} onClick={() => handsFree?setArmed((value)=>!value):listening?stopRecorder.current?.():void start(false)} disabled={!handsFree&&busy}><i>●</i><span>{label}</span></button></div>;
+  return <div className={(listening ? "listening " : "")+(handsFree?"hands-free ":"")+"voice-control voice-control-header"} title={detail}><ConsoleButton aria-label={handsFree?(armed?"Mute hands-free voice":"Arm hands-free voice"):(listening?"Stop listening":"Push to talk")} onClick={() => handsFree?setArmed((value)=>!value):listening?stopRecorder.current?.():void start(false)} disabled={!handsFree&&busy}><i>●</i><span>{label}</span></ConsoleButton></div>;
 }
 
 function SpeedDial({
@@ -5054,9 +5083,9 @@ function SpeedDial({
   const choices=[...speedDialChoices,...extensions.map((extension)=>({id:`module:ext:${extension.id}` as SpeedDialItem,label:extension.name.toUpperCase().slice(0,14),description:`Open ${extension.name} as a focused module`})),...customPages.map((page)=>({id:`page:custom:${page.id}` as SpeedDialItem,label:page.name.toUpperCase().slice(0,14),description:`Open custom Page Peek ${page.name}`})),...routines.map((routine)=>({id:`routine:${routine.id}` as SpeedDialItem,label:routine.name.toUpperCase().slice(0,14),description:`Preview and run ${routine.name}`}))];
   const suffix=(item:SpeedDialItem)=>item==="page:network"?(bridge?"●":"○"):item==="page:media"?String(players):item==="action:dnd"?(doNotDisturb?"ON":"OFF"):item==="action:notices"?String(notices):item==="action:displays"?String(displays):item==="action:tasks"?(taskPinned?"PIN":"OPEN"):item==="action:tray"?String(trayItems):item.startsWith("module:")?"MOD":item.startsWith("routine:")?"RUN":"";
   return (
-    <nav className="system-tray speed-dial" aria-label="LCARS Speed Dial">
-      {items.map((item,index)=>{const choice=choices.find((candidate)=>candidate.id===item);if(!choice)return null;return <button className={item==="action:dnd"&&doNotDisturb?"active":""} key={`${item}:${index}`} onClick={()=>execute(item)} title={choice.description}><i>{String(index+1).padStart(2,"0")}</i><span>{choice.label}</span><b>{suffix(item)}</b></button>;})}
-    </nav>
+    <ConsoleControls><nav className="system-tray speed-dial" aria-label="LCARS Speed Dial">
+      {items.map((item,index)=>{const choice=choices.find((candidate)=>candidate.id===item);if(!choice)return null;return <ConsoleButton className={item==="action:dnd"&&doNotDisturb?"active":""} key={`${item}:${index}`} onClick={()=>execute(item)} title={choice.description}><i>{String(index+1).padStart(2,"0")}</i><span>{choice.label}</span><b>{suffix(item)}</b></ConsoleButton>;})}
+    </nav></ConsoleControls>
   );
 }
 
@@ -5101,7 +5130,7 @@ function FirstRun({
             <small>FIRST-RUN SYSTEM ALIGNMENT</small>
             <h2>LCARS SHELL SETUP</h2>
           </div>
-          <button onClick={close}>LATER</button>
+          <ConsoleButton onClick={close}>LATER</ConsoleButton>
         </header>
         <div className="setup-progress">
           {cards.map((c, i) => (
@@ -5110,27 +5139,27 @@ function FirstRun({
             </i>
           ))}
         </div>
-        <article>
+        <ConsoleGroup label={<>{item.title}</>}><article>
           <span>{item.code}</span>
           <div>
             <small>SYSTEM CHECK</small>
             <h3>{item.title}</h3>
             <p>{item.text}</p>
-            {item.code === "07" && <div className="setup-password"><input type="password" autoComplete="new-password" placeholder="OPTIONAL PASSWORD" value={setupPassword} onChange={(event)=>setSetupPassword(event.target.value)}/><input type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={setupConfirm} onChange={(event)=>setSetupConfirm(event.target.value)}/><small>Leave both fields blank to use direct local access. You can enable this later in Settings.</small>{setupError&&<em>{setupError}</em>}</div>}
+            {item.code === "07" && <div className="setup-password"><ConsoleField type="password" autoComplete="new-password" placeholder="OPTIONAL PASSWORD" value={setupPassword} onChange={(event)=>setSetupPassword(event.target.value)}/><ConsoleField type="password" autoComplete="new-password" placeholder="CONFIRM PASSWORD" value={setupConfirm} onChange={(event)=>setSetupConfirm(event.target.value)}/><small>Leave both fields blank to use direct local access. You can enable this later in Settings.</small>{setupError&&<em>{setupError}</em>}</div>}
             <b className={item.ok ? "check-ok" : "check-wait"}>
               {item.ok ? "● READY" : "○ LOCAL CHECK PENDING"}
             </b>
           </div>
-        </article>
+        </article></ConsoleGroup>
         <footer>
-          {step > 0 && <button onClick={() => setStep(step - 1)}>BACK</button>}
-          <button
+          {step > 0 && <ConsoleButton onClick={() => setStep(step - 1)}>BACK</ConsoleButton>}
+          <ConsoleButton
             onClick={() =>
               step < cards.length - 1 ? setStep(step + 1) : setupPassword !== setupConfirm ? setSetupError("PASSWORDS DO NOT MATCH") : setupPassword && setupPassword.length < 4 ? setSetupError("USE AT LEAST 4 CHARACTERS") : finish(setupPassword)
             }
           >
             {step < cards.length - 1 ? "CONTINUE" : "ENTER LCARS"}
-          </button>
+          </ConsoleButton>
         </footer>
       </ResizablePopup>
     </div>
@@ -5144,24 +5173,24 @@ function LcarsCalendar({now,close}:{now:Date;close:()=>void}){
   const cells:Array<Date|null>=[...Array(first.getDay()).fill(null),...Array.from({length:days},(_,index)=>new Date(cursor.getFullYear(),cursor.getMonth(),index+1))];
   const same=(firstDate:Date,secondDate:Date)=>firstDate.getFullYear()===secondDate.getFullYear()&&firstDate.getMonth()===secondDate.getMonth()&&firstDate.getDate()===secondDate.getDate();
   const chooseToday=()=>{const today=new Date();setCursor(new Date(today.getFullYear(),today.getMonth(),1));setSelected(today);};
-  return <div className="backdrop lcars-calendar-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><section className="lcars-calendar" role="dialog" aria-modal="true" aria-label="LCARS calendar">
+  return <div className="backdrop lcars-calendar-backdrop" onMouseDown={(event)=>event.target===event.currentTarget&&close()}><ConsoleGroup label={<>CALENDAR</>}><section className="lcars-calendar" role="dialog" aria-modal="true" aria-label="LCARS calendar"><ConsoleWindowControls>
     <header><span><small>TEMPORAL OPERATIONS</small><h2>CALENDAR</h2><p>{now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})} · {now.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"})}</p></span><strong>{String(now.getDate()).padStart(2,"0")}</strong></header>
-    <nav><button onClick={()=>setCursor(new Date(cursor.getFullYear(),cursor.getMonth()-1,1))}>‹ PREVIOUS</button><b>{cursor.toLocaleDateString([],{month:"long",year:"numeric"}).toUpperCase()}</b><button onClick={chooseToday}>TODAY</button><button onClick={()=>setCursor(new Date(cursor.getFullYear(),cursor.getMonth()+1,1))}>NEXT ›</button><button onClick={close}>CLOSE ×</button></nav>
-    <div className="lcars-calendar-grid">{["SUN","MON","TUE","WED","THU","FRI","SAT"].map((day)=><i key={day}>{day}</i>)}{cells.map((date,index)=>date?<button key={date.toISOString()} className={`${same(date,now)?"today ":""}${same(date,selected)?"selected":""}`} aria-label={date.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"})} onClick={()=>setSelected(date)}>{date.getDate()}</button>:<span key={`empty-${index}`}/>)}</div>
+    <ConsoleControls><nav><ConsoleButton onClick={()=>setCursor(new Date(cursor.getFullYear(),cursor.getMonth()-1,1))}>‹ PREVIOUS</ConsoleButton><b>{cursor.toLocaleDateString([],{month:"long",year:"numeric"}).toUpperCase()}</b><ConsoleButton onClick={chooseToday}>TODAY</ConsoleButton><ConsoleButton onClick={()=>setCursor(new Date(cursor.getFullYear(),cursor.getMonth()+1,1))}>NEXT ›</ConsoleButton><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></nav></ConsoleControls>
+    <ConsoleGroup label="DATE SELECTOR"><ConsoleControls><div className="lcars-calendar-grid">{["SUN","MON","TUE","WED","THU","FRI","SAT"].map((day)=><i key={day}>{day}</i>)}{cells.map((date,index)=>date?<ConsoleButton key={date.toISOString()} className={`${same(date,now)?"today ":""}${same(date,selected)?"selected":""}`} aria-label={date.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"})} onClick={()=>setSelected(date)}>{date.getDate()}</ConsoleButton>:<span key={`empty-${index}`}/>)}</div></ConsoleControls></ConsoleGroup>
     <footer><i/><span><small>SELECTED DATE</small><b>{selected.toLocaleDateString([],{weekday:"long",month:"long",day:"numeric",year:"numeric"}).toUpperCase()}</b></span><strong>LOCAL TIME · {now.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",timeZoneName:"short"})}</strong></footer>
-  </section></div>;
+  </ConsoleWindowControls></section></ConsoleGroup></div>;
 }
 
 function Version31Welcome({close,openDisplay}:{close:()=>void;openDisplay:()=>void}){
   const features=[
-    {code:"00",title:"ORIGINAL SERIES CONSOLE",text:"Choose Enterprise · The Original Series in Display Matrix for a seamless beveled console housing, a blue-trimmed black screen, resin keys, and captain’s-chair-style rocker switches for on/off settings."},
+    {code:"00",title:"ORIGINAL SERIES CONSOLE",text:"Choose Enterprise · The Original Series in Display Matrix for black information screens, connected and organized physical key decks, horizontal rocker switches, and a ten-second TOS startup cue with a gentle fade."},
     {code:"01",title:"PRIVATE CLIPBOARD HISTORY",text:"Capture, restore, pin, and clear a bounded local clipboard history with opt-in storage and a one-control private mode."},
     {code:"02",title:"LCARS DISPLAY CAPTURE",text:"Take screenshots and screen recordings through Portal-approved access, saved directly into local LCARS Captures folders."},
     {code:"03",title:"NOTIFICATION SERVICE",text:"Approved local application notifications now arrive in the existing Communications and Operations timeline instead of a duplicate inbox."},
     {code:"04",title:"PRINT COMMAND",text:"Review printers and queued jobs, then cancel a job through a matching, single-use Portal authorization."},
     {code:"05",title:"VOICE PERMISSION REPAIR",text:"Hands-free Voice Control now recognizes trusted LCARS microphone requests and prevents repeated startup attempts or duplicate denial notices."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.6"><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.6 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.6</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openDisplay}>OPEN DISPLAY MATRIX</button><button autoFocus onClick={close}>CONTINUE TO LCARS</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>VERSION 31.5.7 TOS CONSOLE</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.7"><ConsoleWindowControls><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.7 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.7</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openDisplay}>OPEN DISPLAY MATRIX</ConsoleButton><ConsoleButton autoFocus onClick={close}>CONTINUE TO LCARS</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){
@@ -5173,7 +5202,7 @@ function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()
     {code:"05",title:"CALENDAR & FAVORITES",text:"Open an LCARS calendar from the clock and keep up to twenty independent Favorites above application folders."},
     {code:"06",title:"VERIFIED MOBILE UPDATES",text:"Check, download, checksum, and hand a new APK to Android's installer with one tap from the Mobile Update Console."},
   ];
-  return <div className="backdrop whats-new-backdrop"><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 29"><header><span><small>MOBILE COMMAND ENVIRONMENT · STABLE</small><h2>WELCOME TO VERSION 29</h2><p>The complete mobile Home, customization, and Connected Station Dock feature set is ready for daily use.</p></span><strong>29</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><button onClick={openConnected}>OPEN FLEET COMMAND</button><button autoFocus onClick={close}>START USING VERSION 29</button></footer></section></div>;
+  return <div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>WELCOME TO VERSION 29</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 29"><ConsoleWindowControls><header><span><small>MOBILE COMMAND ENVIRONMENT · STABLE</small><h2>WELCOME TO VERSION 29</h2><p>The complete mobile Home, customization, and Connected Station Dock feature set is ready for daily use.</p></span><strong>29</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openConnected}>OPEN FLEET COMMAND</ConsoleButton><ConsoleButton autoFocus onClick={close}>START USING VERSION 29</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div>;
 }
 
 function OverviewEditor({
@@ -5203,7 +5232,7 @@ function OverviewEditor({
     ),
     ordered = [...active, ...inactive.filter((id) => !active.includes(id))];
   return (
-    <section className="overview-editor">
+    <ConsoleGroup label={<>OVERVIEW CONFIGURATION</>}><section className="overview-editor"><ConsoleWindowControls>
       <header>
         <div>
           <b>OVERVIEW CONFIGURATION</b>
@@ -5211,14 +5240,14 @@ function OverviewEditor({
             Active modules follow the exact order shown on your Overview
           </small>
         </div>
-        <button onClick={() => save(defaultWidgets)}>RESTORE DEFAULT</button>
+        <ConsoleButton onClick={() => save(defaultWidgets)}>RESTORE DEFAULT</ConsoleButton>
       </header>
       <div>
         {ordered.map((id, index) => {
           const enabled = active.includes(id);
           return (
-            <article className={enabled ? "enabled" : ""} key={id}>
-              <button
+            <ConsoleGroup key={id} label={<>{metadata(id).description}</>}><article className={enabled ? "enabled" : ""} key={id}>
+              <ConsoleButton
                 className="module-toggle"
                 onClick={() =>
                   save(
@@ -5227,7 +5256,7 @@ function OverviewEditor({
                 }
               >
                 {enabled ? "✓" : "+"}
-              </button>
+              </ConsoleButton>
               <span>
                 <b>
                   {enabled ? String(index + 1).padStart(2, "0") + " · " : ""}
@@ -5235,23 +5264,23 @@ function OverviewEditor({
                 </b>
                 <small>{metadata(id).description}</small>
               </span>
-              <nav>
-                <button
+              <ConsoleControls><nav>
+                <ConsoleButton
                   disabled={!enabled || active.indexOf(id) === 0}
                   onClick={() => move(id, -1)}
                 >
                   ▲
-                </button>
-                <button
+                </ConsoleButton>
+                <ConsoleButton
                   disabled={
                     !enabled || active.indexOf(id) === active.length - 1
                   }
                   onClick={() => move(id, 1)}
                 >
                   ▼
-                </button>
-              </nav>
-            </article>
+                </ConsoleButton>
+              </nav></ConsoleControls>
+            </article></ConsoleGroup>
           );
         })}
       </div>
@@ -5260,7 +5289,7 @@ function OverviewEditor({
           AVAILABLE MODULES APPEAR AFTER ACTIVE MODULES
         </small>
       )}
-    </section>
+    </ConsoleWindowControls></section></ConsoleGroup>
   );
 }
 
@@ -5301,7 +5330,7 @@ function ChecklistExtension({ extension }: { extension: ExtensionManifest }) {
   const complete = items.filter((item) => item.done).length;
   const percent = items.length ? Math.round((complete / items.length) * 100) : 0;
   return (
-    <section className="overview-widget extension-widget checklist-extension">
+    <ConsoleGroup label={<>{extension.name.toUpperCase()} <small>EXT · {extension.version}</small></>}><section className="overview-widget extension-widget checklist-extension">
       <h3>{extension.name.toUpperCase()} <small>EXT · {extension.version}</small></h3>
       <div className="checklist-progress">
         <span><b>{complete}</b> / {items.length} COMPLETE</span><strong>{percent}%</strong>
@@ -5309,19 +5338,19 @@ function ChecklistExtension({ extension }: { extension: ExtensionManifest }) {
       </div>
       <div className="checklist-items">
         {items.length ? items.map((item) => (
-          <label key={item.id} className={item.done ? "done" : ""}>
+          <ConsoleControls><label key={item.id} className={item.done ? "done" : ""}>
             <input type="checkbox" checked={item.done} onChange={() => save(items.map((entry) => entry.id === item.id ? { ...entry, done: !entry.done } : entry))} />
             <span>{item.text}</span>
-            <button aria-label={`Remove ${item.text}`} onClick={(event) => { event.preventDefault(); save(items.filter((entry) => entry.id !== item.id)); }}>×</button>
-          </label>
+            <ConsoleButton aria-label={`Remove ${item.text}`} onClick={(event) => { event.preventDefault(); save(items.filter((entry) => entry.id !== item.id)); }}>×</ConsoleButton>
+          </label></ConsoleControls>
         )) : <p className="extension-empty">NO CHECKLIST ITEMS · ADD A MISSION STEP BELOW</p>}
       </div>
       <div className="checklist-add">
-        <input value={draft} maxLength={100} placeholder="ADD MISSION STEP" onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") add(); }} />
-        <button onClick={add}>ADD</button>
-        <button disabled={!complete} onClick={() => save(items.filter((item) => !item.done))}>CLEAR DONE</button>
+        <ConsoleField value={draft} maxLength={100} placeholder="ADD MISSION STEP" onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") add(); }} />
+        <ConsoleButton onClick={add}>ADD</ConsoleButton>
+        <ConsoleButton disabled={!complete} onClick={() => save(items.filter((item) => !item.done))}>CLEAR DONE</ConsoleButton>
       </div>
-    </section>
+    </section></ConsoleGroup>
   );
 }
 
@@ -5339,9 +5368,9 @@ function DeclarativeExtension({extension,placement}:{extension:ExtensionManifest
     if(node.type==="clock"){if(!granted.has("time-date"))return <strong className="extension-permission-required" key={key}>TIME / DATE PERMISSION REQUIRED</strong>;const date=new Date(now);const value=node.source==="stardate"?`${date.getUTCFullYear()}.${Math.floor(((date.getTime()-Date.UTC(date.getUTCFullYear(),0,1))/(Date.UTC(date.getUTCFullYear()+1,0,1)-Date.UTC(date.getUTCFullYear(),0,1)))*1000).toString().padStart(3,"0")}`:date.toLocaleTimeString();return <strong className="extension-clock" key={key}>{node.label&&<small>{node.label}</small>}{value}</strong>;}
     if(node.type==="timer"){const total=Math.floor(elapsed()/1000),hours=Math.floor(total/3600),minutes=Math.floor(total%3600/60),seconds=total%60;return <strong className="extension-timer" key={key}>{node.label&&<small>{node.label}</small>}{[hours,minutes,seconds].map((part)=>String(part).padStart(2,"0")).join(":")}</strong>;}
     if(node.type==="text")return <p key={key}>{node.text||String(state[node.source||""]||"")}</p>;
-    if(node.type==="button")return <button key={key} onClick={()=>act(node.action)}>{node.label||node.text||"ACTIVATE"}</button>;
-    if(node.type==="toggle")return <label className="extension-toggle" key={key}><input type="checkbox" checked={Boolean(state[node.id||""]??node.value)} onChange={()=>save({...state,[node.id||""]:!state[node.id||""]})}/><span>{node.label}</span></label>;
-    if(node.type==="input")return <label key={key}>{node.label}<input placeholder={node.placeholder} value={String(state[node.id||""]??node.value??"")} onChange={(event)=>save({...state,[node.id||""]:event.target.value})}/></label>;
+    if(node.type==="button")return <ConsoleButton key={key} onClick={()=>act(node.action)}>{node.label||node.text||"ACTIVATE"}</ConsoleButton>;
+    if(node.type==="toggle")return <ConsoleControls><label data-console-toggle="" className="extension-toggle" key={key}><input type="checkbox" checked={Boolean(state[node.id||""]??node.value)} onChange={()=>save({...state,[node.id||""]:!state[node.id||""]})}/><span>{node.label}</span></label></ConsoleControls>;
+    if(node.type==="input")return <ConsoleControls><label key={key}>{node.label}<input placeholder={node.placeholder} value={String(state[node.id||""]??node.value??"")} onChange={(event)=>save({...state,[node.id||""]:event.target.value})}/></label></ConsoleControls>;
     if(node.type==="progress"){const value=Number(state[node.source||""]??node.value??0);return <div className="extension-progress" key={key}><span>{node.label}</span><i><em style={{width:`${Math.max(0,Math.min(100,value))}%`}}/></i></div>;}
     if(node.type==="list")return <ul key={key}>{(node.items||[]).map((item)=><li key={item}>{item}</li>)}</ul>;
     if(node.type==="grid"||node.type==="tabs")return <div className={`extension-${node.type}`} key={key}>{(node.children||[]).map(render)}</div>;
@@ -5362,21 +5391,21 @@ function IntegratedLcarsPlayer({notify,event,request,browse}:{notify:(text:strin
   const release=(url:string)=>{if(url.startsWith("blob:"))URL.revokeObjectURL(url);};
   useEffect(()=>{if(!request)return;setMediaError("");setMedia((old)=>{if(old)release(old.url);return{url:`http://127.0.0.1:8765/api/media-file?path=${encodeURIComponent(request.path)}`,name:request.name.slice(0,180),kind:request.kind,path:request.path};});setPosition(0);setDuration(0);setPlaying(false);event("LCARS media loaded",`${request.name} · ${request.kind.toUpperCase()} · FILE EXPLORER`);},[request?.nonce]);
   useEffect(()=>()=>{if(media)release(media.url);if(hudTimer.current)window.clearTimeout(hudTimer.current);},[media]);
-  useEffect(()=>{const update=()=>setFullscreen(document.fullscreenElement===deck.current);document.addEventListener("fullscreenchange",update);return()=>document.removeEventListener("fullscreenchange",update);},[]);
+  useEffect(()=>{const update=()=>setFullscreen(Boolean(document.fullscreenElement&&deck.current&&(document.fullscreenElement===deck.current||document.fullscreenElement.contains(deck.current))));document.addEventListener("fullscreenchange",update);return()=>document.removeEventListener("fullscreenchange",update);},[]);
   const toggle=async()=>{const player=element.current;if(!player)return;if(player.paused){await player.play();event("LCARS media resumed",media?.name||"LOCAL MEDIA");}else{player.pause();event("LCARS media paused",media?.name||"LOCAL MEDIA");}reveal();};
   const seek=(value:number)=>{const player=element.current;if(!player)return;player.currentTime=Math.max(0,Math.min(player.duration||0,value));setPosition(player.currentTime);reveal();};
   const full=async()=>{if(!deck.current)return;if(document.fullscreenElement)await document.exitFullscreen();else await deck.current.requestFullscreen();reveal();};
   const key=(keyboard:ReactKeyboardEvent)=>{if(!media)return;if(keyboard.key===" "||keyboard.key==="k"){keyboard.preventDefault();void toggle();}else if(keyboard.key==="ArrowLeft")seek(position-10);else if(keyboard.key==="ArrowRight")seek(position+10);else if(keyboard.key.toLowerCase()==="f")void full();};
   const playbackError=()=>{setPlaying(false);setHud(true);setMediaError("THIS FORMAT OR CODEC IS NOT AVAILABLE IN THE BUILT-IN MEDIA ENGINE");event("LCARS media could not decode file",media?.name||"LOCAL MEDIA","attention");};
-  return <section className={`media-zone integrated-media-zone active-pane ${fullscreen?"fullscreen":""} ${hud?"hud-visible":"hud-idle"}`}>
+  return <ConsoleGroup label={<>LCARS MEDIA DECK</>}><section className={`media-zone integrated-media-zone active-pane ${fullscreen?"fullscreen":""} ${hud?"hud-visible":"hud-idle"}`}>
     <header><span><small>LOCAL FILE PLAYBACK · NO EXTERNAL PLAYER</small><b>LCARS MEDIA DECK</b></span><i>04</i></header>
-    <div className={`integrated-media-stage ${playing?"playing":"paused"} ${dragging?"dragging":""}`} ref={deck} tabIndex={0} onKeyDown={key} onPointerMove={reveal} onPointerDown={reveal}>
+    <div className={`integrated-media-stage ${playing?"playing":"paused"}`} ref={deck} tabIndex={0} onKeyDown={key} onPointerMove={reveal} onPointerDown={reveal}>
       {media?<>
-        {media.kind==="video"?<video ref={(node)=>{element.current=node;}} src={media.url} autoPlay onError={playbackError} onPlay={()=>{setMediaError("");setPlaying(true);reveal();}} onPause={()=>{setPlaying(false);setHud(true);}} onEnded={()=>{setPlaying(false);setHud(true);event("LCARS media completed",media.name);}} onLoadedMetadata={(change)=>{const player=change.currentTarget;player.volume=volume;player.playbackRate=rate;setDuration(player.duration||0);void player.play().catch(()=>{});}} onTimeUpdate={(change)=>setPosition(change.currentTarget.currentTime)} onDoubleClick={()=>void full()}/>:<div className="integrated-audio-visual"><i/><i/><i/><i/><i/><span>LCARS AUDIO STREAM</span><audio ref={(node)=>{element.current=node;}} src={media.url} autoPlay onError={playbackError} onPlay={()=>{setMediaError("");setPlaying(true);reveal();}} onPause={()=>{setPlaying(false);setHud(true);}} onEnded={()=>{setPlaying(false);event("LCARS media completed",media.name);}} onLoadedMetadata={(change)=>{const player=change.currentTarget;player.volume=volume;player.playbackRate=rate;setDuration(player.duration||0);void player.play().catch(()=>{});}} onTimeUpdate={(change)=>setPosition(change.currentTarget.currentTime)}/></div>}
-        <div className="integrated-media-hud"><div className="integrated-media-ident"><small>{media.kind.toUpperCase()} · LOCAL FILE</small><b>{media.name}</b><em>{mediaError||`${formatMediaTime(position)} / ${duration?formatMediaTime(duration):"--:--"}`}</em></div><input aria-label="Media position" type="range" min="0" max={duration||0} step="0.1" value={Math.min(position,duration||0)} onChange={(change)=>seek(Number(change.target.value))}/><nav><button onClick={()=>seek(position-10)}>−10</button><button className="primary" onClick={()=>void toggle()}>{playing?"Ⅱ PAUSE":"▶ PLAY"}</button><button onClick={()=>seek(position+10)}>+10</button><label>VOLUME<input aria-label="Local media volume" type="range" min="0" max="1" step="0.01" value={volume} onChange={(change)=>{const value=Number(change.target.value);setVolume(value);if(element.current)element.current.volume=value;}}/></label><label>SPEED<select value={rate} onChange={(change)=>{const value=Number(change.target.value);setRate(value);if(element.current)element.current.playbackRate=value;}}>{[.5,.75,1,1.25,1.5,2].map((value)=><option key={value} value={value}>{value}×</option>)}</select></label><button onClick={()=>void full()}>{fullscreen?"EXIT FULLSCREEN":"FULLSCREEN"}</button><button onClick={browse}>LCARS FILES</button></nav></div>
-      </>:<button className="integrated-media-empty" onClick={browse}><i>▶</i><span><b>OPEN AUDIO OR VIDEO</b><small>Choose a local file from LCARS Files. Playback never hands the file to a host media player.</small><em>SPACE PLAY/PAUSE · ←/→ SEEK · F FULLSCREEN</em></span></button>}
+        {media.kind==="video"?<ConsoleVideo ref={(node)=>{element.current=node;}} src={media.url} autoPlay onError={playbackError} onPlay={()=>{setMediaError("");setPlaying(true);reveal();}} onPause={()=>{setPlaying(false);setHud(true);}} onEnded={()=>{setPlaying(false);setHud(true);event("LCARS media completed",media.name);}} onLoadedMetadata={(change)=>{const player=change.currentTarget;player.volume=volume;player.playbackRate=rate;setDuration(player.duration||0);void player.play().catch(()=>{});}} onTimeUpdate={(change)=>setPosition(change.currentTarget.currentTime)} onDoubleClick={()=>void full()}/>:<div className="integrated-audio-visual"><i/><i/><i/><i/><i/><span>LCARS AUDIO STREAM</span><audio ref={(node)=>{element.current=node;}} src={media.url} autoPlay onError={playbackError} onPlay={()=>{setMediaError("");setPlaying(true);reveal();}} onPause={()=>{setPlaying(false);setHud(true);}} onEnded={()=>{setPlaying(false);event("LCARS media completed",media.name);}} onLoadedMetadata={(change)=>{const player=change.currentTarget;player.volume=volume;player.playbackRate=rate;setDuration(player.duration||0);void player.play().catch(()=>{});}} onTimeUpdate={(change)=>setPosition(change.currentTarget.currentTime)}/></div>}
+        <div className="integrated-media-hud"><div className="integrated-media-ident"><small>{media.kind.toUpperCase()} · LOCAL FILE</small><b>{media.name}</b><em>{mediaError||`${formatMediaTime(position)} / ${duration?formatMediaTime(duration):"--:--"}`}</em></div><ConsoleField aria-label="Media position" type="range" min="0" max={duration||0} step="0.1" value={Math.min(position,duration||0)} onChange={(change)=>seek(Number(change.target.value))}/><ConsoleControls><nav><ConsoleButton onClick={()=>seek(position-10)}>−10</ConsoleButton><ConsoleButton className="primary" onClick={()=>void toggle()}>{playing?"Ⅱ PAUSE":"▶ PLAY"}</ConsoleButton><ConsoleButton onClick={()=>seek(position+10)}>+10</ConsoleButton><ConsoleControls><label>VOLUME<input aria-label="Local media volume" type="range" min="0" max="1" step="0.01" value={volume} onChange={(change)=>{const value=Number(change.target.value);setVolume(value);if(element.current)element.current.volume=value;}}/></label></ConsoleControls><ConsoleControls><label>SPEED<ConsoleSelect value={rate} onChange={(change)=>{const value=Number(change.target.value);setRate(value);if(element.current)element.current.playbackRate=value;}}>{[.5,.75,1,1.25,1.5,2].map((value)=><option key={value} value={value}>{value}×</option>)}</ConsoleSelect></label></ConsoleControls><ConsoleButton onClick={()=>void full()}>{fullscreen?"EXIT FULLSCREEN":"FULLSCREEN"}</ConsoleButton><ConsoleButton onClick={browse}>LCARS FILES</ConsoleButton></nav></ConsoleControls></div>
+      </>:<ConsoleButton className="integrated-media-empty" onClick={browse}><i>▶</i><span><b>OPEN AUDIO OR VIDEO</b><small>Choose a local file from LCARS Files. Playback never hands the file to a host media player.</small><em>SPACE PLAY/PAUSE · ←/→ SEEK · F FULLSCREEN</em></span></ConsoleButton>}
     </div>
-  </section>;
+  </section></ConsoleGroup>;
 }
 
 function MediaConsole({
@@ -5458,32 +5487,32 @@ function MediaConsole({
       .toUpperCase();
   return (
     <>
-      <nav className="media-console-tabs" aria-label="Media console sections">
+      <ConsoleControls><nav className="media-console-tabs" aria-label="Media console sections">
         {([
           ["players", "NOW PLAYING"],
           ["master", "MASTER AUDIO"],
           ["mixer", "APP MIXER"],
           ["local", "LCARS PLAYER"],
         ] as const).map(([id, label]) => (
-          <button
+          <ConsoleButton
             className={pane === id ? "active" : ""}
             aria-pressed={pane === id}
             onClick={() => setPane(id)}
             key={id}
           >
             {label}
-          </button>
+          </ConsoleButton>
         ))}
-      </nav>
-      <nav className="media-quick-strip media-command-toolbar" aria-label="Media quick controls">
-        <button onClick={openMedia}>OPEN MEDIA PLAYER</button>
-        <button onClick={openDevices}>AUDIO DEVICES</button>
-        <button onClick={refresh}>REFRESH / RESCAN</button>
-        <button disabled={!output} onClick={() => document.getElementById("media-output-device")?.focus()} title={output?.name || "No default output"}>DEFAULT OUTPUT</button>
-        <button disabled={!input} onClick={() => document.getElementById("media-input-device")?.focus()} title={input?.name || "No default input"}>DEFAULT INPUT</button>
-      </nav>
+      </nav></ConsoleControls>
+      <ConsoleControls><nav className="media-quick-strip media-command-toolbar" aria-label="Media quick controls">
+        <ConsoleButton onClick={openMedia}>OPEN MEDIA PLAYER</ConsoleButton>
+        <ConsoleButton onClick={openDevices}>AUDIO DEVICES</ConsoleButton>
+        <ConsoleButton onClick={refresh}>REFRESH / RESCAN</ConsoleButton>
+        <ConsoleButton disabled={!output} onClick={() => document.getElementById("media-output-device")?.focus()} title={output?.name || "No default output"}>DEFAULT OUTPUT</ConsoleButton>
+        <ConsoleButton disabled={!input} onClick={() => document.getElementById("media-input-device")?.focus()} title={input?.name || "No default input"}>DEFAULT INPUT</ConsoleButton>
+      </nav></ConsoleControls>
       <div className="media-console">
-        <section
+        <ConsoleGroup label={<>NOW PLAYING</>}><section
           className={`media-zone media-player-zone ${pane === "players" ? "active-pane" : ""}`}
         >
           <header>
@@ -5495,7 +5524,9 @@ function MediaConsole({
           </header>
           {selected ? (
             <div className="media-player-stack">
-              <article className="selected-media-player">
+              <ConsoleGroup label={<>
+                    {selected.name.toUpperCase()} · {selected.status.toUpperCase()}
+                  </>}><article className="selected-media-player">
                 <i className="selected-media-art">
                   {selected.artUrl ? (
                     <img src={selected.artUrl} alt={`${selected.title} artwork`} />
@@ -5515,14 +5546,14 @@ function MediaConsole({
                     {selected.album ? ` · ${selected.album}` : ""}
                   </small>
                 </span>
-                <button
+                <ConsoleButton
                   className={`selected-media-pin ${pinned.includes(selected.id) ? "pinned" : ""}`}
                   onClick={() => togglePinned(selected.id)}
                   aria-label={`${pinned.includes(selected.id) ? "Unpin" : "Pin"} ${selected.name}`}
                   title="Keep this source at the top"
                 >
                   {pinned.includes(selected.id) ? "★" : "☆"}
-                </button>
+                </ConsoleButton>
                 <div className="selected-media-progress">
                   <span>{formatMediaTime(selected.position)}</span>
                   <i>
@@ -5534,25 +5565,25 @@ function MediaConsole({
                   </i>
                   <span>{selected.length ? formatMediaTime(selected.length) : "--:--"}</span>
                 </div>
-                <nav className="selected-media-transport" aria-label={`${selected.name} playback controls`}>
-                  <button title="Previous" aria-label="Previous" onClick={() => control(selected.id, "previous")}>◀◀</button>
-                  <button className="primary" title="Play or pause" aria-label="Play or pause" onClick={() => control(selected.id, "play-pause")}>{selected.status === "Playing" ? "Ⅱ" : "▶"}</button>
-                  <button title="Next" aria-label="Next" onClick={() => control(selected.id, "next")}>▶▶</button>
-                  <button title="Shuffle" aria-label="Shuffle" onClick={() => control(selected.id, "shuffle")}>SHUF</button>
-                  <button title="Stop" aria-label="Stop" onClick={() => control(selected.id, "stop")}>■</button>
-                </nav>
-              </article>
+                <ConsoleControls><nav className="selected-media-transport" aria-label={`${selected.name} playback controls`}>
+                  <ConsoleButton title="Previous" aria-label="Previous" onClick={() => control(selected.id, "previous")}>◀◀</ConsoleButton>
+                  <ConsoleButton className="primary" title="Play or pause" aria-label="Play or pause" onClick={() => control(selected.id, "play-pause")}>{selected.status === "Playing" ? "Ⅱ" : "▶"}</ConsoleButton>
+                  <ConsoleButton title="Next" aria-label="Next" onClick={() => control(selected.id, "next")}>▶▶</ConsoleButton>
+                  <ConsoleButton title="Shuffle" aria-label="Shuffle" onClick={() => control(selected.id, "shuffle")}>SHUF</ConsoleButton>
+                  <ConsoleButton title="Stop" aria-label="Stop" onClick={() => control(selected.id, "stop")}>■</ConsoleButton>
+                </nav></ConsoleControls>
+              </article></ConsoleGroup>
               <div className="media-source-list">
                 {otherPlayers.length ? (
                   otherPlayers.map((player) => (
-                    <article className="media-source-row" key={player.id}>
-                      <button className="media-source-select" onClick={() => selectPlayer(player.id)} aria-label={`Show ${player.name}`}>
+                    <ConsoleGroup key={player.id} label={<>{player.title || "NO MEDIA"}</>}><article className="media-source-row" key={player.id}>
+                      <ConsoleButton consoleChoice className="media-source-select" onClick={() => selectPlayer(player.id)} aria-label={`Show ${player.name}`}>
                         <i>{player.icon ? <img src={player.icon} alt="" /> : initials(player.name)}</i>
                         <span><b>{player.name}</b><small>{player.title || "NO MEDIA"}</small></span>
                         <em className={player.status === "Playing" ? "playing" : ""}>{player.status.toUpperCase()}</em>
-                      </button>
-                      <button className="media-source-quick" title={`Play or pause ${player.name}`} aria-label={`Play or pause ${player.name}`} onClick={() => control(player.id, "play-pause")}>{player.status === "Playing" ? "Ⅱ" : "▶"}</button>
-                    </article>
+                      </ConsoleButton>
+                      <ConsoleButton consoleChoice className="media-source-quick" title={`Play or pause ${player.name}`} aria-label={`Play or pause ${player.name}`} onClick={() => control(player.id, "play-pause")}>{player.status === "Playing" ? "Ⅱ" : "▶"}</ConsoleButton>
+                    </article></ConsoleGroup>
                   ))
                 ) : (
                   <div className="media-compact-empty"><b>PRIMARY SOURCE LINKED</b><small>Additional players appear here as compact sources.</small></div>
@@ -5562,9 +5593,9 @@ function MediaConsole({
           ) : (
             <div className="media-compact-empty"><b>NO ACTIVE MEDIA SOURCES</b><small>Start playback in a compatible application. LCARS will detect it automatically.</small></div>
           )}
-        </section>
+        </section></ConsoleGroup>
 
-        <section className={`media-zone media-master-zone ${pane === "master" ? "active-pane" : ""}`}>
+        <ConsoleGroup label={<>MASTER AUDIO</>}><section className={`media-zone media-master-zone ${pane === "master" ? "active-pane" : ""}`}>
           <header>
             <span><small>SYSTEM DEFAULT BUS</small><b>MASTER AUDIO</b></span>
             <i>{muted ? "M" : "01"}</i>
@@ -5574,7 +5605,7 @@ function MediaConsole({
               <strong>{volume}%</strong>
               <small>{muted ? "OUTPUT MUTED" : "OUTPUT ACTIVE"}</small>
             </div>
-            <input
+            <ConsoleField
               className="media-master-slider"
               aria-label="Master audio volume"
               type="range"
@@ -5586,27 +5617,27 @@ function MediaConsole({
               onKeyUp={commitVolume}
             />
             <div className="media-device-routing">
-              <label htmlFor="media-output-device">
+              <ConsoleControls><label htmlFor="media-output-device">
                 OUTPUT
-                <select id="media-output-device" aria-label="Audio output device" value={output?.id || ""} onChange={(event) => chooseDevice(event.target.value)}>
+                <ConsoleSelect id="media-output-device" aria-label="Audio output device" value={output?.id || ""} onChange={(event) => chooseDevice(event.target.value)}>
                   <option value="" disabled>{outputs.length ? "SELECT OUTPUT" : platform.includes("WINDOWS") ? "NO WINDOWS OUTPUTS DETECTED" : "NO PIPEWIRE OUTPUTS DETECTED"}</option>
                   {outputs.map((device) => <option value={device.id} key={device.id}>{device.default ? "● " : ""}{device.name}</option>)}
-                </select>
-              </label>
-              <label htmlFor="media-input-device">
+                </ConsoleSelect>
+              </label></ConsoleControls>
+              <ConsoleControls><label htmlFor="media-input-device">
                 INPUT
-                <select id="media-input-device" aria-label="Audio input or microphone device" value={input?.id || ""} onChange={(event) => chooseDevice(event.target.value)}>
+                <ConsoleSelect id="media-input-device" aria-label="Audio input or microphone device" value={input?.id || ""} onChange={(event) => chooseDevice(event.target.value)}>
                   <option value="" disabled>{inputs.length ? "SELECT MICROPHONE" : platform.includes("WINDOWS") ? "NO WINDOWS INPUTS DETECTED" : "NO PIPEWIRE INPUTS DETECTED"}</option>
                   {inputs.map((device) => <option value={device.id} key={device.id}>{device.default ? "● " : ""}{device.name}</option>)}
-                </select>
-              </label>
+                </ConsoleSelect>
+              </label></ConsoleControls>
             </div>
-            <nav className="media-master-actions">
-              <button className={muted ? "active" : ""} onClick={toggleMute}>{muted ? "RESTORE AUDIO" : "MUTE OUTPUT"}</button>
-              <button onClick={openDevices}>DEVICE DETAILS</button>
-            </nav>
+            <ConsoleControls><nav className="media-master-actions">
+              <ConsoleButton className={muted ? "active" : ""} onClick={toggleMute}>{muted ? "RESTORE AUDIO" : "MUTE OUTPUT"}</ConsoleButton>
+              <ConsoleButton onClick={openDevices}>DEVICE DETAILS</ConsoleButton>
+            </nav></ConsoleControls>
           </div>
-        </section>
+        </section></ConsoleGroup>
 
         <ApplicationMixer
           streams={streams}
@@ -5649,10 +5680,10 @@ function ApplicationMixer({
       setExpanded((old) => old.includes(name) ? old.filter((item) => item !== name) : [...old, name]),
     initials = (name: string) => name.split(/\s+/).map((part) => part[0]).join("").slice(0, 2).toUpperCase();
   return (
-    <section className={`media-zone media-mixer-zone ${active ? "active-pane" : ""}`}>
+    <ConsoleGroup label={<>APPLICATION MIXER</>}><section className={`media-zone media-mixer-zone ${active ? "active-pane" : ""}`}>
       <header>
         <span><small>{platform.includes("WINDOWS") ? "WINDOWS CORE AUDIO" : "PIPEWIRE APPLICATION BUS"}</small><b>APPLICATION MIXER</b></span>
-        <button className="media-mixer-header-button" disabled={!hasAdvanced} onClick={() => setAdvanced(!advanced)}>{advanced ? "APPLICATIONS ONLY" : "SHOW ALL STREAMS"}</button>
+        <ConsoleButton className="media-mixer-header-button" disabled={!hasAdvanced} onClick={() => setAdvanced(!advanced)}>{advanced ? "APPLICATIONS ONLY" : "SHOW ALL STREAMS"}</ConsoleButton>
       </header>
       <div className="media-mixer-list">
         {visible.length ? visible.map((group) => {
@@ -5661,24 +5692,24 @@ function ApplicationMixer({
             open = expanded.includes(group.name),
             routeAvailable = group.items.some((stream) => stream.routeAvailable);
           return (
-            <article className={`media-mixer-group ${isMuted ? "muted" : ""} ${main.volume > 0 ? "active" : ""}`} key={group.name}>
+            <ConsoleGroup key={group.name} label={<>{group.items.length} {group.items.length === 1 ? "STREAM" : "STREAMS"}</>}><article className={`media-mixer-group ${isMuted ? "muted" : ""} ${main.volume > 0 ? "active" : ""}`} key={group.name}>
               <div className="media-mixer-row">
                 <i>{main.icon ? <img src={main.icon} alt="" /> : initials(group.name)}</i>
                 <span><b>{group.name}</b><small>{group.items.length} {group.items.length === 1 ? "STREAM" : "STREAMS"}</small></span>
                 <strong>{main.volume}%</strong>
-                <input aria-label={`${group.name} volume`} type="range" min="0" max="100" value={main.volume} onChange={(event) => group.items.forEach((stream) => setVolume(stream.id, +event.target.value))} />
-                <nav className="media-mixer-actions">
-                  <button className={isMuted ? "active" : ""} aria-label={`${isMuted ? "Unmute" : "Mute"} ${group.name}`} onClick={() => group.items.forEach((stream) => setMuted(stream.id, !isMuted))}>{isMuted ? "U" : "M"}</button>
-                  <button disabled={!routeAvailable} aria-label={`Route ${group.name}`} title={routeAvailable?"Open application routing controls":"Per-application routing is unavailable on this platform"} onClick={openRouting}>ROUTE</button>
-                  <button disabled={group.items.length < 2} aria-label={`${open ? "Collapse" : "Expand"} ${group.name} streams`} onClick={() => toggleExpanded(group.name)}>{open ? "−" : "+"}</button>
-                </nav>
+                <ConsoleField aria-label={`${group.name} volume`} type="range" min="0" max="100" value={main.volume} onChange={(event) => group.items.forEach((stream) => setVolume(stream.id, +event.target.value))} />
+                <ConsoleControls><nav className="media-mixer-actions">
+                  <ConsoleButton className={isMuted ? "active" : ""} aria-label={`${isMuted ? "Unmute" : "Mute"} ${group.name}`} onClick={() => group.items.forEach((stream) => setMuted(stream.id, !isMuted))}>{isMuted ? "U" : "M"}</ConsoleButton>
+                  <ConsoleButton disabled={!routeAvailable} aria-label={`Route ${group.name}`} title={routeAvailable?"Open application routing controls":"Per-application routing is unavailable on this platform"} onClick={openRouting}>ROUTE</ConsoleButton>
+                  <ConsoleButton disabled={group.items.length < 2} aria-label={`${open ? "Collapse" : "Expand"} ${group.name} streams`} onClick={() => toggleExpanded(group.name)}>{open ? "−" : "+"}</ConsoleButton>
+                </nav></ConsoleControls>
               </div>
-              {open && <div className="media-stream-details">{group.items.map((stream) => <label className="media-stream-detail" key={stream.id}><span>{stream.name}</span><strong>{stream.volume}%</strong><input aria-label={`${stream.name} stream volume`} type="range" min="0" max="100" value={stream.volume} onChange={(event) => setVolume(stream.id, +event.target.value)} /><button className={stream.muted ? "active" : ""} onClick={() => setMuted(stream.id, !stream.muted)}>{stream.muted ? "U" : "M"}</button></label>)}</div>}
-            </article>
+              {open && <div className="media-stream-details">{group.items.map((stream) => <ConsoleControls><label className="media-stream-detail" key={stream.id}><span>{stream.name}</span><strong>{stream.volume}%</strong><input aria-label={`${stream.name} stream volume`} type="range" min="0" max="100" value={stream.volume} onChange={(event) => setVolume(stream.id, +event.target.value)} /><ConsoleButton className={stream.muted ? "active" : ""} onClick={() => setMuted(stream.id, !stream.muted)}>{stream.muted ? "U" : "M"}</ConsoleButton></label></ConsoleControls>)}</div>}
+            </article></ConsoleGroup>
           );
         }) : <div className="media-compact-empty"><b>NO APPLICATION AUDIO STREAMS</b><small>Applications producing audio will appear here automatically.</small></div>}
       </div>
-    </section>
+    </section></ConsoleGroup>
   );
 }
 
@@ -5699,19 +5730,19 @@ function MediaSources({
     <div className={"media-sources " + (compact ? "compact" : "")}>
       {players.length ? (
         players.map((player) => (
-          <article key={player.id}>
+          <ConsoleGroup key={player.id} label={<>{player.status}</>}><article key={player.id}>
             <header>
               <span>
                 <b>{player.name}</b>
                 <small>{player.status}</small>
               </span>
-              <button
+              <ConsoleButton
                 className={pinned.includes(player.id) ? "pinned" : ""}
                 onClick={() => togglePinned(player.id)}
                 aria-label={"Pin " + player.name}
               >
                 {pinned.includes(player.id) ? "★" : "☆"}
-              </button>
+              </ConsoleButton>
             </header>
             <div className="track-info">
               {player.artUrl && <img src={player.artUrl} alt="" />}
@@ -5736,45 +5767,45 @@ function MediaSources({
                 />
               </div>
             ) : null}
-            <nav className="transport-controls">
-              <button
+            <ConsoleControls><nav className="transport-controls">
+              <ConsoleButton
                 title="Previous"
                 aria-label={"Previous in " + player.name}
                 onClick={() => control(player.id, "previous")}
               >
                 ◀◀
-              </button>
-              <button
+              </ConsoleButton>
+              <ConsoleButton
                 className="primary"
                 title="Play or pause"
                 aria-label={"Play or pause " + player.name}
                 onClick={() => control(player.id, "play-pause")}
               >
                 {player.status === "Playing" ? "Ⅱ" : "▶"}
-              </button>
-              <button
+              </ConsoleButton>
+              <ConsoleButton
                 title="Next"
                 aria-label={"Next in " + player.name}
                 onClick={() => control(player.id, "next")}
               >
                 ▶▶
-              </button>
-              <button
+              </ConsoleButton>
+              <ConsoleButton
                 title="Shuffle"
                 aria-label={"Shuffle " + player.name}
                 onClick={() => control(player.id, "shuffle")}
               >
                 ⤨
-              </button>
-              <button
+              </ConsoleButton>
+              <ConsoleButton
                 title="Stop"
                 aria-label={"Stop " + player.name}
                 onClick={() => control(player.id, "stop")}
               >
                 ■
-              </button>
-            </nav>
-          </article>
+              </ConsoleButton>
+            </nav></ConsoleControls>
+          </article></ConsoleGroup>
         ))
       ) : (
         <div className="adaptive-empty">
@@ -5797,19 +5828,19 @@ function OperationsCenter({notices,events,devices,localOperator,reversiblePlanId
   const setFilter=(key:keyof OperationsFilters,value:string)=>setFilters((old)=>({...old,[key]:value}));
   const toggleStation=(id:string)=>setSelectedStations((old)=>old.includes(id)?old.filter((item)=>item!==id):[...old,id]);
   return <>
-    <div className="toast-stack">{live.map((notice)=><div className={`toast ${notice.kind} priority-${notice.priority||"routine"}`} key={notice.id}><i>●</i><span><b>{notice.text}</b><small>{notice.source||"LCARS CORE"} · {notice.priority?.toUpperCase()||"ROUTINE"} · {notice.time}{(notice.repeats||1)>1?` · ×${notice.repeats}`:""}</small></span><button title="Close notification" aria-label="Dismiss notification" onClick={()=>dismiss(notice.id)}>×</button></div>)}</div>
+    <div className="toast-stack">{live.map((notice)=><div className={`toast ${notice.kind} priority-${notice.priority||"routine"}`} key={notice.id}><i>●</i><span><b>{notice.text}</b><small>{notice.source||"LCARS CORE"} · {notice.priority?.toUpperCase()||"ROUTINE"} · {notice.time}{(notice.repeats||1)>1?` · ×${notice.repeats}`:""}</small></span><ConsoleButton title="Close notification" aria-label="Dismiss notification" onClick={()=>dismiss(notice.id)}>×</ConsoleButton></div>)}</div>
     {historyOpen&&<ResizablePopup as="aside" popupKey="communications-center" className="notice-history operations-center" floating minWidth={520} minHeight={420} ariaModal={false} ariaLabel="Operations Center">
-      <header><div><small>VERSION 30.6 · UNIFIED OBSERVABILITY</small><h3>OPERATIONS CENTER</h3><p>Notices, commands, automation, stations, media, security, and failures in one actionable timeline.</p></div><button onClick={close}>CLOSE ×</button></header>
-      <nav className="operations-summary"><span><b>{events.length}</b> EVENTS</span><span><b>{events.filter((event)=>event.severity==="critical").length}</b> CRITICAL</span><span><b>{events.filter((event)=>!event.acknowledged).length}</b> UNACKNOWLEDGED</span><button className={doNotDisturb?"active":""} onClick={toggleDnd}>{doNotDisturb?"DND ON":"DND OFF"}</button><button onClick={clearNotices}>CLEAR NOTICES</button><button onClick={()=>exportReport(filtered)}>EXPORT REPORT</button></nav>
-      <section className="operations-filters">
-        <label className="operations-query">SEARCH HISTORY<input aria-label="Search Operations Log" placeholder="SEARCH EVENTS, EXPLANATIONS, STATIONS…" value={filters.query} onChange={(event)=>setFilter("query",event.target.value)}/></label>
-        <label>STATION<select value={filters.station} onChange={(event)=>setFilter("station",event.target.value)}><option value="all">ALL STATIONS</option>{stations.map((item)=><option value={item} key={item}>{item}</option>)}</select></label>
-        <label>OPERATOR<select value={filters.operator} onChange={(event)=>setFilter("operator",event.target.value)}><option value="all">ALL OPERATORS</option>{operators.map((item)=><option value={item} key={item}>{item}</option>)}</select></label>
-        <label>SUBSYSTEM<select value={filters.subsystem} onChange={(event)=>setFilter("subsystem",event.target.value)}><option value="all">ALL SUBSYSTEMS</option>{subsystems.map((item)=><option value={item} key={item}>{item}</option>)}</select></label>
-        <label>SEVERITY<select value={filters.severity} onChange={(event)=>setFilter("severity",event.target.value)}><option value="all">ALL SEVERITIES</option><option value="critical">CRITICAL</option><option value="warning">WARNING</option><option value="priority">PRIORITY</option><option value="routine">ROUTINE</option></select></label>
-      </section>
-      <section className="operations-routing"><header><span><b>PRIORITY PROPAGATION</b><small>Choose trusted stations, then route any priority event from its action row.</small></span><em>{selectedStations.length} SELECTED</em></header><div>{devices.map((device)=><label className={selectedStations.includes(device.id)?"selected":""} key={device.id}><input type="checkbox" checked={selectedStations.includes(device.id)} onChange={()=>toggleStation(device.id)}/><span>{device.name}</span><small>{device.online?"ONLINE":"OFFLINE QUEUE"}</small></label>)}{!devices.length&&<p>NO TRUSTED FEDERATION STATIONS</p>}</div></section>
-      <div className="operations-feed" tabIndex={0}>{groups.length?groups.map((group)=><details className={`operations-group severity-${group.severity}`} key={group.id} open={groups.length===1}><summary><i>{group.severity==="critical"?"!":group.severity==="warning"?"△":group.severity==="priority"?"◆":"●"}</i><span><b>{group.title}</b><small>{group.events[0].subsystem} · {group.events.length} RELATED EVENT{group.events.length===1?"":"S"} · {new Date(group.events[0].time).toLocaleString()}</small></span><em>{group.severity.toUpperCase()}</em></summary><div>{group.events.map((event)=><article className={`operations-event severity-${event.severity} ${event.acknowledged?"acknowledged":""}`} key={event.id}><header><span><b>{event.title}</b><small>{event.station} · {event.operator} · {event.subsystem} · {event.status.toUpperCase()}</small></span><time>{new Date(event.time).toLocaleString()}</time></header><p>{event.detail}</p><details className="operations-explanation"><summary>WHAT CHANGED?</summary><p>{event.explanation}</p></details><footer><button className={event.acknowledged?"active":""} onClick={()=>acknowledge(event)}>{event.acknowledged?"ACKNOWLEDGED":"ACKNOWLEDGE"}</button><label>ASSIGN<select value={event.assignee||""} onChange={(change)=>assign(event,change.target.value)}><option value="">UNASSIGNED</option>{operators.map((operator)=><option key={operator} value={operator}>{operator}</option>)}</select></label>{event.action&&<button disabled={event.action.kind==="undo"&&event.action.target!==reversiblePlanId} onClick={()=>action(event)}>{event.action.kind==="procedure"?"RUN AGAIN":event.action.kind==="undo"?"REVERSE":event.action.kind==="media"?"RETRY COMMAND":event.severity==="critical"?"RETRY":"OPEN"}</button>}{event.severity!=="routine"&&<button disabled={!selectedStations.length} onClick={()=>propagate(event,selectedStations)}>PROPAGATE</button>}</footer></article>)}</div></details>):<p className="operations-empty">NO OPERATIONS MATCH THE SELECTED FILTERS</p>}</div>
+      <header><div><small>VERSION 30.6 · UNIFIED OBSERVABILITY</small><h3>OPERATIONS CENTER</h3><p>Notices, commands, automation, stations, media, security, and failures in one actionable timeline.</p></div><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></header>
+      <ConsoleControls><nav className="operations-summary"><span><b>{events.length}</b> EVENTS</span><span><b>{events.filter((event)=>event.severity==="critical").length}</b> CRITICAL</span><span><b>{events.filter((event)=>!event.acknowledged).length}</b> UNACKNOWLEDGED</span><ConsoleButton className={doNotDisturb?"active":""} onClick={toggleDnd}>{doNotDisturb?"DND ON":"DND OFF"}</ConsoleButton><ConsoleButton onClick={clearNotices}>CLEAR NOTICES</ConsoleButton><ConsoleButton onClick={()=>exportReport(filtered)}>EXPORT REPORT</ConsoleButton></nav></ConsoleControls>
+      <ConsoleGroup label="SECTION CONTROLS"><section className="operations-filters">
+        <ConsoleControls><label className="operations-query">SEARCH HISTORY<input aria-label="Search Operations Log" placeholder="SEARCH EVENTS, EXPLANATIONS, STATIONS…" value={filters.query} onChange={(event)=>setFilter("query",event.target.value)}/></label></ConsoleControls>
+        <ConsoleControls><label>STATION<ConsoleSelect value={filters.station} onChange={(event)=>setFilter("station",event.target.value)}><option value="all">ALL STATIONS</option>{stations.map((item)=><option value={item} key={item}>{item}</option>)}</ConsoleSelect></label></ConsoleControls>
+        <ConsoleControls><label>OPERATOR<ConsoleSelect value={filters.operator} onChange={(event)=>setFilter("operator",event.target.value)}><option value="all">ALL OPERATORS</option>{operators.map((item)=><option value={item} key={item}>{item}</option>)}</ConsoleSelect></label></ConsoleControls>
+        <ConsoleControls><label>SUBSYSTEM<ConsoleSelect value={filters.subsystem} onChange={(event)=>setFilter("subsystem",event.target.value)}><option value="all">ALL SUBSYSTEMS</option>{subsystems.map((item)=><option value={item} key={item}>{item}</option>)}</ConsoleSelect></label></ConsoleControls>
+        <ConsoleControls><label>SEVERITY<ConsoleSelect value={filters.severity} onChange={(event)=>setFilter("severity",event.target.value)}><option value="all">ALL SEVERITIES</option><option value="critical">CRITICAL</option><option value="warning">WARNING</option><option value="priority">PRIORITY</option><option value="routine">ROUTINE</option></ConsoleSelect></label></ConsoleControls>
+      </section></ConsoleGroup>
+      <ConsoleGroup label={<>PRIORITY PROPAGATION</>}><section className="operations-routing"><header><span><b>PRIORITY PROPAGATION</b><small>Choose trusted stations, then route any priority event from its action row.</small></span><em>{selectedStations.length} SELECTED</em></header><div>{devices.map((device)=><ConsoleControls><label data-console-toggle="" className={selectedStations.includes(device.id)?"selected":""} key={device.id}><input type="checkbox" checked={selectedStations.includes(device.id)} onChange={()=>toggleStation(device.id)}/><span>{device.name}</span><small>{device.online?"ONLINE":"OFFLINE QUEUE"}</small></label></ConsoleControls>)}{!devices.length&&<p>NO TRUSTED FEDERATION STATIONS</p>}</div></section></ConsoleGroup>
+      <div className="operations-feed" tabIndex={0}>{groups.length?groups.map((group)=><ConsoleDisclosure className={`operations-group severity-${group.severity}`} key={group.id} open={groups.length===1}><summary><i>{group.severity==="critical"?"!":group.severity==="warning"?"△":group.severity==="priority"?"◆":"●"}</i><span><b>{group.title}</b><small>{group.events[0].subsystem} · {group.events.length} RELATED EVENT{group.events.length===1?"":"S"} · {new Date(group.events[0].time).toLocaleString()}</small></span><em>{group.severity.toUpperCase()}</em></summary><div>{group.events.map((event)=><ConsoleGroup key={event.id} label={<>{event.station} · {event.operator} · {event.subsystem} · {event.status.toUpperCase()}</>}><article className={`operations-event severity-${event.severity} ${event.acknowledged?"acknowledged":""}`} key={event.id}><header><span><b>{event.title}</b><small>{event.station} · {event.operator} · {event.subsystem} · {event.status.toUpperCase()}</small></span><time>{new Date(event.time).toLocaleString()}</time></header><p>{event.detail}</p><ConsoleDisclosure className="operations-explanation"><summary>WHAT CHANGED?</summary><p>{event.explanation}</p></ConsoleDisclosure><footer><ConsoleButton className={event.acknowledged?"active":""} onClick={()=>acknowledge(event)}>{event.acknowledged?"ACKNOWLEDGED":"ACKNOWLEDGE"}</ConsoleButton><ConsoleControls><label>ASSIGN<ConsoleSelect value={event.assignee||""} onChange={(change)=>assign(event,change.target.value)}><option value="">UNASSIGNED</option>{operators.map((operator)=><option key={operator} value={operator}>{operator}</option>)}</ConsoleSelect></label></ConsoleControls>{event.action&&<ConsoleButton disabled={event.action.kind==="undo"&&event.action.target!==reversiblePlanId} onClick={()=>action(event)}>{event.action.kind==="procedure"?"RUN AGAIN":event.action.kind==="undo"?"REVERSE":event.action.kind==="media"?"RETRY COMMAND":event.severity==="critical"?"RETRY":"OPEN"}</ConsoleButton>}{event.severity!=="routine"&&<ConsoleButton disabled={!selectedStations.length} onClick={()=>propagate(event,selectedStations)}>PROPAGATE</ConsoleButton>}</footer></article></ConsoleGroup>)}</div></ConsoleDisclosure>):<p className="operations-empty">NO OPERATIONS MATCH THE SELECTED FILTERS</p>}</div>
     </ResizablePopup>}
   </>;
 }
@@ -5846,9 +5877,9 @@ function AppDrawer({
             <small>COMPUTER LIBRARY ACCESS</small>
             <h2>{title}</h2>
           </div>
-          <nav><button onClick={refresh}>REFRESH APPLICATIONS</button><button onClick={close}>CLOSE ×</button></nav>
+          <ConsoleControls><nav><ConsoleButton onClick={refresh}>REFRESH APPLICATIONS</ConsoleButton><ConsoleButton onClick={close}>CLOSE ×</ConsoleButton></nav></ConsoleControls>
         </header>
-        <input
+        <ConsoleField
           autoFocus
           aria-label="Search applications"
           placeholder="SEARCH APPLICATIONS…"
@@ -5858,7 +5889,7 @@ function AppDrawer({
         {!selectionMode&&<p className="application-destination-help">NORMAL CLICK USES THE SHOWN DESTINATION · SHIFT+CLICK ALWAYS OPENS A NATIVE WINDOW</p>}
         <div className="app-list">
           {apps.map((a) => {const embedded=embeddedPageForApp(a),destination=destinations?.[a.id]||(embedded?"embedded":"native");return (
-            <article className={(selected.includes(a.id)?"chosen ":"")+"application-library-entry"} key={a.id}><button
+            <ConsoleGroup key={a.id} label={<>{a.comment || a.id}</>}><article className={(selected.includes(a.id)?"chosen ":"")+"application-library-entry"} key={a.id}><ConsoleButton consoleChoice
               onClick={(event) => action(a,event.shiftKey?"native":undefined)}
             >
               <i>{a.icon ? <img src={a.icon} alt="" /> : a.name.slice(0, 2).toUpperCase()}</i>
@@ -5873,7 +5904,7 @@ function AppDrawer({
                     : "ADD"
                   : "LAUNCH"}
               </strong>
-            </button>{!selectionMode&&(embedded&&setDestination?<button className="drawer-destination" onClick={()=>setDestination(a,destination==="embedded"?"native":"embedded")}><b>{destination==="embedded"?"LCARS":"WINDOW"}</b><small>{destination==="embedded"?`OPEN ${embedded.toUpperCase()} WORKSPACE`:"OPEN NATIVE APP"}</small></button>:<span className="drawer-native-only">NATIVE WINDOW ONLY</span>)}</article>
+            </ConsoleButton>{!selectionMode&&(embedded&&setDestination?<ConsoleButton consoleChoice className="drawer-destination" onClick={()=>setDestination(a,destination==="embedded"?"native":"embedded")}><b>{destination==="embedded"?"LCARS":"WINDOW"}</b><small>{destination==="embedded"?`OPEN ${embedded.toUpperCase()} WORKSPACE`:"OPEN NATIVE APP"}</small></ConsoleButton>:<span className="drawer-native-only">NATIVE WINDOW ONLY</span>)}</article></ConsoleGroup>
           );})}
         </div>
       </ResizablePopup>
@@ -5907,7 +5938,7 @@ function ApplicationBay({
     }
   };
   return (
-    <section
+    <ConsoleGroup label={<>{app.name}</>}><section
       className={"application-bay " + (fullscreen ? "bay-fullscreen" : "")}
     >
       <header>
@@ -5934,14 +5965,14 @@ function ApplicationBay({
         </div>
       </div>
       <footer>
-        <button onClick={switchApp}>SWITCH APP</button>
-        <button onClick={minimize}>MINIMIZE</button>
-        <button onClick={toggle}>
+        <ConsoleButton onClick={switchApp}>SWITCH APP</ConsoleButton>
+        <ConsoleButton onClick={minimize}>MINIMIZE</ConsoleButton>
+        <ConsoleButton onClick={toggle}>
           {fullscreen ? "RETURN TO BAY" : "FULL SCREEN"}
-        </button>
-        <button onClick={close}>CLOSE</button>
+        </ConsoleButton>
+        <ConsoleButton onClick={close}>CLOSE</ConsoleButton>
       </footer>
-    </section>
+    </section></ConsoleGroup>
   );
 }
 function Terminal({
@@ -6042,7 +6073,7 @@ function Terminal({
   const close = async (id: string) => {
     if (
       prefs.confirmTerminalClose &&
-      !confirm(
+      !await consoleConfirm(
         "End this terminal session? Running processes in it will be stopped.",
       )
     )
@@ -6070,22 +6101,22 @@ function Terminal({
     window.addEventListener("keydown", keys);
     return () => window.removeEventListener("keydown", keys);
   }, [active, tabs, prefs]);
-  const rename = (id: string, name: string) => {
-    const next = prompt("Rename terminal tab", name)?.trim();
+  const rename = async (id: string, name: string) => {
+    const next = (await consolePrompt("Rename terminal tab", name))?.trim();
     if (next)
       setTabs((old) =>
         old.map((t) => (t.id === id ? { ...t, name: next } : t)),
       );
   };
   return (
-    <section className="terminal-panel embedded-terminal">
+    <ConsoleGroup label={<>{bridge ? "LOCAL PTY CONNECTED" : "LOCAL CORE STANDBY"}</>}><section className="terminal-panel embedded-terminal">
       <header>
         <span>LCARS TERMINAL ACCESS</span>
         <b>{bridge ? "LOCAL PTY CONNECTED" : "LOCAL CORE STANDBY"}</b>
       </header>
-      <nav className="terminal-tabs">
+      <ConsoleControls><nav className="terminal-tabs">
         {tabs.map((tab) => (
-          <button
+          <ConsoleButton
             className={
               (active === tab.id ? "active " : "") +
               "status-" +
@@ -6117,12 +6148,12 @@ function Terminal({
             >
               ×
             </i>
-          </button>
+          </ConsoleButton>
         ))}
-        <button className="new-tab" onClick={newSession}>
+        <ConsoleButton className="new-tab" onClick={newSession}>
           ＋
-        </button>
-      </nav>
+        </ConsoleButton>
+      </nav></ConsoleControls>
       <pre
         ref={outputRef}
         className={"terminal-output cursor-" + prefs.terminalCursor}
@@ -6133,7 +6164,7 @@ function Terminal({
       </pre>
       <div className="terminal-input">
         <span>terminal@lcars:~$</span>
-        <input
+        <ConsoleField
           autoFocus
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -6143,16 +6174,16 @@ function Terminal({
           }}
           placeholder="Type a command…"
         />
-        <button onClick={submit}>ENTER</button>
+        <ConsoleButton onClick={submit}>ENTER</ConsoleButton>
       </div>
       <footer>
-        <button onClick={newSession}>NEW SESSION</button>
-        <button onClick={() => void send("\u0003")}>SEND CTRL+C</button>
-        <button onClick={() => active && void close(active)}>
+        <ConsoleButton onClick={newSession}>NEW SESSION</ConsoleButton>
+        <ConsoleButton onClick={() => void send("\u0003")}>SEND CTRL+C</ConsoleButton>
+        <ConsoleButton onClick={() => active && void close(active)}>
           END SESSION
-        </button>
+        </ConsoleButton>
       </footer>
-    </section>
+    </section></ConsoleGroup>
   );
 }
 function stripAnsi(value: string) {
