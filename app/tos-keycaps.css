@@ -1,0 +1,65 @@
+/* Bridge Crew / television prop references: cast colored lenses, without bright metal bevels. */
+.lcars.theme-tos{
+ --tos-key-blue:#4b84af;
+ --tos-key-ivory:#d3ccb1;
+ --tos-resin-sheen:
+  radial-gradient(ellipse 15% 23% at 14% 12%,#ffffffb3 0%,#ffffff29 35%,transparent 100%),
+  radial-gradient(ellipse 36% 14% at 69% 95%,#ffffff80 0%,#ffffff14 58%,transparent 100%),
+  linear-gradient(90deg,transparent 0% 3%,#0000004d 14% 86%,transparent 97%),
+  linear-gradient(180deg,#ffffff1f 0%,transparent 10%,#00000073 24%,#00000080 65%,#00000021 88%,#ffffff40 96%,#000000ad 100%);
+ --tos-lens-shadow:inset 0 0 0 1px #ffffff38,inset 0 2px 2px #00000073,inset 1px 0 2px #00000070,inset -1px -2px 3px #00000094,0 1px 0 #000,0 0 0 1px #000000bf;
+}
+/* Keep the existing cap bounds and sockets. Only the material and ink change. */
+.lcars.theme-tos .tos-command-deck.tos-command-deck button,
+.lcars.theme-tos .tos-command-deck.tos-command-deck a,
+.lcars.theme-tos .tos-display-selector.tos-display-selector button,
+.lcars.theme-tos .top.top :is(.command-button,.audio,.header-operator,.tos-ambiance-key),
+.lcars.theme-tos .tos-navigation-bank.tos-navigation-bank .nav>i,
+.lcars.theme-tos .shell>aside :is(.task-trigger,.tos-tray-key,.nav.power)>i,
+.lcars.theme-tos .system-tray.speed-dial.speed-dial button,
+.lcars.theme-tos .mobile-command-bar.mobile-command-bar>button,
+.lcars.theme-tos .mobile-sheet-grid.mobile-sheet-grid button,
+.lcars.theme-tos.renderer-recovery.renderer-recovery button,
+.lcars.theme-tos .tos-fixed-deck label.import-config[data-tos-unit]{
+ background-image:var(--tos-resin-sheen)!important;
+ background-clip:padding-box;
+ border-color:#080b0c!important;
+ border-radius:6px!important;
+ box-shadow:var(--tos-lens-shadow)!important;
+ color:#fff3d9!important;
+ text-shadow:0 1px 2px #000;
+}
+/* Dark sockets and small internal reflections replace the previous white selection rim. */
+.lcars.theme-tos:not(.color-safe) .tos-command-deck.tos-command-deck button:is(.active,.selected,[aria-pressed=true],[aria-selected=true]),
+.lcars.theme-tos:not(.color-safe) .tos-display-selector.tos-display-selector button[aria-pressed=true]{
+ outline-color:transparent!important;
+ box-shadow:var(--tos-lens-shadow),inset 0 0 8px #ffe19c35!important;
+}
+.lcars.theme-tos .tos-navigation-bank .nav:nth-of-type(6n+2){--switch:#4b84af}
+.lcars.theme-tos .tos-navigation-bank .nav:nth-of-type(6n+3){--switch:#c95a44}
+.lcars.theme-tos .tos-navigation-bank .nav:nth-of-type(6n+1),
+.lcars.theme-tos .tos-navigation-bank .nav:nth-of-type(6n+4),
+.lcars.theme-tos .tos-navigation-bank .nav:nth-of-type(6n){--switch:#d3ccb1}
+.lcars.theme-tos .tos-navigation-bank .nav:nth-of-type(6n+5){--switch:#dca743}
+.lcars.theme-tos .tos-navigation-bank.tos-navigation-bank .nav.active>i{box-shadow:var(--tos-lens-shadow),inset 0 0 6px #fff9d638!important}
+/* The captain's-chair rockers remain simple painted faces rather than jewel lenses. */
+.lcars.theme-tos .lcars-toggle>i::after,
+.lcars.theme-tos .tos-command-deck label[data-console-toggle]>input[type=checkbox]{background-image:linear-gradient(180deg,#ffffff25,transparent 30%,#00000020),linear-gradient(90deg,#9d9f94 0 48%,#42494a 48% 51%,#e5dfcb 51%)!important}
+.lcars.theme-tos .lcars-toggle input:checked+i::after,
+.lcars.theme-tos .tos-command-deck label[data-console-toggle]>input[type=checkbox]:checked{background-image:linear-gradient(180deg,#ffffff25,transparent 30%,#00000020),linear-gradient(90deg,#e5dfcb 0 48%,#42494a 48% 51%,#9d9f94 51%)!important}
+.lcars.theme-tos .tos-instrument-bank i{background-image:radial-gradient(ellipse at 28% 18%,#ffffffa8,transparent 48%),linear-gradient(180deg,transparent 25%,#00000066)!important;box-shadow:inset 0 0 0 1px #ffffff25,inset 0 -2px 2px #0008}
+/* Focus is a separate accessible indication; it never changes cap dimensions. */
+.lcars.theme-tos .tos-command-deck.tos-command-deck button:focus-visible,
+.lcars.theme-tos .tos-display-selector.tos-display-selector button:focus-visible{outline:3px solid #fff!important;outline-offset:2px!important}
+
+/* The same pale engraved numerals remain readable on blue and ruby caps. */
+.lcars.theme-tos .tos-navigation-bank.tos-navigation-bank .nav:is(:nth-of-type(6n+2),:nth-of-type(6n+3))>i{color:#fff3d6!important;text-shadow:0 1px 1px #000b}
+
+.lcars.theme-tos .tos-command-deck.tos-command-deck button :is(b,small,span,i,em,strong),
+.lcars.theme-tos .tos-display-selector.tos-display-selector button :is(b,span,i),
+.lcars.theme-tos .top.top :is(.command-button,.audio,.header-operator,.tos-ambiance-key) :is(b,span,i),
+.lcars.theme-tos .system-tray.speed-dial.speed-dial button :is(b,span,i),
+.lcars.theme-tos .mobile-command-bar.mobile-command-bar>button :is(b,span,i){color:inherit!important}
+
+.lcars.theme-tos.color-safe .tos-display-selector.tos-display-selector button[aria-pressed=true],
+.lcars.theme-tos.color-safe .tos-command-deck.tos-command-deck button[aria-pressed=true]{outline:3px double #fff!important;outline-offset:-4px}

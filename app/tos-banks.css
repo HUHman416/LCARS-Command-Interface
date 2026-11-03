@@ -32,7 +32,7 @@
 .lcars.theme-tos .universal-search .universal-search-results>article.tos-search-selected{border-left:3px solid #fff4d4!important;padding-left:9px}
 .lcars.theme-tos .tos-search-selection{background:#000!important;border:0!important;border-bottom:1px solid #555e5b!important;padding:8px 0;color:#fff4d4;font:12px/1.4 Arial,sans-serif}
 .lcars.theme-tos .universal-search>.tos-fixed-deck{flex:0 0 auto!important;width:100%;margin:0!important;border-top:6px solid var(--tos-frame-shadow)!important}
-@container(max-width:700px){
+@container(max-width:899px){
  .lcars.theme-tos .tos-fixed-deck .tos-command-bank.tos-command-bank{grid-template-columns:repeat(3,minmax(0,1fr))!important}
  .lcars.theme-tos .tos-fixed-deck .tos-control-group:has(>.tos-command-bank>button:only-child)>.tos-command-bank{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 }

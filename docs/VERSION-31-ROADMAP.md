@@ -89,3 +89,5 @@ Supplementary 31.5.7 audits TOS display/control separation, connected and unifor
 31.5.10 supplementary TOS refinement: glossy cast-resin physical keys and an optional header ambiance key, with smooth activation and the full original bridge recording looping from 0:04. The 31.6 milestone remains reserved.
 
 31.5.11 supplementary TOS refinement: fixed information sheets selected by physical keys beneath the header lamps, replacing main content scrolling. A COMMAND KEYS button stows/reopens the command bank, beginning stowed on short displays. The 31.6 milestone remains reserved.
+
+31.5.12 supplementary TOS refinement applies the comparative audit: larger dominant square resin caps, selective seated domes, local black mounting plates within the gray chassis, consistent legends, and responsive fixed banks. The 31.6 milestone remains reserved.

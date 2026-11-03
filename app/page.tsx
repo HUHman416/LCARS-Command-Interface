@@ -76,7 +76,7 @@ import { DailyUtilities } from "./v31-utilities";
 import { TosInformationReadout } from "./tos-information";
 
 declare global { interface Window { __lcarsPlayStartupSound?: (force?:boolean)=>Promise<{ok:boolean;status:string;asset?:string;output?:string;error?:string}> } }
-const LCARS_VERSION="31.5.11";
+const LCARS_VERSION="31.5.12";
 
 type App = { id: string; name: string; comment: string; icon?: string };
 type LocalMediaRequest = { path: string; name: string; kind: LocalMediaKind; nonce: number };
@@ -905,7 +905,7 @@ export default function Home() {
       !sessionStorage.getItem("lcars-setup-dismissed")
     )
       setFirstRun(true);
-    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-11"))setWhatsNewOpen(true);
+    if(setupComplete&&!safeBoot&&!launchParams.get("tool")&&!localStorage.getItem("lcars-whats-new-v31-5-12"))setWhatsNewOpen(true);
     setClock(new Date());
     fetch("http://127.0.0.1:8765/api/apps")
       .then((r) => r.json())
@@ -1985,7 +1985,7 @@ export default function Home() {
       accessibility:{fontScale:access.fontScale,highContrast:access.highContrast,reducedMotion:access.reducedMotion,colorSafe:access.colorSafe},
       recentItems:fabric?.categories.recentItems===false?[]:(fabric?.recent||[]).slice(0,40),
       activity:fabric?.categories.activity?(fabric?.history||[]).slice(0,40):[],
-      release:{stable:"30",development:"31.5.11",channel:prefs.updateChannel},
+      release:{stable:"30",development:"31.5.12",channel:prefs.updateChannel},
     })}).catch(()=>{});
     const runQuickAction=(value:string)=>{
       const [kind,...rest]=value.split(":"),target=rest.join(":");
@@ -2614,6 +2614,21 @@ export default function Home() {
   const detachedParams=typeof window!=="undefined"?new URLSearchParams(window.location.search):null;
   if(detachedParams?.get("tool")==="document"&&detachedParams.get("path"))return <ConsoleThemeProvider tos={theme==="tos"} onFeedback={playTosKey}><main onClickCapture={tosConsoleKey} onKeyDownCapture={tosConsoleKeyboardKey} className={detachedConsoleClass} style={{fontSize:access.fontScale+"%"}}><ConsoleWindowControls><DocumentWorkspaceV31 path={detachedParams.get("path")||""} detached close={()=>window.close()} notify={notify}/></ConsoleWindowControls></main></ConsoleThemeProvider>;
   if(detachedParams?.get("tool")==="page-peek"&&detachedParams.get("page")){const page=detachedParams.get("page")||"overview";return <ConsoleThemeProvider tos={theme==="tos"} onFeedback={playTosKey}><main onClickCapture={tosConsoleKey} onKeyDownCapture={tosConsoleKeyboardKey} className={detachedConsoleClass} style={{fontSize:access.fontScale+"%"}}><ConsoleWindowControls><SpeedDialPagePeek detached popupKey="detached-page-peek" page={page} pinned={false} customPages={customPages} apps={apps} players={sortedPlayers} streams={streams} network={networkInfo} meters={meters} update={lcarsUpdate} notices={notices} bridge={bridge} volume={volume} muted={audioMuted} doNotDisturb={doNotDisturb} mediaControl={mediaControl} setMasterVolume={setVolume} commitMasterVolume={setSystemVolume} toggleMasterMute={toggleMasterMute} setStreamVolume={streamVolume} setStreamMute={streamMute} launch={launch} togglePinned={()=>{}} close={()=>window.close()} openFull={(target)=>{window.location.href=`lcars://app/index.html?section=${encodeURIComponent(target)}`;}}/></ConsoleWindowControls></main></ConsoleThemeProvider>;}
+  const headerCommands=<>
+<ConsoleButton consoleTone="blue" className="command-button" onClick={() => {setPaletteQuery("");setPaletteOpen(true);}}>
+          SEARCH ⌘F
+        </ConsoleButton>
+        <ConsoleButton
+          consoleCap="dome" consoleTone="amber" className="audio notice-button"
+          onClick={() => setHistoryOpen(!historyOpen)}
+        >
+          {notices.length
+            ? "NOTICES " + notices.length
+            : sound
+              ? "AUDIO 04"
+              : "MUTED"}
+        </ConsoleButton>
+  </>;
   return (
     <ConsoleThemeProvider tos={theme==="tos"} onFeedback={playTosKey}><main
       onClickCapture={tosConsoleKey}
@@ -2631,15 +2646,15 @@ export default function Home() {
       <header className="top">
         <ConsoleButton className="brand" onClick={() => setSection("overview")}>
           <span>{theme === "tos" ? "STARFLEET" : "LCARS"}</span>
-          <small>31.5.11 DEV</small>
+          <small>31.5.12 DEV</small>
         </ConsoleButton>
         <div className="title">
           <div className="title-copy">
             <div className={`title-kicker${prefs.voiceEnabled?" voice-active":""}`}>
               <small>{theme === "tos" ? "USS ENTERPRISE · NCC-1701 · COMPUTER CONTROL" : "FEDERATION OPERATING ENVIRONMENT"}</small>
-              {theme==="tos"?<div className="tos-operator-controls"><ConsoleButton className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></ConsoleButton>
+              {theme==="tos"?<div className="tos-operator-controls"><ConsoleButton consoleTone="amber" className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></ConsoleButton>
                 {ambiance.owner&&<ConsoleButton className="tos-ambiance-key" aria-label="Bridge ambiance" aria-pressed={ambiance.enabled} onClick={toggleAmbiance} title={ambiance.phase==="BLOCKED"?"Press to start bridge ambiance":"Loop the original bridge recording from 0:04"}><span>AMBIANCE</span><b>{!ambiance.enabled?"OFF":ambiance.phase==="BLOCKED"?"PLAY":ambiance.phase==="FAILED"?"ERROR":(!sound||access.soundVolume===0)?"MUTED":"ON"}</b></ConsoleButton>}
-              </div>:<ConsoleButton className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></ConsoleButton>}
+              </div>:<ConsoleButton consoleTone="amber" className={`header-operator role-${activeOperator?.role||"guest"}`} onClick={()=>setOperatorCenterOpen(true)} title="Switch operator or manage Version 30 identities"><i>{activeOperator?.awayTeam?"AT":activeOperator?.role==="administrator"?"A":activeOperator?.role==="operator"?"O":"G"}</i><span>{activeOperator?.name||userName}</span></ConsoleButton>}
               {prefs.voiceEnabled&&<VoiceControl prefs={prefs} computer={dispatchVoiceComputer} notify={notify} />}
             </div>
             <h1>
@@ -2659,19 +2674,7 @@ export default function Home() {
           </b>
           <small>{bridge ? "LOCAL CORE ONLINE" : "DEMO CORE"}</small>
         </ConsoleButton>
-        <ConsoleButton className="command-button" onClick={() => {setPaletteQuery("");setPaletteOpen(true);}}>
-          SEARCH ⌘F
-        </ConsoleButton>
-        <ConsoleButton
-          className="audio notice-button"
-          onClick={() => setHistoryOpen(!historyOpen)}
-        >
-          {notices.length
-            ? "NOTICES " + notices.length
-            : sound
-              ? "AUDIO 04"
-              : "MUTED"}
-        </ConsoleButton>
+        {theme==="tos"?<div className="tos-header-command-plate">{headerCommands}</div>:headerCommands}
       </header>
       {theme === "tos" && <div className="tos-instrument-bank" aria-hidden="true"><span>USS ENTERPRISE · NCC-1701</span><div>{Array.from({length:12},(_,i)=><i key={i}/>)}</div><span>COMPUTER CONTROL · 2266</span></div>}
       {theme==="tos"&&<div className="tos-display-chassis" ref={setScreenNavigation}/>}
@@ -2757,7 +2760,7 @@ export default function Home() {
               </h2>
             </div>
             <div className="heading-actions">
-              <ConsoleButton className={portalPending ? "portal-pending" : ""} onClick={() => setSection("portals")}>PORTALS <b>{portalPending}</b></ConsoleButton>
+              <ConsoleButton consoleTone="amber" className={portalPending ? "portal-pending" : ""} onClick={() => setSection("portals")}>PORTALS <b>{portalPending}</b></ConsoleButton>
               <span>
                 ●{" "}
                 {bridge ? "LOCAL SYSTEM CONNECTED" : "INTERFACE DEMONSTRATION"}
@@ -2770,7 +2773,7 @@ export default function Home() {
                   COMPATIBILITY <b>{compat.restrictions.length}</b>
                 </ConsoleButton>
               )}
-              <ConsoleButton
+              <ConsoleButton consoleTone="blue"
                 disabled={compat?.capabilities?.displayControl === false}
                 title={
                   compat?.capabilities?.displayControl === false
@@ -2781,7 +2784,7 @@ export default function Home() {
               >
                 DISPLAYS <b>{displays.length}</b>
               </ConsoleButton>
-              <ConsoleButton
+              <ConsoleButton consoleCap="dome" consoleTone="blue"
                 onClick={() =>
                   displayAction(
                     "terminal",
@@ -2820,7 +2823,7 @@ export default function Home() {
               </div>
               <div className="overview-toolbar">
                 <span>{widgets.length} MODULES ACTIVE</span>
-                <ConsoleControls><nav><ConsoleButton onClick={()=>setRoutineCenterOpen(true)}>OPERATIONS AUTOMATION</ConsoleButton><ConsoleButton
+                <ConsoleControls><nav><ConsoleButton onClick={()=>setRoutineCenterOpen(true)}>OPERATIONS AUTOMATION</ConsoleButton><ConsoleButton consoleCap="dome" consoleTone="amber"
                   className={overviewEdit ? "editing" : ""}
                   onClick={() => setOverviewEdit(!overviewEdit)}
                 >
@@ -3162,7 +3165,7 @@ export default function Home() {
           }}
         />
       )}
-      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-11","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-11","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
+      {whatsNewOpen&&<Version31Welcome close={()=>{localStorage.setItem("lcars-whats-new-v31-5-12","1");setWhatsNewOpen(false);}} openDisplay={()=>{localStorage.setItem("lcars-whats-new-v31-5-12","1");setWhatsNewOpen(false);setSettingsArea("interface");setSection("settings");}}/>}
       {calendarOpen&&<LcarsCalendar now={clock||new Date()} close={()=>setCalendarOpen(false)}/>}
       {operatorCenterOpen&&<OperatorCenter operators={operators} activeId={activeOperatorId} devices={paddStatus?.devices||[]} canManage={operatorCan(activeOperator,"identity")} close={()=>setOperatorCenterOpen(false)} switchOperator={switchOperator} createOperator={createOperator} updateOperator={updateOperator} setPin={setOperatorPin} deleteOperator={deleteOperator} exportOperator={exportOperator} importOperator={importOperator} saveStationPreference={saveOperatorStationPreference} roamOperator={roamOperator}/>}
       {computerOpen&&<ComputerCoreConsole
@@ -4593,7 +4596,7 @@ function ShellSettings({
             {prefs.pageDensityScope==="per-page"&&<div className="page-density-matrix">{nav.map((item)=><ConsoleControls><label key={item[0]}><span>{item[1]} {item[2]}</span><ConsoleSelect value={prefs.pageDensities[item[0]]||prefs.pageDensity} onChange={(event)=>set("pageDensities",{...prefs.pageDensities,[item[0]]:event.target.value as PageDensity})}><option value="compact">COMPACT</option><option value="standard">STANDARD</option><option value="wide">WIDE</option></ConsoleSelect></label></ConsoleControls>)}</div>}
           </div>
           <Toggle label="Play startup power sequence" description="Plays the selected console’s startup recording when the desktop app opens. It never delays the interface." checked={prefs.startupSound} change={(v) => set("startupSound", v)} />
-          <div className="startup-audio-diagnostic"><ConsoleButton onClick={testStartupAudio}>TEST POWER-UP AUDIO</ConsoleButton><small>{startupAudioStatus}</small><em>ASSET: LCARS BUNDLED MP3 · OUTPUT: OPERATING-SYSTEM DEFAULT</em></div>
+          <div className="startup-audio-diagnostic"><ConsoleButton consoleCap="dome" consoleTone="amber" onClick={testStartupAudio}>TEST POWER-UP AUDIO</ConsoleButton><small>{startupAudioStatus}</small><em>ASSET: LCARS BUNDLED MP3 · OUTPUT: OPERATING-SYSTEM DEFAULT</em></div>
           <Toggle label="Show background startup telemetry" description="Shows a small nonblocking system-check strip while LCARS connects to local services." checked={prefs.startupSequence} change={(v) => set("startupSequence", v)} />
           <ConsoleControls><label>SYSTEM TRAY PRESENTATION<small>Places the same tray drawer trigger in the side rail or the compact SYS 47 header position.</small><ConsoleSelect value={prefs.trayPresentation} onChange={(event)=>set("trayPresentation",event.target.value as ShellPrefs["trayPresentation"])}><option value="rail">SIDE RAIL</option><option value="header">HEADER / SYS 47</option></ConsoleSelect></label></ConsoleControls>
           <SpeedDialEditor items={prefs.speedDial} extensions={extensions} customPages={customPages} routines={routines} change={(items)=>set("speedDial",items)} />
@@ -5212,7 +5215,7 @@ function Version31Welcome({close,openDisplay}:{close:()=>void;openDisplay:()=>vo
     {code:"04",title:"PRINT COMMAND",text:"Review printers and queued jobs, then cancel a job through a matching, single-use Portal authorization."},
     {code:"05",title:"VOICE PERMISSION REPAIR",text:"Hands-free Voice Control now recognizes trusted LCARS microphone requests and prevents repeated startup attempts or duplicate denial notices."},
   ];
-  return <ConsoleCopy><div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>VERSION 31.5.11 TOS CONSOLE</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.11"><ConsoleWindowControls><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.11 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.11</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openDisplay}>OPEN DISPLAY MATRIX</ConsoleButton><ConsoleButton autoFocus onClick={close}>CONTINUE TO LCARS</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div></ConsoleCopy>;
+  return <ConsoleCopy><div className="backdrop whats-new-backdrop"><ConsoleGroup label={<>VERSION 31.5.12 TOS CONSOLE</>}><section className="whats-new-v26" role="dialog" aria-modal="true" aria-label="What's new in LCARS Version 31.5.12"><ConsoleWindowControls><header><span><small>FEDERATION OPERATING ENVIRONMENT · DEVELOPMENT</small><h2>VERSION 31.5.12 TOS CONSOLE</h2><p>A production-series Enterprise console, with all Daily Utilities and existing desktop functions retained.</p></span><strong>31.5.12</strong></header><div>{features.map((feature)=><article key={feature.code}><i>{feature.code}</i><span><b>{feature.title}</b><p>{feature.text}</p></span></article>)}</div><footer><ConsoleButton onClick={openDisplay}>OPEN DISPLAY MATRIX</ConsoleButton><ConsoleButton autoFocus onClick={close}>CONTINUE TO LCARS</ConsoleButton></footer></ConsoleWindowControls></section></ConsoleGroup></div></ConsoleCopy>;
 }
 
 function Version29Welcome({close,openConnected}:{close:()=>void;openConnected:()=>void}){

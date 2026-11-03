@@ -28,6 +28,8 @@ import "../app/tos-banks.css";
 import "../app/tos-displays.css";
 import "../app/tos-resin.css";
 import "../app/tos-screen.css";
+import "../app/tos-keycaps.css";
+import "../app/tos-key-shapes.css";
 
 const nativeFetch: typeof window.fetch = window.fetch.bind(window);
 const compatFallback = {

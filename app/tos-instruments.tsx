@@ -1,4 +1,4 @@
-import { ConsoleControls, ConsoleButton } from "./tos-console";
+import { ConsoleControls, ConsoleButton, ConsoleGroup } from "./tos-console";
 /** Original backlit load instrument. Every mark represents the current sampled load. */
 export function TosLoadInstrument({meters,open}:{meters:(string|number)[][];open:()=>void}){
   const readoutColors:Record<string,string>={CPU:"#fff4d4",GPU:"#f1bc5b",MEM:"#fff4d4",DISK:"#fff4d4"};
@@ -40,6 +40,6 @@ export function TosLoadInstrument({meters,open}:{meters:(string|number)[][];open
       </svg>
     </div>
     <div className="tos-numeric-bank">{readings.map((item,index)=><article key={item.label}><span><i>{String(index+1).padStart(2,"0")}</i><b>{item.label}</b></span><strong>{Math.round(item.value)}<small>%</small></strong><em>{item.detail}</em></article>)}</div>
-    <ConsoleControls><nav className="tos-instrument-controls" aria-label="Engineering instrument controls"><span>ENGINEERING CONTROL</span><ConsoleButton onClick={open}>SYSTEM TELEMETRY</ConsoleButton><ConsoleButton onClick={open}>MEMORY / STORAGE</ConsoleButton></nav></ConsoleControls>
+    <ConsoleGroup label="ENGINEERING INSTRUMENTS"><ConsoleControls><nav className="tos-instrument-controls" aria-label="Engineering instrument controls"><ConsoleButton onClick={open}>SYSTEM TELEMETRY</ConsoleButton><ConsoleButton onClick={open}>MEMORY / STORAGE</ConsoleButton></nav></ConsoleControls></ConsoleGroup>
   </div>;
 }

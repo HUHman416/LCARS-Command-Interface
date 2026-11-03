@@ -155,7 +155,6 @@
 .lcars.theme-tos .tos-command-bank>button :is(b,span,small,i,em),.lcars.theme-tos .tos-command-bank>nav>button :is(b,span,small,i,em){color:#080b0c!important}
 .lcars.theme-tos .tos-command-bank>button>span,.lcars.theme-tos .tos-command-bank>nav>button>span{display:grid;gap:2px;min-width:0;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 .lcars.theme-tos .tos-command-bank>button>i,.lcars.theme-tos .tos-command-bank>nav>button>i{flex:0 0 14px;width:14px;min-width:0;min-height:0;background:transparent!important;border:0!important;border-radius:0!important;font:9px ui-monospace,monospace;box-shadow:none!important}
-.lcars.theme-tos .tos-command-bank>button:nth-child(5n+2):not(.active,.selected,.danger),.lcars.theme-tos .tos-command-bank>nav>button:nth-child(5n+2):not(.active,.selected,.danger){background-color:var(--tos-key-blue)!important}
 .lcars.theme-tos .tos-command-bank>button:is(.active,.selected,.primary,[aria-pressed=true],[aria-selected=true]),.lcars.theme-tos .tos-command-bank>nav>button:is(.active,.selected){background-color:#f1bc5b!important;outline:1px solid #fff;outline-offset:-3px}
 .lcars.theme-tos .tos-command-bank>button.danger{background-color:#e95740!important}
 .lcars.theme-tos .tos-command-bank>button:disabled{opacity:.65;filter:saturate(.4)}

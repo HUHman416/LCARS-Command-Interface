@@ -28,14 +28,14 @@ function useDeck(enabled:boolean,initialGroup:Group=defaultGroup,close?:()=>void
 }
 function FixedControlDeck({groups,active,select,attach,close}:{groups:Group[];active:string;select:(id:string)=>void;attach:(id:string,node:HTMLDivElement|null)=>void;close?:()=>void}){
   const index=groups.findIndex(group=>group.id===active),deckRef=useRef<HTMLDivElement|null>(null),[bankLimit,setBankLimit]=useState(4);
-  useLayoutEffect(()=>{const deck=deckRef.current;if(!deck)return;const update=()=>setBankLimit(deck.getBoundingClientRect().width<700?2:4);update();const resize=new ResizeObserver(update);resize.observe(deck);return()=>resize.disconnect();},[groups.length]);
+  useLayoutEffect(()=>{const deck=deckRef.current;if(!deck)return;const update=()=>{const width=deck.getBoundingClientRect().width;setBankLimit(width<340?1:width<700?2:4);};update();const resize=new ResizeObserver(update);resize.observe(deck);return()=>resize.disconnect();},[groups.length]);
   const first=Math.floor(Math.max(0,index)/bankLimit)*bankLimit;
   if(!groups.length)return null;
   return <div ref={deckRef} className="tos-command-deck tos-fixed-deck" role="region" aria-label="Console control deck" hidden={!groups.length}>
     <nav className={`tos-bank-selector ${close?"has-close":""}`} aria-label="Console bank selector">
-      <button aria-label="Previous control bank" disabled={index<=0} onClick={()=>select(groups[index-1].id)}>◀</button>
-      <div className="tos-bank-keys" style={{gridTemplateColumns:`repeat(${bankLimit},minmax(0,1fr))`}}>{groups.slice(first,first+bankLimit).map((group,offset)=><button key={group.id} className={active===group.id?"active":""} aria-label={`Control bank ${first+offset+1}: ${group.label}`} aria-pressed={active===group.id} title={group.label} onClick={()=>select(group.id)}><i>{String(first+offset+1).padStart(2,"0")}</i><span>{group.label}</span></button>)}</div>
-      <button aria-label="Next control bank" disabled={index>=groups.length-1} onClick={()=>select(groups[index+1].id)}>▶</button>{close&&<button onClick={close}>CLOSE ×</button>}
+      <button data-console-cap="square" data-console-face="full" aria-label="Previous control bank" disabled={index<=0} onClick={()=>select(groups[index-1].id)}>◀</button>
+      <div className="tos-bank-keys" style={{gridTemplateColumns:`repeat(${bankLimit},minmax(0,1fr))`}}>{groups.slice(first,first+bankLimit).map((group,offset)=><button data-console-cap="square" key={group.id} className={active===group.id?"active":""} aria-label={`Control bank ${first+offset+1}: ${group.label}`} aria-pressed={active===group.id} title={group.label} onClick={()=>select(group.id)}><i>{String(first+offset+1).padStart(2,"0")}</i><span>{group.label}</span></button>)}</div>
+      <button data-console-cap="square" data-console-face="full" aria-label="Next control bank" disabled={index>=groups.length-1} onClick={()=>select(groups[index+1].id)}>▶</button>{close&&<button data-console-cap="square" data-console-face="full" onClick={close}>CLOSE ×</button>}
     </nav>
     {groups.map(group=><ControlBank key={group.id} group={group} active={active===group.id} attach={attach}/>)}
   </div>;
@@ -47,7 +47,7 @@ function ControlBank({group,active,attach}:{group:Group;active:boolean;attach:(i
   useLayoutEffect(()=>{
     const bank=node.current;if(!bank)return;
     const layout=()=>{
-      const capacity=(bank.closest(".tos-command-deck")?.getBoundingClientRect().width||800)<700?3:6;
+      const capacity=(bank.closest(".tos-command-deck")?.getBoundingClientRect().width||800)<900?3:6;
       const units:HTMLElement[]=[];
       const visit=(element:HTMLElement)=>{
         if(element.matches("nav,form")||element.matches("div:not(.lcars-calendar-grid)")&&element.querySelector("button,input,select,textarea,a")){
@@ -57,7 +57,8 @@ function ControlBank({group,active,attach}:{group:Group;active:boolean;attach:(i
       Array.from(bank.children).forEach(child=>visit(child as HTMLElement));
       const costs=units.map(element=>element.matches('textarea,.lcars-calendar-grid,input[aria-label="Search query"]')?capacity:element.matches("label,input,select")?Math.min(3,capacity):1);
       const assignments=consoleControlPages(costs,capacity),count=(assignments.at(-1)??0)+1,current=Math.min(page,count-1);
-      units.forEach((element,index)=>{element.dataset.tosUnit="";element.dataset.tosPageVisible=String(assignments[index]===current);element.style.setProperty("--tos-unit-span",String(costs[index]));});
+      bank.style.setProperty("--tos-bank-columns",String(Math.max(1,costs.reduce((total,cost,index)=>total+(assignments[index]===current?cost:0),0))));
+      units.forEach((element,index)=>{element.dataset.tosUnit="";if(element.matches("button,a")&&!element.dataset.consoleCap)element.dataset.consoleCap="square";element.dataset.tosPageVisible=String(assignments[index]===current);element.style.setProperty("--tos-unit-span",String(costs[index]));});
       setPages(count);if(page!==current)setPage(current);
     };
     layout();
@@ -66,7 +67,7 @@ function ControlBank({group,active,attach}:{group:Group;active:boolean;attach:(i
     const deck=bank.closest(".tos-command-deck");if(deck)resize.observe(deck);
     return()=>{changes.disconnect();resize.disconnect();};
   },[page,active]);
-  return <section className="tos-control-group" hidden={!active}><h4>{group.label}</h4><div className="tos-command-bank" ref={ref}/>{pages>1&&<nav className="tos-key-pages" aria-label={`${group.label} key pages`}><button aria-label="Previous keys" disabled={page===0} onClick={()=>setPage(value=>value-1)}>◀ KEYS</button><output aria-live="polite">KEY BANK {page+1} / {pages}</output><button aria-label="Next keys" disabled={page===pages-1} onClick={()=>setPage(value=>value+1)}>KEYS ▶</button></nav>}</section>;
+  return <section className="tos-control-group" hidden={!active}><h4>{group.label}</h4><div className="tos-command-bank" ref={ref}/>{pages>1&&<nav className="tos-key-pages" aria-label={`${group.label} key pages`}><button data-console-cap="square" aria-label="Previous keys" disabled={page===0} onClick={()=>setPage(value=>value-1)}>◀ KEYS</button><output aria-live="polite">KEY BANK {page+1} / {pages}</output><button data-console-cap="square" aria-label="Next keys" disabled={page===pages-1} onClick={()=>setPage(value=>value+1)}>KEYS ▶</button></nav>}</section>;
 }
 export function useTosConsole(){return useContext(Context).enabled;}
 export function ConsoleThemeProvider({tos,children,onFeedback}:{tos:boolean;children:ReactNode;onFeedback?:(cancel?:boolean)=>void}){
@@ -102,13 +103,13 @@ export function ConsoleControls({children}:{children:ReactNode}){
     const find=(value:ReactNode):boolean=>Children.toArray(value).some(item=>isValidElement(item)&&Boolean((item.props as {autoFocus?:boolean}).autoFocus||find((item.props as {children?:ReactNode}).children)));
     if(find(children)){context.activate?.(context.group.id);const frame=requestAnimationFrame(()=>target.querySelector<HTMLElement>("input,textarea,select")?.focus());return()=>cancelAnimationFrame(frame);}
   },[active,target,context.group.id]);
-  if(!active)return <>{children}</>;
+  if(!active)return <>{computerContent(children,context.enabled)}</>;
   return target?createPortal(<Context.Provider value={{...context,inBank:true}}>{computerContent(children,context.enabled)}</Context.Provider>,target):null;
 }
 export function ConsoleDisplay({tos,children,pageKey,navigationTarget}:{tos:boolean;children:ReactNode;pageKey?:string;navigationTarget?:HTMLDivElement|null}){
   const {value,deck}=useDeck(tos);
   const [controlsOpen,setControlsOpen]=useState(true);
-  useEffect(()=>{if(!tos)return;const compact=window.matchMedia('(max-height:600px)'),update=()=>setControlsOpen(!compact.matches);update();compact.addEventListener('change',update);return()=>compact.removeEventListener('change',update);},[tos]);
+  useEffect(()=>{if(!tos)return;const compact=window.matchMedia('(max-height:700px)'),update=()=>setControlsOpen(!compact.matches);update();compact.addEventListener('change',update);return()=>compact.removeEventListener('change',update);},[tos]);
   if(!tos)return <>{children}</>;
   return <div className="tos-station" data-tos-controls-open={controlsOpen}><Context.Provider value={value}><div className="tos-monitor"><TosScreen pageKey={pageKey} navigationTarget={navigationTarget} controlsOpen={controlsOpen} toggleControls={()=>setControlsOpen(value=>!value)}>{computerContent(children,tos)}</TosScreen></div>{deck}</Context.Provider></div>;
 }
@@ -129,10 +130,13 @@ function displayOnly(children:ReactNode):ReactNode{
     return cloneElement(item,props);
   });
 }
-export function ConsoleButton({consoleChoice=false,children,...props}:ButtonHTMLAttributes<HTMLButtonElement>&{consoleChoice?:boolean}){
+export function ConsoleButton({consoleChoice=false,consoleCap="square",consoleTone="ivory",children,...props}:ButtonHTMLAttributes<HTMLButtonElement>&{consoleChoice?:boolean;consoleCap?:"square"|"dome";consoleTone?:"ivory"|"amber"|"blue"|"coral"}){
   const context=useContext(Context);
   const selection=context.enabled&&Boolean(context.register)&&props.role==="option"?{role:undefined,"aria-selected":undefined,"aria-pressed":props["aria-selected"]}:{};
-  const control=<button {...computerProps(props,context.enabled)} {...selection}>{computerContent(children,context.enabled)}</button>;
+  const hardware=context.enabled&&(Boolean(context.register)||/\b(command-button|audio|header-operator|tos-ambiance-key)\b/.test(props.className||""));
+  const parts=Children.toArray(children),icon=hardware?parts.find(item=>isValidElement(item)&&item.type==="i"):undefined;
+  const legend=hardware?<>{icon}<span className="tos-key-legend">{computerContent(parts.filter(item=>item!==icon),true)}</span></>:computerContent(children,context.enabled);
+  const control=<button {...computerProps(props,context.enabled)} {...selection} data-console-cap={hardware?consoleCap:undefined} data-console-tone={hardware?consoleTone:undefined}>{legend}</button>;
   if(!context.enabled||context.inBank||!context.register)return control;
   return <>{(consoleChoice||props.className==="app-launch-button")&&<div role={props.role==="option"?"listitem":undefined} className={`tos-display-choice ${props.className||""}`}>{displayOnly(computerContent(children,context.enabled))}</div>}<ConsoleControls>{control}</ConsoleControls></>;
 }
@@ -149,7 +153,7 @@ export function detachedWorkspaceUrl(tool:"document"|"page-peek",values:Record<s
 }
 
 export function ConsoleSelect(props:SelectHTMLAttributes<HTMLSelectElement>){return <ConsoleControls><select {...props}/></ConsoleControls>;}
-export function ConsoleLink(props:AnchorHTMLAttributes<HTMLAnchorElement>){return <ConsoleControls><a {...props}/></ConsoleControls>;}
+export function ConsoleLink(props:AnchorHTMLAttributes<HTMLAnchorElement>){const {enabled}=useContext(Context);return <ConsoleControls><a {...props} data-console-cap={enabled?"square":undefined}/></ConsoleControls>;}
 export function ConsoleDisclosure({children,...props}:HTMLAttributes<HTMLDetailsElement>&{open?:boolean}){
   const context=useContext(Context),[open,setOpen]=useState(Boolean(props.open));
   if(!context.enabled||!context.register)return <details {...props}>{children}</details>;

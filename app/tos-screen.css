@@ -33,7 +33,7 @@
  .lcars.theme-tos .tos-screen-track .content{gap:5px}
 }
 .lcars.theme-tos .tos-screen-track .tos-load-instruments :is(.tos-load-screen,.tos-allocation-screen){height:auto!important;padding:4px 0!important}
-.lcars.theme-tos .tos-screen-track .tos-load-instruments svg{min-height:0!important;max-height:min(205px,max(30px,calc(var(--tos-display-height,400px) - 95px)))!important}
+.lcars.theme-tos .tos-screen-track .tos-load-instruments svg{min-height:0!important;max-height:min(205px,max(30px,calc(var(--tos-display-height,400px) - 65px)))!important}
 .lcars.theme-tos .tos-display-selector:has(.tos-display-command-key){grid-template-columns:34px minmax(0,1fr) 34px 115px 90px}
 .lcars.theme-tos .tos-display-selector .tos-display-command-key{background-color:var(--tos-key-blue)}
 .lcars.theme-tos .tos-station[data-tos-controls-open=false]>.tos-fixed-deck{display:none!important}

@@ -1,0 +1,165 @@
+/* One physical-key layer overrides legacy positional button backgrounds. */
+@layer tos-physical{
+ .lcars.theme-tos{--tos-cap-size:40px;--tos-hit-height:56px;--tos-cap-color:#d3ccb1;
+  --tos-dome-sheen:radial-gradient(circle at 29% 20%,#ffffffbf 0% 3%,#ffffff24 12%,transparent 31%),radial-gradient(ellipse 52% 17% at 55% 87%,#ffffff73,transparent 100%),radial-gradient(ellipse at 48% 32%,#ffffff0d 5%,#0003 45%,#0009 82%,#000e 100%);
+ }
+ .lcars.theme-tos [data-console-cap]{
+  position:relative!important;box-sizing:border-box!important;min-height:var(--tos-hit-height)!important;height:var(--tos-hit-height)!important;max-height:var(--tos-hit-height)!important;
+  background:none!important;background-color:transparent!important;border:3px solid transparent!important;box-shadow:none!important;border-radius:2px!important;
+  padding:4px 5px 4px calc(var(--tos-cap-size) + 14px)!important;justify-content:flex-start!important;text-align:left!important;gap:5px!important;
+  color:#fff3d9!important;text-shadow:none!important;font-size:10px!important;
+ }
+ .lcars.theme-tos [data-console-cap] :is(b,small,span,i,em,strong){color:inherit!important}
+ .lcars.theme-tos [data-console-cap]::before{
+  content:""!important;position:absolute!important;left:3px!important;top:50%!important;transform:translateY(-50%)!important;
+  box-sizing:border-box!important;width:var(--tos-cap-size)!important;height:var(--tos-cap-size)!important;border:3px solid #121513!important;border-radius:5px!important;
+  background-color:var(--tos-cap-color)!important;background-image:var(--tos-resin-sheen)!important;
+  box-shadow:var(--tos-lens-shadow),0 2px 0 #000!important;pointer-events:none!important;
+ }
+ .lcars.theme-tos [data-console-cap]:has(>i)::before{display:none!important}
+ .lcars.theme-tos [data-console-cap]>i{
+  position:absolute!important;left:3px!important;top:50%!important;transform:translateY(-50%)!important;display:grid!important;place-items:center!important;box-sizing:border-box!important;
+  width:var(--tos-cap-size)!important;height:var(--tos-cap-size)!important;min-width:var(--tos-cap-size)!important;min-height:var(--tos-cap-size)!important;
+  padding:0!important;margin:0!important;border:3px solid #121513!important;border-radius:5px!important;
+  background-color:var(--tos-cap-color)!important;background-image:var(--tos-resin-sheen)!important;
+  box-shadow:var(--tos-lens-shadow),0 2px 0 #000!important;color:#fff3d9!important;font:11px ui-monospace,monospace!important;
+ }
+ .lcars.theme-tos [data-console-tone=blue]{--tos-cap-color:#4b84af}
+ .lcars.theme-tos [data-console-tone=amber]{--tos-cap-color:#e1ad49}
+ .lcars.theme-tos [data-console-tone=coral],.lcars.theme-tos [data-console-cap]:is(.danger,.poweroff,.reboot){--tos-cap-color:#c95a44}
+ .lcars.theme-tos [data-console-cap]:is(.active,.selected,[aria-selected=true],[aria-pressed=true]){--tos-cap-color:#f1bc5b}
+ .lcars.theme-tos [data-console-cap][aria-pressed=true]>span{text-decoration:underline;text-underline-offset:3px}
+ /* The dome has a broad, seated base instead of a floating complete sphere. */
+ .lcars.theme-tos [data-console-cap=dome]::before,.lcars.theme-tos [data-console-cap=dome]>i{
+  border-radius:52% 52% 39% 39% / 62% 62% 32% 32%!important;background-image:var(--tos-dome-sheen)!important;
+  box-shadow:inset 0 0 0 1px #fff3,inset 0 -4px 3px #0008,0 3px 0 #161a17,0 4px 0 #000!important;
+ }
+ .lcars.theme-tos [data-console-face=full]{padding:0 3px!important;justify-content:center!important;text-align:center!important;background-color:var(--tos-cap-color)!important;background-image:var(--tos-resin-sheen)!important;border-color:#111513!important;border-radius:5px!important;box-shadow:var(--tos-lens-shadow)!important}
+ .lcars.theme-tos [data-console-face=full]::before{display:none!important}
+ .lcars.theme-tos [data-console-cap]:disabled{opacity:.55!important;filter:saturate(.35)!important}
+ .lcars.theme-tos [data-console-cap]:focus-visible{outline:3px solid #fff!important;outline-offset:2px!important}
+ .lcars.theme-tos.color-safe [data-console-cap]:is(.active,.selected,[aria-pressed=true]){outline:3px double #fff!important;outline-offset:-3px!important}
+ .lcars.theme-tos .tos-display-keys [data-console-cap],.lcars.theme-tos .tos-bank-keys [data-console-cap]{--tos-cap-size:34px;--tos-hit-height:48px}
+ .lcars.theme-tos .tos-display-selector>[data-console-cap],.lcars.theme-tos .tos-bank-selector>[data-console-cap]{--tos-cap-size:32px;--tos-hit-height:48px}
+ .lcars.theme-tos .tos-key-pages>[data-console-cap]{--tos-cap-size:28px;--tos-hit-height:38px;font-size:9px!important}
+ .lcars.theme-tos .top [data-console-cap]{--tos-cap-size:32px;--tos-hit-height:44px}
+ .lcars.theme-tos .top .tos-operator-controls [data-console-cap]{--tos-cap-size:22px;--tos-hit-height:28px;font-size:9px!important}
+ .lcars.theme-tos .lcars-calendar-grid>[data-console-cap]{--tos-cap-size:24px;--tos-hit-height:24px;padding:0!important;justify-content:center!important;text-align:center!important;background-color:var(--tos-cap-color)!important;background-image:var(--tos-resin-sheen)!important;border:1px solid #111!important;box-shadow:var(--tos-lens-shadow)!important}
+ .lcars.theme-tos .lcars-calendar-grid>[data-console-cap]::before{display:none!important}
+}
+/* Black mounting plates sit within the existing connected gray chassis. */
+.lcars.theme-tos .tos-display-chassis{padding:6px 8px;background:var(--tos-frame-face)}
+.lcars.theme-tos .tos-display-selector.tos-display-selector,
+.lcars.theme-tos .tos-fixed-deck .tos-bank-selector.tos-bank-selector{
+ background:#080b0a!important;border:2px solid #202522!important;border-radius:4px!important;padding:4px 5px!important;box-shadow:inset 0 1px 2px #000,0 1px 0 #ffffff16!important;
+ grid-template-columns:44px minmax(0,1fr) 44px 120px 90px;
+}
+.lcars.theme-tos .tos-fixed-deck .tos-bank-selector.tos-bank-selector{grid-template-columns:44px minmax(0,1fr) 44px}
+.lcars.theme-tos .tos-fixed-deck .tos-bank-selector.has-close{grid-template-columns:44px minmax(0,1fr) 44px 80px}
+.lcars.theme-tos .tos-display-keys,.lcars.theme-tos .tos-bank-keys{gap:6px!important}
+.lcars.theme-tos .tos-fixed-deck.tos-fixed-deck .tos-control-group{
+ display:grid!important;grid-template-columns:minmax(80px,1fr) auto;gap:5px 10px!important;padding:6px 8px 8px!important;
+ background:#080b0a!important;border:2px solid #202522!important;border-radius:4px!important;box-shadow:inset 0 1px 2px #000,0 1px 0 #ffffff16!important;
+}
+.lcars.theme-tos .tos-fixed-deck .tos-control-group>h4{grid-column:1;grid-row:1;align-self:center}
+.lcars.theme-tos .tos-fixed-deck .tos-command-bank.tos-command-bank{grid-column:1/-1;grid-row:2;min-height:56px;gap:6px}
+.lcars.theme-tos .tos-fixed-deck .tos-key-pages.tos-key-pages{grid-column:2;grid-row:1;grid-template-columns:92px 80px 92px;gap:5px;width:auto;padding:0!important;margin:0!important;border:0!important}
+.lcars.theme-tos .top .tos-operator-controls{background:#080b0a;border:1px solid #222923;border-radius:3px;padding:2px;gap:2px}
+.lcars.theme-tos .top .title-copy{min-height:62px}
+/* The gray sidebar remains one continuous casting; only the individual sockets are black. */
+.lcars.theme-tos .tos-navigation-bank.tos-navigation-bank{gap:5px 6px;padding:4px 0}
+.lcars.theme-tos .tos-navigation-bank.tos-navigation-bank .nav{min-height:60px!important;gap:2px!important;padding:0 0 2px!important}
+.lcars.theme-tos .tos-navigation-bank.tos-navigation-bank .nav>i{box-sizing:border-box;width:48px!important;min-width:48px!important;max-width:48px!important;height:48px!important;min-height:48px!important;max-height:48px!important;flex-basis:48px!important;margin-inline:auto;align-self:center;border-radius:5px!important;font-size:11px!important}
+.lcars.theme-tos .shell>aside :is(.task-trigger,.tos-tray-key,.nav.power)>i{width:32px!important;min-width:32px!important;max-width:32px!important;height:32px!important;min-height:32px!important;max-height:32px!important;border-radius:5px!important}
+.lcars.theme-tos .shell>aside :is(.task-trigger,.tos-tray-key,.nav.power){min-height:40px!important}
+/* Footer keys remain small square auxiliary controls rather than another row of domes. */
+.lcars.theme-tos .system-tray.speed-dial.speed-dial button{background:#080b0a!important;background-image:none!important;box-shadow:none!important;border:0!important;border-radius:3px!important;padding:4px!important;min-height:38px;gap:5px;color:#fff3d9!important}
+.lcars.theme-tos .system-tray.speed-dial.speed-dial button>i{display:grid;place-items:center;position:static;transform:none;width:28px;min-width:28px;height:28px;min-height:28px;border:2px solid #101410!important;border-radius:4px!important;background-color:var(--tos-key-ivory)!important;background-image:var(--tos-resin-sheen)!important;box-shadow:var(--tos-lens-shadow)!important;color:#fff3d9!important;font:9px ui-monospace,monospace}
+.lcars.theme-tos .system-tray.speed-dial.speed-dial button::before{display:none!important}
+.lcars.theme-tos .mobile-command-bar.mobile-command-bar>button{background:#080b0a!important;background-image:none!important;box-shadow:none!important;border:0!important;min-height:48px;padding:4px!important;gap:4px;color:#fff3d9!important}
+.lcars.theme-tos .mobile-command-bar>button>i{display:grid;place-items:center;position:static;transform:none;width:32px;min-width:32px;height:32px;min-height:32px;border:2px solid #101410!important;border-radius:4px!important;background-color:var(--tos-key-ivory)!important;background-image:var(--tos-resin-sheen)!important;box-shadow:var(--tos-lens-shadow)!important;color:#fff3d9!important;font:9px ui-monospace,monospace}
+.lcars.theme-tos .mobile-command-bar>button::before{display:none!important}
+@media(max-height:800px) and (min-width:901px){
+ .lcars.theme-tos .tos-navigation-bank.tos-navigation-bank .nav{min-height:52px!important}
+ .lcars.theme-tos .tos-navigation-bank.tos-navigation-bank .nav>i{width:40px!important;min-width:40px!important;max-width:40px!important;height:40px!important;min-height:40px!important;max-height:40px!important;flex-basis:40px!important}
+}
+@media(max-height:660px) and (min-width:901px){
+ .lcars.theme-tos>.shell{grid-template-columns:minmax(0,1fr)!important}.lcars.theme-tos .shell>aside{display:none!important}.lcars.theme-tos .system-tray.speed-dial{display:none!important}
+ .lcars.theme-tos .mobile-command-bar{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));position:static;flex:0 0 auto;align-self:stretch;width:auto;min-height:56px;background:var(--tos-frame-face)!important;border:0;border-top:3px solid var(--tos-frame-shadow);padding:4px;transform:none}
+}
+@media(max-width:760px){
+ .lcars.theme-tos .tos-display-selector.tos-display-selector{grid-template-columns:36px minmax(0,1fr) 36px 62px;gap:3px;padding:3px!important}
+ .lcars.theme-tos .tos-fixed-deck .tos-bank-selector.tos-bank-selector{grid-template-columns:36px minmax(0,1fr) 36px;gap:3px;padding:3px!important}
+ .lcars.theme-tos .tos-fixed-deck .tos-bank-selector.has-close{grid-template-columns:32px minmax(0,1fr) 32px 52px}
+ .lcars.theme-tos .tos-fixed-deck.tos-fixed-deck .tos-control-group{padding:5px!important;gap:4px!important;grid-template-columns:minmax(0,1fr)}
+ .lcars.theme-tos .tos-fixed-deck .tos-key-pages.tos-key-pages{grid-column:1;grid-row:3;grid-template-columns:80px minmax(0,1fr) 80px;width:100%;gap:3px}
+ .lcars.theme-tos .tos-fixed-deck .tos-command-bank.tos-command-bank{grid-row:2;gap:3px}
+ .lcars.theme-tos .mobile-command-bar.mobile-command-bar>button{display:flex;align-items:center;flex-direction:column;font-size:8px}
+}
+@layer tos-physical{
+ @media(max-width:760px){
+  .lcars.theme-tos [data-console-cap]{--tos-cap-size:36px;--tos-hit-height:54px;font-size:9px!important;padding-right:2px!important;padding-left:calc(var(--tos-cap-size) + 9px)!important}
+  .lcars.theme-tos .tos-display-keys [data-console-cap],.lcars.theme-tos .tos-bank-keys [data-console-cap]{--tos-cap-size:30px;--tos-hit-height:46px;font-size:8px!important}
+  .lcars.theme-tos .tos-display-selector>[data-console-cap],.lcars.theme-tos .tos-bank-selector>[data-console-cap]{--tos-cap-size:28px;--tos-hit-height:46px;font-size:8px!important}
+  .lcars.theme-tos .tos-key-pages>[data-console-cap]{--tos-cap-size:26px;--tos-hit-height:36px;font-size:8px!important}
+  .lcars.theme-tos .top .tos-operator-controls [data-console-cap]{--tos-cap-size:22px;--tos-hit-height:28px;font-size:8px!important}
+ }
+}
+/* General-purpose display windows use compact record headings rather than web hero blocks. */
+.lcars.theme-tos .universal-search>header{padding:8px 12px!important;min-height:0!important}
+.lcars.theme-tos .universal-search>header h2{font:20px/1.1 Roddenberry,Arial,sans-serif!important;letter-spacing:.08em;margin:4px 0!important}
+.lcars.theme-tos .universal-search>header :is(small,p){font:9px/1.4 ui-monospace,monospace!important;margin:3px 0!important;color:#c6c8c1!important}
+.lcars.theme-tos .lcars-calendar>header{grid-template-columns:minmax(0,1fr) 48px;padding:8px 12px!important;margin:0!important}
+.lcars.theme-tos .lcars-calendar>header>span{border:0!important;padding:0!important}
+.lcars.theme-tos .lcars-calendar>header h2{font:22px/1.1 Roddenberry,Arial,sans-serif!important;letter-spacing:.08em;margin:4px 0!important}
+.lcars.theme-tos .lcars-calendar>header :is(small,p){font:9px/1.4 ui-monospace,monospace!important;color:#fff3d9!important}
+.lcars.theme-tos .lcars-calendar>header>strong{background:#000!important;color:#fff3d9!important;border-radius:0!important;font:24px ui-monospace,monospace}
+.lcars.theme-tos .lcars-calendar>footer{grid-template-columns:minmax(0,1fr) auto;gap:8px;margin:0!important;padding:10px 12px;border-bottom:1px solid #555e5b}
+.lcars.theme-tos .lcars-calendar>footer>i{display:none!important}
+.lcars.theme-tos .lcars-calendar>footer>span{background:#000!important;padding:0!important}
+.lcars.theme-tos .lcars-calendar>footer>strong{padding:0!important;grid-column:auto!important}
+.lcars.theme-tos .tos-fixed-deck .lcars-calendar-grid{width:min(100%,240px)!important}
+/* Keep all eleven larger station keys and the auxiliary keys reachable at desktop height. */
+.lcars.theme-tos .shell>aside>.nav-gap{display:none!important}
+.lcars.theme-tos .shell>aside{gap:3px!important;padding-top:3px!important;padding-bottom:3px!important}
+.lcars.theme-tos .shell>aside .task-zone{gap:3px!important}
+.lcars.theme-tos .tos-navigation-bank.tos-navigation-bank{flex:0 0 auto}
+@media(max-height:800px) and (min-width:901px){
+ .lcars.theme-tos .tos-navigation-bank.tos-navigation-bank{grid-auto-rows:50px;gap:2px 6px;padding:2px 0}
+ .lcars.theme-tos .tos-navigation-bank.tos-navigation-bank .nav{min-height:50px!important;gap:1px!important;padding:0!important}
+ .lcars.theme-tos .tos-navigation-bank .nav span{line-height:9px!important}
+}
+.lcars.theme-tos .top>.tos-header-command-plate{grid-column:span 2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;align-items:center;min-width:224px;padding:4px;background:#080b0a;border:2px solid #202522;border-radius:4px;box-shadow:inset 0 1px 2px #000}
+@media(max-width:1000px){.lcars.theme-tos .top>.tos-header-command-plate{display:none!important}}
+@container(max-width:700px){
+ .lcars.theme-tos .tos-fixed-deck.tos-fixed-deck .tos-control-group{grid-template-columns:minmax(0,1fr);padding:5px!important}
+ .lcars.theme-tos .tos-fixed-deck .tos-key-pages.tos-key-pages{grid-column:1;grid-row:3;grid-template-columns:80px minmax(0,1fr) 80px;width:100%;gap:3px}
+ .lcars.theme-tos .tos-fixed-deck .tos-bank-selector.tos-bank-selector{grid-template-columns:34px minmax(0,1fr) 34px;gap:4px;padding:3px!important}
+ .lcars.theme-tos .tos-fixed-deck .tos-bank-selector.has-close{grid-template-columns:32px minmax(0,1fr) 32px 52px}
+}
+@layer tos-physical{
+ @container(max-width:700px){
+  .lcars.theme-tos .tos-fixed-deck [data-console-cap]{--tos-cap-size:36px;--tos-hit-height:54px;font-size:9px!important;padding-left:calc(var(--tos-cap-size) + 9px)!important}
+  .lcars.theme-tos .tos-bank-keys [data-console-cap]{--tos-cap-size:30px;--tos-hit-height:46px;font-size:8px!important}
+  .lcars.theme-tos .tos-bank-selector>[data-console-cap]{--tos-cap-size:28px;--tos-hit-height:46px;font-size:8px!important}
+  .lcars.theme-tos .tos-key-pages>[data-console-cap]{--tos-cap-size:26px;--tos-hit-height:36px;font-size:8px!important}
+ }
+}
+@layer tos-physical{
+ .lcars.theme-tos [data-console-face=full],.lcars.theme-tos .tos-fixed-deck [data-console-face=full]{padding:0 3px!important}
+ .lcars.theme-tos .tos-fixed-deck .lcars-calendar-grid>[data-console-cap]{--tos-cap-size:24px;--tos-hit-height:24px;padding:0!important}
+}
+@layer tos-physical{
+ .lcars.theme-tos [data-console-cap]{overflow-wrap:anywhere!important;word-break:normal!important}
+ .lcars.theme-tos [data-console-cap]>.tos-key-legend{display:grid!important;align-content:center!important;gap:1px!important;min-width:0!important;max-width:100%!important;white-space:normal!important;overflow:visible!important;font:inherit!important;line-height:1.25!important}
+ .lcars.theme-tos [data-console-cap]>.tos-key-legend :is(b,strong){font-size:inherit!important}
+ .lcars.theme-tos [data-console-cap]>.tos-key-legend small{font-size:8px!important;line-height:1.2!important}
+ .lcars.theme-tos [data-console-cap]>.tos-key-legend img{max-width:18px!important;max-height:18px!important}
+ .lcars.theme-tos .tos-command-bank [data-console-cap]{width:100%!important}
+ .lcars.theme-tos .tos-fixed-deck .tos-command-bank.tos-command-bank{grid-template-columns:repeat(var(--tos-bank-columns,6),minmax(0,1fr))!important}
+ .lcars.theme-tos .tos-display-command-key>span{font-size:9px!important;overflow-wrap:normal!important}
+}
+@media(max-width:760px){
+ .lcars.theme-tos .tos-display-command-key>span{display:none!important}
+ .lcars.theme-tos .tos-display-command-key>b{margin-left:auto!important;font-size:12px!important}
+}

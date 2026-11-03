@@ -141,3 +141,12 @@ test('all eleven TOS displays expose passive state registers and honest offline/
   if(section==='settings')assert.match(html,/110%/);
  }
 });
+
+test('physical cap variants preserve native form, disabled, and accessible semantics outside TOS',()=>{
+ const helpers={};runInNewContext(ts.transpileModule(read('app/tos-console.tsx'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports:helpers,require:consoleRequire,URLSearchParams});
+ const render=tos=>renderToStaticMarkup(React.createElement(helpers.ConsoleThemeProvider,{tos},React.createElement(helpers.ConsoleButton,{className:'audio',consoleCap:'dome',consoleTone:'coral',type:'submit',form:'request-form',disabled:true,'aria-label':'Send request'},'SEND')));
+ const tos=render(true),classic=render(false);
+ assert.match(tos,/data-console-cap="dome"/);assert.match(tos,/data-console-tone="coral"/);
+ for(const html of [tos,classic]){assert.match(html,/type="submit"/);assert.match(html,/form="request-form"/);assert.match(html,/disabled=""/);assert.match(html,/aria-label="Send request"/);assert.match(html,/>SEND</);}
+ assert.doesNotMatch(classic,/consoleCap|consoleTone|data-console-/);
+});
